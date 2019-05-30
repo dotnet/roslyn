@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -12,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
@@ -100,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 For Each documentId In renamedDocuments
                     Dim document = workspace.CurrentSolution.GetDocument(documentId)
-                    Dim expectedName = newIdentifierName + document.Project.GetLanguageSourceFileExtension()
+                    Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
                     Assert.Equal(expectedName, document.Name)
                 Next
             End If

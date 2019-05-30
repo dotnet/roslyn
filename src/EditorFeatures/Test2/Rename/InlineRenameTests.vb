@@ -31,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
             End Using
         End Function
 
@@ -119,11 +119,11 @@ class Deconstructable
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -140,11 +140,11 @@ class Deconstructable
 
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
             End Using
         End Function
 
@@ -290,7 +290,9 @@ End Class
                         </Project>
                     </Workspace>)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True, renameFile:=True)
+                ' renameFile:=True should be enabled here
+                ' https://github.com/dotnet/roslyn/issues/36075
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
             End Using
         End Function
 
@@ -747,11 +749,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -768,11 +770,11 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
             End Using
         End Function
 
@@ -783,7 +785,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                 }
                             </Document>
@@ -801,11 +803,11 @@ End Class
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
             End Using
         End Function
 
@@ -817,11 +819,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -838,10 +840,10 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
             End Using
         End Function
@@ -889,11 +891,11 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class [|$$Goo|]
+                                class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
-                                        [|Goo|] f = new [|Goo|]();
+                                        [|Test1|] f = new [|Test1|]();
                                     }
                                 }
                             </Document>
@@ -910,10 +912,10 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 textBuffer.Insert(caretPosition, "Baz")
@@ -1596,8 +1598,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.False(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Disabled, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1608,7 +1609,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                partial class [|$$Goo|]
+                                partial class [|$$Test1|]
                                 {
                                     void Blah()
                                     {
@@ -1620,8 +1621,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.True(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1648,8 +1648,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.True(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1676,8 +1675,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.False(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Disabled, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1688,7 +1686,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                enum [|$$Goo|]]
+                                enum [|$$Test1|]
                                 {
                                     One,
                                     Two,
@@ -1700,8 +1698,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.True(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1712,7 +1709,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                interface [|$$Goo|]]
+                                interface [|$$Test1|]
                                 {
                                     void Blah();
                                 }
@@ -1722,8 +1719,28 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.True(session.KindSupportsFileRename)
-                Assert.True(session.AllowFileRename)
+                Assert.Equal(InlineRenameFileRenameInfo.Allowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyUnsupportedFileRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                interface Test1
+                                {
+                                    void [|$$Blah|]();
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
     End Class

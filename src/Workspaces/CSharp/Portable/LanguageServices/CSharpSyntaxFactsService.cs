@@ -1514,19 +1514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsTypeDeclaration(SyntaxNode node)
-        {
-            switch (node.Kind())
+            => node switch
             {
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+                BaseTypeDeclarationSyntax _ => true,
+                DelegateDeclarationSyntax _ => true,
+                _ => false,
+            };
 
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 

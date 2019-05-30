@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
+        private partial class SymbolInlineRenameInfo : IIInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -241,25 +242,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
-                var kindSupportsRename = RenameSymbol.Kind == SymbolKind.NamedType;
-                var allowRename = kindSupportsRename 
+                var kindSupportsFileRename = RenameSymbol.Kind == SymbolKind.NamedType;
+                var allowRename = kindSupportsFileRename
                     && (RenameSymbol.Locations.Length == 1)
-                    && (OriginalNameMatches(_document, RenameSymbol.Name) || ContainsOnlyOneType(_document));
+                    && (OriginalNameMatches(_document, RenameSymbol.Name));
 
-                return new InlineRenameFileRenameInfo(kindSupportsRename, allowRename);
+                if (kindSupportsFileRename && allowRename)
+                {
+                    return InlineRenameFileRenameInfo.Allowed;
+                }
+                else if (kindSupportsFileRename)
+                {
+                    return InlineRenameFileRenameInfo.Disabled;
+                }
+
+                return InlineRenameFileRenameInfo.NotAllowed;
 
                 // Local Functions
 
                 static bool OriginalNameMatches(Document document, string name)
                 {
-                    return document.Name.Substring(0, document.Name.Length - 3) == name;
-                }
-
-                static bool ContainsOnlyOneType(Document document)
-                {
-                    var syntaxRoot = document.GetSyntaxRootSynchronously(CancellationToken.None);
-                    var syntaxService = document.GetLanguageService<ISyntaxFactsService>();
-                    return syntaxRoot.DescendantNodesAndSelf().Where(n => syntaxService.IsTypeDeclaration(n)).Count() == 1;
+                    return Path.GetFileNameWithoutExtension(document.Name)
+                        .Equals(name, StringComparison.OrdinalIgnoreCase);
                 }
             }
         }

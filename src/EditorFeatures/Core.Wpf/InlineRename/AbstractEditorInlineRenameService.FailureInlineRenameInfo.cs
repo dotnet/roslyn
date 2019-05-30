@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
 
-            public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.None;
+            public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.NotAllowed;
         }
     }
 }

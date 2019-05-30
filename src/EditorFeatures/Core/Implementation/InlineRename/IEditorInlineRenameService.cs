@@ -35,18 +35,24 @@ namespace Microsoft.CodeAnalysis.Editor
         Complexified,
     }
 
-    internal struct InlineRenameFileRenameInfo
+    internal enum InlineRenameFileRenameInfo
     {
-        public readonly bool KindSupportsFileRename;
-        public readonly bool AllowRename;
+        /// <summary>
+        /// This operation is not allowed
+        /// on the symbol being renamed
+        /// </summary>
+        NotAllowed,
 
-        public InlineRenameFileRenameInfo(bool kindSupportsFileRename, bool allowRename)
-        {
-            KindSupportsFileRename = kindSupportsFileRename;
-            AllowRename = allowRename;
-        }
+        /// <summary>
+        /// The operation is potentially allowed, but 
+        /// currently disabled
+        /// </summary>
+        Disabled,
 
-        public static InlineRenameFileRenameInfo None = new InlineRenameFileRenameInfo(false, false);
+        /// <summary>
+        /// File rename is allowed
+        /// </summary>
+        Allowed
     }
 
     internal struct InlineRenameReplacement
@@ -181,12 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
-        /// Returns information about the file rename capabilities of 
-        /// an inline rename
-        /// </summary>
-        InlineRenameFileRenameInfo GetFileRenameInfo();
-
-        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
@@ -224,6 +224,15 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
+    }
+
+    internal interface IIInlineRenameInfoWithFileRename : IInlineRenameInfo
+    {
+        /// <summary>
+        /// Returns information about the file rename capabilities of 
+        /// an inline rename
+        /// </summary>
+        InlineRenameFileRenameInfo GetFileRenameInfo();
     }
 
     /// <summary>

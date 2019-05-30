@@ -1495,14 +1495,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '    DelegateDeclaration
         Public Function IsTypeDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeDeclaration
             Select Case node.Kind()
-                Case SyntaxKind.EnumStatement,
-                     SyntaxKind.EnumBlock,
-                     SyntaxKind.StructureStatement,
+                Case SyntaxKind.EnumBlock,
                      SyntaxKind.StructureBlock,
-                     SyntaxKind.InterfaceStatement,
                      SyntaxKind.InterfaceBlock,
-                     SyntaxKind.ClassStatement,
-                     SyntaxKind.ClassBlock
+                     SyntaxKind.ClassBlock,
+                     SyntaxKind.ModuleBlock,
+                     SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
                     Return True
             End Select
 

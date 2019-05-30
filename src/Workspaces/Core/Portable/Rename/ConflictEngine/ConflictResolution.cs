@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
@@ -87,8 +88,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void RenameDocumentToMatchNewSymbol(Document document)
         {
-            var documentName = $"{ReplacementText}{document.Project.GetLanguageSourceFileExtension()}";
-            _newSolution = _newSolution.WithDocumentName(document.Id, documentName);
+            var extension = Path.GetExtension(document.Name);
+            var newName = Path.ChangeExtension(ReplacementText, extension);
+
+            _newSolution = _newSolution.WithDocumentName(document.Id, newName);
         }
 
         /// <summary>

@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads) || session.ForceRenameOverloads;
             _defaultRenameInStringsFlag = session.OptionSet.GetOption(RenameOptions.RenameInStrings);
             _defaultRenameInCommentsFlag = session.OptionSet.GetOption(RenameOptions.RenameInComments);
-            _defaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile);
             _defaultPreviewChangesFlag = session.OptionSet.GetOption(RenameOptions.PreviewChanges);
 
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option. Use
             // The property so we correctly update the session as well
-            DefaultRenameFileFlag = AllowFileRename;
+            DefaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -153,12 +152,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool AllowFileRename => _session.AllowFileRename;
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
         public InlineRenameSession Session => _session;
 
         public DashboardSeverity Severity => _severity;
 
-        public bool ShowFileRename => _session.KindSupportsFileRename;
+        public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => AllowFileRename ? EditorFeaturesResources.Rename_file : EditorFeaturesResources.Rename_file_incompatible_type;
 
         public string HeaderText

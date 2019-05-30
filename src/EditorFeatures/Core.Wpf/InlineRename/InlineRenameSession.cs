@@ -71,19 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         /// <summary>
-        /// True if all of the following conditions are met: 
-        /// 
-        /// 1. KindSupportsFileRename is true
-        /// 2. Type is not partial OR partial type only has single declaration location
-        /// 3. Type is the only type in the file OR type already matches the file name
+        /// Information about whether a file rename should be allowed as part
+        /// of the rename operation
         /// </summary>
-        public bool AllowFileRename { get; }
-
-        /// <summary>
-        /// True if the selected node kind supports renaming at all. This allows the UI to hint
-        /// that the type could support renaming, whether or not the current conditions allow it. 
-        /// </summary>
-        public bool KindSupportsFileRename { get; }
+        public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -165,9 +156,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
-            var fileRenameInfo = _renameInfo.GetFileRenameInfo();
-            KindSupportsFileRename = fileRenameInfo.KindSupportsFileRename;
-            AllowFileRename = fileRenameInfo.AllowRename;
+            if (_renameInfo is IIInlineRenameInfoWithFileRename renameInfoWithFileRename)
+            {
+                FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
+            }
+            else
+            {
+                FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
+            }
 
             InitializeOpenBuffers(triggerSpan);
         }
@@ -770,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (_workspace.TryApplyChanges(finalSolution))
                 {
                     // Since rename can apply file changes as well, and those file 
-                    // changes can generate new document ids, included added documents
+                    // changes can generate new document ids, include added documents
                     // as well as changed documents. This also ensures that any document
                     // that was removed is not included
                     var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);

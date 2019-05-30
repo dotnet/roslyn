@@ -237,8 +237,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
                             .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
-                            .Distinct()
-                            .WhereNotNull();
+                            .Distinct();
 
                         if (definitionDocuments.Count() == 1)
                         {
