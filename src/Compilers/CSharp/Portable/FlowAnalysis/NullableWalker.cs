@@ -2041,38 +2041,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind op = binary.OperatorKind.Operator();
 
-            // learn from non-null expression
-            BoundExpression operandComparedToNonNull = null;
-            if (leftType.IsNotNull && rightType.MayBeNull && binary.Right.ConstantValue?.IsNull != true)
-            {
-                operandComparedToNonNull = binary.Right;
-            }
-            else if (leftType.MayBeNull && binary.Left.ConstantValue?.IsNull != true && rightType.IsNotNull)
-            {
-                operandComparedToNonNull = binary.Left;
-            }
-
-            if (operandComparedToNonNull != null)
-            {
-                switch (op)
-                {
-                    case BinaryOperatorKind.Equal:
-                    case BinaryOperatorKind.GreaterThan:
-                    case BinaryOperatorKind.LessThan:
-                    case BinaryOperatorKind.GreaterThanOrEqual:
-                    case BinaryOperatorKind.LessThanOrEqual:
-                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
-                        return;
-                    case BinaryOperatorKind.NotEqual:
-                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
-                        return;
-                    default:
-                        break;
-                };
-            }
-
             // learn from null constant
             if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
             {
@@ -2097,7 +2065,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
                     LearnFromNullTest(operandComparedToNull, ref nonNullCase ? ref StateWhenFalse : ref StateWhenTrue);
+                    return;
                 }
+            }
+
+            // learn from comparison between non-null and maybe-null, possibly updating maybe-null to non-null
+            BoundExpression operandComparedToNonNull = null;
+            if (leftType.IsNotNull && rightType.MayBeNull)
+            {
+                operandComparedToNonNull = binary.Right;
+            }
+            else if (rightType.IsNotNull && leftType.MayBeNull)
+            {
+                operandComparedToNonNull = binary.Left;
+            }
+
+            if (operandComparedToNonNull != null)
+            {
+                switch (op)
+                {
+                    case BinaryOperatorKind.Equal:
+                    case BinaryOperatorKind.GreaterThan:
+                    case BinaryOperatorKind.LessThan:
+                    case BinaryOperatorKind.GreaterThanOrEqual:
+                    case BinaryOperatorKind.LessThanOrEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
+                        return;
+                    case BinaryOperatorKind.NotEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
+                        return;
+                };
             }
 
             void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
