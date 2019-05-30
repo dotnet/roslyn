@@ -7191,5 +7191,581 @@ class C<T> where T : struct? {}
             }
             EOF();
         }
+
+        [Fact]
+        public void TestMethodDeclarationNullValidation()
+        {
+            UsingStatement(@"void M(string name!) { }");
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidation()
+        {
+            UsingStatement(@"void M(string name! = null) { }");
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
+        {
+            UsingStatement(@"void M(string name!=null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
+                    // void M(string name!=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgList()
+        {
+            UsingStatement(@"void M(__arglist!) { }");
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                        N(SyntaxKind.ExclamationToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingSpace()
+        {
+            UsingStatement(@"void M(string name !=null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                    // (1,20): error CS8712: Space required between explanation-point and equals-sign here.
+                    // void M(string name !=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 20)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingNewLine()
+        {
+            UsingStatement(@"void M(string name
+!=null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                // (2,1): error CS8712: Space required between '!' and '=' here.
+                // !=null) { }
+                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(2, 1)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingSpace()
+        {
+            UsingStatement(@"void M(string name!= null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
+                    // void M(string name!= null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingNewLine()
+        {
+            UsingStatement(@"void M(string name!=
+null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                // (1,19): error CS8712: Space required between '!' and '=' here.
+                    // void M(string name!=
+                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedMethod()
+        {
+            UsingTree(@"
+class C
+{
+    public void M(string x!) { }
+}");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedConstructor()
+        {
+            UsingTree(@"
+class C
+{
+    public C(string x!) { }
+}");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        [Fact]
+        public void TestNullCheckedOperator()
+        {
+            UsingTree(@"
+class Box
+{
+    public static int operator+ (Box b!, Box c) 
+    {
+        return 2;
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+
+        [Fact]
+        public void TestAnonymousDelegateNullChecking()
+        {
+            // PROTOTYPE : During semantics, make sure this causes an error
+            UsingTree(@"
+delegate void Del(int x!);
+Del d = delegate(int k!) { /* ... */ };");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.AnonymousMethodExpression);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.ExclamationToken);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
     }
 }

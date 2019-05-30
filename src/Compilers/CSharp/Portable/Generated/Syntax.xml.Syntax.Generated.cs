@@ -18542,11 +18542,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
+    public SyntaxToken ExclamationToken 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ParameterSyntax)this.Green).exclamationToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(4), this.GetChildIndex(4));
+
+            return default(SyntaxToken);
+        }
+    }
+
     public EqualsValueClauseSyntax Default 
     {
         get
         {
-            return this.GetRed(ref this.@default, 4);
+            return this.GetRed(ref this.@default, 5);
         }
     }
 
@@ -18556,7 +18568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             case 0: return this.GetRedAtZero(ref this.attributeLists);
             case 2: return this.GetRed(ref this.type, 2);
-            case 4: return this.GetRed(ref this.@default, 4);
+            case 5: return this.GetRed(ref this.@default, 5);
             default: return null;
         }
     }
@@ -18566,7 +18578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             case 0: return this.attributeLists;
             case 2: return this.type;
-            case 4: return this.@default;
+            case 5: return this.@default;
             default: return null;
         }
     }
@@ -18581,11 +18593,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitParameter(this);
     }
 
-    public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+    public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, SyntaxToken exclamationToken, EqualsValueClauseSyntax @default)
     {
-        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || exclamationToken != this.ExclamationToken || @default != this.Default)
         {
-            var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
+            var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, exclamationToken, @default);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -18597,27 +18609,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
-        return this.Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
+        return this.Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationToken, this.Default);
     }
 
     public ParameterSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
+        return this.Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationToken, this.Default);
     }
 
     public ParameterSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
+        return this.Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationToken, this.Default);
     }
 
     public ParameterSyntax WithIdentifier(SyntaxToken identifier)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
+        return this.Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.ExclamationToken, this.Default);
+    }
+
+    public ParameterSyntax WithExclamationToken(SyntaxToken exclamationToken)
+    {
+        return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, exclamationToken, this.Default);
     }
 
     public ParameterSyntax WithDefault(EqualsValueClauseSyntax @default)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
+        return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationToken, @default);
     }
 
     public ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)

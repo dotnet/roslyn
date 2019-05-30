@@ -7171,6 +7171,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Space required between &apos;!&apos; and &apos;=&apos; here..
+        /// </summary>
+        internal static string ERR_NeedSpaceBetweenExclamationAndEquals {
+            get {
+                return ResourceManager.GetString("ERR_NeedSpaceBetweenExclamationAndEquals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create an array with a negative size.
         /// </summary>
         internal static string ERR_NegativeArraySize {
