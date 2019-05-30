@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
                 {
                     if (bestFilterResult == null ||
-                        ItemManager.IsBetterDeletionMatch(currentFilterResult, bestFilterResult.Value, filterText))
+                        ItemManager.IsBetterDeletionMatch(currentFilterResult.CompletionItem, bestFilterResult.Value.CompletionItem, filterText))
                     {
                         // We had no best result yet, so this is now our best result.
                         bestFilterResult = currentFilterResult;

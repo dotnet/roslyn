@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,8 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // We need to filter if a non-empty strict subset of filters are selected
-            var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
+            var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).SelectAsArray(f => f.Filter);
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
@@ -162,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var options = document?.Project.Solution.Options;
             var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
 
-            var extendedFilterResults = new List<ExtendedFilterResult>();
+            var builder = ImmutableArray.CreateBuilder<ExtendedCompletionItem>();
             foreach (var item in data.InitialSortedList)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -172,13 +169,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     continue;
                 }
 
-                if (TryCreateExtendedFilterResult(completionHelper, item, filterText, initialRoslynTriggerKind, filterReason, highlightMatchingPortions, out var extendedFilterResult))
+                if (TryGetExtendedCompletionItem(completionHelper, item, filterText, initialRoslynTriggerKind, filterReason, highlightMatchingPortions, out var extendedCompletionItem))
                 {
-                    extendedFilterResults.Add(extendedFilterResult);
+                    builder.Add(extendedCompletionItem);
                 }
             }
 
-            if (extendedFilterResults.Count == 0)
+            var extendedItems = builder.ToImmutableArray();
+
+            if (extendedItems.Length == 0)
             {
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
             }
@@ -186,13 +185,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
             var updatedFilters = showCompletionItemFilters
-                ? GetUpdatedFilters(extendedFilterResults, data.SelectedFilters)
+                ? GetUpdatedFilters(extendedItems, data.SelectedFilters)
                 : ImmutableArray<CompletionFilterWithState>.Empty;
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(data.Trigger.Reason, extendedFilterResults, filterText, updatedFilters);
+                return HandleDeletionTrigger(data.Trigger.Reason, extendedItems, filterText, updatedFilters);
             }
 
             Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
@@ -212,24 +211,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 initialRoslynTriggerKind,
                 filterReason,
                 data.Trigger.Character,
-                extendedFilterResults,
+                extendedItems,
                 completionHelper,
                 hasSuggestedItemOptions);
         }
 
-        private bool TryCreateExtendedFilterResult(
-            CompletionHelper completionHelper, VSCompletionItem item,
+        private bool TryGetExtendedCompletionItem(
+            CompletionHelper completionHelper, VSCompletionItem vsCompletionItem,
             string filterText, CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason, bool highlightMatchingPortions,
-            out ExtendedFilterResult extendedFilterResult)
+            out ExtendedCompletionItem extendedCompletionItem)
         {
-            if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
+            if (!vsCompletionItem.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
             {
                 roslynItem = RoslynCompletionItem.Create(
-                    displayText: item.DisplayText,
-                    filterText: item.FilterText,
-                    sortText: item.SortText,
-                    displayTextSuffix: item.Suffix);
+                    displayText: vsCompletionItem.DisplayText,
+                    filterText: vsCompletionItem.FilterText,
+                    sortText: vsCompletionItem.SortText,
+                    displayTextSuffix: vsCompletionItem.Suffix);
             }
 
             var matchesFilterText = MatchesFilterText(
@@ -250,14 +249,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                 filterText.Length <= 1)
             {
-                extendedFilterResult = new ExtendedFilterResult(
-                    new CompletionItemWithHighlight(item, matchedSpans.Select(s => s.ToSpan()).ToImmutableArray()),
+                extendedCompletionItem = new ExtendedCompletionItem(
+                    new CompletionItemWithHighlight(vsCompletionItem, matchedSpans.SelectAsArray(s => s.ToSpan())),
                     new FilterResult(roslynItem, matchedFilterText: matchesFilterText));
 
                 return true;
             }
 
-            extendedFilterResult = default;
+            extendedCompletionItem = default;
             return false;
         }
 
@@ -268,14 +267,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private FilteredCompletionModel HandleNormalFiltering(
-            Func<ImmutableArray<RoslynCompletionItem>, string,
-            ImmutableArray<RoslynCompletionItem>> filterMethod,
+            Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason,
             char typeChar,
-            List<ExtendedFilterResult> itemsInList,
+            ImmutableArray<ExtendedCompletionItem> itemsInList,
             CompletionHelper completionHelper,
             bool hasSuggestedItemOptions)
         {
@@ -283,11 +281,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // matches the text typed so far.
 
             // Ask the language to determine which of the *matched* items it wants to select.
-            var matchingItems = itemsInList.Where(r => r.FilterResult.MatchedFilterText)
-                                           .Select(t => t.FilterResult.CompletionItem)
-                                           .AsImmutable();
+            var matchingItems = itemsInList.WhereAsArray(r => r.FilterResult.MatchedFilterText);
+            var matchingRoslynItems = matchingItems.SelectAsArray(t => t.FilterResult.CompletionItem);
 
-            var chosenItems = filterMethod(matchingItems, filterText);
+            var chosenItems = filterMethod(matchingRoslynItems, filterText);
 
             var recentItems = _recentItemsManager.RecentItems;
 
@@ -306,13 +303,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                var deduplicatedList = matchingItems.Where(r => !r.DisplayText.StartsWith("★"));
+                var deduplicatedList = matchingItems.Where(r => !r.FilterResult.CompletionItem.DisplayText.StartsWith("★"));
                 if (selectedItemIndex > -1 &&
                     deduplicatedList.Count() == 1 &&
                     filterText.Length > 0)
                 {
-                    var uniqueItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, deduplicatedList.First()));
-                    uniqueItem = itemsInList[uniqueItemIndex].CompletionItemWithHighlight.CompletionItem;
+                    uniqueItem = deduplicatedList.First().CompletionItemWithHighlight.CompletionItem;
                 }
             }
 
@@ -345,18 +341,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return new FilteredCompletionModel(
-                itemsInList.Select(item => item.CompletionItemWithHighlight).ToImmutableArray(), selectedItemIndex, filters,
+                itemsInList.SelectAsArray(item => item.CompletionItemWithHighlight), selectedItemIndex, filters,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
         private FilteredCompletionModel HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
-            List<ExtendedFilterResult> filterResults,
+            ImmutableArray<ExtendedCompletionItem> extendedCompletionItems,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters)
         {
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
-                !filterResults.Any(r => r.FilterResult.MatchedFilterText))
+                !extendedCompletionItems.Any(r => r.FilterResult.MatchedFilterText))
             {
                 // The user has typed something, but nothing in the actual list matched what
                 // they were typing.  In this case, we want to dismiss completion entirely.
@@ -367,12 +363,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            ExtendedFilterResult? bestFilterResult = null;
+            ExtendedCompletionItem? bestFilterResult = null;
             int matchCount = 1;
-            foreach (var currentFilterResult in filterResults.Where(r => r.FilterResult.MatchedFilterText))
+            foreach (var currentFilterResult in extendedCompletionItems.Where(r => r.FilterResult.MatchedFilterText))
             {
                 if (bestFilterResult == null ||
-                    IsBetterDeletionMatch(currentFilterResult.FilterResult, bestFilterResult.Value.FilterResult, filterText))
+                    IsBetterDeletionMatch(currentFilterResult.FilterResult.CompletionItem, bestFilterResult.Value.FilterResult.CompletionItem, filterText))
                 {
                     // We had no best result yet, so this is now our best result.
                     bestFilterResult = currentFilterResult;
@@ -396,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // * deleting through a word from the end keeps that word selected
                 // This also preserves the behavior the VB had through Dev12.
                 hardSelect = bestFilterResult.Value.CompletionItemWithHighlight.CompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
-                index = filterResults.IndexOf(bestFilterResult.Value);
+                index = extendedCompletionItems.IndexOf(bestFilterResult.Value);
             }
             else
             {
@@ -405,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return new FilteredCompletionModel(
-                filterResults.Select(filter => filter.CompletionItemWithHighlight).ToImmutableArray(),
+                extendedCompletionItems.SelectAsArray(filter => filter.CompletionItemWithHighlight),
                 index,
                 filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
@@ -444,14 +440,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            List<ExtendedFilterResult> filteredList,
+            ImmutableArray<ExtendedCompletionItem> filteredList,
             ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
             var textFilteredFilters = filteredList.SelectMany(n => n.CompletionItemWithHighlight.CompletionItem.Filters).ToImmutableHashSet();
 
             // When no items are available for a given filter, it becomes unavailable
-            return ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
+            return filters.SelectAsArray(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter)));
         }
 
         private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeFilters)
@@ -523,11 +519,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return -index;
         }
 
-        internal static bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2, string filterText)
+        internal static bool IsBetterDeletionMatch(RoslynCompletionItem item1, RoslynCompletionItem item2, string filterText)
         {
-            var item1 = result1.CompletionItem;
-            var item2 = result2.CompletionItem;
-
             var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(filterText);
             var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(filterText);
 
@@ -713,12 +706,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 || c == '_';
         }
 
-        private readonly struct ExtendedFilterResult
+        private readonly struct ExtendedCompletionItem
         {
             public readonly CompletionItemWithHighlight CompletionItemWithHighlight;
             public readonly FilterResult FilterResult;
 
-            public ExtendedFilterResult(CompletionItemWithHighlight item, FilterResult filterResult)
+            public ExtendedCompletionItem(CompletionItemWithHighlight item, FilterResult filterResult)
             {
                 CompletionItemWithHighlight = item;
                 FilterResult = filterResult;
