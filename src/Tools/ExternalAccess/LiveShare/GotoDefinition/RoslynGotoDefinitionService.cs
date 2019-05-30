@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-/*using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using TPL = System.Threading.Tasks;
@@ -23,19 +21,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-        private readonly RoslynLSPClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteWorkspace;
         private readonly IThreadingContext _threadingContext;
 
         public RoslynGotoDefinitionService(
             IStreamingFindUsagesPresenter streamingPresenter,
-            RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
+            RoslynLspClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace,
             IThreadingContext threadingContext)
         {
             _streamingPresenter = streamingPresenter ?? throw new ArgumentNullException(nameof(streamingPresenter));
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteWorkspace = remoteWorkspace ?? throw new ArgumentNullException(nameof(remoteWorkspace));
+            _threadingContext = threadingContext ?? throw new ArgumentNullException(nameof(threadingContext));
         }
 
         public async TPL.Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
                 }
                 else
                 {
-                    documentSpan = await location.ToDocumentSpanAsync(_remoteWorkspace, cancellationToken).ConfigureAwait(false);
+                    documentSpan = await _remoteWorkspace.GetDocumentSpanFromLocation(location, cancellationToken).ConfigureAwait(false);
                     if (documentSpan == null)
                     {
                         continue;
@@ -120,4 +119,4 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
             return definitionItems.ToImmutable();
         }
     }
-}*/
+}

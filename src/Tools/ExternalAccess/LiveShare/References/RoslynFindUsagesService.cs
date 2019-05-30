@@ -1,24 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-/*using System;
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Newtonsoft.Json.Linq;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using LiveShareProtocol = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLspClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
-        public RoslynFindUsagesService(RoslynLSPClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+        public RoslynFindUsagesService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 
             foreach (var location in locations)
             {
-                var documentSpan = await location.ToDocumentSpanAsync(_remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
+                var documentSpan = await _remoteLanguageServiceWorkspace.GetDocumentSpanFromLocation(location, context.CancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                 {
                     continue;
@@ -89,14 +88,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 
             foreach (var location in locations)
             {
-                var documentSpan = await location.ToDocumentSpanAsync(_remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
+                var documentSpan = await _remoteLanguageServiceWorkspace.GetDocumentSpanFromLocation(location, context.CancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                 {
                     continue;
                 }
 
+#pragma warning disable CS0612 // Type or member is obsolete.  TODO.
                 await context.OnReferenceFoundAsync(new SourceReferenceItem(dummyDef, documentSpan.Value, isWrittenTo: false)).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
             }
         }
     }
-}*/
+}

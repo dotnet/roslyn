@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
         public const string VBLspLanguageName = "VB_LSP";
         public const string VBLspContentTypeName = "VB_LSP";
 
+        public const string CSharpLspPackageGuidString = "9d42b837-b615-4574-80e1-f48828b6954d";
+        public const string CSharpLspLanguageServiceGuidString = "69463241-e026-48b2-a08b-a1a83f0cbafe";
+        public const string CSharpLspDebuggerLanguageGuidString = "8D07D1C6-5DE2-45CE-AEBF-7E21E03F9B10";
+
         // Note: this workspace kind is defined in Roslyn's:
         // Implementation\DebuggerIntelliSense\DebuggerIntellisenseWorkspace.cs
         // It is misspelled there as "DebbugerIntellisense"
