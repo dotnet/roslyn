@@ -2,10 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -178,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
-            _snapshotter.SnapshotWalker(node);
+            TakeIncrementalSnapshot(node);
             SetState(UnreachableState());
             foreach (var label in node.SwitchLabels)
             {
-                _snapshotter.SnapshotWalker(label);
+                TakeIncrementalSnapshot(label);
                 VisitLabel(label.Label, node);
             }
 
@@ -507,9 +504,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the checkpoint?
-                _snapshotter.SnapshotWalker(arm);
+                TakeIncrementalSnapshot(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
-                CheckpointWalkerThroughConversionGroup(arm.Value as BoundConversion, expression);
+                SnapshotWalkerThroughConversionGroup(arm.Value as BoundConversion, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);

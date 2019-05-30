@@ -1858,7 +1858,7 @@ done:
             }
         }
 
-        protected abstract BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out ImmutableDictionary<BoundNode, NullableWalker.Snapshot> checkpointMap);
+        protected abstract BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager);
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
