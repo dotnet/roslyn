@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis
 
         public static implicit operator LocalizableString(string fixedResource)
         {
+            return Create(fixedResource);
+        }
+
+        internal static LocalizableString Create(string fixedResource)
+        {
             return FixedLocalizableString.Create(fixedResource);
         }
 

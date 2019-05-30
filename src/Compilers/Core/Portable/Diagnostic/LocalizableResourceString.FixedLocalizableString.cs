@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 
             private readonly string _fixedString;
 
-            public static FixedLocalizableString Create(string fixedResource)
+            public static new FixedLocalizableString Create(string fixedResource)
             {
                 if (string.IsNullOrEmpty(fixedResource))
                 {

@@ -486,6 +486,14 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
+                ReportDiagnostic(diag);
+            }
+
+            return hasErrors;
+
+            // Local functions
+            void ReportDiagnostic(Diagnostic diag)
+            {
                 if (_reportedDiagnostics.Contains(diag))
                 {
                     // TODO: This invariant fails (at least) in the case where we see a member declaration "x = 1;".
@@ -496,20 +504,38 @@ namespace Microsoft.CodeAnalysis
                     // we previously created.
                     //this assert isn't valid if we change the design to not bail out after each phase.
                     //System.Diagnostics.Debug.Assert(diag.Severity != DiagnosticSeverity.Error);
-                    continue;
+                    return;
                 }
                 else if (diag.Severity == DiagnosticSeverity.Hidden)
                 {
                     // Not reported from the command-line compiler.
-                    continue;
+                    return;
                 }
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
+
+                // If the diagnostic was suppressed by one or more DiagnosticSuppressor(s), then we report info diagnostics for each suppression
+                // so that the suppression information is available in the binary logs and verbose build logs.
+                if (diag.ProgrammaticSuppressionInfo != null)
+                {
+                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    {
+                        // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+                        var suppressionDiag = Diagnostic.Create(SuppressionDiagnosticDescriptor, diag.Location, diag.Id, id, justification);
+                        if (_reportedDiagnostics.Add(suppressionDiag))
+                        {
+                            PrintError(suppressionDiag, consoleOutput);
+                        }
+                    }
+
+                    return;
+                }
+
                 if (diag.IsSuppressed)
                 {
-                    continue;
+                    return;
                 }
 
                 // Diagnostics that aren't suppressed will be reported to the console output and, if they are errors,
@@ -523,9 +549,15 @@ namespace Microsoft.CodeAnalysis
 
                 _reportedDiagnostics.Add(diag);
             }
-
-            return hasErrors;
         }
+
+        private readonly DiagnosticDescriptor SuppressionDiagnosticDescriptor = new DiagnosticDescriptor(
+            "SPR0001",
+            CodeAnalysisResources.SuppressionDiagnosticDescriptorTitle,
+            CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+            "ProgrammaticSuppression",
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true);
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
         private bool ReportDiagnostics(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
@@ -824,8 +856,16 @@ namespace Microsoft.CodeAnalysis
             reportAnalyzer = false;
             analyzerDriver = null;
 
+            // Flag indicating if the compilation phases should apply diagnostic filtering
+            // based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
+            // If we have any diagnostic suppressors which can suppress diagnostics,
+            // then we postpone diagnostic filtering until all diagnostics are computed because
+            // compiler warnings promoted to errors by /warnaserror might be suppressed by diagnostic suppressors, which run later.
+            // Not doing so will cause compilation phases to incorrectly bail out on compiler warnings promoted to errors.
+            bool filterDiagnosticsWhileCompiling = !analyzers.Any(a => a is DiagnosticSuppressor);
+
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
+            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, filterDiagnosticsWhileCompiling, cancellationToken);
             if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
@@ -873,7 +913,7 @@ namespace Microsoft.CodeAnalysis
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
             }
 
-            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, filterDiagnosticsWhileCompiling, cancellationToken);
             if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
@@ -930,7 +970,8 @@ namespace Microsoft.CodeAnalysis
                     sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,
                     embeddedTexts: embeddedTexts,
                     testData: null,
-                    cancellationToken: cancellationToken);
+                    cancellationToken,
+                    filterDiagnosticsWhileCompiling);
 
                 if (moduleBeingBuilt != null)
                 {
@@ -945,7 +986,8 @@ namespace Microsoft.CodeAnalysis
                             emitOptions.EmitTestCoverageData,
                             diagnostics,
                             filterOpt: null,
-                            cancellationToken: cancellationToken);
+                            cancellationToken,
+                            filterDiagnosticsWhileCompiling);
 
                         if (success)
                         {
@@ -1017,14 +1059,32 @@ namespace Microsoft.CodeAnalysis
 
                         if (analyzerDriver != null)
                         {
+                            // If we skipped filtering diagnostics while compiling, apply the filtering now.
+                            if (!filterDiagnosticsWhileCompiling &&
+                                !diagnostics.IsEmptyWithoutResolution)
+                            {
+                                var newDiagnostics = DiagnosticBag.GetInstance();
+                                compilation.FilterAndAppendDiagnostics(newDiagnostics,
+                                    diagnostics.AsEnumerableWithoutResolution(), filterDiagnostics: true, exclude: null);
+                                diagnostics.Clear();
+                                diagnostics.AddRange(newDiagnostics);
+                            }
+
                             // GetDiagnosticsAsync is called after ReportUnusedImports
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
                             var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                             diagnostics.AddRange(hostDiagnostics);
-                            if (hostDiagnostics.Any(IsReportedError))
+
+                            if (!diagnostics.IsEmptyWithoutResolution)
                             {
-                                success = false;
+                                // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
+                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+
+                                if (diagnostics.AsEnumerable().Any(IsReportedError))
+                                {
+                                    success = false;
+                                }
                             }
                         }
                     }
@@ -1058,8 +1118,8 @@ namespace Microsoft.CodeAnalysis
                             includePrivateMembers: emitOptions.IncludePrivateMembers,
                             emitTestCoverageData: emitOptions.EmitTestCoverageData,
                             pePdbFilePath: emitOptions.PdbFilePath,
-                            privateKeyOpt: privateKeyOpt,
-                            cancellationToken: cancellationToken);
+                            privateKeyOpt,
+                            cancellationToken);
 
                         peStreamProvider.Close(diagnostics);
                         refPeStreamProviderOpt?.Close(diagnostics);

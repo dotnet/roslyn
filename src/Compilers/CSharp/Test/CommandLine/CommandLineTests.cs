@@ -9091,7 +9091,8 @@ using System.Diagnostics; // Unused.
                                            string[] additionalFlags = null,
                                            int expectedInfoCount = 0,
                                            int expectedWarningCount = 0,
-                                           int expectedErrorCount = 0)
+                                           int expectedErrorCount = 0,
+                                           params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
                                 "/nologo", "/preferreduilang:en", "/t:library",
@@ -9106,7 +9107,7 @@ using System.Diagnostics; // Unused.
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args);
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty());
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
@@ -10738,6 +10739,266 @@ class C
             var exitCode = compiler.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Contains("error CS2021: File name 'test\\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString(), StringComparison.Ordinal);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxWarning()
+        {
+            // warning CS1522: Empty switch block
+            // NOTE: Empty switch block warning is reported by the C# language parser
+            string source = @"
+class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+        }
+    }
+}";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that compiler warning CS1522 is reported.
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS1522", output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS1522 is suppressed with diagnostic suppressor
+            // and info diagnostic is logged with programmatic suppression information.
+            var suppressor = new DiagnosticSuppressorForId("CS1522");
+
+            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification);
+
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: suppressor,
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS1522 is reported as error for /warnaserror.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" }, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS1522", output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS1522 is suppressed with diagnostic suppressor even with /warnaserror
+            // and info diagnostic is logged with programmatic suppression information.
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" },
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: suppressor);
+            Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestSuppression_CompilerSemanticWarning()
+        {
+            string source = @"
+class C
+{
+    // warning CS0169: The field 'C.f' is never used
+    private readonly int f;
+}";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that compiler warning CS0169 is reported.
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS0169", output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS0169 is suppressed with diagnostic suppressor
+            // and info diagnostic is logged with programmatic suppression information.
+            var suppressor = new DiagnosticSuppressorForId("CS0169");
+
+            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification);
+
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: suppressor,
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS0169 is reported as error for /warnaserror.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" }, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS0169", output, StringComparison.Ordinal);
+
+            // Verify that compiler warning CS0169 is suppressed with diagnostic suppressor even with /warnaserror
+            // and info diagnostic is logged with programmatic suppression information.
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" },
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: suppressor);
+            Assert.DoesNotContain($"error CS0169", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestNoSuppression_CompilerSyntaxError()
+        {
+            // error CS1001: Identifier expected
+            string source = @"
+class { }";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that compiler syntax error CS1001 is reported.
+            var output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            // Verify that compiler syntax error CS1001 cannot be suppressed with diagnostic suppressor.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: new DiagnosticSuppressorForId("CS1001"),
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestNoSuppression_CompilerSemanticError()
+        {
+            // error CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
+            string source = @"
+class C
+{
+    void M(UndefinedType x) { }
+}";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that compiler error CS0246 is reported.
+            var output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS0246", output, StringComparison.Ordinal);
+
+            // Verify that compiler error CS0246 cannot be suppressed with diagnostic suppressor.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: new DiagnosticSuppressorForId("CS0246"),
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.Contains("error CS0246", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestSuppression_AnalyzerWarning()
+        {
+            string source = @"
+class C { }";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that analyzer warning is reported.
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzer);
+            Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+
+            // Verify that analyzer warning is suppressed with diagnostic suppressor
+            // and info diagnostic is logged with programmatic suppression information.
+            var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
+
+            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification);
+
+            var analyzerAndSuppressor = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzerAndSuppressor,
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            // Verify that analyzer warning is reported as error for /warnaserror.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" },
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzer);
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+
+            // Verify that analyzer warning is suppressed with diagnostic suppressor even with /warnaserror
+            // and info diagnostic is logged with programmatic suppression information.
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" },
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzerAndSuppressor);
+            Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            // Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor.
+            analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: false);
+            suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
+            analyzerAndSuppressor = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzerAndSuppressor,
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.Contains($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact]
+        public void TestNoSuppression_AnalyzerError()
+        {
+            string source = @"
+class C { }";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that analyzer error is reported.
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Error, configurable: true);
+            var output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzer);
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+
+            // Verify that analyzer error cannot be suppressed with diagnostic suppressor.
+            var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
+            var analyzerAndSuppressor = new DiagnosticAnalyzer[] { analyzer, suppressor };
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: analyzerAndSuppressor,
+                additionalFlags: new[] { "/features:DiagnosticSuppressor" });
+            Assert.Contains($"error {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
         }
     }
 
