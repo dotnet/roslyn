@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
                 {
-                    if (node.WasCompilerGenerated)
+                    if (node == null || node.WasCompilerGenerated)
                     {
                         return;
                     }

@@ -434,7 +434,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
             var methodSymbol = symbol as MethodSymbol;
-            var snapshotBuilder = createSnapshots ? new SnapshotManager.Builder() : null;
+            // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
+            // Until we have a workaround for this, disable snapshotting for null symbols.
+            // https://github.com/dotnet/roslyn/issues/36066
+            var snapshotBuilder = createSnapshots && symbol != null ? new SnapshotManager.Builder() : null;
             Analyze(
                 compilation,
                 symbol,
@@ -451,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
 
-            snapshotManager = createSnapshots ? snapshotBuilder.ToManagerAndFree() : null;
+            snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
