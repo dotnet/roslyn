@@ -163,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly CodeAnalysisService _service;
             private readonly CancellationToken _cancellationToken;
 
-            public FindLiteralReferencesProgressCallback(CodeAnalysisService service, CancellationToken cancellationToken)
+            public FindLiteralReferencesProgressCallback(
+                CodeAnalysisService service,
+                CancellationToken cancellationToken)
             {
                 _service = service;
                 _cancellationToken = cancellationToken;
@@ -181,7 +183,8 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly CodeAnalysisService _service;
             private readonly CancellationToken _cancellationToken;
 
-            public FindReferencesProgressCallback(CodeAnalysisService service, CancellationToken cancellationToken)
+            public FindReferencesProgressCallback(
+                CodeAnalysisService service, CancellationToken cancellationToken)
             {
                 _service = service;
                 _cancellationToken = cancellationToken;
