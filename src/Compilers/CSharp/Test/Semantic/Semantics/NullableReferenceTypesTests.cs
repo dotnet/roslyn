@@ -22162,6 +22162,7 @@ class C
         [Fact]
         public void AllowNull_01()
         {
+            // Warn on misused nullability attributes (all except F1)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22226,6 +22227,7 @@ class Program
         [Fact]
         public void AllowNull_02()
         {
+            // Warn on misused nullability attributes? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22283,6 +22285,7 @@ class Program
         [Fact]
         public void AllowNull_03()
         {
+            // Warn on misused nullability attributes? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22401,9 +22404,10 @@ public class A
     {
         object x = null; // 1
         object? y = new object();
-        F1(x); // 2 TODO2
+        F1(x); // 2
         F1(y);
         F2(x); // 3
+        F2(x!);
         F2(y);
     }
 }";
@@ -22421,9 +22425,70 @@ public class A
         }
 
         [Fact]
+        public void AllowNull_DoesNotAffectTypeInference()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static void F1<T>(T t, T t2) where T : class { }
+    public static void F2<T>([AllowNull]T t, T t2) where T : class { }
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x, x); // 2
+        F1(x, y); // 3
+        F1(y, y);
+        F1(y, x); // 4
+
+        F2(x, x); // 5
+        F2(x, y); // 6
+        F2(y, y);
+        F2(y, x); // 7
+
+        F2(x, x!); // 8
+        F2(x!, x); // 9
+        F2(x!, y);
+        F2(y, x!);
+    }
+}";
+            var comp = CreateNullableCompilation(new[] { source, AllowNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 20),
+                // (10,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x, x); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T, T)", "T", "object?").WithLocation(10, 9),
+                // (11,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x, y); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T, T)", "T", "object?").WithLocation(11, 9),
+                // (13,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(y, x); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T, T)", "T", "object?").WithLocation(13, 9),
+                // (15,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x, x); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T, T)", "T", "object?").WithLocation(15, 9),
+                // (16,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x, y); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T, T)", "T", "object?").WithLocation(16, 9),
+                // (18,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(y, x); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T, T)", "T", "object?").WithLocation(18, 9),
+                // (20,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x, x!); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T, T)", "T", "object?").WithLocation(20, 9),
+                // (21,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x!, x); // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T, T)", "T", "object?").WithLocation(21, 9)
+                );
+        }
+
+        [Fact]
         public void AllowNull_OHI_Parameter_Generic()
         {
-            // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
+            // Should we require nullability annotation attributes to match or vary properly in OHI? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
 public class Base
@@ -22450,6 +22515,7 @@ public class Derived : Base
         [Fact]
         public void DisallowNull_Parameter_01()
         {
+            // Warn on misused nullability attributes (F2, F3, F4)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22497,6 +22563,7 @@ class Program
         F5(t5);
     }
 }";
+            // Should [DisallowNull] apply to nullable value types (ie. two extra warnings in M5)?  https://github.com/dotnet/roslyn/issues/36009
             var comp = CreateCompilation(new[] { DisallowNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (18,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22659,6 +22726,7 @@ class Program
         F5<T>(t5);
     }
 }";
+            // Should [DisallowNull] apply to nullable value types (ie. two extra warnings in M5)?  https://github.com/dotnet/roslyn/issues/36009
             var comp = CreateCompilation(new[] { DisallowNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (18,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22687,6 +22755,7 @@ class Program
         [Fact]
         public void DisallowNull_Parameter_03()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22757,6 +22826,7 @@ class Program
         [Fact]
         public void DisallowNull_Parameter_05()
         {
+            // Warn on misused nullability attributes (F2)? https://github.com/dotnet/roslyn/issues/36073
             var source0 =
 @"using System.Runtime.CompilerServices;
 public class A
@@ -22778,7 +22848,7 @@ public class A
         F1(x);
         F1(y);
         F2(x); // 2
-        F2(y); // 3 TODO2
+        F2(y);
     }
 }";
             comp = CreateNullableCompilation(source, references: new[] { ref0 });
@@ -22793,8 +22863,50 @@ public class A
         }
 
         [Fact]
+        public void DisallowNull_RefReturnValue_05()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static T? F1<T>(T t) where T : class => throw null!;
+    [return: DisallowNull] public static ref T? F2<T>(T t) where T : class => throw null!;
+}";
+            var comp = CreateNullableCompilation(new[] { DisallowNullAttributeDefinition, source0 });
+            comp.VerifyDiagnostics(
+                // (5,14): error CS0592: Attribute 'DisallowNull' is not valid on this declaration type. It is only valid on 'property, indexer, field, parameter' declarations.
+                //     [return: DisallowNull] public static ref T? F2<T>(T t) where T : class => throw null!;
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DisallowNull").WithArguments("DisallowNull", "property, indexer, field, parameter").WithLocation(5, 14)
+                );
+
+            var source1 =
+@"using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All)]
+    public sealed class DisallowNullAttribute : Attribute
+    {
+    }
+}
+public class A
+{
+    public static ref T? F1<T>(T t) where T : class => throw null!;
+    [return: DisallowNull] public static ref T? F2<T>(T t) where T : class => throw null!;
+    static void Main()
+    {
+        object? y = new object();
+        F1(y) = y;
+        F2(y) = y; // DisallowNull is ignored
+    }
+}";
+            var comp2 = CreateNullableCompilation(source1);
+            comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DisallowNull_OutParameter_03()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -22869,6 +22981,7 @@ class Program
         [Fact]
         public void MaybeNull_ReturnValue_01()
         {
+            // Warn on misused nullability attributes (F2, F3, F4)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23241,6 +23354,7 @@ class Program
         [Fact]
         public void MaybeNull_ReturnValue_03()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23266,6 +23380,7 @@ class Program
         [Fact]
         public void MaybeNull_ReturnValue_04()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23288,6 +23403,7 @@ class Program
         [Fact]
         public void MaybeNull_ReturnValue_05()
         {
+            // Warn on misused nullability attributes (F2)? https://github.com/dotnet/roslyn/issues/36073
             var source0 =
 @"using System.Runtime.CompilerServices;
 public class A
@@ -23306,30 +23422,77 @@ public class A
     {
         object x = null; // 1
         object? y = new object();
-        F1(x).ToString(); // 2
+        F1(x).ToString(); // 2, 3
         F1(y).ToString();
-        F2(x).ToString(); // 3
-        F2(y).ToString(); // 4 TODO2
+        F2(x).ToString(); // 4, 5
+        F2(y).ToString(); // 6
     }
 }";
-            // TODO2
             comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
                 // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //         F1(x).ToString(); // 2
+                //         F1(x).ToString(); // 2, 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(x).ToString(); // 2, 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9),
+                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x).ToString(); // 4, 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(x).ToString(); // 4, 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(y).ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(y)").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_ReturnValue_05_Unconstrained()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static T F1<T>(T t) => t;
+    [return: MaybeNull] public static T F2<T>(T t) => t;
+}";
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x).ToString(); // 2
+        F1(y).ToString();
+        F2(x).ToString(); // 3
+        F2(y).ToString(); // 4
+    }
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         F1(x).ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9),
-                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //         F2(x).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         F2(x).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(y).ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(y)").WithLocation(10, 9)
+                );
         }
 
         [Fact]
@@ -23386,6 +23549,7 @@ class Program
         [Fact]
         public void MaybeNull_OutParameter_01()
         {
+            // Warn on misused nullability attributes (F2, F3, F4 and probably F5)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23700,6 +23864,7 @@ class Program
         [Fact]
         public void MaybeNull_OutParameter_03()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23729,6 +23894,7 @@ class Program
         [Fact]
         public void MaybeNull_OutParameter_04()
         {
+            // Warn on misused nullability attributes (F1, F2)? https://github.com/dotnet/roslyn/issues/36073
             var source =
 @"using System.Runtime.CompilerServices;
 class Program
@@ -23755,6 +23921,7 @@ class Program
         [Fact]
         public void MaybeNull_OutParameter_05()
         {
+            // Warn on misused nullability attributes (F2)? https://github.com/dotnet/roslyn/issues/36073
             var source0 =
 @"using System.Runtime.CompilerServices;
 public class A
@@ -23806,6 +23973,48 @@ public class A
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
                 //         o4.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o4").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_OutParameter_05_Unconstrained()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static void F2<T>(T t, [MaybeNull]out T t2) => throw null!;
+}";
+            var comp = CreateNullableCompilation(new[] { MaybeNullAttributeDefinition, source0 });
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+
+        F2(x, out var o3);
+        o3.ToString(); // 2
+
+        F2(y, out var o4);
+        o4.ToString(); // 3
+    }
+}";
+            comp = CreateNullableCompilation(source, references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         o3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o3").WithLocation(9, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         o4.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o4").WithLocation(12, 9)
                 );
         }
 
@@ -24130,6 +24339,7 @@ class Program
         [Fact]
         public void NotNull_ReturnValue_01()
         {
+            // Warn on misused nullability attributes? https://github.com/dotnet/roslyn/issues/36073
             // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
@@ -24331,9 +24541,9 @@ public class A
     {
         object x = null; // 1
         object? y = new object();
-        F1(x).ToString(); // 2
+        F1(x).ToString(); // 2, 3
         F1(y).ToString();
-        F2(x).ToString();
+        F2(x).ToString(); // 4
         F2(y).ToString();
     }
 }";
@@ -24343,17 +24553,124 @@ public class A
                 //         object x = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
                 // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //         F1(x).ToString(); // 2
+                //         F1(x).ToString(); // 2, 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
-                //         F1(x).ToString(); // 2
+                //         F1(x).ToString(); // 2, 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9),
                 // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //         F2(x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9),
-                // (9,9): warning CS8602: Dereference of a possibly null reference.
-                //         F2(x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9));
+                //         F2(x).ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNull_ReturnValue_05_Unconstrained()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static T F1<T>(T t) => t;
+    [return: NotNull] public static T F2<T>(T t) => t;
+}";
+            var comp = CreateNullableCompilation(new[] { NotNullAttributeDefinition, source0 });
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x).ToString(); // 2
+        F1(y).ToString();
+        F2(x).ToString();
+        F2(y).ToString();
+    }
+}";
+            comp = CreateNullableCompilation(source, references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNull_ReturnValue_05_Unconstrained_WithMaybeNull()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    [return: NotNull, MaybeNull] public static T F2<T>(T t) => t;
+}";
+            var comp = CreateNullableCompilation(new[] { NotNullAttributeDefinition, MaybeNullAttributeDefinition, source0 });
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F2(x).ToString(); // 2
+        F2(y).ToString(); // 3
+    }
+}";
+            comp = CreateNullableCompilation(source, references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(7, 9),
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(y).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(y)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNull_ReturnValue_05_Unconstrained_WithMaybeNull_InSource()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    [return: NotNull, MaybeNull] public static T F2<T>(T t) => t;
+}
+class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F2(x).ToString(); // 2
+        F2(y).ToString(); // 3
+    }
+}";
+            var comp = CreateNullableCompilation(new[] { NotNullAttributeDefinition, MaybeNullAttributeDefinition, source });
+            comp.VerifyDiagnostics(
+                // (10,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 20),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(y).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(y)").WithLocation(13, 9)
+                );
         }
 
         [Fact]
@@ -24389,6 +24706,7 @@ class Program
         [Fact]
         public void NotNull_OutParameter_GenericType()
         {
+            // Warn on misused nullability attributes? https://github.com/dotnet/roslyn/issues/36073
             // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
@@ -24534,7 +24852,7 @@ class Program
         [Fact]
         public void NotNull_OHI_ReturnValue_GenericType_Loosening()
         {
-            // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
+            // Should we require nullability annotation attributes to match or vary properly in OHI? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
 public class Base
@@ -24561,7 +24879,7 @@ public class Derived : Base
         [Fact]
         public void NotNull_OHI_ReturnValue_GenericType_Loosening_MaybeNull()
         {
-            // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
+            // Should we require nullability annotation attributes to match or vary properly in OHI? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
 public class Base
@@ -24588,7 +24906,7 @@ public class Derived : Base
         [Fact]
         public void NotNull_OHI_OutParameter_GenericType_Loosening()
         {
-            // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
+            // Should we require nullability annotation attributes to match or vary properly in OHI? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
 public class Base
@@ -24615,7 +24933,7 @@ public class Derived : Base
         [Fact]
         public void NotNull_OHI_ReturnValue_GenericType_Tightening()
         {
-            // Should we enforce nullability annotation attributes inside method bodies? https://github.com/dotnet/roslyn/issues/36039
+            // Should we require nullability annotation attributes to match or vary properly in OHI? https://github.com/dotnet/roslyn/issues/36039
             var source =
 @"using System.Runtime.CompilerServices;
 public class Derived : Base
