@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 static bool OriginalNameMatches(Document document, string name)
                 {
-                    return document.Name.Substring(document.Name.Length - 3) == name;
+                    return document.Name.Substring(0, document.Name.Length - 3) == name;
                 }
 
                 static bool ContainsOnlyOneType(Document document)
