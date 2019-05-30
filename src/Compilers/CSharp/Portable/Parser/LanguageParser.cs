@@ -11102,21 +11102,31 @@ tryAgain:
             else
             {
                 var name = this.ParseIdentifierToken();
-                // PROTOTYPE: TryEatToken
-                var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
-                SyntaxToken arrow;
-                if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken && this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
+                SyntaxToken arrow, exclamation;
+                // Case x! =>
+                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                {
+                    exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                    arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                }
+                // Case x!=>
+                else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken && this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
                 {
                     var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
                     arrow = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsGreaterThanToken);
                     arrow = AddError(arrow, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
                     var gt = this.EatToken(SyntaxKind.GreaterThanToken);
                     arrow = AddTrailingSkippedSyntax(arrow, gt);
+                    AddLeadingSkippedSyntax(arrow, notEq.GetLeadingTrivia());
+                    exclamation = AddLeadingSkippedSyntax(arrow, SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken));
                 }
+                // Case x=>, x =>
                 else
                 {
                     arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                     arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    exclamation = null;
                 }
                 var parameter = _syntaxFactory.Parameter(
                     default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
