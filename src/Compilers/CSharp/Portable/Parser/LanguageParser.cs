@@ -11118,8 +11118,7 @@ tryAgain:
                     arrow = AddError(arrow, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
                     var gt = this.EatToken(SyntaxKind.GreaterThanToken);
                     arrow = AddTrailingSkippedSyntax(arrow, gt);
-                    AddLeadingSkippedSyntax(arrow, notEq.GetLeadingTrivia());
-                    exclamation = AddLeadingSkippedSyntax(arrow, SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken));
+                    exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
                 }
                 // Case x=>, x =>
                 else

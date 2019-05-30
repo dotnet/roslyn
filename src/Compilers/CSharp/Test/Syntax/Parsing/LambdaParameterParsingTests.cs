@@ -810,6 +810,7 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.ExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.IdentifierName);
