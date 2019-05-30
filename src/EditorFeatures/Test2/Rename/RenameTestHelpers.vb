@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String, Optional expectFileRename As Boolean = False) As Task
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
             Await WaitForRename(workspace)
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
@@ -96,17 +96,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     End If
                 Next
             Next
-
-            If expectFileRename Then
-                Dim renamedDocuments = workspace.Documents.Select(Function(d) d.Id)
-
-                For Each documentId In renamedDocuments
-                    Dim document = workspace.CurrentSolution.GetDocument(documentId)
-                    Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
-                    Assert.Equal(expectedName, document.Name)
-                Next
-            End If
         End Function
+
+        Public Sub VerifyFileRename(workspace As TestWorkspace, newIdentifierName As String)
+            Dim renamedDocuments = workspace.Documents.Select(Function(d) d.Id)
+
+            For Each documentId In renamedDocuments
+                Dim document = workspace.CurrentSolution.GetDocument(documentId)
+                Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
+                Assert.Equal(expectedName, document.Name)
+            Next
+        End Sub
 
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
             Dim workspace = TestWorkspace.CreateWorkspace(

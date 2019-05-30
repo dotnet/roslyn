@@ -52,7 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileRename(workspace, "BarTest1")
             End Using
         End Function
 
@@ -144,7 +145,8 @@ class Deconstructable
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileRename(workspace, "BarTest1")
             End Using
         End Function
 
@@ -175,7 +177,11 @@ class Deconstructable
 
             session.Commit()
 
-            Await VerifyTagsAreCorrect(workspace, replacementText, expectFileRename:=renameFile)
+            Await VerifyTagsAreCorrect(workspace, replacementText)
+
+            If renameFile Then
+                VerifyFileRename(workspace, replacementText)
+            End If
         End Function
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/13186")>
@@ -290,9 +296,10 @@ End Class
                         </Project>
                     </Workspace>)
 
-                ' renameFile:=True should be enabled here
-                ' https://github.com/dotnet/roslyn/issues/36075
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+
+                ' https://github.com/dotnet/roslyn/issues/36075
+                ' VerifyFileRename(workspace, "ABC")
             End Using
         End Function
 
@@ -774,7 +781,8 @@ End Class
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileRename(workspace, "BarTest1")
             End Using
         End Function
 
@@ -807,7 +815,8 @@ End Class
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                VerifyFileRename(workspace, "BarTest1")
             End Using
         End Function
 
@@ -843,8 +852,9 @@ End Class
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                VerifyFileRename(workspace, "BarTest1")
             End Using
         End Function
 
@@ -915,8 +925,9 @@ End Class
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                VerifyFileRename(workspace, "BarTest1")
 
                 textBuffer.Insert(caretPosition, "Baz")
                 Await VerifyRenameTrackingTags(renameTrackingTagger, workspace, document, expectedTagCount:=1)
@@ -1573,7 +1584,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyNoRenameAllowedForPartialType()
+        Public Sub VerifyNoFileRenameAllowedForPartialType()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1604,7 +1615,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyRenameAllowedForPartialTypeWithSingleLocation()
+        Public Sub VerifyFileRenameAllowedForPartialTypeWithSingleLocation()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1627,7 +1638,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyRenameAllowedWithMultipleTypesOnMatchingName()
+        Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingName()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1654,7 +1665,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyNoRenameAllowedWithMultipleTypes()
+        Public Sub VerifyNoFileRenameAllowedWithMultipleTypes()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1681,7 +1692,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyEnumKindSupportsRename()
+        Public Sub VerifyEnumKindSupportsFileRename()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1704,7 +1715,7 @@ End Class
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyInterfaceKindSupportsRename()
+        Public Sub VerifyInterfaceKindSupportsFileRename()
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
