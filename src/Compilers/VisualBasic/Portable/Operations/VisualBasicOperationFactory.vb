@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
-                    Return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode), isImplicit)
+                    Return New VisualBasicLazyNoneOperation(Function(node) GetIOperationChildren(node), boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' https://github.com/dotnet/roslyn/issues/23109
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
                 Dim isImplicit As Boolean = boundAssignmentOperator.WasCompilerGenerated
-                Return Operation.CreateOperationNone(_semanticModel, boundAssignmentOperator.Syntax, constantValue, Function() GetIOperationChildren(boundAssignmentOperator), isImplicit)
+                Return New VisualBasicLazyNoneOperation(Function(node) GetIOperationChildren(node), boundAssignmentOperator, _semanticModel, boundAssignmentOperator.Syntax, constantValue, isImplicit)
             ElseIf boundAssignmentOperator.LeftOnTheRightOpt IsNot Nothing Then
                 Return CreateCompoundAssignment(boundAssignmentOperator)
             Else
