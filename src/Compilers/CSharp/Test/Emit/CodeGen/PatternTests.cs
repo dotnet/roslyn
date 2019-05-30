@@ -2596,5 +2596,216 @@ class Program
                 }
             }
         }
+
+        [Fact]
+        public void CompileTimeRuntimeInstanceofMismatch_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M(new byte[1]);
+        M(new sbyte[1]);
+        M(new Ebyte[1]);
+        M(new Esbyte[1]);
+
+        M(new short[1]);
+        M(new ushort[1]);
+        M(new Eshort[1]);
+        M(new Eushort[1]);
+
+        M(new int[1]);
+        M(new uint[1]);
+        M(new Eint[1]);
+        M(new Euint[1]);
+
+        M(new int[1][]);
+        M(new uint[1][]);
+        M(new Eint[1][]);
+        M(new Euint[1][]);
+
+        M(new long[1]);
+        M(new ulong[1]);
+        M(new Elong[1]);
+        M(new Eulong[1]);
+
+        M(new IntPtr[1]);
+        M(new UIntPtr[1]);
+
+        M(new IntPtr[1][]);
+        M(new UIntPtr[1][]);
+    }
+
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case byte[] _ when o.GetType() == typeof(byte[]):
+                Console.WriteLine(""byte[]"");
+                break;
+            case sbyte[] _ when o.GetType() == typeof(sbyte[]):
+                Console.WriteLine(""sbyte[]"");
+                break;
+            case Ebyte[] _ when o.GetType() == typeof(Ebyte[]):
+                Console.WriteLine(""Ebyte[]"");
+                break;
+            case Esbyte[] _ when o.GetType() == typeof(Esbyte[]):
+                Console.WriteLine(""Esbyte[]"");
+                break;
+
+            case short[] _ when o.GetType() == typeof(short[]):
+                Console.WriteLine(""short[]"");
+                break;
+            case ushort[] _ when o.GetType() == typeof(ushort[]):
+                Console.WriteLine(""ushort[]"");
+                break;
+            case Eshort[] _ when o.GetType() == typeof(Eshort[]):
+                Console.WriteLine(""Eshort[]"");
+                break;
+            case Eushort[] _ when o.GetType() == typeof(Eushort[]):
+                Console.WriteLine(""Eushort[]"");
+                break;
+
+            case int[] _ when o.GetType() == typeof(int[]):
+                Console.WriteLine(""int[]"");
+                break;
+            case uint[] _ when o.GetType() == typeof(uint[]):
+                Console.WriteLine(""uint[]"");
+                break;
+            case Eint[] _ when o.GetType() == typeof(Eint[]):
+                Console.WriteLine(""Eint[]"");
+                break;
+            case Euint[] _ when o.GetType() == typeof(Euint[]):
+                Console.WriteLine(""Euint[]"");
+                break;
+
+            case int[][] _ when o.GetType() == typeof(int[][]):
+                Console.WriteLine(""int[][]"");
+                break;
+            case uint[][] _ when o.GetType() == typeof(uint[][]):
+                Console.WriteLine(""uint[][]"");
+                break;
+            case Eint[][] _ when o.GetType() == typeof(Eint[][]):
+                Console.WriteLine(""Eint[][]"");
+                break;
+            case Euint[][] _ when o.GetType() == typeof(Euint[][]):
+                Console.WriteLine(""Euint[][]"");
+                break;
+
+            case long[] _ when o.GetType() == typeof(long[]):
+                Console.WriteLine(""long[]"");
+                break;
+            case ulong[] _ when o.GetType() == typeof(ulong[]):
+                Console.WriteLine(""ulong[]"");
+                break;
+            case Elong[] _ when o.GetType() == typeof(Elong[]):
+                Console.WriteLine(""Elong[]"");
+                break;
+            case Eulong[] _ when o.GetType() == typeof(Eulong[]):
+                Console.WriteLine(""Eulong[]"");
+                break;
+
+            case IntPtr[] _ when o.GetType() == typeof(IntPtr[]):
+                Console.WriteLine(""IntPtr[]"");
+                break;
+            case UIntPtr[] _ when o.GetType() == typeof(UIntPtr[]):
+                Console.WriteLine(""UIntPtr[]"");
+                break;
+
+            case IntPtr[][] _ when o.GetType() == typeof(IntPtr[][]):
+                Console.WriteLine(""IntPtr[][]"");
+                break;
+            case UIntPtr[][] _ when o.GetType() == typeof(UIntPtr[][]):
+                Console.WriteLine(""UIntPtr[][]"");
+                break;
+
+            default:
+                Console.WriteLine(""oops: "" + o.GetType());
+                break;
+        }
+    }
+}
+enum Ebyte : byte {}
+enum Esbyte : sbyte {}
+enum Eshort : short {}
+enum Eushort : ushort {}
+enum Eint : int {}
+enum Euint : uint {}
+enum Elong : long {}
+enum Eulong : ulong {}
+";
+            var expectedOutput =
+@"byte[]
+sbyte[]
+Ebyte[]
+Esbyte[]
+short[]
+ushort[]
+Eshort[]
+Eushort[]
+int[]
+uint[]
+Eint[]
+Euint[]
+int[][]
+uint[][]
+Eint[][]
+Euint[][]
+long[]
+ulong[]
+Elong[]
+Eulong[]
+IntPtr[]
+UIntPtr[]
+IntPtr[][]
+UIntPtr[][]
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void CompileTimeRuntimeInstanceofMismatch_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M(new byte[1]);
+        M(new sbyte[1]);
+    }
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case byte[] _:
+                Console.WriteLine(""byte[]"");
+                break;
+            case sbyte[] _: // not subsumed, even though it will never occur due to CLR behavior
+                Console.WriteLine(""sbyte[]"");
+                break;
+        }
+    }
+}
+";
+            var expectedOutput =
+@"byte[]
+byte[]
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

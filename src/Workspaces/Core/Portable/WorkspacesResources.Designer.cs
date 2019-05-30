@@ -241,6 +241,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding analyzer config documents is not supported..
+        /// </summary>
+        internal static string Adding_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Adding_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding analyzer references is not supported..
         /// </summary>
         internal static string Adding_analyzer_references_is_not_supported {
@@ -490,6 +499,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changing_additional_documents_is_not_supported {
             get {
                 return ResourceManager.GetString("Changing_additional_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Changing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_analyzer_config_documents_is_not_supported", resourceCulture);
             }
         }
         
@@ -3182,6 +3200,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Removing_additional_documents_is_not_supported {
             get {
                 return ResourceManager.GetString("Removing_additional_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Removing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Removing_analyzer_config_documents_is_not_supported", resourceCulture);
             }
         }
         

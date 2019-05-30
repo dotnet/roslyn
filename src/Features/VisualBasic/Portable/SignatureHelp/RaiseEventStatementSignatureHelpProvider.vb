@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class RaiseEventStatementSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = "("c OrElse ch = ","c
         End Function

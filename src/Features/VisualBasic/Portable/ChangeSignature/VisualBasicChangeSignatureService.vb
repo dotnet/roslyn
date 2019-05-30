@@ -76,6 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             SyntaxKind.SubNewStatement,
             SyntaxKind.ConstructorBlock)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Async Function GetInvocationSymbolAsync(
                 document As Document,
                 position As Integer,

@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpInlineDeclarationCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 

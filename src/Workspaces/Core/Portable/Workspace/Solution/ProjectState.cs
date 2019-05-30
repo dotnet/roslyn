@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis
                 if (_analyzerOptionsDoNotAccessDirectly == null)
                 {
                     _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>(),
+                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
                         new WorkspaceAnalyzerConfigOptionsProvider(this));
                 }
 

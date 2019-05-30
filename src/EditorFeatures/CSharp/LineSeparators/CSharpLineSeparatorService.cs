@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
     internal class CSharpLineSeparatorService : ILineSeparatorService
     {
+        [ImportingConstructor]
+        public CSharpLineSeparatorService()
+        {
+        }
+
         /// <summary>
         /// Given a tree returns line separator spans.
         /// The operation may take fairly long time on a big tree so it is cancellable.

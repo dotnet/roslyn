@@ -13,6 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Partial Friend Class VisualBasicLanguageDebugInfoService
         Implements ILanguageDebugInfoService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function GetLocationInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugLocationInfo) Implements ILanguageDebugInfoService.GetLocationInfoAsync
             Return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken)
         End Function

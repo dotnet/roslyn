@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
