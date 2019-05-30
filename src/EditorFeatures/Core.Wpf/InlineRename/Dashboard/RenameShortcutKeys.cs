@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static string PreviewChanges { get; }
         public static string Apply { get; }
         public static string RenameFile { get; }
+
         static RenameShortcutKey()
         {
             RenameOverloads = ExtractAccessKey(EditorFeaturesResources.Include_overload_s, "O");

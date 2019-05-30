@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         /// <summary>
         /// Information about whether a file rename should be allowed as part
-        /// of the rename operation
+        /// of the rename operation, as determined by the language
         /// </summary>
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 

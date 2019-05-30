@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
         public InlineRenameSession Session => _session;
 
         public DashboardSeverity Severity => _severity;
 
+        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => AllowFileRename ? EditorFeaturesResources.Rename_file : EditorFeaturesResources.Rename_file_incompatible_type;
 
