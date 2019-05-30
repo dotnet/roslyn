@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 16)]
+    [ProvideMenuResource("Menus.ctmenu", version: 17)]
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;

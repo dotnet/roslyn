@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
-            Assert.Equal(string.Format(CSharpScriptingResources.LogoLine1, typeof(CSharpReplServiceProvider).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version), output[0]);
+            var version = CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider));
+            Assert.Equal(string.Format(CSharpScriptingResources.LogoLine1, version), output[0]);
             // "Type "#help" for more information."
             Assert.Equal(InteractiveHostResources.Type_Sharphelp_for_more_information, output[1]);
 
@@ -1158,7 +1159,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith(new Exception().Message));
+            Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
@@ -1172,7 +1173,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             var error = ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
         }
 
         [Fact]

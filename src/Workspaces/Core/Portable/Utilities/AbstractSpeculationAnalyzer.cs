@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
                     namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && namedType != nestedType))
+                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
                 {
                     return true;
                 }

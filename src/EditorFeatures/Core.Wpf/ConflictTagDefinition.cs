@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
     [ExcludeFromCodeCoverage]
     internal class ConflictTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public ConflictTagDefinition()
         {
             this.Border = new Pen(Brushes.Red, thickness: 1.5);

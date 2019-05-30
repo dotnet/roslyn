@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     [ExportLanguageService(typeof(IImplementInterfaceService), LanguageNames.CSharp), Shared]
     internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
     {
+        [ImportingConstructor]
+        public CSharpImplementInterfaceService()
+        {
+        }
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)

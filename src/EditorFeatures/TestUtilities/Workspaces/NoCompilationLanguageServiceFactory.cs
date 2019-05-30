@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportLanguageServiceFactory(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName), Shared]
     internal class NoCompilationLanguageServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public NoCompilationLanguageServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new NoCompilationLanguageService();

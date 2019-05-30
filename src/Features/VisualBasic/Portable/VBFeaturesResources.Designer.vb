@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -2434,6 +2434,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Skips_elements_up_to_a_specified_position_in_the_collection() As String
             Get
                 Return ResourceManager.GetString("Skips_elements_up_to_a_specified_position_in_the_collection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &amp;Sort Imports.
+        '''</summary>
+        Friend ReadOnly Property Sort_Imports() As String
+            Get
+                Return ResourceManager.GetString("Sort_Imports", resourceCulture)
             End Get
         End Property
         

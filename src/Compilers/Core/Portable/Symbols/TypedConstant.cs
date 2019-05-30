@@ -100,18 +100,27 @@ namespace Microsoft.CodeAnalysis
 
         internal T DecodeValue<T>(SpecialType specialType)
         {
+            TryDecodeValue(specialType, out T value);
+            return value;
+        }
+
+        internal bool TryDecodeValue<T>(SpecialType specialType, out T value)
+        {
             if (_kind == TypedConstantKind.Error)
             {
-                return default(T);
+                value = default(T);
+                return false;
             }
 
             if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                return (T)_value;
+                value = (T)_value;
+                return true;
             }
 
             // the actual argument type doesn't match the type of the parameter - an error has already been reported by the binder
-            return default(T);
+            value = default(T);
+            return false;
         }
 
         /// <remarks>

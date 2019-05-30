@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
     [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
     internal class CSharpRecommendationService : AbstractRecommendationService<CSharpSyntaxContext>
     {
+        [ImportingConstructor]
+        public CSharpRecommendationService()
+        {
+        }
+
         protected override Task<CSharpSyntaxContext> CreateContext(
             Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => Task.FromResult(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));

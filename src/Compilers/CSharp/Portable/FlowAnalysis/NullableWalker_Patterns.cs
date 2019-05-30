@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) && defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
-                ReportSafetyDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
+                ReportDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
             }
 
             // collect expressions, conversions and result types
@@ -498,7 +498,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);
                 resultTypes.Add(armType);
-                TrackInferredTypesThroughConversions(arm.Value, expression, _visitResult);
                 Join(ref endState, ref this.State);
 
                 // Build placeholders for inference in order to preserve annotations.
@@ -516,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numSwitchArms; i++)
             {
                 var expression = expressions[i];
-                resultTypes[i] = ApplyConversion(expression, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                resultTypes[i] = VisitConversion(conversionOpt: null, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
                     fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
             }
 
@@ -527,8 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numSwitchArms; i++)
             {
                 var nodeForSyntax = expressions[i];
+                var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
                 // Report top-level warnings
-                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
                     checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
             }
 

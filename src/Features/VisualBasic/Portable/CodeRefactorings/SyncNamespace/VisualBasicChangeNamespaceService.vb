@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
     Friend Class VisualBasicChangeNamespaceService
         Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
             If nameRef IsNot Nothing Then

@@ -3,19 +3,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System;
+using Microsoft.CodeAnalysis.Execution;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -44,24 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // if either solution id or file path changed, then we consider it as new solution
             return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
-        }
-
-        public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum)
-        {
-            var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, _cancellationToken).ConfigureAwait(false);
-            var solutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, _cancellationToken).ConfigureAwait(false);
-
-            var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksumObject.Projects)
-            {
-                var projectInfo = await CreateProjectInfoAsync(projectChecksum).ConfigureAwait(false);
-                if (projectInfo != null)
-                {
-                    projects.Add(projectInfo);
-                }
-            }
-
-            return SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
         }
 
         public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum)
@@ -119,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (!oldMap.ContainsKey(kv.Key))
                 {
-                    var projectInfo = await CreateProjectInfoAsync(kv.Value.Checksum).ConfigureAwait(false);
+                    var projectInfo = await SolutionInfoCreator.CreateProjectInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
                     if (projectInfo == null)
                     {
                         // this project is not supported in OOP
@@ -189,8 +168,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (oldProjectChecksums.CompilationOptions != newProjectChecksums.CompilationOptions)
             {
                 project = project.WithCompilationOptions(
-                    FixUpCompilationOptions(
-                        project.State.ProjectInfo.Attributes,
+                    project.State.ProjectInfo.Attributes.FixUpCompilationOptions(
                         await _assetService.GetAssetAsync<CompilationOptions>(
                             newProjectChecksums.CompilationOptions, _cancellationToken).ConfigureAwait(false)));
             }
@@ -204,19 +182,22 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed project references
             if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
             {
-                project = project.WithProjectReferences(await CreateCollectionAsync<ProjectReference>(newProjectChecksums.ProjectReferences).ConfigureAwait(false));
+                project = project.WithProjectReferences(await _assetService.CreateCollectionAsync<ProjectReference>(
+                    newProjectChecksums.ProjectReferences, _cancellationToken).ConfigureAwait(false));
             }
 
             // changed metadata references
             if (oldProjectChecksums.MetadataReferences.Checksum != newProjectChecksums.MetadataReferences.Checksum)
             {
-                project = project.WithMetadataReferences(await CreateCollectionAsync<MetadataReference>(newProjectChecksums.MetadataReferences).ConfigureAwait(false));
+                project = project.WithMetadataReferences(await _assetService.CreateCollectionAsync<MetadataReference>(
+                    newProjectChecksums.MetadataReferences, _cancellationToken).ConfigureAwait(false));
             }
 
             // changed analyzer references
             if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
             {
-                project = project.WithAnalyzerReferences(await CreateCollectionAsync<AnalyzerReference>(newProjectChecksums.AnalyzerReferences).ConfigureAwait(false));
+                project = project.WithAnalyzerReferences(await _assetService.CreateCollectionAsync<AnalyzerReference>(
+                    newProjectChecksums.AnalyzerReferences, _cancellationToken).ConfigureAwait(false));
             }
 
             // changed analyzer references
@@ -335,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         documentsToAdd = documentsToAdd ?? ImmutableArray.CreateBuilder<DocumentInfo>();
 
                         // we have new document added
-                        var documentInfo = await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false);
+                        var documentInfo = await SolutionInfoCreator.CreateDocumentInfoAsync(_assetService, kv.Value.Checksum, _cancellationToken).ConfigureAwait(false);
                         documentsToAdd.Add(documentInfo);
                     }
                 }
@@ -387,18 +368,22 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
 
-                if (document is Document)
+                switch (document.Kind)
                 {
-                    document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
-                }
-                else if (document is AnalyzerConfigDocument)
-                {
-                    document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
-                }
-                else
-                {
-                    Debug.Assert(document.Project.ContainsAdditionalDocument(document.Id));
-                    document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                    case TextDocumentKind.Document:
+                        document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+                        break;
+
+                    case TextDocumentKind.AnalyzerConfigDocument:
+                        document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
+                        break;
+
+                    case TextDocumentKind.AdditionalDocument:
+                        document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
                 }
             }
 
@@ -496,96 +481,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private async Task<ProjectInfo> CreateProjectInfoAsync(Checksum projectChecksum)
-        {
-            var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
-
-            var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, _cancellationToken).ConfigureAwait(false);
-            if (!RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-            {
-                // only add project our workspace supports. 
-                // workspace doesn't allow creating project with unknown languages
-                return null;
-            }
-
-            Contract.ThrowIfFalse(_baseSolution.Workspace.Services.IsSupported(projectInfo.Language));
-
-            var compilationOptions = FixUpCompilationOptions(
-                projectInfo,
-                await _assetService.GetAssetAsync<CompilationOptions>(
-                    projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false));
-
-            var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, _cancellationToken).ConfigureAwait(false);
-
-            var p2p = await CreateCollectionAsync<ProjectReference>(projectSnapshot.ProjectReferences).ConfigureAwait(false);
-            var metadata = await CreateCollectionAsync<MetadataReference>(projectSnapshot.MetadataReferences).ConfigureAwait(false);
-            var analyzers = await CreateCollectionAsync<AnalyzerReference>(projectSnapshot.AnalyzerReferences).ConfigureAwait(false);
-
-            var documentInfos = await CreateDocumentInfosAsync(projectSnapshot.Documents).ConfigureAwait(false);
-            var additionalDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AdditionalDocuments).ConfigureAwait(false);
-            var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AnalyzerConfigDocuments).ConfigureAwait(false);
-
-            return ProjectInfo.Create(
-                projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
-                projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
-                compilationOptions, parseOptions,
-                documentInfos, p2p, metadata, analyzers, additionalDocumentInfos, projectInfo.IsSubmission)
-                .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
-                .WithHasAllInformation(projectInfo.HasAllInformation)
-                .WithDefaultNamespace(projectInfo.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(analyzerConfigDocumentInfos);
-        }
-
-        private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)
-        {
-            var assets = new List<T>();
-
-            foreach (var checksum in collections)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                var asset = await _assetService.GetAssetAsync<T>(checksum, _cancellationToken).ConfigureAwait(false);
-                assets.Add(asset);
-            }
-
-            return assets;
-        }
-
-        private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums)
-        {
-            var documentInfos = new List<DocumentInfo>();
-
-            foreach (var documentChecksum in documentChecksums)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(documentChecksum).ConfigureAwait(false));
-            }
-
-            return documentInfos;
-        }
-
-        private async Task<DocumentInfo> CreateDocumentInfoAsync(Checksum documentChecksum)
-        {
-            var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-            var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, _cancellationToken).ConfigureAwait(false);
-
-            var textLoader = TextLoader.From(
-                TextAndVersion.Create(
-                    await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, _cancellationToken).ConfigureAwait(false),
-                    VersionStamp.Create(),
-                    documentInfo.FilePath));
-
-            // TODO: do we need version?
-            return DocumentInfo.Create(
-                documentInfo.Id,
-                documentInfo.Name,
-                documentInfo.Folders,
-                documentInfo.SourceCodeKind,
-                textLoader,
-                documentInfo.FilePath,
-                documentInfo.IsGenerated);
-        }
-
         private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
         {
             if (additionalText)
@@ -594,59 +489,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
-        }
-
-        private CompilationOptions FixUpCompilationOptions(ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
-        {
-            return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
-                                     .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
-        }
-
-        private static XmlFileResolver GetXmlResolver(string filePath)
-        {
-            // Given filePath can be any arbitary string project is created with.
-            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
-            // filePath will point to actual file on disk, but in memory solultion, or
-            // one from AdhocWorkspace and etc, FilePath can be a random string.
-            // Make sure we return only if given filePath is in right form.
-            if (!PathUtilities.IsAbsolute(filePath))
-            {
-                // xmlFileResolver can only deal with absolute path
-                // return Default
-                return XmlFileResolver.Default;
-            }
-
-            return new XmlFileResolver(PathUtilities.GetDirectoryName(filePath));
-        }
-
-        private ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
-        {
-            // Given FilePath/OutputFilePath can be any arbitary strings project is created with.
-            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
-            // filePath will point to actual file on disk, but in memory solultion, or
-            // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
-            // Make sure we return only if given filePath is in right form.
-            if (info.FilePath == null && info.OutputFilePath == null)
-            {
-                // return empty since that is what IDE does for this case
-                // see AbstractProject.GetStrongNameKeyPaths
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ArrayBuilder<string>.GetInstance();
-            if (info.FilePath != null && PathUtilities.IsAbsolute(info.FilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
-            }
-
-            if (info.OutputFilePath != null && PathUtilities.IsAbsolute(info.OutputFilePath))
-            {
-                // desktop strong name provider only knows how to deal with absolute path
-                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
-            }
-
-            return builder.ToImmutableAndFree();
         }
 
         private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
@@ -664,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                var solutionInfo = await CreateSolutionInfoAsync(checksum).ConfigureAwait(false);
+                var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
                 var workspace = new TemporaryWorkspace(solutionInfo);
 
                 return workspace.CurrentSolution;

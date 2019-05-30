@@ -137,6 +137,16 @@
         <target state="translated">Belge biçimlendiriliyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="new">Generate parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Tüm bağımsız değişkenleri girintile</target>
@@ -515,6 +525,11 @@
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">genel aşırı yüklemeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source_attribute">
+        <source>in Source (attribute)</source>
+        <target state="new">in Source (attribute)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
