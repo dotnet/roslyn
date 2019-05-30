@@ -896,10 +896,10 @@ Do you want to proceed?</value>
     <value>'{0}' bases</value>
   </data>
   <data name="Rename_file" xml:space="preserve">
-    <value>_Rename file.</value>
+    <value>_Rename file</value>
   </data>
   <data name="Rename_file_incompatible_type" xml:space="preserve">
-    <value>_Rename file (incompatible type).</value>
+    <value>_Rename file (incompatible type)</value>
     <comment>Disabled text status for file rename</comment>
   </data>
 </root>

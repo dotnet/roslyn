@@ -63,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
-            public SymbolKind SymbolKind => _renameInfo.Kind;
-
-            public DocumentId InvocationDocumentId => _document.Id;
-            public ImmutableArray<Location> OriginalDefinitionLocations => ImmutableArray.Create<Location>();
-
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
@@ -132,6 +127,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
                 return glyph;
             }
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.None;
 
             private class InlineRenameLocationSet : IInlineRenameLocationSet
             {

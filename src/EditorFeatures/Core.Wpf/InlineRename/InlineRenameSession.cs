@@ -15,18 +15,18 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -165,25 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
-            KindSupportsFileRename = _renameInfo.SymbolKind == SymbolKind.NamedType;
-
-            AllowFileRename = KindSupportsFileRename
-                && (_renameInfo.OriginalDefinitionLocations.Length == 1)
-                && (OriginalNameMatches(_triggerDocument, _renameInfo.DisplayName) || ContainsOnlyOneType(_triggerDocument));
+            var fileRenameInfo = _renameInfo.GetFileRenameInfo();
+            KindSupportsFileRename = fileRenameInfo.KindSupportsFileRename;
+            AllowFileRename = fileRenameInfo.AllowRename;
 
             InitializeOpenBuffers(triggerSpan);
-        }
-
-        private static bool OriginalNameMatches(Document document, string name)
-        {
-            return document.Name.Substring(0, document.Name.Length - 3) == name;
-        }
-
-        private static bool ContainsOnlyOneType(Document document)
-        {
-            var syntaxRoot = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var syntaxService = document.GetLanguageService<ISyntaxFactsService>();
-            return syntaxRoot.DescendantNodesAndSelf().Where(n => syntaxService.IsTypeDeclaration(n)).Count() == 1;
         }
 
         private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)

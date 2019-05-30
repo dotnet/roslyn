@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,6 +33,20 @@ namespace Microsoft.CodeAnalysis.Editor
         ResolvedNonReferenceConflict,
         UnresolvedConflict,
         Complexified,
+    }
+
+    internal struct InlineRenameFileRenameInfo
+    {
+        public readonly bool KindSupportsFileRename;
+        public readonly bool AllowRename;
+
+        public InlineRenameFileRenameInfo(bool kindSupportsFileRename, bool allowRename)
+        {
+            KindSupportsFileRename = kindSupportsFileRename;
+            AllowRename = allowRename;
+        }
+
+        public static InlineRenameFileRenameInfo None = new InlineRenameFileRenameInfo(false, false);
     }
 
     internal struct InlineRenameReplacement
@@ -166,17 +181,10 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
-        /// The symbol kind of the symbol being renamed, for use in determining whether
-        /// the file can also be renamed
+        /// Returns information about the file rename capabilities of 
+        /// an inline rename
         /// </summary>
-        SymbolKind SymbolKind { get; }
-
-        ImmutableArray<Location> OriginalDefinitionLocations { get; }
-
-        /// <summary>
-        /// The document that the inline rename was invoked from
-        /// </summary>
-        DocumentId InvocationDocumentId { get; }
+        InlineRenameFileRenameInfo GetFileRenameInfo();
 
         /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text

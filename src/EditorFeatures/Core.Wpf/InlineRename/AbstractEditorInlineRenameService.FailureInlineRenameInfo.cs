@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public Glyph Glyph => Glyph.None;
 
-            public SymbolKind SymbolKind => default;
-
-            public DocumentId InvocationDocumentId => null;
-
-            public ImmutableArray<Location> OriginalDefinitionLocations => ImmutableArray.Create<Location>();
-
             public string GetFinalSymbolName(string replacementText) { return null; }
 
             public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default; }
@@ -51,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
 
             public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.None;
         }
     }
 }

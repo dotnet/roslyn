@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool ForceRenameOverloads { get; }
 
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
-            public SymbolKind SymbolKind => RenameSymbol?.Kind ?? default;
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
@@ -178,8 +177,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public string DisplayName => RenameSymbol.Name;
             public string FullDisplayName => RenameSymbol.ToDisplayString();
             public Glyph Glyph => RenameSymbol.GetGlyph();
-            public DocumentId InvocationDocumentId => _document.Id;
-            public ImmutableArray<Location> OriginalDefinitionLocations => RenameSymbol.Locations;
 
             public string GetFinalSymbolName(string replacementText)
             {
@@ -240,6 +237,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 return _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
                     this.GetFinalSymbolName(replacementText), throwOnFailure: false);
+            }
+
+            public InlineRenameFileRenameInfo GetFileRenameInfo()
+            {
+                var kindSupportsRename = RenameSymbol.Kind == SymbolKind.NamedType;
+                var allowRename = kindSupportsRename 
+                    && (RenameSymbol.Locations.Length == 1)
+                    && (OriginalNameMatches(_document, RenameSymbol.Name) || ContainsOnlyOneType(_document));
+
+                return new InlineRenameFileRenameInfo(kindSupportsRename, allowRename);
+
+                // Local Functions
+
+                static bool OriginalNameMatches(Document document, string name)
+                {
+                    return document.Name.Substring(document.Name.Length - 3) == name;
+                }
+
+                static bool ContainsOnlyOneType(Document document)
+                {
+                    var syntaxRoot = document.GetSyntaxRootSynchronously(CancellationToken.None);
+                    var syntaxService = document.GetLanguageService<ISyntaxFactsService>();
+                    return syntaxRoot.DescendantNodesAndSelf().Where(n => syntaxService.IsTypeDeclaration(n)).Count() == 1;
+                }
             }
         }
     }
