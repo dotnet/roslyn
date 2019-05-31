@@ -99,11 +99,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeWithAnnotations AsAnnotated()
         {
+            if (NullableAnnotation.IsAnnotated() || (Type.IsValueType && Type.IsNullableType()))
+            {
+                return this;
+            }
+
             return Create(Type, NullableAnnotation.Annotated, CustomModifiers);
         }
 
         internal TypeWithAnnotations AsNotAnnotated()
         {
+            if (NullableAnnotation.IsNotAnnotated() || (Type.IsValueType && !Type.IsNullableType()))
+            {
+                return this;
+            }
+
             return Create(Type, NullableAnnotation.NotAnnotated, CustomModifiers);
         }
 

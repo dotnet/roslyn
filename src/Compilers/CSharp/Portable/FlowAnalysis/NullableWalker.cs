@@ -2878,22 +2878,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
             {
-                var typeSymbol = declaredType.Type;
-                if (declaredType.NullableAnnotation.IsNotAnnotated() || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
-                {
-                    return declaredType;
-                }
-
                 return declaredType.AsNotAnnotated();
             }
             else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) == FlowAnalysisAnnotations.AllowNull)
             {
-                var typeSymbol = declaredType.Type;
-                if (declaredType.NullableAnnotation.IsAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
-                {
-                    return declaredType;
-                }
-
                 return declaredType.AsAnnotated();
             }
 
@@ -2904,22 +2892,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
             {
-                var typeSymbol = declaredType.Type;
-                if (declaredType.NullableAnnotation.IsNotAnnotated() || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
-                {
-                    return declaredType;
-                }
-
                 return declaredType.AsNotAnnotated();
             }
             else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
-                var typeSymbol = declaredType.Type;
-                if (declaredType.NullableAnnotation.IsAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
-                {
-                    return declaredType;
-                }
-
                 return declaredType.AsAnnotated();
             }
 
