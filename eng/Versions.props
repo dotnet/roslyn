@@ -44,7 +44,7 @@
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.15</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.17</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
     <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.3-beta1.19271.2+23ca1e2d</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
