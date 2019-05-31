@@ -28,6 +28,7 @@ namespace Roslyn.Test.Utilities
         private static string s_wpfFactRequirementReason;
 
         public WpfTestSharedData SharedData { get; }
+        public readonly IDictionary<string, TestInfo> _passedTests;
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,
@@ -40,10 +41,12 @@ namespace Roslyn.Test.Utilities
             string skipReason,
             IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes,
             ExceptionAggregator aggregator,
+            IDictionary<string, TestInfo> passedTests,
             CancellationTokenSource cancellationTokenSource)
             : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource)
         {
             SharedData = sharedData;
+            _passedTests = passedTests;
         }
 
         protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
@@ -63,9 +66,16 @@ namespace Roslyn.Test.Utilities
                         // Reset our flag ensuring that part of this test actually needs WpfFact
                         s_wpfFactRequirementReason = null;
 
-                        // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                        return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
+                        if (_passedTests.TryGetValue(TestMethod.Name, out var info))
+                        {
+                            return info.Time;
+                        }
+                        else
+                        {
+                            // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
+                            var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+                            return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
+                        }
                     }
                     finally
                     {

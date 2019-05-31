@@ -70,6 +70,19 @@ namespace RunTests
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
+            var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
+
+            // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
+            if (Options.TestVsi && result.ExitCode != 0)
+            {
+                return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
+            }
+
+            return result;
+        }
+
+        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
+        {
             try
             {
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
@@ -88,6 +101,13 @@ namespace RunTests
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
+
+                if (retry)
+                {
+                    // If running the process with this varialbe added, we assume that this file contains 
+                    // xml logs from the first attempt.
+                    environmentVariables.Add("OutputXmlFilePath", GetResultsFilePath(assemblyInfo));
+                }
 
                 var start = DateTime.UtcNow;
                 var xunitProcessInfo = ProcessRunner.CreateProcess(
