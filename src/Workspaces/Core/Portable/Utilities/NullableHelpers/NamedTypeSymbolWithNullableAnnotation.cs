@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
             {
-                return WrappedSymbol.Construct(typeArguments);
+                return WrappedSymbol.Construct(typeArguments).WithNullability(Nullability);
             }
 
             public INamedTypeSymbol ConstructUnboundGenericType()
