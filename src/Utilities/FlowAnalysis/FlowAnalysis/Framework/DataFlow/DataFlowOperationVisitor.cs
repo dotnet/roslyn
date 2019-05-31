@@ -2102,6 +2102,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
 
                         var argumentValue = GetCachedAbstractValue(argument);
+                        if (ReferenceEquals(argumentValue, ValueDomain.Bottom))
+                        {
+                            argumentValue = ValueDomain.UnknownOrMayBeValue;
+                        }
 
                         builder.Add(GetMappedParameterForArgument(argument), new ArgumentInfo<TAbstractAnalysisValue>(argument, argumentEntity, instanceLocation, argumentValue));
                         _pendingArgumentsToReset.Remove(argument);
@@ -2334,13 +2338,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override TAbstractAnalysisValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
         {
             var arrayCreation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
-            var elementType = ((IArrayTypeSymbol)arrayCreation.Type).ElementType;
-            for (int index = 0; index < operation.ElementValues.Length; index++)
+            if (arrayCreation != null)
             {
-                var abstractIndex = AbstractIndex.Create(index);
-                IOperation elementInitializer = operation.ElementValues[index];
-                TAbstractAnalysisValue initializerValue = Visit(elementInitializer, argument);
-                SetAbstractValueForArrayElementInitializer(arrayCreation, ImmutableArray.Create(abstractIndex), elementType, elementInitializer, initializerValue);
+                var elementType = ((IArrayTypeSymbol)arrayCreation.Type).ElementType;
+                for (int index = 0; index < operation.ElementValues.Length; index++)
+                {
+                    var abstractIndex = AbstractIndex.Create(index);
+                    IOperation elementInitializer = operation.ElementValues[index];
+                    TAbstractAnalysisValue initializerValue = Visit(elementInitializer, argument);
+                    SetAbstractValueForArrayElementInitializer(arrayCreation, ImmutableArray.Create(abstractIndex), elementType, elementInitializer, initializerValue);
+                }
+            }
+            else
+            {
+                _ = base.VisitArrayInitializer(operation, argument);
             }
 
             return ValueDomain.UnknownOrMayBeValue;

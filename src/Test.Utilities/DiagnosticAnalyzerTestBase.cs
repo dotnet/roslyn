@@ -340,9 +340,9 @@ namespace Test.Utilities
             return CreateProject(sources.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
         }
 
-        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null)
+        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null, string projectName = TestProjectName)
         {
-            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, addToSolution);
+            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, addToSolution, projectName);
         }
 
         private static Project CreateProject(

@@ -43,11 +43,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
-                var importingConstructorAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
-                var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
-                var importingConstructorAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
-                var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
+                var exportAttributeV1 = WellKnownTypes.MEFV1ExportAttribute(compilationContext.Compilation);
+                var importingConstructorAttributeV1 = WellKnownTypes.MEFV1ImportingConstructorAttribute(compilationContext.Compilation);
+                var exportAttributeV2 = WellKnownTypes.MEFV2ExportAttribute(compilationContext.Compilation);
+                var inheritedExportAttribute = WellKnownTypes.InheritedExportAttribute(compilationContext.Compilation);
+                var importingConstructorAttributeV2 = WellKnownTypes.MEFV2ImportingConstructorAttribute(compilationContext.Compilation);
 
                 if (exportAttributeV1 is null && exportAttributeV2 is null)
                 {
@@ -68,22 +68,22 @@ namespace Roslyn.Diagnostics.Analyzers
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                    var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
+                    var exportAttributes = namedType.GetApplicableExportAttributes(exportAttributeV1, exportAttributeV2, inheritedExportAttribute);
 
-                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV1, importingConstructorAttributeV1, namedType, namedTypeAttributes);
-                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV2, importingConstructorAttributeV2, namedType, namedTypeAttributes);
+                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV1, importingConstructorAttributeV1, namedType, exportAttributes);
+                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV2, importingConstructorAttributeV2, namedType, exportAttributes);
                 }, SymbolKind.NamedType);
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol exportAttributeOpt, INamedTypeSymbol importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> namedTypeAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol exportAttributeOpt, INamedTypeSymbol importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
         {
             if (exportAttributeOpt is null)
             {
                 return;
             }
 
-            var exportAttributeApplication = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
+            var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
             if (exportAttributeApplication is null)
             {
                 return;
