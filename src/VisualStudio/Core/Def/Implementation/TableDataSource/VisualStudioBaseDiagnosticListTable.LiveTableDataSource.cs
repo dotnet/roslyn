@@ -50,11 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).Id;
 
-            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
-
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(
                 AbstractTableEntriesSource<DiagnosticData> source,
                 int version,
@@ -202,9 +197,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            public override IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
             {
-                // this should make order of result always deterministic. we only need these 6 values since data with all these same will merged to one.
+                // this should make order of result always deterministic. we only need these 6 values since data with 
+                // all these same will merged to one.
                 return groupedItems.OrderBy(d => d.Primary.DataLocation?.OriginalStartLine ?? 0)
                                    .ThenBy(d => d.Primary.DataLocation?.OriginalStartColumn ?? 0)
                                    .ThenBy(d => d.Primary.Id)
@@ -241,7 +237,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
-                                        .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(_workspace, d, GenerateDeduplicationKey));
+                                        .Where(ShouldInclude)
+                                        .Select(d => new TableItem<DiagnosticData>(_workspace, d, cache: null));
 
                     return items.ToImmutableArrayOrEmpty();
                 }
@@ -249,21 +246,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
                 {
                     return _workspace.CreateTrackingPoints(_documentId, items);
-                }
-
-                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
-                {
-                    if (diagnostic.DataLocation == null)
-                    {
-                        return diagnostic.GetHashCode();
-                    }
-
-                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                           Hash.Combine(diagnostic.IsSuppressed,
-                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode()))))));
                 }
             }
 

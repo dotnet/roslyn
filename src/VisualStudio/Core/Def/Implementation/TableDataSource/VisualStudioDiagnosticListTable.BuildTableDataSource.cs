@@ -73,18 +73,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSource(this);
             }
 
-            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
-
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 // Build doesn't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
-            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            public override IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
             {
                 // errors are already given in order. use it as it is.
                 return groupedItems;
@@ -108,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     var groupedItems = _source._buildErrorSource
                                                .GetBuildErrors()
-                                               .Select(d => new TableItem<DiagnosticData>(_source.Workspace, d, GenerateDeduplicationKey))
+                                               .Select(d => new TableItem<DiagnosticData>(_source.Workspace, d, cache: null))
                                                .GroupBy(d => d.DeduplicationKey)
                                                .Select(g => (IList<TableItem<DiagnosticData>>)g)
                                                .ToImmutableArray();
@@ -119,24 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
                 {
                     return ImmutableArray<ITrackingPoint>.Empty;
-                }
-
-                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
-                {
-                    if (diagnostic.DocumentId == null ||
-                        diagnostic.DataLocation == null ||
-                        diagnostic.DataLocation.OriginalFilePath == null)
-                    {
-                        return diagnostic.GetHashCode();
-                    }
-
-                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
-                           Hash.Combine(diagnostic.IsSuppressed,
-                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
                 }
             }
 

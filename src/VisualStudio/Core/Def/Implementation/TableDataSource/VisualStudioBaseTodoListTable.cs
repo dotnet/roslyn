@@ -140,17 +140,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
             }
 
-            public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
-
             public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 return new TableEntriesSnapshot(source, version, items, trackingPoints);
             }
 
-            private static IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
+            public override IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
             {
                 return groupedItems.OrderBy(d => d.Primary.OriginalLine)
                                    .ThenBy(d => d.Primary.OriginalColumn);
@@ -208,18 +203,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var provider = _source._todoListProvider;
 
                     return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(i => new TableItem<TodoItem>(_workspace, i, GenerateDeduplicationKey))
+                                   .Select(i => new TableItem<TodoItem>(_workspace, i, cache: null))
                                    .ToImmutableArray();
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
                 {
                     return _workspace.CreateTrackingPoints(_documentId, items);
-                }
-
-                private int GenerateDeduplicationKey(TodoItem item)
-                {
-                    return Hash.Combine(item.OriginalColumn, item.OriginalLine);
                 }
             }
 

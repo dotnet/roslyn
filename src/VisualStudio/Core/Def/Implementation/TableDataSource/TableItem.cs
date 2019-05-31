@@ -15,72 +15,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal sealed class TableItem<T>
     {
-        private readonly Func<T, int> _keyGenerator;
-
         private int? _deduplicationKey;
         private readonly SharedInfoCache _cache;
         public readonly Workspace Workspace;
 
         public readonly T Primary;
 
-        public TableItem(Workspace workspace, T item, Func<T, int> keyGenerator)
+        public TableItem(Workspace workspace, T item, SharedInfoCache cache)
         {
             Contract.ThrowIfNull(workspace);
 
             Workspace = workspace;
             _deduplicationKey = null;
-            _keyGenerator = keyGenerator;
 
-            _cache = null;
+            _cache = cache;
             Primary = item;
         }
 
-        public TableItem(IEnumerable<TableItem<T>> items)
-        {
-            var first = true;
-            var collectionHash = 1;
-            var count = 0;
-
-            // Make things to be deterministic. 
-            var orderedItems = items.Where(i => i.PrimaryDocumentId != null).OrderBy(i => i.PrimaryDocumentId.Id).ToList();
-            if (orderedItems.Count == 0)
-            {
-                // There must be at least 1 item in the list
-                FatalError.ReportWithoutCrash(new ArgumentException("Contains no items", nameof(items)));
-            }
-            else if (orderedItems.Count != items.Count())
-            {
-                // There must be document id for provided items.
-                FatalError.ReportWithoutCrash(new ArgumentException("Contains an item with null PrimaryDocumentId", nameof(items)));
-            }
-
-            foreach (var item in orderedItems)
-            {
-                count++;
-
-                if (first)
-                {
-                    Primary = item.Primary;
-                    Workspace = item.Workspace;
-
-                    _deduplicationKey = item.DeduplicationKey;
-                    _keyGenerator = null;
-
-                    first = false;
-                }
-
-                collectionHash = Hash.Combine(item.PrimaryDocumentId.Id.GetHashCode(), collectionHash);
-            }
-
-            if (count == 1)
-            {
-                _cache = null;
-                return;
-            }
-
-            // order of item is important. make sure we maintain it.
-            _cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
-        }
+        public TableItem<T> WithCache(SharedInfoCache cache)
+            => new TableItem<T>(Workspace, Primary, cache);
 
         // item must be either one of diagnostic data and todo item
         public DocumentId PrimaryDocumentId
@@ -100,6 +53,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var todo = (TodoItem)(object)Primary;
             return new LinePosition(todo.OriginalLine, todo.OriginalColumn);
+        }
+
+        // item must be either one of diagnostic data and todo item
+        public int GetDeduplicationKey()
+        {
+            if (Primary is DiagnosticData diagnostic)
+            {
+                // location-less or project level diagnostic:
+                if (diagnostic.DataLocation == null ||
+                    diagnostic.DataLocation.OriginalFilePath == null ||
+                    diagnostic.DocumentId == null)
+                {
+                    return diagnostic.GetHashCode();
+                }
+
+                return
+                    Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
+                    Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
+                    Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
+                    Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
+                    Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
+                    Hash.Combine(diagnostic.IsSuppressed,
+                    Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
+            }
+
+            var todo = (TodoItem)(object)Primary;
+            return Hash.Combine(todo.OriginalColumn, todo.OriginalLine);
         }
 
         public string ProjectName
@@ -179,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 if (_deduplicationKey == null)
                 {
-                    _deduplicationKey = _keyGenerator(Primary);
+                    _deduplicationKey = GetDeduplicationKey();
                 }
 
                 return _deduplicationKey.Value;

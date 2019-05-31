@@ -103,8 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public abstract ImmutableArray<TableItem<TData>> Deduplicate(IEnumerable<IList<TableItem<TData>>> duplicatedGroups);
-        
+        public ImmutableArray<TableItem<TData>> Deduplicate(IEnumerable<IList<TableItem<TData>>> groupedItems)
+            => groupedItems.MergeDuplicatesOrderedBy(Order);
+
+        public abstract IEnumerable<TableItem<TData>> Order(IEnumerable<TableItem<TData>> groupedItems);
+
         public abstract AbstractTableEntriesSnapshot<TData> CreateSnapshot(AbstractTableEntriesSource<TData> source, int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints);
 
         /// <summary>

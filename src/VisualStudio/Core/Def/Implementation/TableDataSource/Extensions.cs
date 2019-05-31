@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static ImmutableArray<TableItem<T>> MergeDuplicatesOrderedBy<T>(this IEnumerable<IList<TableItem<T>>> groupedItems, Func<IEnumerable<TableItem<T>>, IEnumerable<TableItem<T>>> orderer)
         {
             var builder = ArrayBuilder<TableItem<T>>.GetInstance();
-            foreach (var item in orderer(groupedItems.Select(g => g.Deduplicate())))
+            foreach (var item in orderer(groupedItems.Select(Deduplicate)))
             {
                 builder.Add(item);
             }
@@ -37,22 +37,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return builder.ToImmutableAndFree();
         }
 
-        private static TableItem<T> Deduplicate<T>(this IList<TableItem<T>> duplicatedItems)
+        private static TableItem<T> Deduplicate<T>(this IList<TableItem<T>> items)
         {
-            if (duplicatedItems.Count == 1)
+            if (items.Count == 1)
             {
-                return duplicatedItems[0];
+                return items[0];
             }
 
+            Contract.ThrowIfFalse(items.Count == 0);
+            Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null), "Contains an item with null PrimaryDocumentId");
+
 #if DEBUG
-            var key = duplicatedItems[0].DeduplicationKey;
-            foreach (var item in duplicatedItems)
+            var key = items[0].DeduplicationKey;
+            foreach (var item in items)
             {
                 Contract.ThrowIfFalse(item.DeduplicationKey == key);
             }
 #endif
+            // deterministic ordering
+            var orderedItems = items.OrderBy(i => i.PrimaryDocumentId.Id).ToList();
 
-            return new TableItem<T>(duplicatedItems);
+            // order of item is important. make sure we maintain it.
+            int collectionHash = Hash.CombineValues(orderedItems.Select(item => item.PrimaryDocumentId.Id));
+            var cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
+            return orderedItems[0].WithCache(cache);
         }
 
         public static ImmutableArray<ITrackingPoint> CreateTrackingPoints<TData>(
