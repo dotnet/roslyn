@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _sources.Primary.GetTrackingPoints(items);
                 }
 
-                return _tableSource.Workspace.CreateTrackingPoints(items[0].PrimaryDocumentId, items, (d, s) => _tableSource.CreateTrackingPoint(d, s));
+                return _tableSource.Workspace.CreateTrackingPoints(items[0].PrimaryDocumentId, items);
             }
 
             public AbstractTableEntriesSnapshot<TData> CreateSnapshot(int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints)

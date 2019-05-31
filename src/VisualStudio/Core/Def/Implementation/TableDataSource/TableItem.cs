@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -88,6 +89,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         // item must be either one of diagnostic data and todo item
         private ProjectId GetProjectId()
             => (Primary is DiagnosticData diagnostic) ? diagnostic.ProjectId : ((TodoItem)(object)Primary).DocumentId.ProjectId;
+
+        // item must be either one of diagnostic data and todo item
+        public LinePosition GetTrackingPosition()
+        {
+            if (Primary is DiagnosticData diagnostic)
+            {
+                return new LinePosition(diagnostic.DataLocation?.OriginalStartLine ?? 0, diagnostic.DataLocation?.OriginalStartColumn ?? 0);
+            }
+
+            var todo = (TodoItem)(object)Primary;
+            return new LinePosition(todo.OriginalLine, todo.OriginalColumn);
+        }
 
         public string ProjectName
         {

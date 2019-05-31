@@ -78,11 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return groupedItems.MergeDuplicatesOrderedBy(Order);
             }
 
-            public override ITrackingPoint CreateTrackingPoint(DiagnosticData data, ITextSnapshot snapshot)
-            {
-                return snapshot.CreateTrackingPoint(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 // Build doesn't support tracking point.

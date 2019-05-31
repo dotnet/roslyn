@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public abstract ImmutableArray<TableItem<TData>> Deduplicate(IEnumerable<IList<TableItem<TData>>> duplicatedGroups);
-        public abstract ITrackingPoint CreateTrackingPoint(TData data, ITextSnapshot snapshot);
+        
         public abstract AbstractTableEntriesSnapshot<TData> CreateSnapshot(AbstractTableEntriesSource<TData> source, int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints);
 
         /// <summary>

@@ -145,11 +145,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return groupedItems.MergeDuplicatesOrderedBy(Order);
             }
 
-            public override ITrackingPoint CreateTrackingPoint(TodoItem data, ITextSnapshot snapshot)
-            {
-                return snapshot.CreateTrackingPoint(data.OriginalLine, data.OriginalColumn);
-            }
-
             public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 return new TableEntriesSnapshot(source, version, items, trackingPoints);
@@ -219,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
                 {
-                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
+                    return _workspace.CreateTrackingPoints(_documentId, items);
                 }
 
                 private int GenerateDeduplicationKey(TodoItem item)

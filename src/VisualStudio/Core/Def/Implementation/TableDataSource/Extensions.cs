@@ -5,19 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal static class Extensions
     {
         public static ImmutableArray<TResult> ToImmutableArray<TSource, TResult>(this IList<TSource> list, Func<TSource, TResult> selector)
@@ -61,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public static ImmutableArray<ITrackingPoint> CreateTrackingPoints<TData>(
-            this Workspace workspace, DocumentId documentId,
-            ImmutableArray<TableItem<TData>> items, Func<TData, ITextSnapshot, ITrackingPoint> converter)
+            this Workspace workspace, DocumentId documentId, ImmutableArray<TableItem<TData>> items)
         {
             if (documentId == null)
             {
@@ -84,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot != null)
             {
-                return items.Select(d => converter(d.Primary, snapshot)).ToImmutableArray();
+                return items.SelectAsArray(CreateTrackingPoint, snapshot);
             }
 
             var textBuffer = text.Container.TryGetTextBuffer();
@@ -93,30 +87,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return ImmutableArray<ITrackingPoint>.Empty;
             }
 
-            var currentSnapshot = textBuffer.CurrentSnapshot;
-            return items.Select(d => converter(d.Primary, currentSnapshot)).ToImmutableArray();
+            return items.SelectAsArray(CreateTrackingPoint, textBuffer.CurrentSnapshot);
         }
 
-        public static ITrackingPoint CreateTrackingPoint(this ITextSnapshot snapshot, int line, int column)
+        private static ITrackingPoint CreateTrackingPoint<TData>(TableItem<TData> item, ITextSnapshot snapshot)
         {
             if (snapshot.Length == 0)
             {
                 return snapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
             }
 
-            if (line >= snapshot.LineCount)
+            var position = item.GetTrackingPosition();
+            if (position.Line >= snapshot.LineCount)
             {
                 return snapshot.CreateTrackingPoint(snapshot.Length, PointTrackingMode.Positive);
             }
 
-            var adjustedLine = Math.Max(line, 0);
+            var adjustedLine = Math.Max(position.Line, 0);
             var textLine = snapshot.GetLineFromLineNumber(adjustedLine);
-            if (column >= textLine.Length)
+            if (position.Character >= textLine.Length)
             {
                 return snapshot.CreateTrackingPoint(textLine.End, PointTrackingMode.Positive);
             }
 
-            var adjustedColumn = Math.Max(column, 0);
+            var adjustedColumn = Math.Max(position.Character, 0);
             return snapshot.CreateTrackingPoint(textLine.Start + adjustedColumn, PointTrackingMode.Positive);
         }
 
