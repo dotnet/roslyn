@@ -286,6 +286,16 @@ namespace Microsoft.CodeAnalysis
             if (!finalize)
             {
                 this.ClearSolutionData();
+
+                // tell event listener to stop listening since this workspace is going away
+                var workspaceEventListenerProvider = this.Services.GetService<IWorkspaceEventListenerProvider>();
+                if (workspaceEventListenerProvider != null)
+                {
+                    foreach (var listener in workspaceEventListenerProvider.GetListeners())
+                    {
+                        listener.Stop(this);
+                    }
+                }
             }
 
             _workspaceOptionService?.OnWorkspaceDisposed(this);

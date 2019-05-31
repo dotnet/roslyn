@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     [Export(typeof(ITableControlEventProcessorProvider))]
     [DataSourceType(StandardTableDataSources.CommentTableDataSource)]
-    [DataSource(MiscellaneousTodoListTable.IdentifierString)]
+    [DataSource(MiscellaneousTodoListTableWorkspaceEventListener.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
     internal class MiscTodoListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TodoItem>

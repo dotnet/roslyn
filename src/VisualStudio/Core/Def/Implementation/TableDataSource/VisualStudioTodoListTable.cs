@@ -1,25 +1,47 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable
+    [ExportWorkspaceEventListener(WorkspaceKind.Host), Shared]
+    internal class VisualStudioTodoListTableWorkspaceEventListener : IWorkspaceEventListener
     {
         internal const string IdentifierString = nameof(VisualStudioTodoListTable);
 
-        public static void Register(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+        private readonly ITodoListProvider _todoListProvider;
+        private readonly ITableManagerProvider _tableManagerProvider;
+
+        [ImportingConstructor]
+        public VisualStudioTodoListTableWorkspaceEventListener(
+            ITodoListProvider todoListProvider, ITableManagerProvider tableManagerProvider)
         {
-            new VisualStudioTodoListTable(workspace, todoListProvider, provider);
+            _todoListProvider = todoListProvider;
+            _tableManagerProvider = tableManagerProvider;
         }
 
-        // internal for testing
-        internal VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
-            base(workspace, todoListProvider, IdentifierString, provider)
+        public void Listen(Workspace workspace)
         {
-            ConnectWorkspaceEvents();
+            new VisualStudioTodoListTable(workspace, _todoListProvider, _tableManagerProvider);
+        }
+
+        public void Stop(Workspace workspace)
+        {
+            // nothing to do
+        }
+
+        internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable
+        {
+            // internal for testing
+            internal VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
+                base(workspace, todoListProvider, IdentifierString, provider)
+            {
+                ConnectWorkspaceEvents();
+            }
         }
     }
 }

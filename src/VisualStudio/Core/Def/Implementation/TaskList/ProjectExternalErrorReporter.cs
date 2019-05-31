@@ -26,8 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
 
-        private readonly VisualStudioWorkspace _workspace;
-        private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
+        private readonly VisualStudioWorkspaceImpl _workspace;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
             : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspaceImpl>())
@@ -44,8 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
-            _diagnosticProvider = workspace.ExternalErrorDiagnosticUpdateSource;
         }
+
+        private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
 
         private bool CanHandle(string errorId)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return true;
             }
 
-            return _diagnosticProvider.SupportedDiagnosticId(_projectId, errorId);
+            return DiagnosticProvider.SupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
@@ -96,13 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
             }
 
-            _diagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
+            DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
             return VSConstants.S_OK;
         }
 
         public int ClearAllErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 
@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     null, 0, 0, 0, 0,
                     bstrFileName, 0, 0, 0, 0);
 
-                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                DiagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
                 return;
             }
 
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     null, iStartLine, iStartColumn, iEndLine, iEndColumn,
                     bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
 
-                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                DiagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
                 return;
             }
 
@@ -235,12 +235,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 null, iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
 
-            _diagnosticProvider.AddNewErrors(documentId, diagnostic);
+            DiagnosticProvider.AddNewErrors(documentId, diagnostic);
         }
 
         public int ClearErrors()
         {
-            _diagnosticProvider.ClearErrors(_projectId);
+            DiagnosticProvider.ClearErrors(_projectId);
             return VSConstants.S_OK;
         }
 

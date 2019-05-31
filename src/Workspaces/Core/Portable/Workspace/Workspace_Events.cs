@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -12,11 +13,14 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         private readonly EventMap _eventMap = new EventMap();
+
         private const string WorkspaceChangeEventName = "WorkspaceChanged";
         private const string WorkspaceFailedEventName = "WorkspaceFailed";
         private const string DocumentOpenedEventName = "DocumentOpened";
         private const string DocumentClosedEventName = "DocumentClosed";
         private const string DocumentActiveContextChangedName = "DocumentActiveContextChanged";
+
+        private volatile bool _listenerInitialized = false;
 
         /// <summary>
         /// An event raised whenever the current solution is changed.
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 projectId = documentId.ProjectId;
             }
 
-            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceChangeEventArgs>>(WorkspaceChangeEventName);
+            var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
             if (ev.HasHandlers)
             {
                 return this.ScheduleTask(() =>
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis
 
         protected internal virtual void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<WorkspaceDiagnosticEventArgs>>(WorkspaceFailedEventName);
+            var ev = GetEventHandlers<WorkspaceDiagnosticEventArgs>(WorkspaceFailedEventName);
             if (ev.HasHandlers)
             {
                 var args = new WorkspaceDiagnosticEventArgs(diagnostic);
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentOpenedEventAsync(Document document)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
+            var ev = GetEventHandlers<DocumentEventArgs>(DocumentOpenedEventName);
             if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentClosedEventAsync(Document document)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
+            var ev = GetEventHandlers<DocumentEventArgs>(DocumentClosedEventName);
             if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis
 
         protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentActiveContextChangedEventArgs>>(DocumentActiveContextChangedName);
+            var ev = GetEventHandlers<DocumentActiveContextChangedEventArgs>(DocumentActiveContextChangedName);
             if (ev.HasHandlers && sourceTextContainer != null && oldActiveContextDocumentId != null && newActiveContextDocumentId != null)
             {
                 // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
@@ -202,6 +206,36 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 return Task.CompletedTask;
+            }
+        }
+
+        private EventMap.EventHandlerSet<EventHandler<T>> GetEventHandlers<T>(string eventName) where T : EventArgs
+        {
+            // this will register features that want to listen to workspace events
+            // lazily first time workspace event is actually fired
+            EnsureWorkspaceEventListeners();
+
+            return _eventMap.GetEventHandlers<EventHandler<T>>(eventName);
+
+            // local function
+            void EnsureWorkspaceEventListeners()
+            {
+                if (_listenerInitialized)
+                {
+                    return;
+                }
+
+                _listenerInitialized = true;
+
+                // this is not cancellable.
+                var listenerProvider = this.Services.GetService<IWorkspaceEventListenerProvider>();
+                if (listenerProvider != null)
+                {
+                    foreach (var listener in listenerProvider.GetListeners())
+                    {
+                        listener.Listen(this);
+                    }
+                }
             }
         }
     }

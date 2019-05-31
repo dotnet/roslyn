@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -15,10 +14,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -60,9 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
-            IDiagnosticService diagnosticService,
-            ITodoListProvider todoListProvider,
-            ITableManagerProvider provider,
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
@@ -77,26 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
             saveEventsService.StartSendingSaveEvents();
-
-            MiscellaneousDiagnosticListTable.Register(this, diagnosticService, provider);
-            MiscellaneousTodoListTable.Register(this, todoListProvider, provider);
         }
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         {
             _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
-        }
-
-        internal void StartSolutionCrawler()
-        {
-            // misc workspace will enable syntax errors and semantic errors for script files for
-            // all participating projects in the workspace
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
-        }
-
-        internal void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
         }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
@@ -468,8 +447,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
-            StopSolutionCrawler();
-
             var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
             runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
             _runningDocumentTableEventsCookie = 0;
