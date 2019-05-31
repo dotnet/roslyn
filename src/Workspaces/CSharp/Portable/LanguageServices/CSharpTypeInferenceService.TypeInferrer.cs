@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                             }
 
-                            elementTypesBuilder.Add(patternType.InferredType);
+                            elementTypesBuilder.Add(patternType.InferredType.UnwrapNullabilitySymbol());
                         }
 
                         var type = Compilation.CreateTupleTypeSymbol(
