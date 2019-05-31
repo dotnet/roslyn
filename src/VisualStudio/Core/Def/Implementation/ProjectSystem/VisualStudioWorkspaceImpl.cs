@@ -116,7 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
-            System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider));
+            var runningDocTableEventSink = exportProvider.GetExportedValue<RunningDocumentTableEventSink>();
+            System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider, runningDocTableEventSink));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
@@ -124,12 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileWatchedReferenceFactory.ReferenceChanged += this.RefreshMetadataReferencesForFile;
         }
 
-        public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
+        public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider,
+            RunningDocumentTableEventSink runningDocumentTableEventSink)
         {
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
+            var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider, runningDocumentTableEventSink).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
             lock (_gate)

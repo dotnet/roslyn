@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,10 +11,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -24,14 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Singleton the subscribes to the running document table and connects/disconnects files to files that are opened.
         /// </summary>
-        public sealed class OpenFileTracker
+        public sealed partial class OpenFileTracker
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
             private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-            private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+            private readonly RunningDocumentTableEventSink _runningDocumentTableEventSink;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -79,34 +81,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel,
+                RunningDocumentTableEventSink runningDocumentTableEventSink)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _runningDocumentTable = runningDocumentTable;
-                _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
+                _runningDocumentTableEventSink = runningDocumentTableEventSink;
+                SubscrubeToRunningDocTableEvents();
             }
 
-            public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            private void SubscrubeToRunningDocTableEvents()
+            {
+                _runningDocumentTableEventSink.OnBeforeOpenDocument += HandleBeforeDocumentOpenedEvent;
+                _runningDocumentTableEventSink.OnInitializedDocument += HandleInitializedDocumentEvent;
+                _runningDocumentTableEventSink.OnRefreshDocumentContext += HandleRefreshDocumentContextEvent;
+                _runningDocumentTableEventSink.OnCloseDocument += HandleCloseDocumentEvent;
+            }
+
+            private void HandleBeforeDocumentOpenedEvent(object sender, RunningDocumentTableInitializedEventArgs args)
+            {
+                TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
+            }
+
+            private void HandleInitializedDocumentEvent(object sender, RunningDocumentTableInitializedEventArgs args)
+            {
+                TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
+            }
+
+            private void HandleRefreshDocumentContextEvent(object sender, RunningDocumentTableEventArgs args)
+            {
+                RefreshContextForRunningDocumentTableCookie(args.DocCookie, args.Moniker);
+            }
+
+            private void HandleCloseDocumentEvent(object sender, RunningDocumentTableEventArgs args)
+            {
+                TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
+            }
+
+            public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider,
+                RunningDocumentTableEventSink runningDocumentTableEventSink)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable4)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 
-                var openFileTracker = new OpenFileTracker(workspace, runningDocumentTable, componentModel);
-                openFileTracker.ConnectToRunningDocumentTable();
-
-                return openFileTracker;
-            }
-
-            private void ConnectToRunningDocumentTable()
-            {
-                _foregroundAffinitization.AssertIsForeground();
-
-                // Some methods we need here only exist in IVsRunningDocumentTable and not the IVsRunningDocumentTable4 that we
-                // hold onto as a field
-                var runningDocumentTable = ((IVsRunningDocumentTable)_runningDocumentTable);
-                runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out var docTableEventsCookie);
+                return new OpenFileTracker(workspace, runningDocumentTable, componentModel, runningDocumentTableEventSink);
             }
 
             private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
@@ -132,18 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private void TryOpeningDocumentsForNewCookie(uint cookie)
+            private void TryOpeningDocumentsForNewCookie(uint cookie, string moniker, ITextBuffer textBuffer)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-                {
-                    // We never want to touch documents that haven't been initialized yet, so immediately bail. Any further
-                    // calls to the RDT might accidentally initialize it.
-                    return;
-                }
-
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -168,32 +180,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds.Select(d => d.ProjectId));
                     }
 
-                    if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer bufferAdapter)
+                    if (textBuffer != null)
                     {
-                        var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+                        var textContainer = textBuffer.AsTextContainer();
 
-                        if (textBuffer != null)
+                        foreach (var documentId in documentIds)
                         {
-                            var textContainer = textBuffer.AsTextContainer();
-
-                            foreach (var documentId in documentIds)
+                            if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                             {
-                                if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                                var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                                if (w.CurrentSolution.ContainsDocument(documentId))
                                 {
-                                    var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                                    if (w.CurrentSolution.ContainsDocument(documentId))
-                                    {
-                                        w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
-                                    else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                                    {
-                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
-                                    else
-                                    {
-                                        Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                        w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
-                                    }
+                                    w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                                }
+                                else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                {
+                                    w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                }
+                                else
+                                {
+                                    Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                    w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
                                 }
                             }
                         }
@@ -286,11 +293,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _watchedHierarchiesForDocumentCookie.Remove(cookie);
             }
 
-            private void RefreshContextForRunningDocumentTableCookie(uint cookie)
+            private void RefreshContextForRunningDocumentTableCookie(uint cookie, string moniker)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -321,27 +327,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (subscribedHierarchy.Target.Key == hierarchy)
                         {
-                            RefreshContextForRunningDocumentTableCookie(cookie);
+                            var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
+                            RefreshContextForRunningDocumentTableCookie(cookie, moniker);
                             break;
                         }
                     }
                 }
             }
 
-            private void TryClosingDocumentsForCookie(uint cookie)
+            private void TryClosingDocumentsForCookie(uint cookie, string moniker)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                if (!_runningDocumentTable.IsDocumentInitialized(cookie))
-                {
-                    // We never want to touch documents that haven't been initialized yet, so immediately bail. Any further
-                    // calls to the RDT might accidentally initialize it.
-                    return;
-                }
-
                 UnsubscribeFromWatchedHierarchies(cookie);
 
-                var moniker = _runningDocumentTable.GetDocumentMoniker(cookie);
                 _workspace.ApplyChangeToWorkspace(w =>
                 {
                     var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -450,7 +449,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     foreach (var cookie in GetInitializedRunningDocumentTableCookies())
                     {
-                        TryOpeningDocumentsForNewCookie(cookie);
+                        if (_runningDocumentTableEventSink.TryGetBuffer(cookie, out var buffer))
+                        {
+                            TryOpeningDocumentsForNewCookie(cookie, _runningDocumentTable.GetDocumentMoniker(cookie), buffer);
+                        }
                     }
                 }
                 else if (fileNamesToCheckForOpenDocuments != null)
@@ -460,79 +462,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (_runningDocumentTable.IsMonikerValid(filename))
                         {
                             var cookie = _runningDocumentTable.GetDocumentCookie(filename);
-                            TryOpeningDocumentsForNewCookie(cookie);
+                            if (_runningDocumentTableEventSink.TryGetBuffer(cookie, out var buffer))
+                            {
+                                TryOpeningDocumentsForNewCookie(cookie, _runningDocumentTable.GetDocumentMoniker(cookie), buffer);
+                            }
                         }
                     }
-                }
-            }
-
-            private class RunningDocumentTableEventSink : IVsRunningDocTableEvents3
-            {
-                private readonly OpenFileTracker _openFileTracker;
-
-                public RunningDocumentTableEventSink(OpenFileTracker openFileTracker)
-                {
-                    _openFileTracker = openFileTracker;
-                }
-
-                public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-                {
-                    if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
-                    {
-                        _openFileTracker.TryClosingDocumentsForCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnAfterSave(uint docCookie)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
-                {
-                    if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
-                    {
-                        _openFileTracker.TryOpeningDocumentsForNewCookie(docCookie);
-                    }
-
-                    if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
-                    {
-                        _openFileTracker.RefreshContextForRunningDocumentTableCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
-                {
-                    if (fFirstShow != 0)
-                    {
-                        _openFileTracker.TryOpeningDocumentsForNewCookie(docCookie);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
-
-                public int OnBeforeSave(uint docCookie)
-                {
-                    return VSConstants.E_NOTIMPL;
                 }
             }
 
