@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
             /// <summary>
-            /// The dictionary key corresponds to Syntax position.
+            /// The dictionary key corresponds to Syntax position. The dictionary should be sorted in descending order.
             /// </summary>
             private readonly ImmutableSortedDictionary<int, Snapshot> _incrementalSnapshots;
 
@@ -82,13 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
+            /// <summary>
+            /// Simple int comparer that orders in descending order, so that searching for a snapshot will find the
+            /// closest position before a given position.
+            /// </summary>
+            private sealed class DescendingIntComparer : IComparer<int>
+            {
+                public int Compare(int x, int y) => y.CompareTo(x);
+            }
+
             internal sealed class Builder
             {
+
                 private readonly ArrayBuilder<SharedWalkerState> _walkerStates = ArrayBuilder<SharedWalkerState>.GetInstance();
                 /// <summary>
-                /// Snapshots are kept in a dictionary of position -> snapshot at that position.
+                /// Snapshots are kept in a dictionary of position -> snapshot at that position. These are stored in descending order.
                 /// </summary>
-                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>();
+                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>(new DescendingIntComparer());
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
                 /// to get to a stable state. Each of these symbols gets a single global state slot, which this
@@ -96,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
                 private int _currentWalkerSlot = -1;
-                private Symbol _initialSymbol = null;
 #if DEBUG
                 private Symbol _currentSymbol = null;
 #endif
@@ -105,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(_currentWalkerSlot == -1, "Attempting to finalize snapshots before all walks completed");
                     Debug.Assert(_symbolToSlot.Count == _walkerStates.Count);
+                    Debug.Assert(_symbolToSlot.Count > 0);
                     _symbolToSlot.Free();
                     return new SnapshotManager(
                         _walkerStates.ToImmutableAndFree(),
@@ -115,12 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
 #if DEBUG
                     Debug.Assert(symbol is object);
-                    Debug.Assert((_currentSymbol is null && _currentWalkerSlot == -1 && _initialSymbol is null) ||
-                                 symbol.ContainingSymbol.Equals(_currentSymbol));
+                    Debug.Assert((_currentSymbol is null && _currentWalkerSlot == -1 && _symbolToSlot.Count == 0) ||
+                                 (object)symbol.ContainingSymbol == _currentSymbol);
                     _currentSymbol = symbol;
 #endif
-                    _initialSymbol ??= symbol;
-                    var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we
                     // need to make sure we use the same final shared
@@ -139,13 +148,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal void ExitWalker(SharedWalkerState stableState, Symbol symbol)
                 {
 #if DEBUG
-                    Debug.Assert(_currentSymbol.Equals(symbol));
+                    Debug.Assert((object)_currentSymbol == symbol);
                     _currentSymbol = symbol.ContainingSymbol;
 #endif
                     _walkerStates.SetItem(_currentWalkerSlot, stableState);
-                    if (_initialSymbol.Equals(symbol))
+                    if (_currentWalkerSlot == 0)
                     {
-                        Debug.Assert(_currentWalkerSlot == 0);
+#if DEBUG
+                        _currentSymbol = null;
+#endif
                         _currentWalkerSlot = -1;
                     }
                     else

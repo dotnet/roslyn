@@ -492,30 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null);
         }
 
-        internal static ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> Analyze(
-            CSharpCompilation compilation,
-            BoundLambda lambda,
-            Conversions conversions,
-            DiagnosticBag diagnostics,
-            MethodSymbol delegateInvokeMethod,
-            VariableState initialState)
-        {
-            var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
-            Analyze(
-                compilation,
-                lambda,
-                conversions,
-                diagnostics,
-                delegateInvokeMethod,
-                initialState,
-                analyzedNullabilityMapOpt: null,
-                snapshotBuilderOpt: null,
-                returnTypes);
-            return returnTypes.ToImmutableAndFree();
-        }
-
-
-        private static void Analyze(
+        internal static void Analyze(
             CSharpCompilation compilation,
             BoundLambda lambda,
             Conversions conversions,
