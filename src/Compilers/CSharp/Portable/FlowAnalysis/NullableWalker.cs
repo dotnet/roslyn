@@ -1389,6 +1389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     type = valueType.ToTypeWithAnnotations();
                     _variableTypes[local] = type;
+
+                    if (node.DeclaredTypeOpt != null)
+                    {
+                        SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(valueType, type), true);
+                    }
                 }
             }
 

@@ -819,5 +819,30 @@ class C
             Assert.Equal(@null, rightInfo.Nullability);
             Assert.Equal(notNull, rightInfo.ConvertedNullability);
         }
+
+        [Fact]
+        public void InferredDeclarationType()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(object? x, object x2)
+    {
+        var/*T:object?*/ y = x;
+        var/*T:object!*/ y2 = x2;
+
+        if (x == null) 
+            return;
+        var/*T:object!*/ y3 = x;
+
+        x = null;
+        var /*T:object?*/ y4 = x;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
     }
 }
