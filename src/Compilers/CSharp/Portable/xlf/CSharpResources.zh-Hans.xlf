@@ -12,6 +12,11 @@
         <target state="translated">无法从非泛型类型创建构造泛型类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">若要对内插逐字字符串使用 “@$” 而不是 “$@”，请使用语言版本“{0}”或更高版本。</target>
@@ -8692,11 +8697,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">自动实现的属性必须覆盖被覆盖属性的所有访问器。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">接口中实例自动实现的属性不能具有初始值设定项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">

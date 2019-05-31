@@ -60,6 +60,8 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
 
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.FlowAnalysis.Utilities.dll")]
+
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
 
 [assembly: ProvideBindingRedirection(

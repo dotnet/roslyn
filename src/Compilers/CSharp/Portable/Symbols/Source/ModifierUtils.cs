@@ -122,9 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation)
         {
-            if ((mods & (DeclarationModifiers.Static | DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0 &&
-                !isExplicitInterfaceImplementation)
+            if (isExplicitInterfaceImplementation)
             {
+                if ((mods & DeclarationModifiers.Abstract) != 0)
+                {
+                    mods |= DeclarationModifiers.Sealed;
+                }
+            }
+            else if ((mods & (DeclarationModifiers.Static | DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            {
+                Debug.Assert(!isExplicitInterfaceImplementation);
+
                 if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Sealed)) != 0)
                 {
                     if ((mods & DeclarationModifiers.Sealed) == 0)
