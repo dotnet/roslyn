@@ -97,6 +97,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
         }
 
+        internal TypeWithAnnotations AsAnnotated()
+        {
+            return Create(Type, NullableAnnotation.Annotated, CustomModifiers);
+        }
+
+        internal TypeWithAnnotations AsNotAnnotated()
+        {
+            return Create(Type, NullableAnnotation.NotAnnotated, CustomModifiers);
+        }
+
         internal bool IsPossiblyNullableTypeTypeParameter()
         {
             return NullableAnnotation.IsNotAnnotated() &&

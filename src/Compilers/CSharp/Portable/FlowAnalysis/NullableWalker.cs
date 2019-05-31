@@ -2876,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
         {
-            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
             {
                 var typeSymbol = declaredType.Type;
                 if (declaredType.NullableAnnotation.IsNotAnnotated() || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
@@ -2884,9 +2884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return declaredType;
                 }
 
-                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.NotAnnotated, declaredType.CustomModifiers);
+                return declaredType.AsNotAnnotated();
             }
-            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
+            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) == FlowAnalysisAnnotations.AllowNull)
             {
                 var typeSymbol = declaredType.Type;
                 if (declaredType.NullableAnnotation.IsAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
@@ -2894,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return declaredType;
                 }
 
-                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.Annotated, declaredType.CustomModifiers);
+                return declaredType.AsAnnotated();
             }
 
             return declaredType;
@@ -2910,17 +2910,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return declaredType;
                 }
 
-                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.NotAnnotated, declaredType.CustomModifiers);
+                return declaredType.AsNotAnnotated();
             }
             else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
                 var typeSymbol = declaredType.Type;
-                if (!declaredType.NullableAnnotation.IsNotAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
+                if (declaredType.NullableAnnotation.IsAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
                 {
                     return declaredType;
                 }
 
-                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.Annotated, declaredType.CustomModifiers);
+                return declaredType.AsAnnotated();
             }
 
             return declaredType;
