@@ -67,10 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
-            {
-                return;
-            }
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
@@ -90,10 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
-            if (!RequireRunningEventTasks(source, ev))
-            {
-                return;
-            }
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
             _eventQueue.ScheduleTask(() =>
@@ -115,27 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }).CompletesAsyncOperation(eventToken);
-        }
-
-        private bool RequireRunningEventTasks(
-            IDiagnosticUpdateSource source, EventMap.EventHandlerSet<EventHandler<DiagnosticsUpdatedArgs>> ev)
-        {
-            // basically there are 2 cases when there is no event handler registered. 
-            // first case is when diagnostic update source itself provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService doesn't need to track diagnostics reported. so, it bail out right away.
-            // second case is when diagnostic source doesn't provide GetDiagnostics functionality. 
-            // in that case, DiagnosticService needs to track diagnostics reported. so it need to enqueue background 
-            // work to process given data regardless whether there is event handler registered or not.
-            // this could be separated in 2 tasks, but we already saw cases where there are too many tasks enqueued, 
-            // so I merged it to one. 
-
-            // if it doesn't SupportGetDiagnostics, we need to process reported data, so enqueue task.
-            if (!source.SupportGetDiagnostics)
-            {
-                return true;
-            }
-
-            return ev.HasHandlers;
         }
 
         private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
