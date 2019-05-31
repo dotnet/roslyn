@@ -41,12 +41,14 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isUnneccessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
+            LocalizableString description = null,
             params string[] customTags)
             => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
                     DiagnosticSeverity.Info,
                     isEnabledByDefault,
+                    description,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
     }
 }
