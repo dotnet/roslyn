@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (string.IsNullOrEmpty(xmlText))
                 {
-                    xmlText = $@"<member name=""{symbol.GetDocumentationCommentId()}""><inheritdoc/></member>";
+                    xmlText = $@"<doc><inheritdoc/></doc>";
                 }
 
                 try
@@ -1008,7 +1008,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     xpathValue = pathAttribute?.Value;
                     if (xpathValue.StartsWith("/"))
                     {
-                        xpathValue = "/member" + xpathValue;
+                        // Account for the root <doc> or <member> element
+                        xpathValue = "/*" + xpathValue;
                     }
                 }
 
@@ -1115,16 +1116,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             static string BuildXPathForElement(XElement element)
             {
-                if (ElementNameIs(element, "member"))
+                if (ElementNameIs(element, "member") || ElementNameIs(element, "doc"))
                 {
                     // Avoid string concatenation allocations for inheritdoc as a top-level element
-                    return "/member/node()[not(self::overloads)]";
+                    return "/*/node()[not(self::overloads)]";
                 }
 
                 var path = "/node()[not(self::overloads)]";
                 for (var current = element; current != null; current = current.Parent)
                 {
-                    path = "/" + current.Name + path;
+                    var currentName = current.Name;
+                    if (ElementNameIs(current, "member") || ElementNameIs(current, "doc"))
+                    {
+                        // Allow <member> and <doc> to be used interchangeably
+                        currentName = "*";
+                    }
+
+                    path = "/" + currentName + path;
                 }
 
                 return path;
