@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        [WorkItemAttribute(36086, "https://github.com/dotnet/roslyn/issues/36086")]
+        [WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
         public async Task TestSeverity()
         {
             var source =
@@ -655,10 +655,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             var warningOption = new CodeStyleOption<bool>(true, NotificationOption.Warning);
             var options = Option(CSharpCodeStyleOptions.PreferSwitchExpression, warningOption);
             var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
+
             using var workspace = CreateWorkspaceFromOptions(source, testParameters);
-            var diags = await GetDiagnosticsAsync(workspace, testParameters);
-            Assert.Single(diags);
-            Assert.Equal(DiagnosticSeverity.Warning, diags.First().Severity);
+            var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
+            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
+            Assert.Equal(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId, diag.Id);
         }
     }
 }
