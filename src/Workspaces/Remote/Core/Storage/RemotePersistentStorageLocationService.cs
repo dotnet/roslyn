@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         private readonly object _gate = new object();
         private readonly Dictionary<SolutionId, string> _idToStorageLocation = new Dictionary<SolutionId, string>();
 
+        [ImportingConstructor]
+        public RemotePersistentStorageLocationService()
+        {
+        }
+
         public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
 
         public string TryGetStorageLocation(SolutionId solutionId)

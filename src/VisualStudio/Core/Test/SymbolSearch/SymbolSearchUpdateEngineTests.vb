@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlService.Verify()
             End Using
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await service.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlService.Verify()
             End Using
@@ -115,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -159,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -195,7 +195,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 serviceMock.Verify()
                 clientMock.Verify()
@@ -244,7 +244,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -288,7 +288,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -336,7 +336,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -395,7 +395,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -441,7 +441,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -495,7 +495,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -555,7 +555,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -611,7 +611,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     reportAndSwallowException:=s_allButMoqExceptions,
                     updateCancellationToken:=cancellationTokenSource.Token)
 
-                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSource, "TestDirectory")
+                Await searchService.UpdateContinuouslyAsync(SymbolSearchUpdateEngine.NugetOrgSourceName, "TestDirectory")
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 clientMock.Verify()
@@ -751,11 +751,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function LogExceptionAsync(exception As String, text As String) As Task Implements ISymbolSearchLogService.LogExceptionAsync
+            Public Function LogExceptionAsync(exception As String, text As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchLogService.LogExceptionAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
+            Public Function LogInfoAsync(text As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchLogService.LogInfoAsync
                 Return Task.CompletedTask
             End Function
         End Class
@@ -768,19 +768,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Private Sub New()
             End Sub
 
-            Public Function OnDownloadFullDatabaseStartedAsync(title As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
+            Public Function OnDownloadFullDatabaseStartedAsync(title As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseSucceededAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
+            Public Function OnDownloadFullDatabaseSucceededAsync(cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseCanceledAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
+            Public Function OnDownloadFullDatabaseCanceledAsync(cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function OnDownloadFullDatabaseFailedAsync(message As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
+            Public Function OnDownloadFullDatabaseFailedAsync(message As String, cancellationToken As CancellationToken) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
                 Return Task.CompletedTask
             End Function
         End Class

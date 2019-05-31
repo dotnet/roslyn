@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     [ExportOptionProvider, Shared]
     internal class SplitStringLiteralOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public SplitStringLiteralOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             SplitStringLiteralOptions.Enabled);
     }

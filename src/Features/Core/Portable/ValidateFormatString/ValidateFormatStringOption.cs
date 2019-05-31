@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     [ExportOptionProvider, Shared]
     internal class ValidateFormatStringOptionProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ValidateFormatStringOptionProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls);
     }

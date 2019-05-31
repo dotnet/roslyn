@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
         Name = PredefinedCodeRefactoringProviderNames.AddFileBanner), Shared]
     internal class CSharpAddFileBannerCodeRefactoringProvider : AbstractAddFileBannerCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpAddFileBannerCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsCommentStartCharacter(char ch)
             => ch == '/';
 
