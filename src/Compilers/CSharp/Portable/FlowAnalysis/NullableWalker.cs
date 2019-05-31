@@ -2099,10 +2099,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
+            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
+                GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
                 if (slotBuilder.Count != 0)
                 {
                     Split();
