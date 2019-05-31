@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportOptionProvider, Shared]
     internal class InternalDiagnosticsOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public InternalDiagnosticsOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic,
             InternalDiagnosticsOptions.CompilationEndCodeFix,

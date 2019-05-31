@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Shared
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Default), Shared]
     internal class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
+        [ImportingConstructor]
+        public DefaultDocumentSupportsFeatureService()
+        {
+        }
+
         public bool SupportsCodeFixes(Document document)
             => true;
 

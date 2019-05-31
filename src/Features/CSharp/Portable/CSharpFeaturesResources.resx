@@ -599,4 +599,13 @@
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
+  <data name="Sort_Usings" xml:space="preserve">
+    <value>&amp;Sort Usings</value>
+  </data>
+  <data name="Convert_switch_statement_to_expression" xml:space="preserve">
+    <value>Convert switch statement to expression</value>
+  </data>
+  <data name="Use_switch_expression" xml:space="preserve">
+    <value>Use 'switch' expression</value>
+  </data>
 </root>

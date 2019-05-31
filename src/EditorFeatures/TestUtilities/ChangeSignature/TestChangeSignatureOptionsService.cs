@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public bool IsCancelled = true;
         public int[] UpdatedSignature = null;
 
+        [ImportingConstructor]
+        public TestChangeSignatureOptionsService()
+        {
+        }
+
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
         {
             var list = parameters.ToListOfParameters();

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public AddRequiredParenthesesCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 

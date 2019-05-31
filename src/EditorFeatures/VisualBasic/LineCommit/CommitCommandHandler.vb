@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Property
 
         <ImportingConstructor()>
-        Friend Sub New(
+        Public Sub New(
             bufferManagerFactory As CommitBufferManagerFactory,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             smartIndentationService As ISmartIndentationService,

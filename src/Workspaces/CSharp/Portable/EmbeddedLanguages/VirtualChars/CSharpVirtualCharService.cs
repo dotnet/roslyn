@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
     {
         public static readonly IVirtualCharService Instance = new CSharpVirtualCharService();
 
+        [ImportingConstructor]
+        public CSharpVirtualCharService()
+        {
+        }
+
         protected override bool IsStringLiteralToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.StringLiteralToken;
 

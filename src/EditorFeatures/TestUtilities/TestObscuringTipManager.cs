@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [Export(typeof(IObscuringTipManager))]
     internal class TestObscuringTipManager : IObscuringTipManager
     {
+        [ImportingConstructor]
+        public TestObscuringTipManager()
+        {
+        }
+
         public void PushTip(ITextView view, IObscuringTip tip)
         {
         }

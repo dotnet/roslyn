@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     {
         private static readonly Compilation s_compilation = CSharpCompilation.Create("empty");
 
+        [ImportingConstructor]
+        public CSharpDiagnosticPropertiesService()
+        {
+        }
+
         protected override Compilation GetCompilation() => s_compilation;
     }
 }

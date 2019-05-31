@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
 
+        [ImportingConstructor]
+        public VisualStudioProjectCacheHostServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // we support active document tracking only for visual studio workspace host.

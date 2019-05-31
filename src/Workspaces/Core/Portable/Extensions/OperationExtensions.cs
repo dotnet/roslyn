@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -193,6 +196,79 @@ namespace Microsoft.CodeAnalysis
                 default:
                     return false;
             }
+        }
+
+        public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
+        {
+            foreach (var block in cfg.Blocks)
+            {
+                var isCatchRegionBlock = false;
+                var currentRegion = block.EnclosingRegion;
+                while (currentRegion != null)
+                {
+                    switch (currentRegion.Kind)
+                    {
+                        case ControlFlowRegionKind.Catch:
+                            isCatchRegionBlock = true;
+                            break;
+                    }
+
+                    currentRegion = currentRegion.EnclosingRegion;
+                }
+
+                if (isCatchRegionBlock)
+                {
+                    foreach (var descendant in block.DescendantOperations())
+                    {
+                        if (operation == descendant)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
+        {
+            foreach (var operationBlock in operationBlocks)
+            {
+                if (operationBlock.HasAnyOperationDescendant(predicate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
+        {
+            return operationBlock.HasAnyOperationDescendant(predicate, out _);
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        {
+            Debug.Assert(operationBlock != null);
+            Debug.Assert(predicate != null);
+            foreach (var descendant in operationBlock.DescendantsAndSelf())
+            {
+                if (predicate(descendant))
+                {
+                    foundOperation = descendant;
+                    return true;
+                }
+            }
+
+            foundOperation = null;
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, OperationKind kind)
+        {
+            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
         }
     }
 }

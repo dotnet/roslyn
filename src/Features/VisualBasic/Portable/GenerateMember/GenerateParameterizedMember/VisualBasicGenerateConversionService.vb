@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend Class VisualBasicGenerateConversionService
         Inherits AbstractGenerateConversionService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function AreSpecialOptionsActive(semanticModel As SemanticModel) As Boolean
             Return VisualBasicCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel)
         End Function

@@ -2,12 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Telemetry;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -15,6 +17,24 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static partial class Extensions
     {
+        public static JsonRpc CreateStreamJsonRpc(
+            this Stream stream,
+            object target,
+            TraceSource logger,
+            IEnumerable<JsonConverter> jsonConverters = null)
+        {
+            jsonConverters = jsonConverters ?? SpecializedCollections.EmptyEnumerable<JsonConverter>();
+
+            var jsonFormatter = new JsonMessageFormatter();
+            jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters.Concat(AggregateJsonConverter.Instance));
+
+            return new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target)
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                TraceSource = logger
+            };
+        }
+
         public static async Task InvokeAsync(
             this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)

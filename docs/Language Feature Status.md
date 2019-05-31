@@ -16,6 +16,7 @@ efforts behind them.
 | [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | [agocke](https://github.com/agocke) | [mattwar](https://github.com/mattwar) |
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [Implemented](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Relax ordering of `ref` and `partial` modifiers](https://github.com/dotnet/csharplang/issues/946) | [ref-partial](https://github.com/dotnet/roslyn/tree/features/ref-partial) | In Progress | [alrz](https://github.com/alrz) | [gafter](https://github.com/gafter)  | [jcouv](https://github.com/jcouv) |
+| [Parameter null-checking](https://github.com/dotnet/csharplang/issues/2145) | [param-nullchecking](https://github.com/dotnet/roslyn/tree/features/param-nullchecking) | [In Progress](https://github.com/dotnet/roslyn/issues/36024) | [fayrose](https://github.com/fayrose) | [agocke](https://github.com/agocked)  | [jaredpar](https://github.com/jaredpar) |
 
 # C# 8.0
 

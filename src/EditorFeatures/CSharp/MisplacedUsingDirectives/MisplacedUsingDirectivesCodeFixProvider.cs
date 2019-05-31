@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     {
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
+        [ImportingConstructor]
+        public MisplacedUsingDirectivesCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
