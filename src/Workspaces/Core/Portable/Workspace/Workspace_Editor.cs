@@ -755,5 +755,19 @@ namespace Microsoft.CodeAnalysis
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
+
+        /// <summary>
+        /// Update the solution as a result of option changes.
+        /// </summary>
+        internal void OnOptionsChanged()
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithOptionsChanged());
+
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+            }
+        }
     }
 }

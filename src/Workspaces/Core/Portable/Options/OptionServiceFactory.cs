@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             private readonly IGlobalOptionService _globalOptionService;
             private readonly IWorkspaceTaskScheduler _taskQueue;
+            private readonly Workspace _workspace;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Options
                 HostWorkspaceServices workspaceServices)
             {
                 _globalOptionService = globalOptionService;
+                _workspace = workspaceServices.Workspace;
 
                 var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
                 _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
@@ -121,7 +123,12 @@ namespace Microsoft.CodeAnalysis.Options
             public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
             public T GetOption<T>(PerLanguageOption<T> option, string languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
-            public void SetOptions(OptionSet optionSet) => _globalOptionService.SetOptions(optionSet);
+
+            public void SetOptions(OptionSet optionSet)
+            {
+                _globalOptionService.SetOptions(optionSet);
+                _workspace.OnOptionsChanged();
+            }
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {

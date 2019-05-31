@@ -412,6 +412,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Update a solution as a result of option changes.
+        /// </summary>
+        internal Solution WithOptionsChanged()
+        {
+            return new Solution(_state);
+        }
+
+        /// <summary>
         /// Create a new solution instance with the project specified updated to have
         /// the specified hasAllInformation.
         /// </summary>
