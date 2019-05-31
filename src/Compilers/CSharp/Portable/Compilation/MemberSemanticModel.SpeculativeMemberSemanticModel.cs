@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            protected override BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
+            protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
             {
                 // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
                 // here. They will need to run nullable analysis up to the point that is being speculated on, and

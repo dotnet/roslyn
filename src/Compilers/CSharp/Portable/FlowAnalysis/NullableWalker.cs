@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
             }
 
-            // We need to do a checkpoint even of the first node, because we want to have the state of the initial parameters.
+            // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
             _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
             var methodSymbol = symbol as MethodSymbol;
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
-            // Until we have a workaround for this, disable snapshotting for null symbols.
+            // Until we have a workaround for this, disable snapshots for null symbols.
             // https://github.com/dotnet/roslyn/issues/36066
             var snapshotBuilder = createSnapshots && symbol != null ? new SnapshotManager.Builder() : null;
             Analyze(
@@ -498,8 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
-            VariableState initialState,
-            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt)
+            VariableState initialState)
         {
             var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
             Analyze(
@@ -509,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 delegateInvokeMethod,
                 initialState,
-                analyzedNullabilityMapOpt,
+                analyzedNullabilityMapOpt: null,
                 snapshotBuilderOpt: null,
                 returnTypes);
             return returnTypes.ToImmutableAndFree();
@@ -576,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
                 snapshotBuilderOpt?.EnterNewWalker(symbol);
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
-                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState());
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), symbol);
                 diagnostics.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
@@ -818,9 +817,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
         }
-
-        private void AddDeclaredVariable(Symbol symbol, TypeWithAnnotations declaredType) =>
-            _variableTypes[symbol] = declaredType;
 
         private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {
@@ -1278,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
         {
-            AddDeclaredVariable(parameter, parameterType);
+            _variableTypes[parameter] = parameterType;
             int slot = GetOrCreateSlot(parameter);
 
             Debug.Assert(!IsConditionalState);
@@ -1476,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     type = valueType.ToTypeWithAnnotations();
-                    AddDeclaredVariable(local, type);
+                    _variableTypes[local] = type;
                 }
             }
 
@@ -3343,7 +3339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterWithState = parameterType.ToTypeWithState();
                         if (argumentNoConversion is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            AddDeclaredVariable(local.LocalSymbol, parameterType);
+                            _variableTypes[local.LocalSymbol] = parameterType;
                         }
 
                         var lValueType = result.LValueType;
@@ -5034,6 +5030,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = node.Body;
             if (body != null)
             {
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap = _analyzedNullabilityMapOpt;
+                SnapshotManager.Builder snapshotBuilder = _snapshotBuilderOpt;
+                if (_disableNullabilityAnalysis)
+                {
+                    analyzedNullabilityMap = null;
+                    snapshotBuilder = null;
+                }
+
                 Analyze(compilation,
                         node.Symbol,
                         body,
@@ -5043,8 +5047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useMethodSignatureParameterTypes: false,
                         methodSignatureOpt: null,
                         initialState: GetVariableState(this.TopState()),
-                        analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
-                        _snapshotBuilderOpt,
+                        analyzedNullabilityMapOpt: analyzedNullabilityMap,
+                        snapshotBuilderOpt: snapshotBuilder,
                         returnTypesOpt: null);
             }
             SetInvalidResult();

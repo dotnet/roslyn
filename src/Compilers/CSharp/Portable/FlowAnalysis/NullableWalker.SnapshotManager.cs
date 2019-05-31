@@ -16,9 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// The int key corresponds to <see cref="Snapshot.GlobalStateIndex"/>.
             /// </summary>
             private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
-            private readonly ImmutableDictionary<int, Snapshot> _incrementalSnapshots;
+            /// <summary>
+            /// The dictionary key corresponds to Syntax position.
+            /// </summary>
+            private readonly ImmutableSortedDictionary<int, Snapshot> _incrementalSnapshots;
 
-            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableDictionary<int, Snapshot> incrementalSnapshots)
+            private SnapshotManager(ImmutableArray<SharedWalkerState> walkerGlobalStates, ImmutableSortedDictionary<int, Snapshot> incrementalSnapshots)
             {
                 _walkerGlobalStates = walkerGlobalStates;
                 _incrementalSnapshots = incrementalSnapshots;
@@ -27,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal NullableWalker RestoreWalkerToAnalyzeNewNode(
                 int position,
                 BoundNode nodeToAnalyze,
-                CSharpCompilation compilation,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap)
             {
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 var method = globalState.Symbol as MethodSymbol;
                 return new NullableWalker(
-                    compilation,
+                    binder.Compilation,
                     globalState.Symbol,
                     useMethodSignatureParameterTypes: !(method is null),
                     method,
@@ -83,19 +85,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal sealed class Builder
             {
                 private readonly ArrayBuilder<SharedWalkerState> _walkerStates = ArrayBuilder<SharedWalkerState>.GetInstance();
-                private readonly ImmutableDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableDictionary.CreateBuilder<int, Snapshot>();
+                /// <summary>
+                /// Snapshots are kept in a dictionary of position -> snapshot at that position.
+                /// </summary>
+                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>();
+                /// <summary>
+                /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
+                /// to get to a stable state. Each of these symbols gets a single global state slot, which this
+                /// dictionary keeps track of. These slots correspond to indexes into <see cref="_walkerStates"/>.
+                /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
-                private readonly ArrayBuilder<int> _previousWalkerSlots = ArrayBuilder<int>.GetInstance();
                 private int _currentWalkerSlot = -1;
-                private int _nextWalkerSlot = 0;
+                private Symbol _initialSymbol = null;
+#if DEBUG
+                private Symbol _currentSymbol = null;
+#endif
 
                 internal SnapshotManager ToManagerAndFree()
                 {
-                    Debug.Assert(_currentWalkerSlot == -1 && _previousWalkerSlots.Count == 0, "Attempting to finalize snapshots before all walks completed");
-                    Debug.Assert(_walkerStates.Count == _nextWalkerSlot);
+                    Debug.Assert(_currentWalkerSlot == -1, "Attempting to finalize snapshots before all walks completed");
                     Debug.Assert(_symbolToSlot.Count == _walkerStates.Count);
                     _symbolToSlot.Free();
-                    _previousWalkerSlots.Free();
                     return new SnapshotManager(
                         _walkerStates.ToImmutableAndFree(),
                         _incrementalSnapshots.ToImmutable());
@@ -103,28 +113,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 internal void EnterNewWalker(Symbol symbol)
                 {
-                    Debug.Assert(!(symbol is null));
-                    _previousWalkerSlots.Push(_currentWalkerSlot);
+#if DEBUG
+                    Debug.Assert(symbol is object);
+                    Debug.Assert((_currentSymbol is null && _currentWalkerSlot == -1 && _initialSymbol is null) ||
+                                 symbol.ContainingSymbol.Equals(_currentSymbol));
+                    _currentSymbol = symbol;
+#endif
+                    _initialSymbol ??= symbol;
+                    var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we
                     // need to make sure we use the same final shared
                     // state for following passes.
-                    if (_symbolToSlot.ContainsKey(symbol))
+                    if (_symbolToSlot.TryGetValue(symbol, out var slot))
                     {
-                        _currentWalkerSlot = _symbolToSlot[symbol];
+                        _currentWalkerSlot = slot;
                     }
                     else
                     {
-                        _currentWalkerSlot = _nextWalkerSlot;
+                        _currentWalkerSlot = _symbolToSlot.Count;
                         _symbolToSlot.Add(symbol, _currentWalkerSlot);
-                        _nextWalkerSlot++;
                     }
                 }
 
-                internal void ExitWalker(SharedWalkerState stableState)
+                internal void ExitWalker(SharedWalkerState stableState, Symbol symbol)
                 {
+#if DEBUG
+                    Debug.Assert(_currentSymbol.Equals(symbol));
+                    _currentSymbol = symbol.ContainingSymbol;
+#endif
                     _walkerStates.SetItem(_currentWalkerSlot, stableState);
-                    _currentWalkerSlot = _previousWalkerSlots.Pop();
+                    if (_initialSymbol.Equals(symbol))
+                    {
+                        Debug.Assert(_currentWalkerSlot == 0);
+                        _currentWalkerSlot = -1;
+                    }
+                    else
+                    {
+                        _currentWalkerSlot = _symbolToSlot[symbol.ContainingSymbol];
+                    }
                 }
 
                 internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)

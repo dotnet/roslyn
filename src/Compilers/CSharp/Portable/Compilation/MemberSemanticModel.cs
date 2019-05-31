@@ -1625,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
                 var diagnostics = new DiagnosticBag();
-                _ = RewriteNullableBoundNodesWithCheckpoints(boundOuterExpression, incrementalBinder, diagnostics, out _);
+                _ = RewriteNullableBoundNodesWithSnapshots(boundOuterExpression, incrementalBinder, diagnostics, out _);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1850,7 +1850,7 @@ done:
             // part.
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
-            boundRoot = RewriteNullableBoundNodesWithCheckpoints(boundRoot, binder, diagnostics, out var checkpointMap);
+            boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, out _);
 
             if (Compilation.NullableAnalysisEnabled && !IsSpeculativeSemanticModel)
             {
@@ -1858,7 +1858,7 @@ done:
             }
         }
 
-        protected abstract BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager);
+        protected abstract BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager);
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.

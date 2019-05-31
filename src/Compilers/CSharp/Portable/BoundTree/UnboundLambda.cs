@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            (Conversions)conversions,
                                            diagnostics,
                                            delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
-                                           initialState: nullableState,
-                                           analyzedNullabilityMapOpt: null);
+                                           initialState: nullableState);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
                 return inferredReturnType.TypeWithAnnotations;

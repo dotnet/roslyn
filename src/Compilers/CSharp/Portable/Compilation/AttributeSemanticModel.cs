@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
         {
             return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager);
         }

@@ -389,11 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    AddDeclaredVariable(local, TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation)));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
                                 }
                                 else
                                 {
-                                    AddDeclaredVariable(local, inferredType);
+                                    _variableTypes[local] = inferredType;
                                 }
 
                                 int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
