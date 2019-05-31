@@ -24,7 +24,24 @@ class C
 {
     Del d = delegate(int k!, int j) { /* ... */ };
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (2, 19): error CS8713: Parameter 'int x!' can only have exclamation - point null checking in implementation methods.
+                    // delegate void Del(int x!, int y);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "int x!").WithArguments("int x!").WithLocation(2, 19));
+        }
+
+        [Fact]
+        public void NullCheckedAbstractMethod()
+        {
+            var source = @"
+abstract class C
+{
+    abstract public int M(int x!);
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4, 27): error CS8713: Parameter 'int x!' can only have exclamation - point null checking in implementation methods.
+                    // delegate void Del(int x!, int y);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "int x!").WithArguments("int x!").WithLocation(4, 27));
         }
     }
 }
