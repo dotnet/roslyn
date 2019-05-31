@@ -10014,7 +10014,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10074,7 +10075,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10134,7 +10136,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics(
                     // (10,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -39514,7 +39517,8 @@ class Test4 : Test1
                                          (comp0:compilation0.EmitToImageReference(), comp1:compilation1.EmitToImageReference()) })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation2 = compilation2.AddReferences(refs.comp0);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -39531,7 +39535,8 @@ C6.M
 ");
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
                 CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -43993,11 +43998,11 @@ public interface ITest33
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef });
+                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef }, targetFramework: TargetFramework.StandardLatest);
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce });
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
             }

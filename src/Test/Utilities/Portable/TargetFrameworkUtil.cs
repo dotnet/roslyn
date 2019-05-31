@@ -26,8 +26,8 @@ namespace Roslyn.Test.Utilities
         /// API set across destkop and coreclr 
         /// </summary>
         Standard,
+        StandardLatest,
         StandardAndCSharp,
-
         StandardAndVBRuntime,
 
         /// <summary>
@@ -83,6 +83,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp30.NetStandard, NetCoreApp30.MscorlibRef, NetCoreApp30.SystemRuntimeRef, NetCoreApp30.SystemCoreRef, NetCoreApp30.SystemDynamicRuntimeRef, NetCoreApp30.SystemConsoleRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib46ExtendedReferences;
+        public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp30References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib40References;
@@ -109,6 +110,7 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.NetCoreApp30: return NetCoreApp30References;
                 case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;
+                case TargetFramework.StandardLatest: return StandardLatestReferences;
                 case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;
                 case TargetFramework.StandardAndVBRuntime: return StandardAndVBRuntimeReferences;
                 case TargetFramework.StandardCompat: return StandardCompatReferences;
