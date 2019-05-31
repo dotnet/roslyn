@@ -102,10 +102,16 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     ITypeSymbol type;
                     if (method.IsParams() && (ordinalInInvocation >= method.Parameters.Length - 1))
                     {
-                        var arrayType = method.Parameters.LastOrDefault().Type;
-                        type = ((IArrayTypeSymbol)arrayType).ElementType;
+                        if (method.Parameters.LastOrDefault()?.Type is IArrayTypeSymbol arrayType)
+                        {
+                            type = arrayType.ElementType;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
-                    else if (method.Parameters.Length > ordinalInInvocation)
+                    else if (ordinalInInvocation < method.Parameters.Length)
                     {
                         type = method.Parameters[ordinalInInvocation].Type;
                     }
