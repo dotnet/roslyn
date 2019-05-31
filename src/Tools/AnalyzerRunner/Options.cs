@@ -22,6 +22,7 @@ namespace AnalyzerRunner
         public readonly Func<string, bool> TestDocumentMatch;
         public readonly int TestDocumentIterations;
         public readonly string LogFileName;
+        public readonly string ProfileRoot;
 
         public Options(
             string analyzerPath,
@@ -35,7 +36,8 @@ namespace AnalyzerRunner
             bool testDocuments,
             Func<string, bool> testDocumentMatch,
             int testDocumentIterations,
-            string logFileName)
+            string logFileName,
+            string profileRoot)
         {
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
@@ -49,6 +51,7 @@ namespace AnalyzerRunner
             TestDocumentMatch = testDocumentMatch;
             TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
+            ProfileRoot = profileRoot;
         }
 
         internal static Options Create(string[] args)
@@ -65,6 +68,7 @@ namespace AnalyzerRunner
             Func<string, bool> testDocumentMatch = _ => true;
             int testDocumentIterations = 10;
             string logFileName = null;
+            string profileRoot = null;
 
             int i = 0;
             while (i < args.Length)
@@ -105,6 +109,9 @@ namespace AnalyzerRunner
                         break;
                     case "/log":
                         logFileName = ReadValue();
+                        break;
+                    case "/profileroot":
+                        profileRoot = ReadValue();
                         break;
                     default:
                         if (analyzerPath == null)
@@ -147,7 +154,8 @@ namespace AnalyzerRunner
                 testDocuments: testDocuments,
                 testDocumentMatch: testDocumentMatch,
                 testDocumentIterations: testDocumentIterations,
-                logFileName: logFileName);
+                logFileName: logFileName,
+                profileRoot: profileRoot);
         }
     }
 }

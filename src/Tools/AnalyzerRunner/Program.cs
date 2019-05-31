@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +62,12 @@ namespace AnalyzerRunner
             }
             var cancellationToken = cts.Token;
 
+            if (!string.IsNullOrEmpty(options.ProfileRoot))
+            {
+                Directory.CreateDirectory(options.ProfileRoot);
+                ProfileOptimization.SetProfileRoot(options.ProfileRoot);
+            }
+
             Stopwatch stopwatch = Stopwatch.StartNew();
             var properties = new Dictionary<string, string>
             {
@@ -72,6 +79,12 @@ namespace AnalyzerRunner
                 // Use the latest language version to force the full set of available analyzers to run on the project.
                 { "LangVersion", "latest" },
             };
+
+            if (!string.IsNullOrEmpty(options.ProfileRoot))
+            {
+                ProfileOptimization.StartProfile(nameof(MSBuildWorkspace.OpenSolutionAsync));
+            }
+
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))
             {
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -102,6 +115,11 @@ namespace AnalyzerRunner
                 await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
                 stopwatch.Restart();
+
+                if (!string.IsNullOrEmpty(options.ProfileRoot))
+                {
+                    ProfileOptimization.StartProfile("RunAnalyzers");
+                }
 
                 var analysisResult = await GetAnalysisResultAsync(solution, analyzers, options, cancellationToken).ConfigureAwait(true);
                 var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
