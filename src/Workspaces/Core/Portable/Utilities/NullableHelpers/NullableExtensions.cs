@@ -14,9 +14,15 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            // No reason to wrap a wrapper, so unwrap it
             if (typeSymbol is TypeSymbolWithNullableAnnotation typeSymbolWithNullability)
             {
+                // Check if the wrapper already has the same top-level nullability; in that case we don't need to re-create one.
+                if (typeSymbolWithNullability.Nullability == nullability)
+                {
+                    return typeSymbol;
+                }
+
+                // No reason to wrap a wrapper, so unwrap it
                 typeSymbol = (T)typeSymbolWithNullability.WrappedSymbol;
             }
 
