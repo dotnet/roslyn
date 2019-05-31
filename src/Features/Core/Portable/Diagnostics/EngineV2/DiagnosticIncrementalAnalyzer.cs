@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             return e.Option.Feature == nameof(SimplificationOptions) ||
-                   e.Option.Feature == nameof(CodeStyleOptions) ||
+                   e.Option.Feature.EndsWith(nameof(CodeStyleOptions), StringComparison.OrdinalIgnoreCase) ||
                    e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
                    e.Option == RuntimeOptions.FullSolutionAnalysis;
         }
