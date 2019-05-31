@@ -294,32 +294,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    var primary = item.Primary;
-
+                    var documentId = item.PrimaryDocumentId;
                     var workspace = item.Workspace;
                     var solution = workspace.CurrentSolution;
-                    var document = solution.GetDocument(primary.DocumentId);
+                    var document = solution.GetDocument(documentId);
                     if (document == null)
                     {
                         return false;
                     }
 
-                    int line, column;
+                    LinePosition position;
                     LinePosition trackingLinePosition;
 
                     if (workspace.IsDocumentOpen(document.Id) &&
                         (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
                     {
-                        line = trackingLinePosition.Line;
-                        column = trackingLinePosition.Character;
+                        position = trackingLinePosition;
                     }
                     else
                     {
-                        line = primary.OriginalLine;
-                        column = primary.OriginalColumn;
+                        position = item.GetOriginalPosition();
                     }
 
-                    return TryNavigateTo(workspace, primary.DocumentId, line, column, previewTab);
+                    return TryNavigateTo(workspace, documentId, position, previewTab);
                 }
             }
         }

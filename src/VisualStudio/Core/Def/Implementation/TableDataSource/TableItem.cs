@@ -41,11 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => (Primary is DiagnosticData diagnostic) ? diagnostic.DocumentId : ((TodoItem)(object)Primary).DocumentId;
 
         // item must be either one of diagnostic data and todo item
-        private ProjectId GetProjectId()
+        public ProjectId GetProjectId()
             => (Primary is DiagnosticData diagnostic) ? diagnostic.ProjectId : ((TodoItem)(object)Primary).DocumentId.ProjectId;
 
         // item must be either one of diagnostic data and todo item
-        public LinePosition GetTrackingPosition()
+        public LinePosition GetOriginalPosition()
         {
             if (Primary is DiagnosticData diagnostic)
             {
@@ -54,6 +54,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var todo = (TodoItem)(object)Primary;
             return new LinePosition(todo.OriginalLine, todo.OriginalColumn);
+        }
+
+        // item must be either one of diagnostic data and todo item
+        public string GetOriginalFilePath()
+        {
+            if (Primary is DiagnosticData diagnostic)
+            {
+                return diagnostic.DataLocation?.OriginalFilePath;
+            }
+
+            var todo = (TodoItem)(object)Primary;
+            return todo.OriginalFilePath;
         }
 
         // item must be either one of diagnostic data and todo item
@@ -83,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return Hash.Combine(todo.OriginalColumn, todo.OriginalLine);
         }
 
+        // item must be either one of diagnostic data and todo item
         public bool EqualsModuloLocation(TableItem<T> other)
         {
             if (other is null)

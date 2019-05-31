@@ -409,38 +409,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    var primary = item.Primary;
+                    var documentId = item.PrimaryDocumentId;
 
                     // this item is not navigatable
-                    if (primary.DocumentId == null)
+                    if (documentId == null)
                     {
                         return false;
                     }
 
                     var workspace = item.Workspace;
                     var solution = workspace.CurrentSolution;
-                    var document = solution.GetDocument(primary.DocumentId);
+                    var document = solution.GetDocument(documentId);
                     if (document == null)
                     {
                         return false;
                     }
 
-                    int line, column;
+                    LinePosition position;
                     LinePosition trackingLinePosition;
 
-                    if (workspace.IsDocumentOpen(document.Id) &&
+                    if (workspace.IsDocumentOpen(documentId) &&
                         (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
                     {
-                        line = trackingLinePosition.Line;
-                        column = trackingLinePosition.Character;
+                        position = trackingLinePosition;
                     }
                     else
                     {
-                        line = primary.DataLocation?.OriginalStartLine ?? 0;
-                        column = primary.DataLocation?.OriginalStartColumn ?? 0;
+                        position = item.GetOriginalPosition();
                     }
 
-                    return TryNavigateTo(workspace, primary.DocumentId, line, column, previewTab);
+                    return TryNavigateTo(workspace, documentId, position, previewTab);
                 }
 
                 #region IWpfTableEntriesSnapshot

@@ -12,8 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base implementation of ITableEntriesSnapshot
     /// </summary>
@@ -150,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, int line, int column, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -159,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, line, column, options))
+            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
             {
                 return true;
             }

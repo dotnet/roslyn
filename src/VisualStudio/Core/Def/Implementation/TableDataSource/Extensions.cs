@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return snapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
             }
 
-            var position = item.GetTrackingPosition();
+            var position = item.GetOriginalPosition();
             if (position.Line >= snapshot.LineCount)
             {
                 return snapshot.CreateTrackingPoint(snapshot.Length, PointTrackingMode.Positive);

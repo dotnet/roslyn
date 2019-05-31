@@ -188,11 +188,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 !entry.IsBuildDiagnostic();
         }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-        {
-            return GetEntriesSnapshot(entryHandle, out var index);
-        }
-
         private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
             if (!entryHandle.TryGetSnapshot(out var snapshot, out index))

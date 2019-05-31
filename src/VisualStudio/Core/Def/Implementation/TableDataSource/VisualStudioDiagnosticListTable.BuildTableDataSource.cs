@@ -208,15 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
                     var item = GetItem(index);
-                    if (item == null)
-                    {
-                        return false;
-                    }
-
-                    var primary = item.Primary;
-
-                    // this item is not navigable
-                    if (primary.DocumentId == null)
+                    if (item?.PrimaryDocumentId == null)
                     {
                         return false;
                     }
@@ -225,32 +217,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var solution = item.Workspace.CurrentSolution;
 
                     return solution.ContainsDocument(documentId) &&
-                        TryNavigateTo(item.Workspace, documentId, primary.DataLocation?.OriginalStartLine ?? 0, primary.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                        TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab);
                 }
 
                 private DocumentId GetProperDocumentId(TableItem<DiagnosticData> item)
                 {
-                    var data = item.Primary;
+                    var documentId = item.PrimaryDocumentId;
+                    var projectId = item.GetProjectId();
 
                     // check whether documentId still exist. it might have changed if project it belong to has reloaded.
                     var solution = item.Workspace.CurrentSolution;
-                    if (solution.GetDocument(data.DocumentId) != null)
+                    if (solution.GetDocument(documentId) != null)
                     {
-                        return data.DocumentId;
+                        return documentId;
                     }
 
                     // okay, documentId no longer exist in current solution, find it by file path.
-                    if (string.IsNullOrWhiteSpace(data.DataLocation?.OriginalFilePath))
+                    var filePath = item.GetOriginalFilePath();
+                    if (string.IsNullOrWhiteSpace(filePath))
                     {
-                        // we don't have filepath
                         return null;
                     }
 
-                    var documentIds = solution.GetDocumentIdsWithFilePath(data.DataLocation.OriginalFilePath);
+                    var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                     foreach (var id in documentIds)
                     {
-                        // found right documentId;
-                        if (id.ProjectId == data.ProjectId)
+                        // found right project
+                        if (id.ProjectId == projectId)
                         {
                             return id;
                         }
