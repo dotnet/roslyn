@@ -321,12 +321,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     return TryNavigateTo(workspace, primary.DocumentId, line, column, previewTab);
                 }
-
-                protected override bool IsEquivalent(TodoItem item1, TodoItem item2)
-                {
-                    // everything same except location
-                    return item1.DocumentId == item2.DocumentId && item1.Message == item2.Message;
-                }
             }
         }
     }

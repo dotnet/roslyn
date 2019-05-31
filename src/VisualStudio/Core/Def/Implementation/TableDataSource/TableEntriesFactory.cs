@@ -201,7 +201,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                protected override bool IsEquivalent(TData item1, TData item2) => false;
                 public override bool TryNavigateTo(int index, bool previewTab) => false;
 
                 public override bool TryGetValue(int index, string columnName, out object content)

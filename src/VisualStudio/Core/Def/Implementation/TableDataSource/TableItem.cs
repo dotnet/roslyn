@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public TableItem(Workspace workspace, T item, SharedInfoCache cache)
         {
             Contract.ThrowIfNull(workspace);
+            Contract.ThrowIfNull((object)item);
 
             Workspace = workspace;
             _deduplicationKey = null;
@@ -80,6 +81,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var todo = (TodoItem)(object)Primary;
             return Hash.Combine(todo.OriginalColumn, todo.OriginalLine);
+        }
+
+        public bool EqualsModuloLocation(TableItem<T> other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (Primary is DiagnosticData diagnostic)
+            {
+                var otherDiagnostic = (DiagnosticData)(object)other.Primary;
+
+                // everything same except location
+                return diagnostic.Id == otherDiagnostic.Id &&
+                       diagnostic.ProjectId == otherDiagnostic.ProjectId &&
+                       diagnostic.DocumentId == otherDiagnostic.DocumentId &&
+                       diagnostic.Category == otherDiagnostic.Category &&
+                       diagnostic.Severity == otherDiagnostic.Severity &&
+                       diagnostic.WarningLevel == otherDiagnostic.WarningLevel &&
+                       diagnostic.Message == otherDiagnostic.Message;
+            }
+            else
+            {
+                var todo = (TodoItem)(object)Primary;
+                var otherTodo = (TodoItem)(object)other.Primary;
+
+                return todo.DocumentId == otherTodo.DocumentId && todo.Message == otherTodo.Message;
+
+            }
         }
 
         public string ProjectName

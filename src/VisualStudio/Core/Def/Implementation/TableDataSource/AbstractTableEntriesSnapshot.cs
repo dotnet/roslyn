@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract bool TryNavigateTo(int index, bool previewTab);
         public abstract bool TryGetValue(int index, string columnName, out object content);
-        protected abstract bool IsEquivalent(TData item1, TData item2);
 
         public int VersionNumber
         {
@@ -56,13 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
-            var data = GetItem(index);
-            if (data == null)
-            {
-                return -1;
-            }
-
-            var item = data.Primary;
+            var item = GetItem(index);
             if (item == null)
             {
                 return -1;
@@ -76,31 +69,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             // quick path - this will deal with a case where we update data without any actual change
-            if (this.Count == ourSnapshot.Count)
+            if (Count == ourSnapshot.Count)
             {
-                var newData = ourSnapshot.GetItem(index);
-                if (newData != null)
+                var newItem = ourSnapshot.GetItem(index);
+                if (newItem != null && newItem.Equals(item))
                 {
-                    var newItem = newData.Primary;
-                    if (newItem != null && newItem.Equals(item))
-                    {
-                        return index;
-                    }
+                    return index;
                 }
             }
 
             // slow path.
-            var bestMatch = Tuple.Create(-1, int.MaxValue);
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
-                var newData = ourSnapshot.GetItem(i);
-                if (newData != null)
+                var newItem = ourSnapshot.GetItem(i);
+                if (item.EqualsModuloLocation(newItem))
                 {
-                    var newItem = newData.Primary;
-                    if (IsEquivalent(item, newItem))
-                    {
-                        return i;
-                    }
+                    return i;
                 }
             }
 

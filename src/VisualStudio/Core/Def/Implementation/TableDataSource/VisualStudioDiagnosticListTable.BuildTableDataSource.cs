@@ -259,18 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // okay, there is no right one, take the first one if there is any
                     return documentIds.FirstOrDefault();
                 }
-
-                protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
-                {
-                    // everything same except location
-                    return item1.Id == item2.Id &&
-                           item1.ProjectId == item2.ProjectId &&
-                           item1.DocumentId == item2.DocumentId &&
-                           item1.Category == item2.Category &&
-                           item1.Severity == item2.Severity &&
-                           item1.WarningLevel == item2.WarningLevel &&
-                           item1.Message == item2.Message;
-                }
             }
         }
     }
