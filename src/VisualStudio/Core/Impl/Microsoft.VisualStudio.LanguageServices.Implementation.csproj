@@ -90,6 +90,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Options\CodeStyleNoticeTextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Options\GridOptionPreviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

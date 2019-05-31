@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(CodeStyleNoticeTextBlock))]
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
