@@ -715,6 +715,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             WaitForBuildToFinish(buildOutputWindowPane);
         }
 
+        public void WaitForFullyLoaded(TimeSpan timeout)
+        {
+            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
+            {
+                return;
+            }
+
+            using var cancellationTokenSource = new CancellationTokenSource(timeout);
+            var task = Task.Run(async () => await KnownUIContexts.SolutionExistsAndFullyLoadedContext);
+            task.Wait(cancellationTokenSource.Token);
+        }
+
         private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
         {
             var dte = (DTE2)GetDTE();

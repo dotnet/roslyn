@@ -201,6 +201,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForBuildToFinish()
             => _inProc.WaitForBuildToFinish();
 
+        public void WaitForFullyLoaded(TimeSpan timeout)
+            => _inProc.WaitForFullyLoaded(timeout);
+
         public void EditProjectFile(ProjectUtils.Project project)
             => _inProc.EditProjectFile(project.Name);
 
