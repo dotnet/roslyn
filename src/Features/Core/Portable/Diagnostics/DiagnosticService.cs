@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
+            _eventListenerTracker.EnsureEventListener(args.Workspace, this);
+
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
 
             var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
@@ -76,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // there is no change, nothing to raise events for.
                     return;
                 }
-
-                _eventListenerTracker.EnsureEventListener(args.Workspace, this);
 
                 ev.RaiseEvent(handler => handler(source, args));
             }).CompletesAsyncOperation(eventToken);
