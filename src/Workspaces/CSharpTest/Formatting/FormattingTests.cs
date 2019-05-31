@@ -5234,14 +5234,7 @@ _ = this is  C(  ){}  ; }
             typeWithAnnotations is { } && true;
     }
 }";
-            var expectedCode = @"class C
-{
-    void M()
-    {
-        return
-            typeWithAnnotations is { } && true;
-    }
-}";
+            var expectedCode = code;
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
