@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -15,21 +15,19 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportWorkspaceEventListener(WorkspaceKind.Host), Shared]
-    internal partial class VisualStudioDiagnosticListTableWorkspaceEventListener : IWorkspaceEventListener
+    [ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.Host), Shared]
+    internal partial class VisualStudioDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
     {
         internal const string IdentifierString = nameof(VisualStudioDiagnosticListTable);
 
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
-        private readonly IDiagnosticService _diagnosticService;
         private readonly ITableManagerProvider _tableManagerProvider;
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTableWorkspaceEventListener(
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IThreadingContext threadingContext,
-            IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider)
         {
             // MEFv2 doesn't support type based contract for Import above and for this particular contract (SAsyncServiceProvider)
@@ -37,11 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // workaround by getting the service as object and cast to actual interface
             _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
             _threadingContext = threadingContext;
-            _diagnosticService = diagnosticService;
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void Listen(Workspace workspace)
+        public void Listen(Workspace workspace, IDiagnosticService diagnosticService)
         {
             var errorList = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
@@ -50,14 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var table = new VisualStudioDiagnosticListTable(
                 (VisualStudioWorkspaceImpl)workspace,
-                _diagnosticService,
+                diagnosticService,
                 _tableManagerProvider,
                 errorList);
-        }
-
-        public void Stop(Workspace workspace)
-        {
-            // nothing to do
         }
 
         internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
@@ -74,15 +66,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 IErrorList errorList) :
                 base(workspace, provider)
             {
+                _errorList = errorList;
+
                 _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
                 _buildTableSource = new BuildTableDataSource(workspace, workspace.ExternalErrorDiagnosticUpdateSource);
 
+                AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
                 ConnectWorkspaceEvents();
 
-                _errorList = errorList;
                 _errorList.PropertyChanged += OnErrorListPropertyChanged;
-
-                AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
                 SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
             }
 

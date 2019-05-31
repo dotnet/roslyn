@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceEventListenerProvider), layer: ServiceLayer.Default), Shared]
     internal class DefaultWorkspaceEventListenerProvider : IWorkspaceServiceFactory
     {
-        private readonly IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceEventListenerMetadata>> _eventListeners;
+        private readonly IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceKindMetadata>> _eventListeners;
 
         [ImportingConstructor]
         public DefaultWorkspaceEventListenerProvider(
-            [ImportMany]IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceEventListenerMetadata>> eventListeners)
+            [ImportMany]IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceKindMetadata>> eventListeners)
         {
             // we use this indirect abstraction to deliver IWorkspaceEventLister to workspace. 
             // otherwise, each Workspace implementation need to explicitly tell base workspace listener either through
@@ -34,15 +34,15 @@ namespace Microsoft.CodeAnalysis.Host
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Provider(_eventListeners.Where(l => l.Metadata.WorkspaceKinds.Contains(workspaceServices.Workspace.Kind)));
+            return new Provider(_eventListeners.Where(l => l.Metadata.WorkspaceKinds?.Contains(workspaceServices.Workspace.Kind) ?? false));
         }
 
         private class Provider : IWorkspaceEventListenerProvider
         {
-            private readonly IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceEventListenerMetadata>> _eventListeners;
+            private readonly IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceKindMetadata>> _eventListeners;
 
             public Provider(
-                IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceEventListenerMetadata>> eventListeners)
+                IEnumerable<Lazy<IWorkspaceEventListener, WorkspaceKindMetadata>> eventListeners)
             {
                 _eventListeners = eventListeners;
             }

@@ -3,35 +3,27 @@
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportWorkspaceEventListener(WorkspaceKind.Host), Shared]
-    internal class VisualStudioTodoListTableWorkspaceEventListener : IWorkspaceEventListener
+    [ExportEventListener(WellKnownEventListeners.TodoListProvider, WorkspaceKind.Host), Shared]
+    internal class VisualStudioTodoListTableWorkspaceEventListener : IEventListener<ITodoListProvider>
     {
         internal const string IdentifierString = nameof(VisualStudioTodoListTable);
 
-        private readonly ITodoListProvider _todoListProvider;
         private readonly ITableManagerProvider _tableManagerProvider;
 
         [ImportingConstructor]
-        public VisualStudioTodoListTableWorkspaceEventListener(
-            ITodoListProvider todoListProvider, ITableManagerProvider tableManagerProvider)
+        public VisualStudioTodoListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
         {
-            _todoListProvider = todoListProvider;
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void Listen(Workspace workspace)
+        public void Listen(Workspace workspace, ITodoListProvider service)
         {
-            new VisualStudioTodoListTable(workspace, _todoListProvider, _tableManagerProvider);
-        }
-
-        public void Stop(Workspace workspace)
-        {
-            // nothing to do
+            new VisualStudioTodoListTable(workspace, service, _tableManagerProvider);
         }
 
         internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable

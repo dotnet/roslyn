@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -26,8 +28,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
+        private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
+
         [ImportingConstructor]
-        public DiagnosticService(IAsynchronousOperationListenerProvider listenerProvider) : this()
+        public DiagnosticService(
+            IAsynchronousOperationListenerProvider listenerProvider,
+            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();
@@ -40,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
+
+            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(
+                eventListeners.Where(l => l.Metadata.Service == WellKnownEventListeners.DiagnosticService));
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -72,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
+                _eventListenerTracker.EnsureEventListener(args.Workspace, this);
+
                 ev.RaiseEvent(handler => handler(source, args));
             }).CompletesAsyncOperation(eventToken);
         }
@@ -96,6 +107,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return;
                     }
 
+                    // don't create event listener if it haven't created yet. if there is error to remove
+                    // listener should have already created since all events are done in the serialized queue
                     foreach (var args in removed)
                     {
                         ev.RaiseEvent(handler => handler(source, args));

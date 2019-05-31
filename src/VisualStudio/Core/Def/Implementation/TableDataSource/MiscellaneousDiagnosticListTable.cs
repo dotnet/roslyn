@@ -4,35 +4,27 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    [ExportWorkspaceEventListener(WorkspaceKind.MiscellaneousFiles), Shared]
-    internal sealed class MiscellaneousDiagnosticListTableWorkspaceEventListener : IWorkspaceEventListener
+    [ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.MiscellaneousFiles), Shared]
+    internal sealed class MiscellaneousDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
     {
         internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
 
-        private readonly IDiagnosticService _diagnosticService;
         private readonly ITableManagerProvider _tableManagerProvider;
 
         [ImportingConstructor]
-        public MiscellaneousDiagnosticListTableWorkspaceEventListener(
-            IDiagnosticService diagnosticService, ITableManagerProvider tableManagerProvider)
+        public MiscellaneousDiagnosticListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
         {
-            _diagnosticService = diagnosticService;
             _tableManagerProvider = tableManagerProvider;
         }
 
-        public void Listen(Workspace workspace)
+        public void Listen(Workspace workspace, IDiagnosticService diagnosticService)
         {
-            new MiscellaneousDiagnosticListTable(workspace, _diagnosticService, _tableManagerProvider);
-        }
-
-        public void Stop(Workspace workspace)
-        {
-            // nothing to do on stop
+            new MiscellaneousDiagnosticListTable(workspace, diagnosticService, _tableManagerProvider);
         }
 
         private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
@@ -43,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 base(workspace, provider)
             {
                 _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
-                AddInitialTableSource(workspace.CurrentSolution, _source);
 
+                AddInitialTableSource(workspace.CurrentSolution, _source);
                 ConnectWorkspaceEvents();
             }
 

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.EventListener;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+                var diagnosticService = new DiagnosticService(
+                    AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+                var diagnosticService = new DiagnosticService(
+                    AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
@@ -99,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
-                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+                var diagnosticService = new DiagnosticService(
+                    AsynchronousOperationListenerProvider.NullProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
 
                 var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
                 diagnosticService.Register(source1);
