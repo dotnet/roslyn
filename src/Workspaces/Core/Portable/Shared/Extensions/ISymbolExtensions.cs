@@ -1061,7 +1061,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                     else
                     {
-                        // prototype(inheritdoc): check for implicit interface
+                        // check for implicit interface
+                        var containingType = methodSymbol.ContainingType;
+                        foreach (var namedTypeSymbol in containingType.AllInterfaces)
+                        {
+                            foreach (var symbol in namedTypeSymbol.GetMembers())
+                            {
+                                var implementation = containingType.FindImplementationForInterfaceMember(symbol);
+                                if (Equals(implementation, methodSymbol))
+                                {
+                                    return symbol;
+                                }
+                            }
+                        }
+
                         return null;
                     }
                 }
