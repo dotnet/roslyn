@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_NoBaseClass, node);
                 hasErrors = true;
             }
-            else if (this.ContainingType is null || (node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression))
+            else if (this.ContainingType is null || (node.Parent != null && node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression))
             {
                 Error(diagnostics, ErrorCode.ERR_BaseIllegal, node.Token);
                 hasErrors = true;
