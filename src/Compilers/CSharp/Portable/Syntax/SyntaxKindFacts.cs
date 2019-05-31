@@ -344,20 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
-        {
-            if (IsTypeDeclaration(kind))
-            {
-                return true;
-            }
-
-            switch (kind)
-            {
-                case SyntaxKind.NamespaceDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {

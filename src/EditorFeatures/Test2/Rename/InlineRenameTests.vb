@@ -1754,5 +1754,163 @@ End Class
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedForPartialTypeDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <Document>
+                                partial class Goo
+                                {
+                                    void BlahBlah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedForPartialTypeWithSingleLocationDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameAllowedWithMultipleTypesOnMatchingNameDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test2
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoFileRenameAllowedWithMultipleTypesDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test1
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyEnumKindSupportsFileRenameDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                enum [|$$Test1|]
+                                {
+                                    One,
+                                    Two,
+                                    Three
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyInterfaceKindSupportsFileRenameDisabledExperiment()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                interface [|$$Test1|]
+                                {
+                                    void Blah();
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                DisableFileRenameExperiment(workspace)
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
     End Class
 End Namespace

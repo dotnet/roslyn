@@ -1514,12 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsTypeDeclaration(SyntaxNode node)
-            => node switch
-            {
-                BaseTypeDeclarationSyntax _ => true,
-                DelegateDeclarationSyntax _ => true,
-                _ => false,
-            };
+            => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 

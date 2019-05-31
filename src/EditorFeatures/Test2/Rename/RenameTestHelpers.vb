@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -24,7 +25,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
         Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
+                GetType(MockDocumentNavigationServiceFactory),
+                GetType(MockFileRenameExperimentationService)))
 
         Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory
             Get
@@ -54,6 +57,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)
         End Function
+
+        Public Sub EnableFileRenameExperiment(workspace As TestWorkspace)
+            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
+            Dim fileExperiment = DirectCast(experiment, MockFileRenameExperimentationService)
+            fileExperiment.SetEnabled(True)
+        End Sub
+
+        Public Sub DisableFileRenameExperiment(workspace As TestWorkspace)
+            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
+            Dim fileExperiment = DirectCast(experiment, MockFileRenameExperimentationService)
+            fileExperiment.SetEnabled(False)
+        End Sub
 
         Public Sub AssertTokenRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)

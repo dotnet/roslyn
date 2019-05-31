@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -156,7 +157,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
-            if (_renameInfo is IIInlineRenameInfoWithFileRename renameInfoWithFileRename)
+            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+
+            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynInlineRenameFile)
+                && _renameInfo is IIInlineRenameInfoWithFileRename renameInfoWithFileRename)
             {
                 FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
             }
