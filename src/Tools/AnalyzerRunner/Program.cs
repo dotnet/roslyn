@@ -85,7 +85,7 @@ namespace AnalyzerRunner
                 ProfileOptimization.StartProfile(nameof(MSBuildWorkspace.OpenSolutionAsync));
             }
 
-            using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))
+            using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices))
             {
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
