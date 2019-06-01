@@ -68830,7 +68830,6 @@ class B
         M1<string?>(b2); // 5
         M1<string>(b2);
     }
-    
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68889,7 +68888,6 @@ class B
         M1<string?>(b2); // 5
         M1<string>(b2);
     }
-    
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68918,11 +68916,11 @@ class B
             var source =
 @"
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IB : IA<string?>
 {}
 
@@ -68936,10 +68934,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -68948,7 +68946,6 @@ class B
         M1<string?>(b2);
         M1<string>(b2);
     }
-
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68977,7 +68974,7 @@ class B
             var source =
 @"#pragma warning disable CS8715
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : object
 {
 }
@@ -69007,7 +69004,6 @@ class B
         M1<string?>(b2);
         M1<string>(b2);
     }
-
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -69026,27 +69022,27 @@ class B
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
 
 public class C
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB1 : C? where TB2 : C {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -69255,24 +69251,24 @@ class B<TB1, TB2> where TB2 : object
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : notnull // 2
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB2 : notnull {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -74873,7 +74869,7 @@ $@"
 +
 @"
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : B
 {
     T1 F1;
@@ -74881,7 +74877,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
     T3 F3;
     B F4;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         F1.ToString();
@@ -74890,7 +74886,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         F4.ToString();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M2()
     {
         T1 x2 = default;
@@ -74898,7 +74894,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         T3 z2 = default;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M3()
     {
         C.Test<T1>();
@@ -74906,7 +74902,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         C.Test<T3>();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M4()
     {
         D.Test(F1);
@@ -74918,14 +74914,14 @@ class A<T1, T2, T3> where T2 : class where T3 : B
 
 class B {}
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class C
 {
     public static void Test<T>() where T : notnull
     {}
 }
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class D
 {
     public static void Test<T>(T x) where T : notnull
@@ -74962,7 +74958,7 @@ $@"
 +
 @"
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     T1 F1;
