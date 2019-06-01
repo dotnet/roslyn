@@ -166,6 +166,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return false;
         }
 
+        protected bool TryNavigateToItem(int index, bool previewTab)
+        {
+            var item = GetItem(index);
+            var documentId = item?.PrimaryDocumentId;
+            if (documentId == null)
+            {
+                return false;
+            }
+
+            var workspace = item.Workspace;
+            var solution = workspace.CurrentSolution;
+            var document = solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return false;
+            }
+
+            LinePosition position;
+            LinePosition trackingLinePosition;
+
+            if (workspace.IsDocumentOpen(documentId) &&
+                (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+            {
+                position = trackingLinePosition;
+            }
+            else
+            {
+                position = item.GetOriginalPosition();
+            }
+
+            return TryNavigateTo(workspace, documentId, position, previewTab);
+        }
+
         protected static string GetFileName(string original, string mapped)
         {
             return mapped == null ? original : original == null ? mapped : Combine(original, mapped);

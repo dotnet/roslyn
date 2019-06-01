@@ -405,44 +405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override bool TryNavigateTo(int index, bool previewTab)
-                {
-                    var item = GetItem(index);
-                    if (item == null)
-                    {
-                        return false;
-                    }
-
-                    var documentId = item.PrimaryDocumentId;
-
-                    // this item is not navigatable
-                    if (documentId == null)
-                    {
-                        return false;
-                    }
-
-                    var workspace = item.Workspace;
-                    var solution = workspace.CurrentSolution;
-                    var document = solution.GetDocument(documentId);
-                    if (document == null)
-                    {
-                        return false;
-                    }
-
-                    LinePosition position;
-                    LinePosition trackingLinePosition;
-
-                    if (workspace.IsDocumentOpen(documentId) &&
-                        (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
-                    {
-                        position = trackingLinePosition;
-                    }
-                    else
-                    {
-                        position = item.GetOriginalPosition();
-                    }
-
-                    return TryNavigateTo(workspace, documentId, position, previewTab);
-                }
+                    => TryNavigateToItem(index, previewTab);
 
                 #region IWpfTableEntriesSnapshot
 
