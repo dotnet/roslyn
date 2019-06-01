@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace AnalyzerRunner
 {
-    internal class Options
+    internal sealed class Options
     {
         public readonly string AnalyzerPath;
         public readonly string SolutionPath;
@@ -24,7 +24,12 @@ namespace AnalyzerRunner
         public readonly string LogFileName;
         public readonly string ProfileRoot;
 
-        public Options(
+        // Options specific to incremental analyzers
+        public readonly bool UsePersistentStorage;
+        public readonly bool FullSolutionAnalysis;
+        public readonly ImmutableList<string> IncrementalAnalyzerNames;
+
+        private Options(
             string analyzerPath,
             string solutionPath,
             ImmutableHashSet<string> analyzerIds,
@@ -37,7 +42,10 @@ namespace AnalyzerRunner
             Func<string, bool> testDocumentMatch,
             int testDocumentIterations,
             string logFileName,
-            string profileRoot)
+            string profileRoot,
+            bool usePersistentStorage,
+            bool fullSolutionAnalysis,
+            ImmutableList<string> incrementalAnalyzerNames)
         {
             AnalyzerPath = analyzerPath;
             SolutionPath = solutionPath;
@@ -52,6 +60,9 @@ namespace AnalyzerRunner
             TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
             ProfileRoot = profileRoot;
+            UsePersistentStorage = usePersistentStorage;
+            FullSolutionAnalysis = fullSolutionAnalysis;
+            IncrementalAnalyzerNames = incrementalAnalyzerNames;
         }
 
         internal static Options Create(string[] args)
@@ -69,6 +80,9 @@ namespace AnalyzerRunner
             int testDocumentIterations = 10;
             string logFileName = null;
             string profileRoot = null;
+            var usePersistentStorage = false;
+            var fullSolutionAnalysis = false;
+            var incrementalAnalyzerNames = ImmutableList.CreateBuilder<string>();
 
             int i = 0;
             while (i < args.Length)
@@ -113,6 +127,15 @@ namespace AnalyzerRunner
                     case "/profileroot":
                         profileRoot = ReadValue();
                         break;
+                    case "/persist":
+                        usePersistentStorage = true;
+                        break;
+                    case "/fsa":
+                        fullSolutionAnalysis = true;
+                        break;
+                    case "/ia":
+                        incrementalAnalyzerNames.Add(ReadValue());
+                        break;
                     default:
                         if (analyzerPath == null)
                         {
@@ -155,7 +178,10 @@ namespace AnalyzerRunner
                 testDocumentMatch: testDocumentMatch,
                 testDocumentIterations: testDocumentIterations,
                 logFileName: logFileName,
-                profileRoot: profileRoot);
+                profileRoot: profileRoot,
+                usePersistentStorage: usePersistentStorage,
+                fullSolutionAnalysis: fullSolutionAnalysis,
+                incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
         }
     }
 }

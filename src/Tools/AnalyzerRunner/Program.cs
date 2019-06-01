@@ -47,8 +47,9 @@ namespace AnalyzerRunner
 
             MSBuildLocator.RegisterDefaults();
 
+            var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(options);
             var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(options);
-            if (!diagnosticAnalyzerRunner.HasAnalyzers)
+            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers)
             {
                 WriteLine("No analyzers found", ConsoleColor.Red);
                 PrintHelp();
@@ -109,6 +110,7 @@ namespace AnalyzerRunner
                 Console.WriteLine("Pausing 5 seconds before starting analysis...");
                 await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
+                await incrementalAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
                 await diagnosticAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -163,6 +165,9 @@ namespace AnalyzerRunner
             Console.WriteLine("/log <logFile>       Write logs into the log file specified");
             Console.WriteLine("/editperf[:<match>]     Test the incremental performance of analyzers to simulate the behavior of editing files. If <match> is specified, only files matching this regular expression are evaluated for editor performance.");
             Console.WriteLine("/edititer:<iterations>  Specifies the number of iterations to use for testing documents with /editperf. When this is not specified, the default value is 10.");
+            Console.WriteLine("/persist             Enable persistent storage (e.g. SQLite; only applies to IIncrementalAnalyzer testing)");
+            Console.WriteLine("/fsa                 Enable full solution analysis (only applies to IIncrementalAnalyzer testing)");
+            Console.WriteLine("/ia <analyzer name>  Enable incremental analyzer with <analyzer name> (when this is specified, only incremental analyzers specified are enabled. Use: /ia <name1> /ia <name2>, etc.");
         }
     }
 }

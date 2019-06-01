@@ -202,6 +202,16 @@ namespace AnalyzerRunner
 
         private static IEnumerable<DiagnosticAnalyzer> FilterAnalyzers(IEnumerable<DiagnosticAnalyzer> analyzers, Options options)
         {
+            if (options.IncrementalAnalyzerNames.Any())
+            {
+                // AnalyzerRunner is running for IIncrementalAnalyzer testing. DiagnosticAnalyzer testing is disabled
+                // unless /all or /a was used.
+                if (!options.UseAll && options.AnalyzerNames.IsEmpty)
+                {
+                    yield break;
+                }
+            }
+
             var analyzerTypes = new HashSet<Type>();
 
             foreach (var analyzer in analyzers)
