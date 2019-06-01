@@ -24,8 +24,8 @@ namespace System
 #nullable enable
     // struct with two values
     public struct ValueTuple<T1, T2>
-        where T1 : object
-        where T2 : object
+        where T1 : notnull
+        where T2 : notnull
     {
         public T1 Item1;
         public T2 Item2;
@@ -49,13 +49,13 @@ namespace System
 {
 #nullable enable
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
-        where T1 : object
-        where T2 : object
-        where T3 : object
-        where T4 : object
-        where T5 : object
-        where T6 : object
-        where T7 : object
+        where T1 : notnull
+        where T2 : notnull
+        where T3 : notnull
+        where T4 : notnull
+        where T5 : notnull
+        where T6 : notnull
+        where T7 : notnull
     {
         public T1 Item1;
         public T2 Item2;
@@ -60763,6 +60763,44 @@ class D : IA
 @"
 class B
 {
+    public static void F1<T1>() where T1 : notnull
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+            );
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = f1.TypeParameters[0];
+                Assert.False(t1.IsReferenceType);
+                Assert.True(t1.IsNotNullableIfReferenceType);
+                var attributes = t1.GetAttributes();
+
+                if (isSource)
+                {
+                    Assert.Empty(attributes);
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", attributes[0].ToString());
+                }
+            }
+        }
+
+        [Fact]
+        public void Constraints_46_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+class B
+{
     public static void F1<T1>() where T1 : object
     {
     }
@@ -60799,6 +60837,45 @@ class B
         {
             var source =
 @"
+class B
+{
+    public static void F1<T1>() where T1 : notnull
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+            );
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = f1.TypeParameters[0];
+                Assert.False(t1.IsReferenceType);
+                Assert.True(t1.HasNotnullConstraint);
+                Assert.True(t1.IsNotNullableIfReferenceType);
+                var attributes = t1.GetAttributes();
+
+                if (isSource)
+                {
+                    Assert.Empty(attributes);
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", attributes[0].ToString());
+                }
+            }
+        }
+
+        [Fact]
+        public void Constraints_47_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class B
 {
     public static void F1<T1>() where T1 : object
@@ -60887,6 +60964,59 @@ class B
 @"
 class B
 {
+    public static void F1<T1>() where T1 : notnull
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3);
+            var expected = new[]
+            {
+                // (4,44): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F1<T1>() where T1 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(4, 44)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            {
+                var m = comp.SourceModule;
+
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = f1.TypeParameters[0];
+                Assert.False(t1.IsReferenceType);
+                Assert.True(t1.IsNotNullableIfReferenceType);
+                Assert.Empty(t1.GetAttributes());
+            }
+
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+
+            comp.VerifyDiagnostics(expected
+            .Concat(new[] {
+                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "preview").WithLocation(1, 1),
+            }).ToArray()
+            );
+
+            {
+                var m = comp.SourceModule;
+
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = f1.TypeParameters[0];
+                Assert.False(t1.IsReferenceType);
+                Assert.True(t1.IsNotNullableIfReferenceType);
+                Assert.Empty(t1.GetAttributes());
+            }
+        }
+
+        [Fact]
+        public void Constraints_49_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+class B
+{
     public static void F1<T1>() where T1 : object
     {
     }
@@ -60961,6 +61091,25 @@ class B
 @"
 class B
 {
+    public static void F1<T1>(T1? t1) where T1 : notnull
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public static void F1<T1>(T1? t1) where T1 : object
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31)
+            );
+        }
+
+        [Fact]
+        public void Constraints_50_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+class B
+{
     public static void F1<T1>(T1? t1) where T1 : object
     {
     }
@@ -60987,22 +61136,22 @@ class B
 @"
 class B
 {
-    public static void F1<T1>(T1? t1) where T1 : struct, object
+    public static void F1<T1>(T1? t1) where T1 : struct, notnull
     {
     }
 
-    public static void F2<T2>(T2? t2) where T2 : struct, System.Object
+    public static void F2<T2>(T2? t2) where T2 : notnull, struct
     {
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (8,58): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F2<T2>(T2? t2) where T2 : struct, System.Object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Object").WithArguments("object").WithLocation(8, 58),
-                // (4,58): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F1<T1>(T1? t1) where T1 : struct, object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 58)
+                // (8,59): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                //     public static void F2<T2>(T2? t2) where T2 : notnull, struct
+                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "struct").WithLocation(8, 59),
+                // (4,58): error CS8713: The 'notnull' constraint must come before any other constraints
+                //     public static void F1<T1>(T1? t1) where T1 : struct, notnull
+                Diagnostic(ErrorCode.ERR_NotnullConstraintMustBeFirst, "notnull").WithLocation(4, 58)
             );
 
             var m = comp.SourceModule;
@@ -61011,14 +61160,16 @@ class B
             Assert.Equal("void B.F1<T1>(T1? t1) where T1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsValueType);
-            Assert.False(t1.IsNotNullableIfReferenceType);
+            Assert.True(t1.HasNotnullConstraint);
+            Assert.True(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
             Assert.Equal("void B.F2<T2>(T2? t2) where T2 : struct", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsValueType);
-            Assert.False(t2.IsNotNullableIfReferenceType);
+            Assert.True(t2.HasNotnullConstraint);
+            Assert.True(t2.IsNotNullableIfReferenceType);
             Assert.Empty(t2.GetAttributes());
         }
 
@@ -61027,6 +61178,48 @@ class B
         {
             var source =
 @"
+class B
+{
+    public static void F1<T1>(T1? t1) where T1 : class, notnull
+    {
+    }
+
+    public static void F2<T2>(T2? t2) where T2 : notnull, class
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,57): error CS8713: The 'notnull' constraint must come before any other constraints
+                //     public static void F1<T1>(T1? t1) where T1 : class, notnull
+                Diagnostic(ErrorCode.ERR_NotnullConstraintMustBeFirst, "notnull").WithLocation(4, 57),
+                // (8,59): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                //     public static void F2<T2>(T2? t2) where T2 : notnull, class
+                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(8, 59)
+            );
+
+            var m = comp.SourceModule;
+
+            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = f1.TypeParameters[0];
+            Assert.True(t1.IsReferenceType);
+            Assert.True(t1.IsNotNullableIfReferenceType);
+            Assert.Empty(t1.GetAttributes());
+
+            var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t2 = f2.TypeParameters[0];
+            Assert.True(t2.IsReferenceType);
+            Assert.True(t2.IsNotNullableIfReferenceType);
+            Assert.Empty(t2.GetAttributes());
+        }
+
+        [Fact]
+        public void Constraints_52_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class B
 {
     public static void F1<T1>(T1? t1) where T1 : class, object
@@ -61069,6 +61262,51 @@ class B
         {
             var source =
 @"
+class B
+{
+    public static void F1<T1>(T1? t1) where T1 : class?, notnull
+    {
+    }
+
+    public static void F2<T2>(T2? t2) where T2 : notnull, class?
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            Assert.True(((MethodSymbol)comp.SourceModule.GlobalNamespace.GetMember("B.F1")).TypeParameters[0].IsNotNullableIfReferenceType);
+
+            comp.VerifyDiagnostics(
+                // (4,58): error CS8713: The 'notnull' constraint must come before any other constraints
+                //     public static void F1<T1>(T1? t1) where T1 : class?, notnull
+                Diagnostic(ErrorCode.ERR_NotnullConstraintMustBeFirst, "notnull").WithLocation(4, 58),
+                // (8,59): error CS0449: The 'class' or 'struct' constraint must come before any other constraints
+                //     public static void F2<T2>(T2? t2) where T2 : notnull, class?
+                Diagnostic(ErrorCode.ERR_RefValBoundMustBeFirst, "class").WithLocation(8, 59)
+            );
+
+            var m = comp.SourceModule;
+
+            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = f1.TypeParameters[0];
+            Assert.True(t1.IsReferenceType);
+            Assert.True(t1.IsNotNullableIfReferenceType);
+            Assert.Empty(t1.GetAttributes());
+
+            var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t2 = f2.TypeParameters[0];
+            Assert.True(t2.IsReferenceType);
+            Assert.True(t2.IsNotNullableIfReferenceType);
+            Assert.Empty(t2.GetAttributes());
+        }
+
+        [Fact]
+        public void Constraints_53_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class B
 {
     public static void F1<T1>(T1? t1) where T1 : class?, object
@@ -61361,6 +61599,33 @@ class B : I<object?>
 @"
 class B
 {
+    public static void F1<T1>(T1? t1) where T1 : B, notnull
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,53): error CS8713: The 'notnull' constraint must come before any other constraints
+                //     public static void F1<T1>(T1? t1) where T1 : B, notnull
+                Diagnostic(ErrorCode.ERR_NotnullConstraintMustBeFirst, "notnull").WithLocation(4, 53)
+            );
+
+            var m = comp.SourceModule;
+
+            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = f1.TypeParameters[0];
+            Assert.True(t1.IsReferenceType);
+            Assert.True(t1.IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        public void Constraints_58_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+class B
+{
     public static void F1<T1>(T1? t1) where T1 : B, object
     {
     }
@@ -61386,6 +61651,32 @@ class B
         {
             var source =
 @"
+class B
+{
+    public static void F1<T1>(T1? t1) where T1 : notnull, B?
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = f1.TypeParameters[0];
+                Assert.True(t1.IsReferenceType);
+                Assert.True(t1.HasNotnullConstraint);
+                Assert.True(t1.IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void Constraints_59_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class B
 {
     public static void F1<T1>(T1? t1) where T1 : B?, object
@@ -61416,6 +61707,29 @@ class B
         {
             var source =
 @"
+class B
+{
+    public static void F1<T1>(T1? t1) where T1 : notnull, B
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var m = comp.SourceModule;
+
+            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = f1.TypeParameters[0];
+            Assert.True(t1.IsReferenceType);
+            Assert.True(t1.IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        public void Constraints_60_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class B
 {
     public static void F1<T1>(T1? t1) where T1 : object, B
@@ -61625,6 +61939,82 @@ class B : I<object?, B?>
 interface I1
 {
     void F1<TF1>();
+    void F2<TF2>() where TF2 : notnull;
+    void F3<TF3>() where TF3 : notnull;
+    void F4<TF4>() where TF4 : I3;
+    void F5<TF5>() where TF5 : I3;
+    void F6<TF6>() where TF6 : I3?;
+    void F7<TF7>() where TF7 : notnull, I3;
+    void F8<TF8>() where TF8 : notnull, I3;
+    void F9<TF9>() where TF9 : notnull, I3;
+    void F10<TF10>() where TF10 : notnull, I3?;
+    void F11<TF11>() where TF11 : notnull, I3?;
+    void F12<TF12>() where TF12 : notnull, I3?;
+    void F13<TF13>() where TF13 : notnull, I3?;
+}
+
+public interface I3
+{
+}
+
+class A : I1
+{
+    public void F1<TF1A>() where TF1A : notnull
+    {}
+    public void F2<TF2A>()
+    {}
+    public void F3<TF3A>() where TF3A : notnull
+    {}
+    public void F4<TF4A>() where TF4A : notnull, I3
+    {}
+    public void F5<TF5A>() where TF5A : notnull, I3?
+    {}
+    public void F6<TF6A>() where TF6A : notnull, I3?
+    {}
+    public void F7<TF7A>() where TF7A : I3
+    {}
+    public void F8<TF8A>() where TF8A : I3?
+    {}
+    public void F9<TF9A>() where TF9A : notnull, I3
+    {}
+    public void F10<TF10A>() where TF10A : I3
+    {}
+    public void F11<TF11A>() where TF11A : I3?
+    {}
+    public void F12<TF12A>() where TF12A : notnull, I3
+    {}
+    public void F13<TF13A>() where TF13A : notnull, I3?
+    {}
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (25,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
+                //     public void F1<TF1A>() where TF1A : object
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F1").WithArguments("TF1A", "A.F1<TF1A>()", "TF1", "I1.F1<TF1>()").WithLocation(25, 17),
+                // (27,17): warning CS8633: Nullability in constraints for type parameter 'TF2A' of method 'A.F2<TF2A>()' doesn't match the constraints for type parameter 'TF2' of interface method 'I1.F2<TF2>()'. Consider using an explicit interface implementation instead.
+                //     public void F2<TF2A>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F2").WithArguments("TF2A", "A.F2<TF2A>()", "TF2", "I1.F2<TF2>()").WithLocation(27, 17),
+                // (35,17): warning CS8633: Nullability in constraints for type parameter 'TF6A' of method 'A.F6<TF6A>()' doesn't match the constraints for type parameter 'TF6' of interface method 'I1.F6<TF6>()'. Consider using an explicit interface implementation instead.
+                //     public void F6<TF6A>() where TF6A : object, I3?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F6").WithArguments("TF6A", "A.F6<TF6A>()", "TF6", "I1.F6<TF6>()").WithLocation(35, 17),
+                // (39,17): warning CS8633: Nullability in constraints for type parameter 'TF8A' of method 'A.F8<TF8A>()' doesn't match the constraints for type parameter 'TF8' of interface method 'I1.F8<TF8>()'. Consider using an explicit interface implementation instead.
+                //     public void F8<TF8A>() where TF8A : I3?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F8").WithArguments("TF8A", "A.F8<TF8A>()", "TF8", "I1.F8<TF8>()").WithLocation(39, 17),
+                // (45,17): warning CS8633: Nullability in constraints for type parameter 'TF11A' of method 'A.F11<TF11A>()' doesn't match the constraints for type parameter 'TF11' of interface method 'I1.F11<TF11>()'. Consider using an explicit interface implementation instead.
+                //     public void F11<TF11A>() where TF11A : I3?
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F11").WithArguments("TF11A", "A.F11<TF11A>()", "TF11", "I1.F11<TF11>()").WithLocation(45, 17)
+            );
+        }
+
+        [Fact]
+        public void Constraints_64_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+interface I1
+{
+    void F1<TF1>();
     void F2<TF2>() where TF2 : object;
     void F3<TF3>() where TF3 : object;
     void F4<TF4>() where TF4 : I3;
@@ -61701,6 +62091,87 @@ class A : I1
 public interface I1
 {
     void F1<TF1>();
+    void F2<TF2>() where TF2 : notnull;
+    void F3<TF3>() where TF3 : notnull;
+    void F4<TF4>() where TF4 : I3;
+    void F5<TF5>() where TF5 : I3;
+    void F7<TF7>() where TF7 : notnull, I3;
+    void F8<TF8>() where TF8 : notnull, I3;
+    void F9<TF9>() where TF9 : notnull, I3;
+}
+
+public interface I3
+{
+}
+";
+
+            var source2 =
+@"
+class A : I1
+{
+    public void F1<TF1A>() where TF1A : notnull
+    {}
+    public void F2<TF2A>()
+    {}
+    public void F3<TF3A>() where TF3A : notnull
+    {}
+    public void F4<TF4A>() where TF4A : notnull, I3
+    {}
+    public void F5<TF5A>() where TF5A : notnull, I3?
+    {}
+    public void F7<TF7A>() where TF7A : I3
+    {}
+    public void F8<TF8A>() where TF8A : I3?
+    {}
+    public void F9<TF9A>() where TF9A : notnull, I3
+    {}
+}
+";
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
+
+            foreach (var reference in new[] { comp1.ToMetadataReference(), comp1.EmitToImageReference() })
+            {
+                var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (6,17): warning CS8633: Nullability in constraints for type parameter 'TF2A' of method 'A.F2<TF2A>()' doesn't match the constraints for type parameter 'TF2' of interface method 'I1.F2<TF2>()'. Consider using an explicit interface implementation instead.
+                    //     public void F2<TF2A>()
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F2").WithArguments("TF2A", "A.F2<TF2A>()", "TF2", "I1.F2<TF2>()").WithLocation(6, 17),
+                    // (16,17): warning CS8633: Nullability in constraints for type parameter 'TF8A' of method 'A.F8<TF8A>()' doesn't match the constraints for type parameter 'TF8' of interface method 'I1.F8<TF8>()'. Consider using an explicit interface implementation instead.
+                    //     public void F8<TF8A>() where TF8A : I3?
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F8").WithArguments("TF8A", "A.F8<TF8A>()", "TF8", "I1.F8<TF8>()").WithLocation(16, 17)
+                    );
+            }
+
+            string il = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig newslot abstract virtual 
+          instance void  F1<TF1>() cil managed
+  {
+  } // end of method I1::F1
+
+} // end of class I1";
+
+            string source3 = @"
+class A : I1
+{
+    public void F1<TF1A>() where TF1A : notnull
+    {}
+}
+";
+            var comp3 = CreateCompilationWithIL(new[] { source3 }, il, options: WithNonNullTypesTrue());
+            comp3.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraints_65_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
+public interface I1
+{
+    void F1<TF1>();
     void F2<TF2>() where TF2 : object;
     void F3<TF3>() where TF3 : object;
     void F4<TF4>() where TF4 : I3;
@@ -61716,7 +62187,7 @@ public interface I3
 ";
 
             var source2 =
-@"
+@"#pragma warning disable CS8715
 class A : I1
 {
     public void F1<TF1A>() where TF1A : object
@@ -61756,7 +62227,7 @@ class A : I1
 
 } // end of class I1";
 
-            string source3 = @"
+            string source3 = @"#pragma warning disable CS8715
 class A : I1
 {
     public void F1<TF1A>() where TF1A : object
@@ -61775,6 +62246,64 @@ class A : I1
 public interface I1
 {
     void F1<TF1>();
+    void F2<TF2>() where TF2 : notnull;
+    void F3<TF3>() where TF3 : notnull;
+    void F4<TF4>() where TF4 : I3;
+    void F7<TF7>() where TF7 : notnull, I3;
+    void F9<TF9>() where TF9 : notnull, I3;
+    void F10<TF10>() where TF10 : notnull, I3?;
+    void F12<TF12>() where TF12 : notnull, I3?;
+}
+
+public interface I3
+{
+}
+";
+
+            var source2 =
+@"
+class A : I1
+{
+    public void F1<TF1A>() where TF1A : notnull
+    {}
+    public void F2<TF2A>()
+    {}
+    public void F3<TF3A>() where TF3A : notnull
+    {}
+    public void F4<TF4A>() where TF4A : notnull, I3
+    {}
+    public void F7<TF7A>() where TF7A : I3
+    {}
+    public void F9<TF9A>() where TF9A : notnull, I3
+    {}
+    public void F10<TF10A>() where TF10A : I3
+    {}
+    public void F12<TF12A>() where TF12A : notnull, I3
+    {}
+}
+";
+            var comp1 = CreateCompilation(source1, options: WithNonNullTypesTrue());
+
+            foreach (var reference in new[] { comp1.ToMetadataReference(), comp1.EmitToImageReference() })
+            {
+                var comp2 = CreateCompilation(source2, options: WithNonNullTypes(NullableContextOptions.Warnings), references: new[] { reference });
+
+                comp2.VerifyDiagnostics(
+                    // (4,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
+                    //     public void F1<TF1A>() where TF1A : notnull
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F1").WithArguments("TF1A", "A.F1<TF1A>()", "TF1", "I1.F1<TF1>()").WithLocation(4, 17)
+                    );
+            }
+        }
+
+        [Fact]
+        public void Constraints_66_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
+public interface I1
+{
+    void F1<TF1>();
     void F2<TF2>() where TF2 : object;
     void F3<TF3>() where TF3 : object;
     void F4<TF4>() where TF4 : I3;
@@ -61790,7 +62319,7 @@ public interface I3
 ";
 
             var source2 =
-@"
+@"#pragma warning disable CS8715
 class A : I1
 {
     public void F1<TF1A>() where TF1A : object
@@ -61826,6 +62355,43 @@ class A : I1
         {
             var source =
 @"
+class A
+{
+    public void F1<TF1>(object x1, TF1 y1, TF1 z1 ) where TF1 : notnull
+    {
+        y1.ToString();
+        x1 = z1;
+    }
+
+    public void F2<TF2>(object x2, TF2 y2, TF2 z2 ) where TF2 : class
+    {
+        y2.ToString();
+        x2 = z2;
+    }
+
+    public void F3<TF3>(object x3, TF3 y3, TF3 z3 ) where TF3 : class?
+    {
+        y3.ToString();
+        x3 = z3;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         y3.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y3").WithLocation(18, 9),
+                // (19,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x3 = z3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z3").WithLocation(19, 14)
+                );
+        }
+
+        [Fact]
+        public void Constraints_67_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 class A
 {
     public void F1<TF1>(object x1, TF1 y1, TF1 z1 ) where TF1 : object
@@ -61888,6 +62454,73 @@ class C<T> where T : A
         public void Constraints_69()
         {
             var source = @"
+#nullable enable
+class C<T> where T : notnull { }
+interface I
+{
+    C<object?> Property { get; } // 1
+    C<object?> Method(C<object?> p); // 2
+}
+class C2 : I
+{
+    public C<object?> Field = new C<object?>(); // 3
+    C<object?> Property => Field; // 4
+    C<object?> Method(C<object?> p) => Field; // 5
+
+    C<object?> I.Property => Field; // 6
+    C<object?> I.Method(C<object?> p) => Field; // 7 
+}
+
+delegate C<object?> D(C<object?> p); // 8
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,16): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Property { get; } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Property").WithArguments("C<T>", "T", "object?").WithLocation(6, 16),
+                // (7,16): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Method(C<object?> p); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Method").WithArguments("C<T>", "T", "object?").WithLocation(7, 16),
+                // (7,34): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Method(C<object?> p); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("C<T>", "T", "object?").WithLocation(7, 34),
+                // (11,23): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     public C<object?> Field = new C<object?>(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Field").WithArguments("C<T>", "T", "object?").WithLocation(11, 23),
+                // (11,37): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     public C<object?> Field = new C<object?>(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "object?").WithArguments("C<T>", "T", "object?").WithLocation(11, 37),
+                // (12,16): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Property => Field; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Property").WithArguments("C<T>", "T", "object?").WithLocation(12, 16),
+                // (13,16): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Method(C<object?> p) => Field; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Method").WithArguments("C<T>", "T", "object?").WithLocation(13, 16),
+                // (13,34): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> Method(C<object?> p) => Field; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("C<T>", "T", "object?").WithLocation(13, 34),
+                // (15,18): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> I.Property => Field; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Property").WithArguments("C<T>", "T", "object?").WithLocation(15, 18),
+                // (16,18): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "Method").WithArguments("C<T>", "T", "object?").WithLocation(16, 18),
+                // (16,36): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("C<T>", "T", "object?").WithLocation(16, 36),
+                // (19,12): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                // delegate C<object?> D(C<object?> p); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "object?").WithArguments("C<T>", "T", "object?").WithLocation(19, 12),
+                // (19,25): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+                // delegate C<object?> D(C<object?> p); // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "object?").WithArguments("C<T>", "T", "object?").WithLocation(19, 25));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_69_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 #nullable enable
 class C<T> where T : object { }
 interface I
@@ -62098,12 +62731,12 @@ class C<T> {
 ";
             var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
-                // (4,31): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                // (4,31): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //     void M1((string, string?) p) { } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(4, 31),
-                // (6,34): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(4, 31),
+                // (6,34): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //     void M3(C<(string, string?)> p) { } // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(6, 34));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(6, 34));
         }
 
         [Fact]
@@ -62111,6 +62744,37 @@ class C<T> {
         public void Constraints_74()
         {
             var source = @"
+#nullable enable
+class C<T> where T : notnull { }
+class D1 {
+    D1((string, string?) p) { } // 1
+    D1(C<(string, string?)> p) { } // 2
+    D1(C<string?> p) { } // 3
+}
+class D2 {
+    D2((string, string) p) { }
+    D2(C<(string, string)> p) { }
+    D2(C<string> p) { }
+}
+";
+            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (5,26): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     D1((string, string?) p) { } // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(5, 26),
+                // (6,29): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     D1(C<(string, string?)> p) { } // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(6, 29),
+                // (7,19): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     D1(C<string?> p) { } // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("C<T>", "T", "string?").WithLocation(7, 19));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_74_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 #nullable enable
 class C<T> where T : object { }
 class D1 {
@@ -62126,12 +62790,12 @@ class D2 {
 ";
             var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
-                // (5,26): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                // (5,26): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //     D1((string, string?) p) { } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(5, 26),
-                // (6,29): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(5, 26),
+                // (6,29): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //     D1(C<(string, string?)> p) { } // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(6, 29),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(6, 29),
                 // (7,19): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
                 //     D1(C<string?> p) { } // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "string?").WithLocation(7, 19));
@@ -62142,6 +62806,35 @@ class D2 {
         public void Constraints_75()
         {
             var source = @"
+#nullable enable
+class C<T> where T : notnull { }
+class D1 {
+    public static implicit operator D1(C<string> c) => new D1();
+    public static implicit operator C<string>(D1 D1) => new C<string>();
+}
+class D2 {
+    public static implicit operator D2(C<string?> c) => new D2(); // 1
+    public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+}
+";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib46);
+            compilation.VerifyDiagnostics(
+                // (9,51): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     public static implicit operator D2(C<string?> c) => new D2(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "c").WithArguments("C<T>", "T", "string?").WithLocation(9, 51),
+                // (10,37): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "C<string?>").WithArguments("C<T>", "T", "string?").WithLocation(10, 37),
+                // (10,64): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("C<T>", "T", "string?").WithLocation(10, 64));
+        }
+
+        [Fact]
+        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
+        public void Constraints_75_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 #nullable enable
 class C<T> where T : object { }
 class D1 {
@@ -62188,30 +62881,30 @@ class C {
 ";
             var compilation = CreateCompilation(new[] { Tuple2NonNullable, TupleRestNonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
-                // (9,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                // (9,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t2 = (s1, s2);  // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s1, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(9, 18),
-                // (10,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "(s1, s2)").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(9, 18),
+                // (10,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t3 = (s2, s1);  // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(10, 18),
-                // (11,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "(s2, s1)").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(10, 18),
+                // (11,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t4 = (s2, s2);  // 3, 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(11, 18),
-                // (11,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(11, 18),
+                // (11,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t4 = (s2, s2);  // 3, 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(11, 18),
-                // (12,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "(s2, s2)").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(11, 18),
+                // (12,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t5 = ((string)null, s1);  // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(12, 18),
-                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "((string)null, s1)").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(12, 18),
+                // (13,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(13, 18),
-                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "T1", "string?").WithLocation(13, 18),
+                // (13,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(13, 18),
-                // (13,18): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(13, 18),
+                // (13,18): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         var t6 = ((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null);  // 6, 7, 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(13, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "((string)null, s1, s1, s1, s1, s1, s1, (string)null, (string)null)").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(13, 18)
                 );
         }
 
@@ -62234,24 +62927,24 @@ class C {
 ";
             var compilation = CreateCompilation(new[] { Tuple2NonNullable, TupleRestNonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
             compilation.VerifyDiagnostics(
-                // (7,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                // (7,10): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         (string?, string) t1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(7, 10),
-                // (8,10): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(7, 10),
+                // (8,10): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         (string?, string, string, string, string, string, string, string, string?) t2;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(8, 10),
-                // (8,75): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "T1", "string?").WithLocation(8, 10),
+                // (8,75): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         (string?, string, string, string, string, string, string, string, string?) t2;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(8, 75),
-                // (9,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(8, 75),
+                // (9,27): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         Type t3 = typeof((string?, string));
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T1", "string?").WithLocation(9, 27),
-                // (10,27): warning CS8631: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "T1", "string?").WithLocation(9, 27),
+                // (10,27): warning CS8714: The type 'string?' cannot be used as type parameter 'T1' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         Type t4 = typeof((string?, string, string, string, string, string, string, string, string?));
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "object", "T1", "string?").WithLocation(10, 27),
-                // (10,92): warning CS8631: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "T1", "string?").WithLocation(10, 27),
+                // (10,92): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //         Type t4 = typeof((string?, string, string, string, string, string, string, string, string?));
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "object", "T2", "string?").WithLocation(10, 92)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(10, 92)
                 );
         }
 
@@ -62313,39 +63006,39 @@ class C {
                 // (4,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(4, 2),
-                // (6,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T1 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(6, 20),
+                // (6,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T1 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(6, 20),
                 // (7,16): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (string?, string) t1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 16),
-                // (7,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T1 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(7, 20),
-                // (7,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T2 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(7, 20),
-                // (8,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T2 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(8, 20),
-                // (8,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T3 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(8, 20),
+                // (7,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T1 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(7, 20),
+                // (7,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T2 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(7, 20),
+                // (8,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T2 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(8, 20),
+                // (8,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T3 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(8, 20),
                 // (8,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Type t2 = typeof((string?, string));
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(8, 33),
-                // (9,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T4 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(9, 20),
-                // (10,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T5 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(10, 20),
-                // (11,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T6 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(11, 20),
-                // (12,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T7 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(12, 20));
+                // (9,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T4 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(9, 20),
+                // (10,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T5 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(10, 20),
+                // (11,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T6 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(11, 20),
+                // (12,20): error CS8652: The feature 'notnull generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T7 : notnull
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "notnull").WithArguments("notnull generic type constraint").WithLocation(12, 20));
         }
 
         [Fact]
@@ -63635,6 +64328,80 @@ partial interface I1<TF1>
 {
 }
 
+partial interface I1<TF1> where TF1 : notnull
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
+            TypeParameterSymbol tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.HasNotnullConstraint);
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+
+            var source2 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1> where TF1 : new()
+{
+}
+
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.HasNotnullConstraint);
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
+            var source3 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+
+partial interface I1<TF1> where TF1 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : notnull, new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.HasNotnullConstraint);
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+        }
+
+        [Fact]
+        public void Constraints_116_Object()
+        {
+            var source1 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1>
+{
+}
+#pragma warning disable CS8715
 partial interface I1<TF1> where TF1 : object
 {
 }
@@ -63653,7 +64420,7 @@ partial interface I1<TF1> where TF1 : object
 partial interface I1<TF1> where TF1 : new()
 {
 }
-
+#pragma warning disable CS8715
 partial interface I1<TF1> where TF1 : object, new()
 {
 }
@@ -63682,6 +64449,55 @@ partial interface I1<TF1>
 {
 }
 
+partial interface I1<TF1> where TF1 : notnull
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
+            TypeParameterSymbol tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.HasNotnullConstraint);
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+
+            var source2 =
+@"
+#nullable enable
+partial interface I1<TF1> where TF1 : new()
+{
+}
+
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.HasNotnullConstraint);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+        }
+
+        [Fact]
+        public void Constraints_117_Object()
+        {
+            var source1 =
+@"
+#nullable enable
+partial interface I1<TF1>
+{
+}
+#pragma warning disable CS8715
 partial interface I1<TF1> where TF1 : object
 {
 }
@@ -63700,7 +64516,7 @@ partial interface I1<TF1> where TF1 : object
 partial interface I1<TF1> where TF1 : new()
 {
 }
-
+#pragma warning disable CS8715
 partial interface I1<TF1> where TF1 : object, new()
 {
 }
@@ -63731,7 +64547,7 @@ partial interface I1<TF1>
 }
 
 #nullable enable
-partial interface I1<TF1> where TF1 : object
+partial interface I1<TF1> where TF1 : notnull
 {
 }
 ";
@@ -63750,6 +64566,84 @@ partial interface I1<TF1> where TF1 : new()
 {
 }
 
+#nullable enable
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.HasNotnullConstraint);
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
+            var source3 =
+@"
+#nullable enable
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+
+#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1> where TF1 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : notnull, new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.HasNotnullConstraint);
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+        }
+
+        [Fact]
+        public void Constraints_118_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
+#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1>
+{
+}
+
+#nullable enable
+partial interface I1<TF1> where TF1 : object
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
+            TypeParameterSymbol tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+
+            var source2 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1> where TF1 : new()
+{
+}
+#pragma warning disable CS8715
 #nullable enable
 partial interface I1<TF1> where TF1 : object, new()
 {
@@ -63781,6 +64675,57 @@ partial interface I1<TF1>
 
 #nullable disable
 #pragma warning enable nullable
+partial interface I1<TF1> where TF1 : notnull
+{
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
+            TypeParameterSymbol tf1 = i1.TypeParameters[0];
+            Assert.True(tf1.IsNotNullableIfReferenceType);
+
+            var source2 =
+@"
+#nullable enable
+partial interface I1<TF1> where TF1 : new()
+{
+}
+
+#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1> where TF1 : notnull, new()
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1> where TF1 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
+                );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+        }
+
+        [Fact]
+        public void Constraints_119_Object()
+        {
+            var source1 =
+@"
+#nullable enable
+partial interface I1<TF1>
+{
+}
+#pragma warning disable CS8715
+#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object
 {
 }
@@ -63799,7 +64744,7 @@ partial interface I1<TF1> where TF1 : object
 partial interface I1<TF1> where TF1 : new()
 {
 }
-
+#pragma warning disable CS8715
 #nullable disable
 #pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object, new()
@@ -64646,6 +65591,27 @@ partial class A
 #pragma warning enable nullable
 partial void M1<TF1>();
 
+partial void M1<TF1>() where TF1 : notnull
+{
+}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraints_132_Object()
+        {
+            var source1 =
+@"
+partial class A
+{
+#nullable disable
+#pragma warning enable nullable
+partial void M1<TF1>();
+#pragma warning disable CS8715
 partial void M1<TF1>() where TF1 : object
 {
 }
@@ -64667,6 +65633,35 @@ partial class A
 #nullable enable
 partial void M1<TF1>();
 
+partial void M1<TF1>() where TF1 : notnull
+{
+}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics(
+                // (7,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
+                // partial void M1<TF1>() where TF1 : object
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(7, 14)
+                );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_133_Object()
+        {
+            var source1 =
+@"
+partial class A
+{
+#nullable enable
+partial void M1<TF1>();
+#pragma warning disable CS8715
 partial void M1<TF1>() where TF1 : object
 {
 }
@@ -64697,6 +65692,32 @@ partial class A
 #pragma warning enable nullable
 partial void M1<TF1>();
 #nullable enable
+partial void M1<TF1>() where TF1 : notnull
+{
+}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_134_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
+partial class A
+{
+#nullable disable
+#pragma warning enable nullable
+partial void M1<TF1>();
+#nullable enable
 partial void M1<TF1>() where TF1 : object
 {
 }
@@ -64717,6 +65738,36 @@ partial void M1<TF1>() where TF1 : object
         {
             var source1 =
 @"
+partial class A
+{
+#nullable enable
+partial void M1<TF1>();
+#nullable disable
+#pragma warning enable nullable
+partial void M1<TF1>() where TF1 : notnull
+{
+}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics(
+                // (8,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
+                // partial void M1<TF1>() where TF1 : notnull
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(8, 14)
+                );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_135_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
 partial class A
 {
 #nullable enable
@@ -64959,6 +66010,27 @@ partial void M1<TF1>()
 {
 }
 
+partial void M1<TF1>() where TF1 : notnull;
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Constraints_144_Object()
+        {
+            var source1 =
+@"
+partial class A
+{
+#nullable disable
+#pragma warning enable nullable
+partial void M1<TF1>()
+{
+}
+#pragma warning disable CS8715
 partial void M1<TF1>() where TF1 : object;
 }
 ";
@@ -64973,6 +66045,35 @@ partial void M1<TF1>() where TF1 : object;
         {
             var source1 =
 @"
+partial class A
+{
+#nullable enable
+partial void M1<TF1>()
+{
+}
+
+partial void M1<TF1>() where TF1 : notnull;
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics(
+                // (5,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
+                // partial void M1<TF1>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(5, 14)
+                );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_145_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
 partial class A
 {
 #nullable enable
@@ -65010,6 +66111,33 @@ partial void M1<TF1>()
 }
 
 #nullable enable
+partial void M1<TF1>() where TF1 : notnull;
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_146_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
+#nullable disable
+partial class A
+{
+#pragma warning enable nullable
+partial void M1<TF1>()
+{
+}
+
+#nullable enable
 partial void M1<TF1>() where TF1 : object;
 }
 ";
@@ -65028,6 +66156,37 @@ partial void M1<TF1>() where TF1 : object;
         {
             var source1 =
 @"
+partial class A
+{
+#nullable enable
+partial void M1<TF1>()
+{
+}
+
+#nullable disable
+#pragma warning enable nullable
+partial void M1<TF1>() where TF1 : notnull;
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            comp1.VerifyDiagnostics(
+                // (5,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
+                // partial void M1<TF1>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(5, 14)
+                );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
+        public void Constraints_147_Object()
+        {
+            var source1 =
+@"#pragma warning disable CS8715
 partial class A
 {
 #nullable enable
@@ -65397,6 +66556,468 @@ class B : A<int>
                     Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
                 }
             }
+        }
+
+        [Fact]
+        public void NotnullConstraint_01()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A
+{
+    void Test(int? a, int? b)
+    {
+        M<int?>(a);
+        M(a);
+        if (b == null) return;
+        b.Value.ToString();
+        M(b);
+    }
+
+    void M<T> (T x) where T : notnull
+    {
+        ((object)x).ToString();
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (7,9): warning CS8714: The type 'int?' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>(T)'. Nullability of type argument 'int?' doesn't match 'notnull' constraint.
+                //         M<int?>(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M<int?>").WithArguments("A.M<T>(T)", "T", "int?").WithLocation(7, 9),
+                // (8,9): warning CS8714: The type 'int?' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>(T)'. Nullability of type argument 'int?' doesn't match 'notnull' constraint.
+                //         M(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M").WithArguments("A.M<T>(T)", "T", "int?").WithLocation(8, 9),
+                // (11,9): warning CS8714: The type 'int?' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>(T)'. Nullability of type argument 'int?' doesn't match 'notnull' constraint.
+                //         M(b);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M").WithArguments("A.M<T>(T)", "T", "int?").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_02()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A<T> where T : notnull
+{
+    public void M<S> (S x) where S : T
+    {
+        ((object)x).ToString();
+    }
+}
+
+public class B : A<System.ValueType>
+{
+    void Test(int? a, int? b)
+    {
+        M<int?>(a);
+        M(a);
+        if (b == null) return;
+        b.Value.ToString(); 
+        M(b);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (15,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M<int?>(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M<int?>").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(15, 9),
+                // (16,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(16, 9),
+                // (19,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M(b);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_03()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A<T>
+{
+    public void M<S> (S x) where S : T
+    {
+        ((object)x).ToString();
+    }
+}
+
+public class B : A<System.ValueType>
+{
+    void Test(int? a, int? b)
+    {
+        M<int?>(a);
+        M(a);
+        if (b == null) return;
+        b.Value.ToString(); 
+        M(b);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (7,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ((object)x).ToString();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(7, 10),
+                // (7,10): warning CS8602: Dereference of a possibly null reference.
+                //         ((object)x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object)x").WithLocation(7, 10),
+                // (15,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M<int?>(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M<int?>").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(15, 9),
+                // (16,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M(a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(16, 9),
+                // (19,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'A<ValueType>.M<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M(b);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("A<System.ValueType>.M<S>(S)", "System.ValueType", "S", "int?").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_04()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A<T>
+{
+    public void M<S> (S x) where S : T
+    {
+        ((object)x).ToString();
+    }
+}
+
+public class B : A<System.ValueType?>
+{
+    void Test(int? a, int? b)
+    {
+        M<int?>(a);
+        M(a);
+        if (b == null) return;
+        b.Value.ToString(); 
+        M(b);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (7,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ((object)x).ToString();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x").WithLocation(7, 10),
+                // (7,10): warning CS8602: Dereference of a possibly null reference.
+                //         ((object)x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object)x").WithLocation(7, 10)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_05()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A<T> where T : notnull
+{
+    public void M<S> (S x) where S : T
+    {
+        ((object)x).ToString();
+    }
+}
+
+public class B : A<System.ValueType?>
+{
+    void Test(int? a, int? b)
+    {
+        M<int?>(a);
+        M(a);
+        if (b == null) return;
+        b.Value.ToString(); 
+        M(b);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (11,14): warning CS8714: The type 'System.ValueType?' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'System.ValueType?' doesn't match 'notnull' constraint.
+                // public class B : A<System.ValueType?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "B").WithArguments("A<T>", "T", "System.ValueType?").WithLocation(11, 14)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_06()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A<T> where T : notnull
+{
+    public void M<S>(S? x, S y, S? z) where S : class, T
+    {
+        M<S?>(x);
+        M(x);
+        if (z == null) return;
+        M(z);
+    }
+
+    public void M<S>(S x) where S : T
+    {
+        ((object)x).ToString();
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (7,9): warning CS8631: The type 'S?' cannot be used as type parameter 'S' in the generic type or method 'A<T>.M<S>(S)'. Nullability of type argument 'S?' doesn't match constraint type 'T'.
+                //         M<S?>(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M<S?>").WithArguments("A<T>.M<S>(S)", "T", "S", "S?").WithLocation(7, 9),
+                // (8,9): warning CS8631: The type 'S?' cannot be used as type parameter 'S' in the generic type or method 'A<T>.M<S>(S)'. Nullability of type argument 'S?' doesn't match constraint type 'T'.
+                //         M(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("A<T>.M<S>(S)", "T", "S", "S?").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(36005, "https://github.com/dotnet/roslyn/issues/36005")]
+        public void NotnullConstraint_07()
+        {
+            var source1 =
+ @"
+#nullable enable
+class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : T
+    { }
+    public virtual void M2(T x)
+    { }
+}
+
+class Test2 : Test1<System.ValueType>
+{
+    public override void M1<S>(S x)
+    {
+        object y = x;
+        y.ToString();
+    }
+
+    public override void M2(System.ValueType x)
+    {
+    }
+
+    public void Test()
+    {
+        int? x = null;
+        M1<int?>(x); // 1
+        M2(x); // 2
+    }
+}
+
+class Test3 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+        object y = x;
+        y.ToString();
+    }
+
+    public override void M2(object x)
+    {
+    }
+
+    public void Test()
+    {
+        int? x = null;
+        M1<int?>(x); // 3
+        M2(x); // 4
+    }
+}
+
+class Test4 : Test1<int?>
+{
+    public override void M1<S>(S x)
+    {
+        object y = x; // 5
+        y.ToString(); // 6
+    }
+
+    public override void M2(int? x)
+    {
+    }
+
+    public void Test()
+    {
+        int? x = null;
+        M1<int?>(x);
+        M2(x);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (26,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'Test2.M1<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'System.ValueType'.
+                //         M1<int?>(x); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<int?>").WithArguments("Test2.M1<S>(S)", "System.ValueType", "S", "int?").WithLocation(26, 9),
+                // (27,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void Test2.M2(ValueType x)'.
+                //         M2(x); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void Test2.M2(ValueType x)").WithLocation(27, 12),
+                // (46,9): warning CS8631: The type 'int?' cannot be used as type parameter 'S' in the generic type or method 'Test3.M1<S>(S)'. Nullability of type argument 'int?' doesn't match constraint type 'object'.
+                //         M1<int?>(x); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<int?>").WithArguments("Test3.M1<S>(S)", "object", "S", "int?").WithLocation(46, 9),
+                // (47,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void Test3.M2(object x)'.
+                //         M2(x); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "void Test3.M2(object x)").WithLocation(47, 12),
+                // (55,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object y = x; // 5
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(55, 20),
+                // (56,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(56, 9)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_08()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A
+{
+    void M<T> (T x) where T : notnull?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (5,31): error CS0246: The type or namespace name 'notnull' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M<T> (T x) where T : notnull?
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "notnull").WithArguments("notnull").WithLocation(5, 31),
+                // (5,31): error CS0701: 'notnull?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     void M<T> (T x) where T : notnull?
+                Diagnostic(ErrorCode.ERR_BadBoundType, "notnull?").WithArguments("notnull?").WithLocation(5, 31)
+                );
+        }
+
+        [Fact]
+        public void NotnullConstraint_09()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class A
+{
+    void M<T>() where T : notnull
+    {
+    }
+
+    void Test()
+    {
+        M<notnull>();
+        M<object>();
+    }
+}
+
+class notnull {}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics(
+                // (12,9): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>()'. There is no implicit reference conversion from 'object' to 'notnull'.
+                //         M<object>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<object>").WithArguments("A.M<T>()", "notnull", "T", "object").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void ObjectConstraint_01()
+        {
+            var source =
+@"
+class B
+{
+    public static void F1<T1>() where T1 : object
+    {
+    }
+
+    public static void F2<T2>() where T2 : System.Object
+    {
+    }
+}";
+
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            comp1.VerifyDiagnostics(
+                // (4,44): warning CS8715: Constraint cannot be special class 'object'
+                //     public static void F1<T1>() where T1 : object
+                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 44),
+                // (8,44): warning CS8715: Constraint cannot be special class 'object'
+                //     public static void F2<T2>() where T2 : System.Object
+                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(8, 44)
+                );
+
+            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            comp2.VerifyDiagnostics(
+                // (4,44): warning CS8715: Constraint cannot be special class 'object'
+                //     public static void F1<T1>() where T1 : object
+                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 44),
+                // (8,44): warning CS8715: Constraint cannot be special class 'object'
+                //     public static void F2<T2>() where T2 : System.Object
+                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
+        public void ObjectConstraint_02()
+        {
+            var source =
+@"
+class B
+{
+    public static void F1<T1>() where T1 : object?
+    {
+    }
+
+    public static void F2<T2>() where T2 : System.Object?
+    {
+    }
+}";
+
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            comp1.VerifyDiagnostics(
+                // (4,44): error CS0702: Constraint cannot be special class 'object?'
+                //     public static void F1<T1>() where T1 : object?
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 44),
+                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                //     public static void F2<T2>() where T2 : System.Object?
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object?").WithLocation(8, 44)
+                );
+
+            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
+
+            comp2.VerifyDiagnostics(
+                // (4,44): error CS0702: Constraint cannot be special class 'object?'
+                //     public static void F1<T1>() where T1 : object?
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 44),
+                // (4,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public static void F1<T1>() where T1 : object?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 50),
+                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                //     public static void F2<T2>() where T2 : System.Object?
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object?").WithLocation(8, 44),
+                // (8,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public static void F2<T2>() where T2 : System.Object?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 57)
+                );
         }
 
         [Fact]
@@ -66732,6 +68353,65 @@ public interface IC
 @"
 #pragma warning disable CS0168
 
+public interface IA<TA> where TA : notnull
+{
+}
+
+public interface IB : IA<string?> // 1
+{}
+
+public interface IC : IA<string>
+{}
+
+class B
+{
+    public void Test1()
+    {
+        IA<string?> x1; // 2
+        IA<string> z1;
+    }
+
+    public void M1<TM1>(TM1 x) where TM1: notnull
+    {}
+
+    public void Test2(string? a2, string b2)
+    {
+        M1(a2); // 3
+        M1(b2); 
+        M1<string?>(a2); // 4
+        M1<string?>(b2); // 5
+        M1<string>(b2);
+    }
+    
+}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp1.VerifyDiagnostics(
+                // (8,18): warning CS8714: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // public interface IB : IA<string?> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "IB").WithArguments("IA<TA>", "TA", "string?").WithLocation(8, 18),
+                // (18,12): warning CS8714: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         IA<string?> x1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("IA<TA>", "TA", "string?").WithLocation(18, 12),
+                // (27,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1(a2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(27, 9),
+                // (29,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1<string?>(a2); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(29, 9),
+                // (30,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1<string?>(b2); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(30, 9)
+            );
+        }
+
+        [Fact]
+        public void ConstraintsChecks_25_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+#pragma warning disable CS0168
+
 public interface IA<TA> where TA : object
 {
 }
@@ -66791,6 +68471,65 @@ class B
 @"
 #pragma warning disable CS0168
 " + NonNullTypesOff() + @"
+public interface IA<TA> where TA : notnull
+{
+}
+" + NonNullTypesOn() + @"
+public interface IB : IA<string?>
+{}
+
+public interface IC : IA<string>
+{}
+
+class B
+{
+    public void Test1()
+    {
+        IA<string?> x1;
+        IA<string> z1;
+    }
+" + NonNullTypesOff() + @"
+    public void M1<TM1>(TM1 x) where TM1: notnull
+    {}
+" + NonNullTypesOn() + @"
+    public void Test2(string? a2, string b2)
+    {
+        M1(a2);
+        M1(b2);
+        M1<string?>(a2);
+        M1<string?>(b2);
+        M1<string>(b2);
+    }
+
+}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp1.VerifyDiagnostics(
+                // (8,18): warning CS8714: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // public interface IB : IA<string?>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "IB").WithArguments("IA<TA>", "TA", "string?").WithLocation(8, 18),
+                // (18,12): warning CS8714: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         IA<string?> x1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "string?").WithArguments("IA<TA>", "TA", "string?").WithLocation(18, 12),
+                // (27,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1(a2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(27, 9),
+                // (29,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1<string?>(a2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(29, 9),
+                // (30,9): warning CS8714: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                //         M1<string?>(b2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "TM1", "string?").WithLocation(30, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsChecks_26_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+#pragma warning disable CS0168
+" + NonNullTypesOff() + @"
 public interface IA<TA> where TA : object
 {
 }
@@ -66836,6 +68575,62 @@ class B
 @"
 #pragma warning disable CS0168
 
+public interface IA<TA> where TA : notnull
+{
+}
+" + NonNullTypesOff() + @"
+public interface IB<TIB> : IA<TIB> where TIB : C? // 1
+{}
+" + NonNullTypesOff() + @"
+public interface IC<TIC> : IA<TIC> where TIC : C // 2
+{}
+
+public class C
+{}
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB1 : C? where TB2 : C {
+" + NonNullTypesOn() + @"
+    public void Test1()
+    {
+        IA<TB1> x1; // 3
+        IA<TB2> z1; // 4
+    }
+" + NonNullTypesOn() + @"
+    public void M1<TM1>(TM1 x) where TM1: notnull
+    {}
+" + NonNullTypesOn() + @"
+    public void Test2(TB1 a2, TB2 b2)
+    {
+        M1(a2); // 5
+        M1(b2); // 6
+        M1<TB1>(a2); // 7
+        M1<TB2>(b2); // 8
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
+            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
+                // (21,12): warning CS8714: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         IA<TB1> x1; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "TB1").WithArguments("IA<TA>", "TA", "TB1").WithLocation(21, 12),
+                // (30,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1(a2); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(30, 9),
+                // (32,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1<TB1>(a2); // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(32, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
+        public void ConstraintsChecks_27_Object()
+        {
+            var source =
+@"
+#pragma warning disable CS0168
+#pragma warning disable CS8715
 public interface IA<TA> where TA : object
 {
 }
@@ -66891,6 +68686,60 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C {
 @"
 #pragma warning disable CS0168
 
+public interface IA<TA> where TA : notnull
+{
+}
+
+public interface IB<TIB> : IA<TIB> // 1
+{}
+
+public interface IC<TIC> : IA<TIC> where TIC : notnull
+{}
+
+class B<TB1, TB2> where TB2 : notnull
+{
+    public void Test1()
+    {
+        IA<TB1> x1; // 2
+        IA<TB2> z1;
+    }
+
+    public void M1<TM1>(TM1 x) where TM1: notnull
+    {}
+
+    public void Test2(TB1 a2, TB2 b2)
+    {
+        M1(a2); // 3
+        M1(b2); 
+        M1<TB1>(a2); // 4
+        M1<TB2>(b2);
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp1.VerifyDiagnostics(
+                // (8,18): warning CS8714: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match 'notnull' constraint.
+                // public interface IB<TIB> : IA<TIB> // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "IB").WithArguments("IA<TA>", "TA", "TIB").WithLocation(8, 18),
+                // (18,12): warning CS8714: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         IA<TB1> x1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "TB1").WithArguments("IA<TA>", "TA", "TB1").WithLocation(18, 12),
+                // (27,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1(a2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(27, 9),
+                // (29,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1<TB1>(a2); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(29, 9)
+            );
+        }
+
+        [Fact]
+        public void ConstraintsChecks_28_Object()
+        {
+            var source =
+@"
+#pragma warning disable CS0168, CS8715
+
 public interface IA<TA> where TA : object
 {
 }
@@ -66945,6 +68794,48 @@ class B<TB1, TB2> where TB2 : object
 @"
 #pragma warning disable CS0168
 
+public interface IA<TA> where TA : notnull
+{
+}
+" + NonNullTypesOff() + @"
+public interface IB<TIB> : IA<TIB> // 1
+{}
+" + NonNullTypesOff() + @"
+public interface IC<TIC> : IA<TIC> where TIC : notnull // 2
+{}
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB2 : notnull {
+" + NonNullTypesOn() + @"
+    public void Test1()
+    {
+        IA<TB1> x1; // 3
+        IA<TB2> z1; // 4
+    }
+" + NonNullTypesOn() + @"
+    public void M1<TM1>(TM1 x) where TM1: notnull
+    {}
+" + NonNullTypesOn() + @"
+    public void Test2(TB1 a2, TB2 b2)
+    {
+        M1(a2); // 5
+        M1(b2); // 6
+        M1<TB1>(a2); // 7
+        M1<TB2>(b2); // 8
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
+            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify();
+        }
+
+        [Fact]
+        public void ConstraintsChecks_29_Object()
+        {
+            var source =
+@"
+#pragma warning disable CS0168
+#pragma warning disable CS8715
 public interface IA<TA> where TA : object
 {
 }
@@ -66985,6 +68876,73 @@ class B<TB1, TB2> where TB2 : object {
         {
             var source =
 @"
+#pragma warning disable CS0168
+
+public interface IA<TA> where TA : notnull, IB, IC
+{
+}
+
+class B<TB1> where TB1 : IB?, IC? 
+{
+    public void Test1()
+    {
+        IA<TB1> x1; // 1
+    }
+
+    public void M1<TM1>(TM1 x) where TM1: notnull, IB, IC
+    {}
+
+    public void Test2(TB1 a2)
+    {
+        M1(a2); // 2
+        M1<TB1>(a2); // 3
+    }
+}
+
+public interface IB
+{}
+
+public interface IC
+{}
+";
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            comp1.VerifyDiagnostics(
+                // (12,12): warning CS8714: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         IA<TB1> x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "TB1").WithArguments("IA<TA>", "TA", "TB1").WithLocation(12, 12),
+                // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
+                //         IA<TB1> x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "IB", "TA", "TB1").WithLocation(12, 12),
+                // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
+                //         IA<TB1> x1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "IC", "TA", "TB1").WithLocation(12, 12),
+                // (20,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1(a2); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(20, 9),
+                // (20,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
+                //         M1(a2); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "IB", "TM1", "TB1").WithLocation(20, 9),
+                // (20,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
+                //         M1(a2); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "IC", "TM1", "TB1").WithLocation(20, 9),
+                // (21,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
+                //         M1<TB1>(a2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(21, 9),
+                // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
+                //         M1<TB1>(a2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "IB", "TM1", "TB1").WithLocation(21, 9),
+                // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
+                //         M1<TB1>(a2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "IC", "TM1", "TB1").WithLocation(21, 9)
+            );
+        }
+
+        [Fact]
+        public void ConstraintsChecks_30_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 #pragma warning disable CS0168
 
 public interface IA<TA> where TA : object, IB, IC
@@ -67086,6 +69044,57 @@ public class AA
         {
             var source =
 @"
+#pragma warning disable CS0649
+#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : notnull
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+#nullable enable
+    void M3()
+    {
+        C.Test<T1>();
+        C.Test<T2>();
+        C.Test<T3>();
+    }
+
+    void M4()
+    {
+        D.Test(F1);
+        D.Test(F2);
+        D.Test(F3);
+        D.Test(F4);
+    }
+}
+
+class B {}
+
+class C
+{
+    public static void Test<T>() where T : notnull
+    {}
+}
+
+class D
+{
+    public static void Test<T>(T x) where T : notnull
+    {}
+}
+";
+            var comp1 = CreateCompilation(source);
+
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
+        public void ConstraintsChecks_32_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
 #pragma warning disable CS0649
 #nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : object
@@ -72407,6 +74416,95 @@ $@"
 @"
 
 " + NonNullTypesOff() + @"
+class A<T1, T2, T3> where T2 : class where T3 : B
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+" + NonNullTypesOn() + @"
+    void M1()
+    {
+        F1.ToString();
+        F2.ToString();
+        F3.ToString();
+        F4.ToString();
+    }
+
+" + NonNullTypesOn() + @"
+    void M2()
+    {
+        T1 x2 = default;
+        T2 y2 = default;
+        T3 z2 = default;
+    }
+
+" + NonNullTypesOn() + @"
+    void M3()
+    {
+        C.Test<T1>();
+        C.Test<T2>();
+        C.Test<T3>();
+    }
+
+" + NonNullTypesOn() + @"
+    void M4()
+    {
+        D.Test(F1);
+        D.Test(F2);
+        D.Test(F3);
+        D.Test(F4);
+    }
+}
+
+class B {}
+
+" + NonNullTypesOn() + @"
+class C
+{
+    public static void Test<T>() where T : notnull
+    {}
+}
+
+" + NonNullTypesOn() + @"
+class D
+{
+    public static void Test<T>(T x) where T : notnull
+    {}
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (29,17): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //         T1 x2 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(29, 17),
+                // (30,17): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
+                //         T2 y2 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T2").WithLocation(30, 17),
+                // (31,17): warning CS8653: A default expression introduces a null value when 'T3' is a non-nullable reference type.
+                //         T3 z2 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(31, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
+        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
+        public void ObliviousTypeParameter_01_Object()
+        {
+            var source =
+$@"
+#pragma warning disable {(int)ErrorCode.WRN_UninitializedNonNullableField}, CS8715
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedField}
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
+#pragma warning disable {(int)ErrorCode.WRN_UnreferencedVarAssg}
+#pragma warning disable {(int)ErrorCode.WRN_UnassignedInternalField}
+"
++
+@"
+
+" + NonNullTypesOff() + @"
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     T1 F1;
@@ -72534,6 +74632,39 @@ $@"#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
 "
 +
 @"#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : notnull
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+#nullable enable
+    void M1()
+    {
+        F1 = default;
+        F2 = default;
+        F2 = null;
+        F3 = default;
+        F4 = default;
+    }
+}
+class B { }
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
+        public void ObliviousTypeParameter_03_Object()
+        {
+            var source =
+$@"#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}, CS8715
+"
++
+@"#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     T1 F1;
@@ -72564,6 +74695,32 @@ class B { }
         {
             var source =
 @"#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : notnull
+{
+    void M1(T1 x, T2 y, T3 z, B w)
+#nullable enable
+    {
+        x = default;
+        y = default;
+        y = null;
+        z = default;
+        w = default;
+    }
+}
+class B { }
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
+        public void ObliviousTypeParameter_04_Object()
+        {
+            var source =
+@"#pragma warning disable CS8715
+#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     void M1(T1 x, T2 y, T3 z, B w)
@@ -74226,6 +76383,59 @@ class Outer
         M2(x1) = y1;
     }
 
+    ref U M2<U>(U a) where U : notnull => throw null!;
+}
+";
+            // Note: you cannot pass a `T` to a `U : object` even if the `T` was null-tested
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2(x0) = x0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(7, 9),
+                // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2<T>(x0) = y0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(8, 9),
+                // (10,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2(x0).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(10, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         M2(x0).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M2(x0)").WithLocation(10, 9),
+                // (11,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2<T>(x0).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(11, 9),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
+                //         M2<T>(x0).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M2<T>(x0)").WithLocation(11, 9),
+                // (19,18): warning CS8601: Possible null reference assignment.
+                //         M2(x1) = y1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_007_Object()
+        {
+            var source = @"#pragma warning disable CS8715
+class Outer
+{
+    T M0<T>(T x0, T y0)
+    {
+        if (x0 == null) throw null!;
+        M2(x0) = x0;
+        M2<T>(x0) = y0;
+
+        M2(x0).ToString();
+        M2<T>(x0).ToString();
+        throw null!;
+    }
+
+    void M1(object? x1, object? y1)
+    {
+        if (x1 == null) return;
+        M2(x1) = x1;
+        M2(x1) = y1;
+    }
+
     ref U M2<U>(U a) where U : object => throw null!;
 }
 ";
@@ -75494,6 +77704,33 @@ class Outer
         M1<T>(x);
     }
 
+    void M1<T>(T x) where T : notnull
+    {}
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,9): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M1(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(6, 9),
+                // (7,9): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M1<T>(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_042_Object()
+        {
+            var source = @"#pragma warning disable CS8715
+class Outer
+{
+    void M0<T>(T x)
+    {
+        M1(x);
+        M1<T>(x);
+    }
+
     void M1<T>(T x) where T : object
     {}
 }
@@ -75522,6 +77759,34 @@ class Outer
         M1<T>(x);
     }
 
+    void M1<T>(T x) where T : notnull
+    {}
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M1(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(7, 9),
+                // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M1<T>(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_043_Object()
+        {
+            var source = @"
+class Outer
+{
+    void M0<T>(T x)
+    {
+        if (x == null) return;
+        M1(x);
+        M1<T>(x);
+    }
+#pragma warning disable CS8715
     void M1<T>(T x) where T : object
     {}
 }
@@ -76402,6 +78667,35 @@ class Outer
         M2<T>(ref M3(x0), ref M3(y0)) = z0;
     }
 
+    ref U M2<U>(ref U a, ref U b) where U : notnull => throw null!;
+    ref U M3<U>(U a) => throw null!;
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2(ref M3(x0), ref M3(y0)) = z0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2").WithArguments("Outer.M2<U>(ref U, ref U)", "U", "T").WithLocation(8, 9),
+                // (9,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2<T>(ref M3(x0), ref M3(y0)) = z0;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2<T>").WithArguments("Outer.M2<U>(ref U, ref U)", "U", "T").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_079_Object()
+        {
+            var source = @"#pragma warning disable CS8715
+class Outer
+{
+    void M0<T, U>(T x0, T y0, U z0) where U : T
+    {
+        if (x0 == null) return;
+        if (y0 == null) return;
+        M2(ref M3(x0), ref M3(y0)) = z0;
+        M2<T>(ref M3(x0), ref M3(y0)) = z0;
+    }
+
     ref U M2<U>(ref U a, ref U b) where U : object => throw null!;
     ref U M3<U>(U a) => throw null!;
 }
@@ -76422,6 +78716,38 @@ class Outer
         public void NullabilityOfTypeParameters_080()
         {
             var source = @"
+class Outer
+{
+    void M0<T>(T x0, T y0)
+    {
+        if (x0 == null) return;
+        M2(x0).M3(ref y0);
+        M2<T>(x0).M3(ref y0);
+    }
+
+    Other<U> M2<U>(U a) where U : notnull => throw null!;
+}
+
+class Other<U> where U : notnull
+{
+    public void M3(ref U a) => throw null!;
+}
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2(x0).M3(ref y0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(7, 9),
+                // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //         M2<T>(x0).M3(ref y0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(30946, "https://github.com/dotnet/roslyn/issues/30946")]
+        public void NullabilityOfTypeParameters_080_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 class Outer
 {
     void M0<T>(T x0, T y0)
@@ -79630,6 +81956,28 @@ class Outer<T> where T : class?
         public void NullabilityOfTypeParameters_202()
         {
             var source = @"
+class Outer<T> where T : notnull
+{
+    void M0(T x0)
+    {
+        object y0 = x0 as object;
+        y0?.ToString();
+        y0.ToString(); // 1
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         y0.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_202_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 class Outer<T> where T : object
 {
     void M0(T x0)
@@ -79652,6 +82000,24 @@ class Outer<T> where T : object
         public void NullabilityOfTypeParameters_203()
         {
             var source = @"
+class Outer<T> where T : notnull
+{
+    void M0(T x0)
+    {
+        dynamic y0 = x0 as dynamic;
+        y0.ToString();
+    }
+}
+";
+
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void NullabilityOfTypeParameters_203_Object()
+        {
+            var source = @"#pragma warning disable CS8715
 class Outer<T> where T : object
 {
     void M0(T x0)

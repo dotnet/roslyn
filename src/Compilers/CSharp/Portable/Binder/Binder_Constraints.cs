@@ -238,22 +238,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                             }
 
-                            var type = BindTypeOrUnmanagedKeyword(typeSyntax, diagnostics, out var isUnmanaged);
+                            var type = BindTypeOrConstraintKeyword(typeSyntax, diagnostics, out ConstraintContextualKeyword keyword);
 
-                            if (isUnmanaged)
+                            switch (keyword)
                             {
-                                if (constraints != 0 || constraintTypes.Any())
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                case ConstraintContextualKeyword.Unmanaged:
+                                    if (i != 0)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        continue;
+                                    }
+
+                                    // This should produce diagnostics if the types are missing
+                                    GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
+                                    GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+
+                                    constraints |= TypeParameterConstraintKind.Unmanaged;
                                     continue;
-                                }
 
-                                // This should produce diagnostics if the types are missing
-                                GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
-                                GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+                                case ConstraintContextualKeyword.Notnull:
+                                    if (i != 0)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_NotnullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                    }
 
-                                constraints |= TypeParameterConstraintKind.Unmanaged;
-                                continue;
+                                    constraints |= TypeParameterConstraintKind.NotNull;
+                                    continue;
+
+                                case ConstraintContextualKeyword.None:
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(keyword);
                             }
 
                             constraintTypes.Add(type);
@@ -475,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    // "Constraint cannot be special class '{0}'"
+                    Error(diagnostics, ErrorCode.WRN_SpecialTypeAsBound, syntax, typeWithAnnotations);
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureObjectGenericTypeConstraint, diagnostics);
                     break;
 

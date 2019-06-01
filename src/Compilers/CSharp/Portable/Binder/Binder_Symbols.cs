@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="syntax">Type syntax to bind.</param>
         /// <param name="diagnostics">Diagnostics.</param>
-        /// <param name="isUnmanaged">
-        /// Set to false if syntax binds to a type in the current context and true if
-        /// syntax is "unmanaged" and it binds to "unmanaged" keyword in the current context.
+        /// <param name="keyword">
+        /// Set to <see cref="ConstraintContextualKeyword.None"/> if syntax binds to a type in the current context, otherwise
+        /// syntax binds to the corresponding keyword in the current context.
         /// </param>
         /// <returns>
         /// Bound type if syntax binds to a type in the current context and
-        /// null if syntax binds to "unmanaged" keyword in the current context.
+        /// null if syntax binds to a contextual constraint keyword.
         /// </returns>
-        internal TypeWithAnnotations BindTypeOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
+        private TypeWithAnnotations BindTypeOrConstraintKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out ConstraintContextualKeyword keyword)
         {
-            var symbol = BindTypeOrAliasOrUnmanagedKeyword(syntax, diagnostics, out isUnmanaged);
-            Debug.Assert(isUnmanaged == symbol.IsDefault);
-            return isUnmanaged ? default : UnwrapAlias(symbol, diagnostics, syntax).TypeWithAnnotations;
+            var symbol = BindTypeOrAliasOrConstraintKeyword(syntax, diagnostics, out keyword);
+            Debug.Assert((keyword != ConstraintContextualKeyword.None) == symbol.IsDefault);
+            return (keyword != ConstraintContextualKeyword.None) ? default : UnwrapAlias(symbol, diagnostics, syntax).TypeWithAnnotations;
         }
 
         /// <summary>
@@ -119,22 +119,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
+        private enum ConstraintContextualKeyword
+        {
+            None,
+            Unmanaged,
+            Notnull,
+        }
+
+        private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrConstraintKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out ConstraintContextualKeyword keyword)
         {
             if (syntax.IsUnmanaged)
             {
-                var symbol = BindTypeOrAliasOrKeyword((IdentifierNameSyntax)syntax, diagnostics, out isUnmanaged);
+                keyword = ConstraintContextualKeyword.Unmanaged;
+            }
+            else if (syntax.IsNotnull)
+            {
+                keyword = ConstraintContextualKeyword.Notnull;
+            }
+            else
+            {
+                keyword = ConstraintContextualKeyword.None;
+            }
 
-                if (isUnmanaged)
+            if (keyword != ConstraintContextualKeyword.None)
+            {
+                var identifierSyntax = (IdentifierNameSyntax)syntax;
+                var symbol = BindTypeOrAliasOrKeyword(identifierSyntax, diagnostics, out bool isKeyword);
+
+                if (isKeyword)
                 {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
+                    switch (keyword)
+                    {
+                        case ConstraintContextualKeyword.Unmanaged:
+                            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
+                            break;
+                        case ConstraintContextualKeyword.Notnull:
+                            CheckFeatureAvailability(identifierSyntax, MessageID.IDS_NotnullGenericTypeConstraint, diagnostics);
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(keyword);
+                    }
+                }
+                else
+                {
+                    keyword = ConstraintContextualKeyword.None;
                 }
 
                 return symbol;
             }
             else
             {
-                isUnmanaged = false;
                 return BindTypeOrAlias(syntax, diagnostics, basesBeingResolved: null);
             }
         }

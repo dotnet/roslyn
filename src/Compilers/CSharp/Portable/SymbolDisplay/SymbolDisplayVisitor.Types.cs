@@ -753,7 +753,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool TypeParameterHasConstraints(ITypeParameterSymbol typeParam)
         {
             return !typeParam.ConstraintTypes.IsEmpty || typeParam.HasConstructorConstraint ||
-                typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint;
+                typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint ||
+                (typeParam as TypeParameterSymbol)?.HasNotnullConstraint == true; // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
         }
 
         private void AddTypeParameterConstraints(ImmutableArray<ITypeSymbol> typeArguments)
@@ -813,6 +814,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (typeParam.HasValueTypeConstraint)
                             {
                                 AddKeyword(SyntaxKind.StructKeyword);
+                                needComma = true;
+                            }
+                            else if (typeParameterSymbol?.HasNotnullConstraint == true) // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
+                            {
+                                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "notnull"));
                                 needComma = true;
                             }
 

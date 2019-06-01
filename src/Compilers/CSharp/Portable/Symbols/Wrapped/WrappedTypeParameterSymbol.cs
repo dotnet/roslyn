@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool HasNotnullConstraint
+        {
+            get
+            {
+                return _underlyingTypeParameter.HasNotnullConstraint;
+            }
+        }
+
         public override bool HasUnmanagedTypeConstraint
         {
             get

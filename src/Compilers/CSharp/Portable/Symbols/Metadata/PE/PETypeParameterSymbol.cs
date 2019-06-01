@@ -309,11 +309,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool HasNotnullConstraint
+        {
+            get
+            {
+                return (_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
+                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _) &&
+                       transformFlag == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+            }
+        }
+
         internal override bool? IsNotNullableIfReferenceType
         {
             get
             {
-                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0)
+                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
+                    !HasNotnullConstraint)
                 {
                     PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
                     GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(module);

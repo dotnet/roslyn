@@ -7720,6 +7720,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;notnull&apos; constraint must come before any other constraints.
+        /// </summary>
+        internal static string ERR_NotnullConstraintMustBeFirst {
+            get {
+                return ResourceManager.GetString("ERR_NotnullConstraintMustBeFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is of type &apos;{1}&apos;. A const field of a reference type other than string can only be initialized with null..
         /// </summary>
         internal static string ERR_NotNullConstRefField {
@@ -11951,6 +11960,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to notnull generic type constraint.
+        /// </summary>
+        internal static string IDS_NotnullGenericTypeConstraint {
+            get {
+                return ResourceManager.GetString("IDS_NotnullGenericTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;null&gt;.
         /// </summary>
         internal static string IDS_NULL {
@@ -15575,6 +15593,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be used as type parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{2}&apos; doesn&apos;t match &apos;notnull&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterNotnullConstraint {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotnullConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match &apos;notnull&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterNotnullConstraint_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotnullConstraint_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be used as type parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{2}&apos; doesn&apos;t match &apos;class&apos; constraint..
         /// </summary>
         internal static string WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint {
@@ -15996,6 +16032,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constraint cannot be special class &apos;{0}&apos;.
+        /// </summary>
+        internal static string WRN_SpecialTypeAsBound {
+            get {
+                return ResourceManager.GetString("WRN_SpecialTypeAsBound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constraint cannot be special class.
+        /// </summary>
+        internal static string WRN_SpecialTypeAsBound_Title {
+            get {
+                return ResourceManager.GetString("WRN_SpecialTypeAsBound_Title", resourceCulture);
             }
         }
         
