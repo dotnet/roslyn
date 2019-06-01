@@ -66,7 +66,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis: false,
                 pointsToAnalysisResult: pointsToAnalysisResult,
-                getOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
+                tryGetOrComputeAnalysisResult: TryGetOrComputeResultForAnalysisContext,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,
                 taintedSinkInfos: taintedSinkInfos);

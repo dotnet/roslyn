@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain => DataFlowAnalysisContext.ValueDomain;
         protected ISymbol OwningSymbol => DataFlowAnalysisContext.OwningSymbol;
         protected WellKnownTypeProvider WellKnownTypeProvider => DataFlowAnalysisContext.WellKnownTypeProvider;
-        protected Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResult
-            => DataFlowAnalysisContext.GetOrComputeAnalysisResult;
+        protected Func<TAnalysisContext, TAnalysisResult> TryGetOrComputeAnalysisResult
+            => DataFlowAnalysisContext.TryGetOrComputeAnalysisResult;
         internal bool ExecutingExceptionPathsAnalysisPostPass { get; set; }
 
         protected TAnalysisData CurrentAnalysisData
@@ -1885,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 copyAnalysisResultOpt?.ControlFlowGraph ??
                 valueContentAnalysisResultOpt?.ControlFlowGraph ??
                 getCfg();
-            if (cfg == null)
+            if (cfg == null || !cfg.SupportsFlowAnalysis())
             {
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
@@ -1919,7 +1919,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     // Execute interprocedural analysis and get result.
-                    analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                    analysisResult = TryGetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+                    if (analysisResult == null)
+                    {
+                        return defaultValue;
+                    }
 
                     // Save the interprocedural result for the invocation/creation operation.
                     // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.

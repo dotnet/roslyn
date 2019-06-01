@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             ValueContentAnalysisResult valueContentAnalysisResultOpt,
-            Func<TAnalysisContext, TAnalysisResult> getOrComputeAnalysisResult,
+            Func<TAnalysisContext, TAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 owningSymbol.Kind == SymbolKind.Event);
             Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
             Debug.Assert(wellKnownTypeProvider != null);
-            Debug.Assert(getOrComputeAnalysisResult != null);
+            Debug.Assert(tryGetOrComputeAnalysisResult != null);
 
             ValueDomain = valueDomain;
             WellKnownTypeProvider = wellKnownTypeProvider;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CopyAnalysisResultOpt = copyAnalysisResultOpt;
             PointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
             ValueContentAnalysisResultOpt = valueContentAnalysisResultOpt;
-            GetOrComputeAnalysisResult = getOrComputeAnalysisResult;
+            TryGetOrComputeAnalysisResult = tryGetOrComputeAnalysisResult;
             InterproceduralAnalysisDataOpt = interproceduralAnalysisDataOpt;
             InterproceduralAnalysisPredicateOpt = interproceduralAnalysisPredicateOpt;
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public PointsToAnalysisResult PointsToAnalysisResultOpt { get; }
         public ValueContentAnalysisResult ValueContentAnalysisResultOpt { get; }
 
-        public Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResult { get; }
+        public Func<TAnalysisContext, TAnalysisResult> TryGetOrComputeAnalysisResult { get; }
         protected ControlFlowGraph ParentControlFlowGraphOpt { get; }
 
         // Optional data for context sensitive analysis.
