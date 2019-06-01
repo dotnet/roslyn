@@ -140,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
                 string.IsNullOrEmpty(filePath);
+
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
             if (roslynSnapshot == null)
             {
@@ -148,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
             }
 
-            var diagnosticData = roslynSnapshot?.GetItem(index)?.Primary;
+            var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
             if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
             {
                 isRoslynEntry = false;
@@ -188,14 +189,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 !entry.IsBuildDiagnostic();
         }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticData> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+        private static AbstractTableEntriesSnapshot<DiagnosticTableItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
             if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
             {
                 return null;
             }
 
-            return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
+            return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
         }
 
         /// <summary>
@@ -217,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot != null)
                 {
-                    diagnosticData = roslynSnapshot.GetItem(index)?.Primary;
+                    diagnosticData = roslynSnapshot.GetItem(index)?.Data;
                 }
                 else if (!isAddSuppression)
                 {

@@ -26,9 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TableItem<T>> MergeDuplicatesOrderedBy<T>(this IEnumerable<IList<TableItem<T>>> groupedItems, Func<IEnumerable<TableItem<T>>, IEnumerable<TableItem<T>>> orderer)
+        public static ImmutableArray<TItem> MergeDuplicatesOrderedBy<TItem>(this IEnumerable<IList<TItem>> groupedItems, Func<IEnumerable<TItem>, IEnumerable<TItem>> orderer)
+            where TItem : TableItem
         {
-            var builder = ArrayBuilder<TableItem<T>>.GetInstance();
+            var builder = ArrayBuilder<TItem>.GetInstance();
             foreach (var item in orderer(groupedItems.Select(Deduplicate)))
             {
                 builder.Add(item);
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return builder.ToImmutableAndFree();
         }
 
-        private static TableItem<T> Deduplicate<T>(this IList<TableItem<T>> items)
+        private static TItem Deduplicate<TItem>(this IList<TItem> items)
+            where TItem : TableItem
         {
             if (items.Count == 1)
             {
@@ -60,11 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // order of item is important. make sure we maintain it.
             int collectionHash = Hash.CombineValues(orderedItems.Select(item => item.PrimaryDocumentId.Id));
             var cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
-            return orderedItems[0].WithCache(cache);
+            return (TItem)orderedItems[0].WithCache(cache);
         }
 
-        public static ImmutableArray<ITrackingPoint> CreateTrackingPoints<TData>(
-            this Workspace workspace, DocumentId documentId, ImmutableArray<TableItem<TData>> items)
+        public static ImmutableArray<ITrackingPoint> CreateTrackingPoints<TItem>(this Workspace workspace, DocumentId documentId, ImmutableArray<TItem> items)
+            where TItem : TableItem
         {
             if (documentId == null)
             {
@@ -98,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return items.SelectAsArray(CreateTrackingPoint, textBuffer.CurrentSnapshot);
         }
 
-        private static ITrackingPoint CreateTrackingPoint<TData>(TableItem<TData> item, ITextSnapshot snapshot)
+        private static ITrackingPoint CreateTrackingPoint(TableItem item, ITextSnapshot snapshot)
         {
             if (snapshot.Length == 0)
             {

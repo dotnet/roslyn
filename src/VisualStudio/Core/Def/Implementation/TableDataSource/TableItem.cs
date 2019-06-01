@@ -1,136 +1,44 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal sealed class TableItem<T>
+    internal abstract class TableItem
     {
         private int? _deduplicationKey;
         private readonly SharedInfoCache _cache;
         public readonly Workspace Workspace;
 
-        public readonly T Primary;
-
-        public TableItem(Workspace workspace, T item, SharedInfoCache cache)
+        public TableItem(Workspace workspace, SharedInfoCache cache)
         {
             Contract.ThrowIfNull(workspace);
-            Contract.ThrowIfNull((object)item);
 
             Workspace = workspace;
             _deduplicationKey = null;
-
             _cache = cache;
-            Primary = item;
         }
 
-        public TableItem<T> WithCache(SharedInfoCache cache)
-            => new TableItem<T>(Workspace, Primary, cache);
+        public abstract TableItem WithCache(SharedInfoCache cache);
 
-        // item must be either one of diagnostic data and todo item
-        public DocumentId PrimaryDocumentId
-            => (Primary is DiagnosticData diagnostic) ? diagnostic.DocumentId : ((TodoItem)(object)Primary).DocumentId;
+        public abstract DocumentId PrimaryDocumentId { get; }
+        public abstract ProjectId ProjectId { get; }
 
-        // item must be either one of diagnostic data and todo item
-        public ProjectId GetProjectId()
-            => (Primary is DiagnosticData diagnostic) ? diagnostic.ProjectId : ((TodoItem)(object)Primary).DocumentId.ProjectId;
+        public abstract LinePosition GetTrackingPosition();
+        public abstract int GetDeduplicationKey();
 
-        // item must be either one of diagnostic data and todo item
-        public LinePosition GetOriginalPosition()
-        {
-            if (Primary is DiagnosticData diagnostic)
-            {
-                return new LinePosition(diagnostic.DataLocation?.OriginalStartLine ?? 0, diagnostic.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
-            var todo = (TodoItem)(object)Primary;
-            return new LinePosition(todo.OriginalLine, todo.OriginalColumn);
-        }
-
-        // item must be either one of diagnostic data and todo item
-        public string GetOriginalFilePath()
-        {
-            if (Primary is DiagnosticData diagnostic)
-            {
-                return diagnostic.DataLocation?.OriginalFilePath;
-            }
-
-            var todo = (TodoItem)(object)Primary;
-            return todo.OriginalFilePath;
-        }
-
-        // item must be either one of diagnostic data and todo item
-        public int GetDeduplicationKey()
-        {
-            if (Primary is DiagnosticData diagnostic)
-            {
-                // location-less or project level diagnostic:
-                if (diagnostic.DataLocation == null ||
-                    diagnostic.DataLocation.OriginalFilePath == null ||
-                    diagnostic.DocumentId == null)
-                {
-                    return diagnostic.GetHashCode();
-                }
-
-                return
-                    Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                    Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                    Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                    Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                    Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
-                    Hash.Combine(diagnostic.IsSuppressed,
-                    Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
-            }
-
-            var todo = (TodoItem)(object)Primary;
-            return Hash.Combine(todo.OriginalColumn, todo.OriginalLine);
-        }
-
-        // item must be either one of diagnostic data and todo item
-        public bool EqualsModuloLocation(TableItem<T> other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (Primary is DiagnosticData diagnostic)
-            {
-                var otherDiagnostic = (DiagnosticData)(object)other.Primary;
-
-                // everything same except location
-                return diagnostic.Id == otherDiagnostic.Id &&
-                       diagnostic.ProjectId == otherDiagnostic.ProjectId &&
-                       diagnostic.DocumentId == otherDiagnostic.DocumentId &&
-                       diagnostic.Category == otherDiagnostic.Category &&
-                       diagnostic.Severity == otherDiagnostic.Severity &&
-                       diagnostic.WarningLevel == otherDiagnostic.WarningLevel &&
-                       diagnostic.Message == otherDiagnostic.Message;
-            }
-            else
-            {
-                var todo = (TodoItem)(object)Primary;
-                var otherTodo = (TodoItem)(object)other.Primary;
-
-                return todo.DocumentId == otherTodo.DocumentId && todo.Message == otherTodo.Message;
-
-            }
-        }
+        public abstract LinePosition GetOriginalPosition();
+        public abstract string GetOriginalFilePath();
+        public abstract bool EqualsModuloLocation(TableItem other);
 
         public string ProjectName
         {
             get
             {
-                var projectId = GetProjectId();
+                var projectId = ProjectId;
                 if (projectId == null)
                 {
                     // this item doesn't have project at the first place
@@ -167,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
-                var projectId = GetProjectId();
+                var projectId = ProjectId;
                 if (projectId == null)
                 {
                     return Guid.Empty;

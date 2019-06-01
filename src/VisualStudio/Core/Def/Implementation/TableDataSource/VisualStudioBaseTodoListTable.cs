@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source.Shutdown();
         }
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -140,15 +140,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
             }
 
-            public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 return new TableEntriesSnapshot(source, version, items, trackingPoints);
             }
 
-            public override IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
+            public override IEnumerable<TodoTableItem> Order(IEnumerable<TodoTableItem> groupedItems)
             {
-                return groupedItems.OrderBy(d => d.Primary.OriginalLine)
-                                   .ThenBy(d => d.Primary.OriginalColumn);
+                return groupedItems.OrderBy(d => d.Data.OriginalLine)
+                                   .ThenBy(d => d.Data.OriginalColumn);
             }
 
             private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
@@ -177,13 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 OnDataAddedOrChanged(e);
             }
 
-            public override AbstractTableEntriesSource<TodoItem> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<TodoTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
-            private class TableEntriesSource : AbstractTableEntriesSource<TodoItem>
+            private class TableEntriesSource : AbstractTableEntriesSource<TodoTableItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
@@ -198,27 +198,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _documentId;
 
-                public override ImmutableArray<TableItem<TodoItem>> GetItems()
+                public override ImmutableArray<TodoTableItem> GetItems()
                 {
                     var provider = _source._todoListProvider;
 
                     return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(i => new TableItem<TodoItem>(_workspace, i, cache: null))
+                                   .Select(data => new TodoTableItem(_workspace, cache: null, data))
                                    .ToImmutableArray();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTableItem> items)
                 {
                     return _workspace.CreateTrackingPoints(_documentId, items);
                 }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
             {
-                private readonly AbstractTableEntriesSource<TodoItem> _source;
+                private readonly AbstractTableEntriesSource<TodoTableItem> _source;
 
                 public TableEntriesSnapshot(
-                    AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                    AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
                     base(version, items, trackingPoints)
                 {
                     _source = source;
@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
 
-                    var data = item?.Primary;
+                    var data = item?.Data;
                     if (data == null)
                     {
                         content = null;

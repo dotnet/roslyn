@@ -15,17 +15,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// Base implementation of ITableEntriesSnapshot
     /// </summary>
-    internal abstract class AbstractTableEntriesSnapshot<TData> : ITableEntriesSnapshot
+    internal abstract class AbstractTableEntriesSnapshot<TItem> : ITableEntriesSnapshot
+        where TItem : TableItem
     {
         // TODO : remove these once we move to new drop which contains API change from editor team
         protected const string ProjectNames = StandardTableKeyNames.ProjectName + "s";
         protected const string ProjectGuids = StandardTableKeyNames.ProjectGuid + "s";
 
         private readonly int _version;
-        private readonly ImmutableArray<TableItem<TData>> _items;
+        private readonly ImmutableArray<TItem> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
-        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TableItem<TData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
             _version = version;
             _items = items;
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return -1;
             }
 
-            var ourSnapshot = newerSnapshot as AbstractTableEntriesSnapshot<TData>;
+            var ourSnapshot = newerSnapshot as AbstractTableEntriesSnapshot<TItem>;
             if (ourSnapshot == null || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
@@ -101,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StopTracking();
         }
 
-        internal TableItem<TData> GetItem(int index)
+        internal TItem GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {

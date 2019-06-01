@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
-        private class BuildTableDataSource : AbstractTableDataSource<DiagnosticData>
+        private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
         {
             private readonly object _key = new object();
 
@@ -68,18 +68,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return data;
             }
 
-            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 return new TableEntriesSource(this);
             }
 
-            public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(AbstractTableEntriesSource<DiagnosticTableItem> source, int version, ImmutableArray<DiagnosticTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 // Build doesn't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
-            public override IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
                 // errors are already given in order. use it as it is.
                 return groupedItems;
@@ -99,30 +99,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool SupportSpanTracking => false;
                 public override DocumentId TrackingDocumentId => Contract.FailWithReturn<DocumentId>("This should never be called");
 
-                public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
+                public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var groupedItems = _source._buildErrorSource
                                                .GetBuildErrors()
-                                               .Select(d => new TableItem<DiagnosticData>(_source.Workspace, d, cache: null))
+                                               .Select(data => new DiagnosticTableItem(_source.Workspace, cache: null, data))
                                                .GroupBy(d => d.DeduplicationKey)
-                                               .Select(g => (IList<TableItem<DiagnosticData>>)g)
+                                               .Select(g => (IList<DiagnosticTableItem>)g)
                                                .ToImmutableArray();
 
                     return _source.Deduplicate(groupedItems);
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
                 {
                     return ImmutableArray<ITrackingPoint>.Empty;
                 }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>
             {
                 private readonly DiagnosticTableEntriesSource _source;
 
                 public TableEntriesSnapshot(
-                    DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items) :
+                    DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items) :
                     base(version, items, ImmutableArray<ITrackingPoint>.Empty)
                 {
                     _source = source;
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return false;
                     }
 
-                    var data = item.Primary;
+                    var data = item.Data;
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
@@ -220,10 +220,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab);
                 }
 
-                private DocumentId GetProperDocumentId(TableItem<DiagnosticData> item)
+                private DocumentId GetProperDocumentId(DiagnosticTableItem item)
                 {
                     var documentId = item.PrimaryDocumentId;
-                    var projectId = item.GetProjectId();
+                    var projectId = item.ProjectId;
 
                     // check whether documentId still exist. it might have changed if project it belong to has reloaded.
                     var solution = item.Workspace.CurrentSolution;
