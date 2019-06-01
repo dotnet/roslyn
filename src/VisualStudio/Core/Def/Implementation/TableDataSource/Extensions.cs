@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return items[0];
             }
 
-            Contract.ThrowIfFalse(items.Count == 0);
+            Contract.ThrowIfTrue(items.Count == 0);
             Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null), "Contains an item with null PrimaryDocumentId");
 
 #if DEBUG
