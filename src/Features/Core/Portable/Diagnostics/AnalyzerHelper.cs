@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            return CreateAnalyzerLoadFailureDiagnostic(null, null, fullPath, e);
+            return CreateAnalyzerLoadFailureDiagnostic(projectId: null, language: null, fullPath, e);
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
