@@ -8,17 +8,17 @@ Namespace Microsoft.CodeAnalysis.Operations
     Friend NotInheritable Class VisualBasicLazyNoneOperation
         Inherits LazyNoneOperation
 
-        Private ReadOnly _getChildren As Func(Of BoundNode, ImmutableArray(Of IOperation))
+        Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _boundNode As BoundNode
 
-        Public Sub New(getChildren As Func(Of BoundNode, ImmutableArray(Of IOperation)), boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+        Public Sub New(operationFactory As VisualBasicOperationFactory, boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
             MyBase.New(semanticModel, node, constantValue, isImplicit)
-            _getChildren = getChildren
+            _operationFactory = operationFactory
             _boundNode = boundNode
         End Sub
 
         Protected Overrides Function GetChildren() As ImmutableArray(Of IOperation)
-            Return _getChildren(_boundNode)
+            Return _operationFactory.GetIOperationChildren(_boundNode)
         End Function
     End Class
 

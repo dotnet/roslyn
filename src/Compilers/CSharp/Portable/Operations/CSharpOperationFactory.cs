@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
 
-                    return new CSharpLazyNoneOperation(node => GetIOperationChildren(node), boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit);
+                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
@@ -336,8 +336,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyConstructorBodyOperation(this, boundNode, boundNode.Locals.As<ILocalSymbol>(), _semanticModel, boundNode.Syntax);
         }
 
-        private ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
+        internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
+            //TODO: We can get rid of this once we implement UsingLocalDeclaration operations correctly, instead of just using an operationNone.
+            //For now we return a single child consisting of the using declaration parsed as if it were a standard variable declaration.
+            //See: https://github.com/dotnet/roslyn/issues/32100
+            if (boundNode is BoundUsingLocalDeclarations boundUsingLocalDeclarations)
+            {
+                return ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation(boundUsingLocalDeclarations));
+            }
+
             var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
             var children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
@@ -2026,10 +2034,12 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
         {
             //TODO: Implement UsingLocalDeclaration operations correctly.
-            //      For now we return an implicit operationNone, with a single child consisting of the using declaration parsed as if it were a standard variable declaration
+            //      For now we return an implicit operationNone, 
+            //      and GetIoperationChildren will return a single child 
+            //      consisting of the using declaration parsed as if it were a standard variable declaration.
             //      See: https://github.com/dotnet/roslyn/issues/32100
             return new CSharpLazyNoneOperation(
-                node => ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)node)),
+                this,
                 boundNode,
                 _semanticModel,
                 boundNode.Syntax,

@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class CSharpLazyNoneOperation : LazyNoneOperation
     {
-        private readonly Func<BoundNode, ImmutableArray<IOperation>> _getChildren;
+        private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _boundNode;
 
-        public CSharpLazyNoneOperation(Func<BoundNode, ImmutableArray<IOperation>> getChildren, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
         {
-            _getChildren = getChildren;
+            _operationFactory = operationFactory;
             _boundNode = boundNode;
         }
 
-        protected override ImmutableArray<IOperation> GetChildren() => _getChildren(_boundNode);
+        protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
     }
 
 
