@@ -10385,6 +10385,7 @@ tryAgain:
                 case SyntaxKind.MinusMinusToken:
                 case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.DotToken:
+                case SyntaxKind.DotDotToken:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:

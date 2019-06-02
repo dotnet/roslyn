@@ -4381,6 +4381,43 @@ select t";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
         }
 
+        [Fact, WorkItem(36122, "https://github.com/dotnet/roslyn/issues/36122")]
+        public void RangeExpression_NotCast()
+        {
+            UsingExpression("(Offset)..(Offset + Count)");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Offset");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.AddExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Offset");
+                        }
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Count");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void BaseExpression_01()
         {
