@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -59,20 +60,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
                 a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a));
 
-            var candidates = semanticModel.LookupSymbols(location.SpanStart).Concat(
-                semanticModel.GetExistingSymbols(container, cancellationToken));
+            var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
+            var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;
 
-            return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter != null ? candidates.Where(filter) : candidates, usedNames, cancellationToken);
+            return GenerateUniqueName(baseName, filteredCandidates.Select(s => s.Name).Concat(usedNames));
         }
 
-        private SyntaxToken GenerateUniqueName(
-            SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
-            string baseName, IEnumerable<ISymbol> candidates, IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        /// <summary>
+        /// Retrieves all symbols that could collide with a symbol at the specified location.
+        /// A symbol can possibly collide with the location if it is available to that location and/or
+        /// could cause a compiler error if its name is re-used at that location.
+        /// </summary>
+        protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+            => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetExistingSymbols(container, cancellationToken));
+
+        private SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
         {
             return this.SyntaxFactsService.ToIdentifierToken(
                 NameGenerator.EnsureUniqueness(
-                    baseName, candidates.Select(s => s.Name).Concat(usedNames), this.SyntaxFactsService.IsCaseSensitive));
+                    baseName, usedNames, this.SyntaxFactsService.IsCaseSensitive));
         }
     }
 }

@@ -5154,8 +5154,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int valueSlot;
                         if (underlyingConversion.IsIdentity)
                         {
-                            operandType = default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                            {
+                                // when the LHS is a var declaration, we can just visit the right part to infer the type
+                                valueType = operandType = VisitRvalueWithState(rightPart);
+                                _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
+                            }
+                            else
+                            {
+                                operandType = default;
+                                valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            }
                             valueSlot = MakeSlot(rightPart);
                         }
                         else
@@ -5271,7 +5280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
-                VisitRvalue(expr);
                 var fields = tupleType.TupleElements;
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
