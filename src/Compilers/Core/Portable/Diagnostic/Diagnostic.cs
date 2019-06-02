@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract Diagnostic WithIsSuppressed(bool isSuppressed);
 
         /// <summary>
-        /// Create a new instance of this diagnostic with the suppression info changed.
+        /// Create a new instance of this diagnostic with the given programmatic suppression info.
         /// </summary>
         internal Diagnostic WithProgrammaticSuppression(ProgrammaticSuppressionInfo programmaticSuppressionInfo)
             => new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);

@@ -10779,7 +10779,7 @@ class C
                 analyzers: suppressor,
                 additionalFlags: new[] { "/features:DiagnosticSuppressor" });
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains($"info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS1522 is reported as error for /warnaserror.
@@ -10795,7 +10795,7 @@ class C
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS1522", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS1522", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -10833,7 +10833,7 @@ class C
                 analyzers: suppressor,
                 additionalFlags: new[] { "/features:DiagnosticSuppressor" });
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that compiler warning CS0169 is reported as error for /warnaserror.
@@ -10849,7 +10849,7 @@ class C
                 analyzers: suppressor);
             Assert.DoesNotContain($"error CS0169", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0169", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -10939,7 +10939,7 @@ class C { }";
                 analyzers: analyzerAndSuppressor,
                 additionalFlags: new[] { "/features:DiagnosticSuppressor" });
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that analyzer warning is reported as error for /warnaserror.
@@ -10956,7 +10956,7 @@ class C { }";
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 analyzers: analyzerAndSuppressor);
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal);
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
 
             // Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor.

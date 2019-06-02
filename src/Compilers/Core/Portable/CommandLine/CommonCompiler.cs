@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private readonly DiagnosticDescriptor SuppressionDiagnosticDescriptor = new DiagnosticDescriptor(
-            "SPR0001",
+            "SP0001",
             CodeAnalysisResources.SuppressionDiagnosticDescriptorTitle,
             CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
             "ProgrammaticSuppression",

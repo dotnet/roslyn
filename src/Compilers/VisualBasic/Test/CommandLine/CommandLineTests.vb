@@ -9379,7 +9379,7 @@ End Class"
                                   analyzers:=suppressors,
                                   additionalFlags:={"/features:DiagnosticSuppressor"})
             Assert.DoesNotContain("warning BC40008", output, StringComparison.Ordinal)
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
             ' Verify that compiler warning BC40008 is reported as error for /warnaserror.
@@ -9394,7 +9394,7 @@ End Class"
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=suppressors)
             Assert.DoesNotContain($"warning BC40008", output, StringComparison.Ordinal)
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
@@ -9461,7 +9461,7 @@ End Class"
                                   analyzers:=analyzerAndSuppressor,
                                   additionalFlags:={"/features:DiagnosticSuppressor"})
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
             ' Verify that analyzer warning is reported as error for /warnaserror.
@@ -9478,7 +9478,7 @@ End Class"
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=analyzerAndSuppressor)
             Assert.DoesNotContain($"warning {analyzer.Descriptor.Id}", output, StringComparison.Ordinal)
-            Assert.Contains("info SPR0001", output, StringComparison.Ordinal)
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
             ' Verify that "NotConfigurable" analyzer warning cannot be suppressed with diagnostic suppressor even with /warnaserror.
