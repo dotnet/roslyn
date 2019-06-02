@@ -93148,7 +93148,7 @@ class Program
 using System.Collections.Generic;
 class Program
 {
-    static List<T> MakeList<T>(T a) where T : object
+    static List<T> MakeList<T>(T a) where T : notnull
     {
         throw null!;
     }
@@ -93168,9 +93168,9 @@ class Program
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
-                // (14,31): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'Program.MakeList<T>(T)'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
+                // (14,31): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'Program.MakeList<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
                 //         var t = (new[] { x }, MakeList(y)); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "MakeList").WithArguments("Program.MakeList<T>(T)", "object", "T", "object?").WithLocation(14, 31),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotnullConstraint, "MakeList").WithArguments("Program.MakeList<T>(T)", "T", "object?").WithLocation(14, 31),
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
                 //         ay[0].ToString(); 
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(17, 9)
