@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DefaultInterfaceImplementationTests
         Inherits BasicTestBase
 
-        Private Function GetCSharpCompiation(csSource As String, Optional additionalReferences As MetadataReference() = Nothing, Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest) As CSharp.CSharpCompilation
+        Private Function GetCSharpCompilation(csSource As String, Optional additionalReferences As MetadataReference() = Nothing, Optional targetFramework As TargetFramework = TargetFramework.NetStandardLatest) As CSharp.CSharpCompilation
             Return CreateCSharpCompilation(csSource,
                                            parseOptions:=CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.CSharp8),
                                            referencedAssemblies:=TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences))
@@ -40,7 +40,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -51,7 +51,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -74,7 +74,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -94,7 +94,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -114,7 +114,7 @@ public interface I2 : I1
     {}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -125,7 +125,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -151,7 +151,7 @@ public interface I2 : I1
     {}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -171,7 +171,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -191,7 +191,7 @@ public interface I2 : I1
     abstract void I1.M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -202,7 +202,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
@@ -228,7 +228,7 @@ public interface I2 : I1
     abstract void I1.M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -248,7 +248,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -263,7 +263,7 @@ public interface I1
     internal void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -277,7 +277,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.M1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics(
@@ -297,7 +297,7 @@ public interface I1
     protected void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -323,7 +323,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -348,7 +348,7 @@ public interface I1
     protected internal void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -374,7 +374,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -398,7 +398,7 @@ public interface I1
     private protected void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -412,7 +412,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.M1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics(
@@ -434,7 +434,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -447,7 +447,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:="I1.M1")
         End Sub
 
@@ -463,7 +463,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -476,7 +476,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -484,7 +484,7 @@ BC30456: 'M1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
@@ -507,7 +507,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -521,7 +521,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -539,7 +539,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -553,7 +553,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -569,7 +569,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -583,14 +583,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
         I1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
@@ -611,7 +611,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -624,7 +624,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -645,7 +645,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -658,7 +658,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -679,7 +679,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -692,14 +692,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         I1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private'.
@@ -721,7 +721,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -739,7 +739,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -755,7 +755,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -773,7 +773,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -781,7 +781,7 @@ BC30456: 'M1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Friend'.
@@ -804,7 +804,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -825,7 +825,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -843,7 +843,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -864,7 +864,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -880,7 +880,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -899,14 +899,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
         i1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private Protected'.
@@ -927,7 +927,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -945,7 +945,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -966,7 +966,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -981,7 +981,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected'.
@@ -1002,7 +1002,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1020,7 +1020,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -1041,7 +1041,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1056,7 +1056,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Protected Friend'.
@@ -1077,7 +1077,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1095,14 +1095,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         i1.M1()
         ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30390: 'I1.Sub M1()' is not accessible in this context because it is 'Private'.
@@ -1122,7 +1122,7 @@ public interface I1
     protected static string M1() => throw null;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1136,7 +1136,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1160,7 +1160,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1174,7 +1174,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1195,7 +1195,7 @@ public interface I1
     sealed string M1() => ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1213,7 +1213,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -1229,7 +1229,7 @@ public interface I1
     protected void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1254,7 +1254,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1275,7 +1275,7 @@ public interface I1
     protected internal void M1();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1301,7 +1301,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1321,7 +1321,7 @@ public interface I1
     static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1334,7 +1334,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -1348,7 +1348,7 @@ public interface I1
     internal static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1361,7 +1361,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
@@ -1369,7 +1369,7 @@ BC30456: 'M1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Friend'.
@@ -1389,7 +1389,7 @@ public interface I1
     protected static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1403,7 +1403,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -1418,7 +1418,7 @@ public interface I1
     protected internal static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1432,7 +1432,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -1446,7 +1446,7 @@ public interface I1
     private protected static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1460,14 +1460,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private Protected'.
         System.Console.WriteLine(I1.M1)
                                  ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private Protected'.
@@ -1486,7 +1486,7 @@ public interface I1
     protected static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1499,7 +1499,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Protected'.
@@ -1518,7 +1518,7 @@ public interface I1
     protected internal static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1531,7 +1531,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Protected Friend'.
@@ -1550,7 +1550,7 @@ public interface I1
     private static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1563,14 +1563,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'M1' is not a member of 'I1'.
         System.Console.WriteLine(I1.M1)
                                  ~~~~~
 </error>)
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.M1' is not accessible in this context because it is 'Private'.
@@ -1590,7 +1590,7 @@ public interface I1
     protected static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1604,7 +1604,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1625,7 +1625,7 @@ public interface I1
     protected internal static string M1 = ""I1.M1"";
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -1639,7 +1639,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -1682,7 +1682,7 @@ namespace System.Runtime.InteropServices
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_01()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1701,7 +1701,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1714,7 +1714,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics(
 <errors>
@@ -1728,7 +1728,7 @@ BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interfac
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_02()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1747,7 +1747,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1760,7 +1760,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
@@ -1768,7 +1768,7 @@ End Class
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_03()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1788,7 +1788,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1801,7 +1801,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
@@ -1809,7 +1809,7 @@ End Class
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_04()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1828,7 +1828,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1841,7 +1841,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
@@ -1849,7 +1849,7 @@ End Class
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_05()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1868,7 +1868,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1881,14 +1881,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
 
         <Fact>
         Public Sub NoPia_06()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1911,7 +1911,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1923,7 +1923,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             comp1.AssertTheseEmitDiagnostics(
 <error>
 BC31558: Nested type 'ITest33.I1' cannot be embedded.
@@ -1935,7 +1935,7 @@ BC31558: Nested type 'ITest33.I1' cannot be embedded.
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_07()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -1954,7 +1954,7 @@ public interface ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -1967,7 +1967,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics(
 <error>
@@ -1981,7 +1981,7 @@ BC31542: Embedded interop structure 'ITest33' can contain only public instance f
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_08()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -2007,7 +2007,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2020,7 +2020,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
@@ -2028,7 +2028,7 @@ End Class
         <Fact>
         <WorkItem(35852, "https://github.com/dotnet/roslyn/issues/35852")>
         Public Sub NoPia_10()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim csSource =
 "
@@ -2054,7 +2054,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim csCompiation = GetCSharpCompiation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim csCompilation = GetCSharpCompilation(csSource, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim source1 =
 <compilation>
@@ -2067,14 +2067,14 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={attributesRef, csCompilation})
             'https://github.com/dotnet/roslyn/issues/35852 Expect an error similar to - CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
             comp1.AssertTheseEmitDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NoPiaNeedsDesktop)>
         Public Sub NoPia_09()
-            Dim attributesRef = GetCSharpCompiation(NoPiaAttributes).EmitToImageReference()
+            Dim attributesRef = GetCSharpCompilation(NoPiaAttributes).EmitToImageReference()
 
             Dim pia =
 "
@@ -2105,7 +2105,7 @@ public interface ITest44 : ITest33
 }
 "
 
-            Dim piaReference = GetCSharpCompiation(pia, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
+            Dim piaReference = GetCSharpCompilation(pia, {attributesRef}).EmitToImageReference(embedInteropTypes:=True)
 
             Dim consumer1 =
 <compilation>
@@ -2153,7 +2153,7 @@ public interface ITest33
 }
 "
 
-            Dim pia2Refernce = GetCSharpCompiation(pia2, {attributesRef}).EmitToImageReference()
+            Dim pia2Refernce = GetCSharpCompilation(pia2, {attributesRef}).EmitToImageReference()
 
             Dim compilation1 = CreateCompilation(consumer1, options:=TestOptions.ReleaseDll, references:={piaReference})
 
@@ -2189,7 +2189,7 @@ public interface I1
     delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource, targetFramework:=TargetFramework.Standard).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource, targetFramework:=TargetFramework.Standard).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2215,7 +2215,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Standard, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Standard, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=
 "M1
 I1+T2
@@ -2251,7 +2251,7 @@ public interface I1
     protected delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2279,7 +2279,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
@@ -2314,7 +2314,7 @@ public interface I1
     protected delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2340,7 +2340,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected'.
@@ -2394,7 +2394,7 @@ public interface I1
     protected delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2422,7 +2422,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -2477,7 +2477,7 @@ public interface I1
     protected delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2505,7 +2505,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 I1+T2
@@ -2540,7 +2540,7 @@ public interface I1
     protected internal delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2567,7 +2567,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Protected Friend'.
@@ -2621,7 +2621,7 @@ public interface I1
     protected internal delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2649,7 +2649,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35834 Expect errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -2703,7 +2703,7 @@ public interface I1
     internal delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2731,7 +2731,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Friend'.
@@ -2784,7 +2784,7 @@ public interface I1
     private delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2812,7 +2812,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Private'.
@@ -2865,7 +2865,7 @@ public interface I1
     private protected delegate void T5();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2893,7 +2893,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.T1' is not accessible in this context because it is 'Private Protected'.
@@ -2931,7 +2931,7 @@ public interface I1
     int P1 {get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2942,7 +2942,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'P1' for interface 'I1'.
@@ -2963,7 +2963,7 @@ public interface I1
     int P1 {get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -2989,7 +2989,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -3010,7 +3010,7 @@ public interface I2 : I1
     int I1.P1 {get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3021,7 +3021,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
@@ -3046,7 +3046,7 @@ public interface I2 : I1
     int I1.P1 {get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3072,7 +3072,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -3094,7 +3094,7 @@ public interface I2 : I1
     abstract int I1.P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3105,7 +3105,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Property P1 As Integer' for interface 'I1'.
@@ -3131,7 +3131,7 @@ public interface I2 : I1
     abstract int I1.P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3157,7 +3157,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
 C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -3174,7 +3174,7 @@ public interface I1
     internal int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3199,7 +3199,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3215,7 +3215,7 @@ public interface I1
     int P1 {get; internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3240,7 +3240,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.P1.Set' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3256,7 +3256,7 @@ public interface I1
     int P1 {internal get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3281,7 +3281,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect an error: 'I1.P1.Get' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3297,7 +3297,7 @@ public interface I1
     protected int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3329,7 +3329,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3355,7 +3355,7 @@ public interface I1
     int P1 {get;protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3387,7 +3387,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3413,7 +3413,7 @@ public interface I1
     int P1 {protected get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3445,7 +3445,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3471,7 +3471,7 @@ public interface I1
     protected internal int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3503,7 +3503,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3529,7 +3529,7 @@ public interface I1
     int P1 {get;protected internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3561,7 +3561,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3587,7 +3587,7 @@ public interface I1
     int P1 {protected internal get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3619,7 +3619,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
@@ -3645,7 +3645,7 @@ public interface I1
     private protected int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3670,7 +3670,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3686,7 +3686,7 @@ public interface I1
     int P1 {get;private protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3711,7 +3711,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1.Set' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3727,7 +3727,7 @@ public interface I1
     int P1 {private protected get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3752,7 +3752,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1.Get' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -3768,7 +3768,7 @@ public interface I1
     int P1 {private get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3794,7 +3794,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3809,7 +3809,7 @@ public interface I1
     string P1 {private get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3829,7 +3829,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3844,7 +3844,7 @@ public interface I1
     int P1 {get => throw null; private set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3870,7 +3870,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3885,7 +3885,7 @@ public interface I1
     int P1 {get => throw null; private set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3907,7 +3907,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3922,7 +3922,7 @@ public interface I1
     int P1 {private get => throw null; set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3944,7 +3944,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3959,7 +3959,7 @@ public interface I1
     int P1 {get => throw null; private set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -3982,7 +3982,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -3997,7 +3997,7 @@ public interface I1
     int P1 {get => throw null; private set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4019,7 +4019,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4033,7 +4033,7 @@ public interface I1
     static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4047,7 +4047,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:="100")
         End Sub
 
@@ -4061,7 +4061,7 @@ public interface I1
     internal static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4075,7 +4075,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -4086,7 +4086,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -4108,7 +4108,7 @@ public interface I1
     static int P1 {get; internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4122,7 +4122,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -4130,7 +4130,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4149,7 +4149,7 @@ public interface I1
     static int P1 {internal get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4163,7 +4163,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -4171,7 +4171,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4191,7 +4191,7 @@ public interface I1
     protected static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4206,7 +4206,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4221,7 +4221,7 @@ public interface I1
     static int P1 {get; protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4236,7 +4236,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4251,7 +4251,7 @@ public interface I1
     static int P1 {protected get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4266,7 +4266,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4281,7 +4281,7 @@ public interface I1
     protected internal static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4296,7 +4296,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4311,7 +4311,7 @@ public interface I1
     static int P1 {get; protected internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4326,7 +4326,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4341,7 +4341,7 @@ public interface I1
     static int P1 {protected internal get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4356,7 +4356,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -4370,7 +4370,7 @@ public interface I1
     private protected static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4385,7 +4385,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -4396,7 +4396,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -4418,7 +4418,7 @@ public interface I1
     static int P1 {get; private protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4433,7 +4433,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4441,7 +4441,7 @@ BC31102: 'Set' accessor of property 'P1' is not accessible.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4460,7 +4460,7 @@ public interface I1
     static int P1 {private protected get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4475,7 +4475,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4483,7 +4483,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4502,7 +4502,7 @@ public interface I1
     protected static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4516,7 +4516,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -4538,7 +4538,7 @@ public interface I1
     static int P1 {get; protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4552,7 +4552,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4571,7 +4571,7 @@ public interface I1
     static int P1 {protected get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4585,7 +4585,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4604,7 +4604,7 @@ public interface I1
     protected internal static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4618,7 +4618,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -4640,7 +4640,7 @@ public interface I1
     static int P1 {get; protected internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4654,7 +4654,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4673,7 +4673,7 @@ public interface I1
     static int P1 {protected internal get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4687,7 +4687,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4706,7 +4706,7 @@ public interface I1
     private static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4720,7 +4720,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -4731,7 +4731,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -4753,7 +4753,7 @@ public interface I1
     static int P1 {get; private set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4767,7 +4767,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -4775,7 +4775,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4794,7 +4794,7 @@ public interface I1
     static int P1 {private get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4808,7 +4808,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -4816,7 +4816,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -4839,7 +4839,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4857,7 +4857,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -4873,7 +4873,7 @@ public interface I1
     internal sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4891,7 +4891,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -4899,7 +4899,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -4918,7 +4918,7 @@ public interface I1
     sealed int P1 { get => throw null; internal set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4936,7 +4936,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -4944,7 +4944,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -4963,7 +4963,7 @@ public interface I1
     sealed int P1 { internal get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -4981,7 +4981,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -4989,7 +4989,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5013,7 +5013,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5034,7 +5034,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5055,7 +5055,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5076,7 +5076,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5097,7 +5097,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5118,7 +5118,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5139,7 +5139,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5160,7 +5160,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5181,7 +5181,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5202,7 +5202,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5223,7 +5223,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5244,7 +5244,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
 I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -5260,7 +5260,7 @@ public interface I1
     private protected sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5278,7 +5278,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -5286,7 +5286,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -5305,7 +5305,7 @@ public interface I1
     sealed int P1 { get => throw null; private protected set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5323,7 +5323,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5331,7 +5331,7 @@ BC31102: 'Set' accessor of property 'P1' is not accessible.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5350,7 +5350,7 @@ public interface I1
     sealed int P1 { private protected get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5368,7 +5368,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5376,7 +5376,7 @@ BC31103: 'Get' accessor of property 'P1' is not accessible.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5395,7 +5395,7 @@ public interface I1
     protected sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5413,7 +5413,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -5432,7 +5432,7 @@ public interface I1
     sealed int P1 { get => throw null; protected set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5450,7 +5450,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5469,7 +5469,7 @@ public interface I1
     sealed int P1 { protected get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5487,7 +5487,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5506,7 +5506,7 @@ public interface I1
     protected sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5521,7 +5521,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -5540,7 +5540,7 @@ public interface I1
     sealed int P1 { get => throw null; protected set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5555,7 +5555,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5574,7 +5574,7 @@ public interface I1
     sealed int P1 { protected get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5589,7 +5589,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5608,7 +5608,7 @@ public interface I1
     protected internal sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5626,7 +5626,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -5645,7 +5645,7 @@ public interface I1
     sealed int P1 { get => throw null; protected internal set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5663,7 +5663,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5682,7 +5682,7 @@ public interface I1
     sealed int P1 { protected internal get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5700,7 +5700,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5719,7 +5719,7 @@ public interface I1
     protected internal sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5734,7 +5734,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -5753,7 +5753,7 @@ public interface I1
     sealed int P1 { get => throw null; protected internal set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5768,7 +5768,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5787,7 +5787,7 @@ public interface I1
     sealed int P1 { protected internal get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5802,7 +5802,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5821,7 +5821,7 @@ public interface I1
     private int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5839,7 +5839,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -5847,7 +5847,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -5866,7 +5866,7 @@ public interface I1
     sealed int P1 { get => throw null; private set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5884,7 +5884,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30526: Property 'P1' is 'ReadOnly'.
@@ -5892,7 +5892,7 @@ BC30526: Property 'P1' is 'ReadOnly'.
         ~~~~~~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31102: 'Set' accessor of property 'P1' is not accessible.
@@ -5911,7 +5911,7 @@ public interface I1
     sealed int P1 { private get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5929,7 +5929,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30524: Property 'P1' is 'WriteOnly'.
@@ -5937,7 +5937,7 @@ BC30524: Property 'P1' is 'WriteOnly'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC31103: 'Get' accessor of property 'P1' is not accessible.
@@ -5957,7 +5957,7 @@ public interface I1
     protected static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -5972,7 +5972,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -5996,7 +5996,7 @@ public interface I1
     static int P1 {get; protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6011,7 +6011,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6032,7 +6032,7 @@ public interface I1
     static int P1 {protected get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6047,7 +6047,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6068,7 +6068,7 @@ public interface I1
     protected internal static int P1 {get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6083,7 +6083,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6107,7 +6107,7 @@ public interface I1
     static int P1 {get; protected internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6122,7 +6122,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6143,7 +6143,7 @@ public interface I1
     static int P1 {protected internal get; set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6158,7 +6158,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6179,7 +6179,7 @@ public interface I1
     sealed int P1 { get => throw null; set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6197,7 +6197,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -6213,7 +6213,7 @@ public interface I1
     protected int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6237,7 +6237,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6258,7 +6258,7 @@ public interface I1
     int P1 {get; protected set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6282,7 +6282,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6303,7 +6303,7 @@ public interface I1
     int P1 {protected get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6327,7 +6327,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6348,7 +6348,7 @@ public interface I1
     protected internal int P1 {get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6372,7 +6372,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6393,7 +6393,7 @@ public interface I1
     int P1 {get; protected internal set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6417,7 +6417,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6438,7 +6438,7 @@ public interface I1
     int P1 {protected internal get;set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6462,7 +6462,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -6483,7 +6483,7 @@ public interface I1
     int P1 {get => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6494,7 +6494,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'P1' for interface 'I1'.
@@ -6515,7 +6515,7 @@ public interface I1
     int P1 {get => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6538,7 +6538,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -6557,7 +6557,7 @@ public interface I2 : I1
     int I1.P1 {get => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6568,7 +6568,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
@@ -6593,7 +6593,7 @@ public interface I2 : I1
     int I1.P1 {get => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6616,7 +6616,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -6636,7 +6636,7 @@ public interface I2 : I1
     abstract int I1.P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6647,7 +6647,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'ReadOnly Property P1 As Integer' for interface 'I1'.
@@ -6673,7 +6673,7 @@ public interface I2 : I1
     abstract int I1.P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6696,7 +6696,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -6711,7 +6711,7 @@ public interface I1
     internal int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6734,7 +6734,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -6750,7 +6750,7 @@ public interface I1
     protected int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6779,7 +6779,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -6803,7 +6803,7 @@ public interface I1
     protected internal int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6832,7 +6832,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -6856,7 +6856,7 @@ public interface I1
     private protected int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6879,7 +6879,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -6894,7 +6894,7 @@ public interface I1
     static int P1 {get;} = 100;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6907,7 +6907,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:="100")
         End Sub
 
@@ -6921,7 +6921,7 @@ public interface I1
     internal static int P1 {get;} = 100;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6934,7 +6934,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -6942,7 +6942,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -6962,7 +6962,7 @@ public interface I1
     protected static int P1 {get;} = 100;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -6976,7 +6976,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -6991,7 +6991,7 @@ public interface I1
     protected internal static int P1 {get;} = 100;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7005,7 +7005,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7019,7 +7019,7 @@ public interface I1
     private protected static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7033,7 +7033,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7041,7 +7041,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7060,7 +7060,7 @@ public interface I1
     protected static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7073,7 +7073,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -7092,7 +7092,7 @@ public interface I1
     protected internal static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7105,7 +7105,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -7124,7 +7124,7 @@ public interface I1
     private static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7137,7 +7137,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -7145,7 +7145,7 @@ BC30456: 'P1' is not a member of 'I1'.
                                  ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -7167,7 +7167,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7185,7 +7185,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7199,7 +7199,7 @@ public interface I1
     internal sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7217,7 +7217,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -7225,7 +7225,7 @@ BC30456: 'P1' is not a member of 'I1'.
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -7248,7 +7248,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7269,7 +7269,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7287,7 +7287,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7308,7 +7308,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7322,7 +7322,7 @@ public interface I1
     private protected sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7340,7 +7340,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7348,7 +7348,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -7367,7 +7367,7 @@ public interface I1
     protected sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7385,7 +7385,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -7404,7 +7404,7 @@ public interface I1
     protected sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7419,7 +7419,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -7438,7 +7438,7 @@ public interface I1
     protected internal sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7456,7 +7456,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -7475,7 +7475,7 @@ public interface I1
     protected internal sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7490,7 +7490,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -7509,7 +7509,7 @@ public interface I1
     private int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7527,7 +7527,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -7535,7 +7535,7 @@ BC30456: 'P1' is not a member of 'I1'.
                 ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -7555,7 +7555,7 @@ public interface I1
     protected static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7569,7 +7569,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -7590,7 +7590,7 @@ public interface I1
     protected internal static int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7604,7 +7604,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -7625,7 +7625,7 @@ public interface I1
     sealed int P1 { get => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7643,7 +7643,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -7659,7 +7659,7 @@ public interface I1
     protected int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7683,7 +7683,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -7704,7 +7704,7 @@ public interface I1
     protected internal int P1 {get;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7728,7 +7728,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -7749,7 +7749,7 @@ public interface I1
     int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7760,7 +7760,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'P1' for interface 'I1'.
@@ -7781,7 +7781,7 @@ public interface I1
     int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7803,7 +7803,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7822,7 +7822,7 @@ public interface I2 : I1
     int I1.P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7833,7 +7833,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
@@ -7858,7 +7858,7 @@ public interface I2 : I1
     int I1.P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7880,7 +7880,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7900,7 +7900,7 @@ public interface I2 : I1
     abstract int I1.P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7911,7 +7911,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'WriteOnly Property P1 As Integer' for interface 'I1'.
@@ -7937,7 +7937,7 @@ public interface I2 : I1
     abstract int I1.P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7959,7 +7959,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -7974,7 +7974,7 @@ public interface I1
     internal int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -7996,7 +7996,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -8012,7 +8012,7 @@ public interface I1
     protected int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8040,7 +8040,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -8064,7 +8064,7 @@ public interface I1
     protected internal int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8092,7 +8092,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
 #Else
@@ -8116,7 +8116,7 @@ public interface I1
     private protected int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8138,7 +8138,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -8155,7 +8155,7 @@ public interface I1
     static int P2 => _p1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8169,7 +8169,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:="100")
         End Sub
 
@@ -8183,7 +8183,7 @@ public interface I1
     internal static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8196,7 +8196,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8204,7 +8204,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -8226,7 +8226,7 @@ public interface I1
     static int P2 => _p1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8241,7 +8241,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -8258,7 +8258,7 @@ public interface I1
     static int P2 => _p1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8273,7 +8273,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -8287,7 +8287,7 @@ public interface I1
     private protected static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8301,7 +8301,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8309,7 +8309,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8328,7 +8328,7 @@ public interface I1
     protected static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8341,7 +8341,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8360,7 +8360,7 @@ public interface I1
     protected internal static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8373,7 +8373,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8392,7 +8392,7 @@ public interface I1
     private static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8405,7 +8405,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8413,7 +8413,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -8435,7 +8435,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8453,7 +8453,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -8467,7 +8467,7 @@ public interface I1
     internal sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8485,7 +8485,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8493,7 +8493,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -8516,7 +8516,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8537,7 +8537,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -8555,7 +8555,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8576,7 +8576,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
         End Sub
 
@@ -8590,7 +8590,7 @@ public interface I1
     private protected sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8608,7 +8608,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8616,7 +8616,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -8635,7 +8635,7 @@ public interface I1
     protected sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8653,7 +8653,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8672,7 +8672,7 @@ public interface I1
     protected sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8687,7 +8687,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -8706,7 +8706,7 @@ public interface I1
     protected internal sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8724,7 +8724,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8743,7 +8743,7 @@ public interface I1
     protected internal sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8758,7 +8758,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -8777,7 +8777,7 @@ public interface I1
     private int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8795,7 +8795,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -8803,7 +8803,7 @@ BC30456: 'P1' is not a member of 'I1'.
         ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -8823,7 +8823,7 @@ public interface I1
     protected static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8837,7 +8837,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -8858,7 +8858,7 @@ public interface I1
     protected internal static int P1 {set => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8872,7 +8872,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect an error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -8893,7 +8893,7 @@ public interface I1
     sealed int P1 { set => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8911,7 +8911,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -8927,7 +8927,7 @@ public interface I1
     protected int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8951,7 +8951,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -8972,7 +8972,7 @@ public interface I1
     protected internal int P1 {set;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -8996,7 +8996,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -9017,7 +9017,7 @@ public interface I1
     event System.Action P1 {add => throw null; remove => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9028,7 +9028,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'P1' for interface 'I1'.
@@ -9049,7 +9049,7 @@ public interface I1
     event System.Action P1 {add => throw null; remove => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9077,7 +9077,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
 C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9098,7 +9098,7 @@ public interface I2 : I1
     event System.Action I1.P1 {add => throw null; remove => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9109,7 +9109,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
@@ -9134,7 +9134,7 @@ public interface I2 : I1
     event System.Action I1.P1 {add => throw null; remove => throw null;}
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9162,7 +9162,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
 C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9184,7 +9184,7 @@ public interface I2 : I1
     abstract event System.Action I1.P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9195,7 +9195,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
 BC30149: Class 'C' must implement 'Event P1 As Action' for interface 'I1'.
@@ -9221,7 +9221,7 @@ public interface I2 : I1
     abstract event System.Action I1.P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9249,7 +9249,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
 C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9266,7 +9266,7 @@ public interface I1
     internal event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9292,7 +9292,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -9308,7 +9308,7 @@ public interface I1
     protected event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9342,7 +9342,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
@@ -9371,7 +9371,7 @@ public interface I1
     protected internal event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9405,7 +9405,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
 #If Issue_35827_Is_Fixed Then
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
@@ -9434,7 +9434,7 @@ public interface I1
     private protected event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9460,7 +9460,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             ' https://github.com/dotnet/roslyn/issues/35824 - Expect two errors: 'I1.P1' is inaccessible due to its protection level 
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -9476,7 +9476,7 @@ public interface I1
     static void Raise() => P1?.Invoke();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9500,7 +9500,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9517,7 +9517,7 @@ public interface I1
     internal static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9531,7 +9531,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9542,7 +9542,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -9566,7 +9566,7 @@ public interface I1
     static void Raise() => P1?.Invoke();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9591,7 +9591,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9609,7 +9609,7 @@ public interface I1
     static void Raise() => P1?.Invoke();
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9634,7 +9634,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
 M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9651,7 +9651,7 @@ public interface I1
     private protected static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9666,7 +9666,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -9677,7 +9677,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -9699,7 +9699,7 @@ public interface I1
     protected static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9713,7 +9713,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -9735,7 +9735,7 @@ public interface I1
     protected internal static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9749,7 +9749,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -9771,7 +9771,7 @@ public interface I1
     private static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9785,7 +9785,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9796,7 +9796,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -9822,7 +9822,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9841,7 +9841,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
 I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9857,7 +9857,7 @@ public interface I1
     internal sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9876,7 +9876,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -9887,7 +9887,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Friend'.
@@ -9914,7 +9914,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9936,7 +9936,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
 I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9957,7 +9957,7 @@ public interface I1
     }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -9979,7 +9979,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
 I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
@@ -9995,7 +9995,7 @@ public interface I1
     private protected sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10014,7 +10014,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10025,7 +10025,7 @@ BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protec
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private Protected'.
@@ -10047,7 +10047,7 @@ public interface I1
     protected sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10066,7 +10066,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -10088,7 +10088,7 @@ public interface I1
     protected sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10104,7 +10104,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected'.
@@ -10126,7 +10126,7 @@ public interface I1
     protected internal sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10145,7 +10145,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -10167,7 +10167,7 @@ public interface I1
     protected internal sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10183,7 +10183,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Protected Friend'.
@@ -10205,7 +10205,7 @@ public interface I1
     private event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10224,7 +10224,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <error>
 BC30456: 'P1' is not a member of 'I1'.
@@ -10235,7 +10235,7 @@ BC30456: 'P1' is not a member of 'I1'.
                       ~~~~~
 </error>)
 
-            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompiation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim comp2 = CreateCompilation(source1, targetFramework:=TargetFramework.NetStandardLatest, references:={csCompilation}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             comp2.AssertTheseDiagnostics(
 <error>
 BC30389: 'I1.P1' is not accessible in this context because it is 'Private'.
@@ -10258,7 +10258,7 @@ public interface I1
     protected static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10273,7 +10273,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -10297,7 +10297,7 @@ public interface I1
     protected internal static event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10312,7 +10312,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect two errors similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -10336,7 +10336,7 @@ public interface I1
     sealed event System.Action P1 { add => throw null; remove => throw null; }
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10355,7 +10355,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35885 Expect an error similar to - error CS8501: Target runtime doesn't support default interface implementation.
             comp1.AssertTheseDiagnostics()
         End Sub
@@ -10371,7 +10371,7 @@ public interface I1
     protected event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10396,7 +10396,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
@@ -10420,7 +10420,7 @@ public interface I1
     protected internal event System.Action P1;
 }
 "
-            Dim csCompiation = GetCSharpCompiation(csSource).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(csSource).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -10445,7 +10445,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompiation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
             'https://github.com/dotnet/roslyn/issues/35834 Expect error similar to - error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
             comp1.AssertTheseDiagnostics(
 <error>
