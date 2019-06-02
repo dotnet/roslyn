@@ -34832,17 +34832,21 @@ class C<T>
     static void M()
     {
         (var x, var y) = ((string?)null, string.Empty);
-        x.ToString();
+        x.ToString(); // 1
         y.ToString();
         x = null;
-        y = null;
+        y = null; // 2
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9));
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -34856,17 +34860,21 @@ class C<T>
     static void G()
     {
         (var x, var y) = F();
-        x.ToString();
+        x.ToString(); // 1
         y.ToString();
         x = null;
-        y = null;
+        y = null; // 2
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9));
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
+                // (10,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 13)
+                );
         }
 
         [Fact]
@@ -90501,12 +90509,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33019: Inferred nullability of implicitly-typed
-            // deconstruction variables should be recorded in NullableWalker._variableTypes.
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(10, 9)
+                );
         }
 
         [Fact]
@@ -90696,6 +90706,222 @@ class Program
                 // (19,13): warning CS8602: Dereference of a possibly null reference.
                 //             x2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(19, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_34()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, y);
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_35()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a)
+    {
+        throw null!;
+    }
+
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, MakeList(y));
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 13),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_36()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a) where T : object
+    {
+        throw null!;
+    }
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, MakeList(y)); // 2
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
+                // (14,31): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'Program.MakeList<T>(T)'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
+                //         var t = (new[] { x }, MakeList(y)); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "MakeList").WithArguments("Program.MakeList<T>(T)", "object", "T", "object?").WithLocation(14, 31),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); 
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(17, 9)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_37()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a)
+    {
+        throw null!;
+    }
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var ylist = MakeList(y);
+        var ylist2 = MakeList(ylist); 
+        var ylist3 = MakeList(ylist2);
+        ylist3 = null; // 2
+        var t = (new[] { x }, MakeList(ylist3));
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 3
+        var ay0 = ay[0];    
+        if (ay0 == null) return;
+        ay0[0].ToString(); 
+        ay0[0][0].ToString(); 
+        ay0[0][0][0].ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
+                // (17,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ylist3 = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(17, 18),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(21, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay0[0][0][0].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay0[0][0][0]").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_38()
+        {
+            var source =
+@"
+class Program
+{
+    static void F(object? x1, object y1)
+    {
+        var t = (x1, y1);
+        var (x2, y2) = t;
+        if (x1 == null) return;
+        y1 = null; // 1
+        var u = (x1, y1);
+        (x2, y2) = u; // 2
+        x2 = null;
+        y2 = null; // 3
+    }   
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 14),
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (x2, y2) = u; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u").WithLocation(11, 20),
+                // (13,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y2 = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_39()
+        {
+            var source =
+@"
+class Program
+{
+    static void F(object? x1, object y1)
+    {
+        if (x1 == null) return;
+        y1 = null; // 1
+        var t = (x1, y1);
+        var (x2, y2) = (t.Item1, t.Item2);
+        x2 = null; // 2
+        y2 = null;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 14),
+                // (10,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 14)
                 );
         }
 
