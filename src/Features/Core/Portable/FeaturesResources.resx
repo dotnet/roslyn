@@ -1626,6 +1626,12 @@ This version used in: {2}</value>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
   </data>
+  <data name="Generate_parameter_0" xml:space="preserve">
+    <value>Generate parameter '{0}'</value>
+  </data>
+  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
+    <value>Generate parameter '{0}' (and overrides/implementations)</value>
+  </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
   </data>
@@ -1634,5 +1640,30 @@ This version used in: {2}</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
+  </data>
+  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
+    <value>Dispose objects before losing scope</value>
+  </data>
+  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable object created by '{0}' is never disposed</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
+    <value>Use recommended dispose pattern</value>
+  </data>
+  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
+    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
+  </data>
+  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
+    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
+  </data>
+  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
+    <value>Disposable fields should be disposed</value>
+  </data>
+  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
+    <value>Disposable field '{0}' is never disposed</value>
+  </data>
+  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
+    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
   </data>
 </root>

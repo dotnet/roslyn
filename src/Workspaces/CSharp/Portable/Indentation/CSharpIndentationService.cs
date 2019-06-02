@@ -4,25 +4,21 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
-using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
+namespace Microsoft.CodeAnalysis.CSharp.Indentation
 {
-    [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
     internal sealed partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
         public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
@@ -57,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
-            if (!optionSet.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
             {
                 return false;
             }

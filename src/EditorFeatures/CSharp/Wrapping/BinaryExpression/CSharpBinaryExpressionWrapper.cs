@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
+using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
