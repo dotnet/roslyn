@@ -1913,8 +1913,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
-            Return nodes.SpansPreprocessorDirective()
+        Public shadows Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
+            Return mybase.SpansPreprocessorDirective(nodes)
+        End Function
+
+        Public shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
+            Return mybase.SpansPreprocessorDirective(tokens)
         End Function
     End Class
 End Namespace
