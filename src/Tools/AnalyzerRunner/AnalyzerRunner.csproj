@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
+    <PackageReference Include="SourceBrowser" Version="$(SourceBrowserVersion)" ExcludeAssets="build;compile" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Label="Project References">
@@ -35,6 +36,11 @@
     <ProjectReference Include="..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)\sourcebrowser\$(SourceBrowserVersion)\tools\HtmlGenerator.exe" Visible="false" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(NuGetPackageRoot)\sourcebrowser\$(SourceBrowserVersion)\tools\Microsoft.SourceBrowser.Common.dll" Visible="false" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
