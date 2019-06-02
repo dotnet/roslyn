@@ -70,6 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return tokenLine > previousTokenLine;
         }
 
+        /// <summary>
+        /// Determines if there is preprocessor trivia *between* any of the <paramref name="tokens"/>
+        /// provided.  The <paramref name="tokens"/> will be deduped and then ordered by position.
+        /// Specifically, the first token will not have it's leading trivia checked, and the last
+        /// token will not have it's trailing trivia checked.  All other trivia will be checked to
+        /// see if it contains a preprocessor directive.
+        /// </summary>
         public static bool SpansPreprocessorDirective(this IEnumerable<SyntaxToken> tokens)
         {
             // we want to check all leading trivia of all tokens (except the 
@@ -79,7 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var first = true;
             var previousToken = default(SyntaxToken);
 
-            foreach (var token in tokens)
+            // Allow duplicate nodes/tokens to be passed in.  Also, allow the nodes/tokens
+            // to not be in any particular order when passed in.
+            var orderedTokens = tokens.Distinct().OrderBy(t => t.SpanStart);
+
+            foreach (var token in orderedTokens)
             {
                 if (first)
                 {
@@ -103,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool SpansPreprocessorDirective(SyntaxTriviaList list)
-        {
-            return list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
-        }
+            => list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
 
         /// <summary>
         /// Retrieves all trivia after this token, including it's trailing trivia and
