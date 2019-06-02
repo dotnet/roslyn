@@ -314,6 +314,18 @@ csharp_prefer_simple_using_statement = true:suggestion
 # IDE0064
 dotnet_diagnostic.IDE0064.severity = %value%
 
+# IDE0066
+csharp_style_prefer_switch_expression = true:suggestion
+
+# IDE0067
+dotnet_diagnostic.IDE0067.severity = %value%
+
+# IDE0068
+dotnet_diagnostic.IDE0068.severity = %value%
+
+# IDE0069
+dotnet_diagnostic.IDE0069.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -432,6 +444,15 @@ visual_basic_style_unused_value_assignment_preference = unused_local_variable:su
 
 # IDE0060
 dotnet_code_quality_unused_parameters = all:suggestion
+
+# IDE0067
+dotnet_diagnostic.IDE0067.severity = %value%
+
+# IDE0068
+dotnet_diagnostic.IDE0068.severity = %value%
+
+# IDE0069
+dotnet_diagnostic.IDE0069.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
