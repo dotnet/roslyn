@@ -835,7 +835,7 @@ class C
     int M()
     {
         bool check = true;
-#if DEBUG
+#if true
         [||]if (check)
             return 3;
 #endif

@@ -402,13 +402,13 @@ end class")
 
         <WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
-        public async function TestMissingWhenCrossingPreprocessorDirective() as Task
-            await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestMissingWhenCrossingPreprocessorDirective() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     function M() as integer
         dim check as boolean = true
-#if DEBUG
+#if true
         [||]if check
             return 3
 #end if
