@@ -550,9 +550,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool badRegion = false;
                 Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
-                snapshotBuilderOpt?.EnterNewWalker(symbol);
+                var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
-                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), symbol);
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }

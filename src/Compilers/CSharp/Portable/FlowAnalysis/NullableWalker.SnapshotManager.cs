@@ -107,9 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly PooledDictionary<Symbol, int> _symbolToSlot = PooledDictionary<Symbol, int>.GetInstance();
                 private int _currentWalkerSlot = -1;
-#if DEBUG
-                private Symbol _currentSymbol = null;
-#endif
 
                 internal SnapshotManager ToManagerAndFree()
                 {
@@ -122,14 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _incrementalSnapshots.ToImmutable());
                 }
 
-                internal void EnterNewWalker(Symbol symbol)
+                internal int EnterNewWalker(Symbol symbol)
                 {
-#if DEBUG
                     Debug.Assert(symbol is object);
-                    Debug.Assert((_currentSymbol is null && _currentWalkerSlot == -1 && _symbolToSlot.Count == 0) ||
-                                 (object)symbol.ContainingSymbol == _currentSymbol);
-                    _currentSymbol = symbol;
-#endif
+                    var previousSlot = _currentWalkerSlot;
 
                     // Because we potentially run multiple passes, we
                     // need to make sure we use the same final shared
@@ -143,26 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _currentWalkerSlot = _symbolToSlot.Count;
                         _symbolToSlot.Add(symbol, _currentWalkerSlot);
                     }
+
+                    return previousSlot;
                 }
 
-                internal void ExitWalker(SharedWalkerState stableState, Symbol symbol)
+                internal void ExitWalker(SharedWalkerState stableState, int previousSlot)
                 {
-#if DEBUG
-                    Debug.Assert((object)_currentSymbol == symbol);
-                    _currentSymbol = symbol.ContainingSymbol;
-#endif
                     _walkerStates.SetItem(_currentWalkerSlot, stableState);
-                    if (_currentWalkerSlot == 0)
-                    {
-#if DEBUG
-                        _currentSymbol = null;
-#endif
-                        _currentWalkerSlot = -1;
-                    }
-                    else
-                    {
-                        _currentWalkerSlot = _symbolToSlot[symbol.ContainingSymbol];
-                    }
+                    _currentWalkerSlot = previousSlot;
                 }
 
                 internal void TakeIncrementalSnapshot(BoundNode node, LocalState currentState)
