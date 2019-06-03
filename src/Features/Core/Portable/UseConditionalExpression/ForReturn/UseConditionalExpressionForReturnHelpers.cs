@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseStatement == null)
             {
-                var parentBlock = ifOperation.Parent as IBlockOperation;
-                if (parentBlock == null)
+                if (!(ifOperation.Parent is IBlockOperation parentBlock))
                 {
                     return false;
                 }

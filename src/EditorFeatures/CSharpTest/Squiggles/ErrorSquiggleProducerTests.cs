@@ -251,8 +251,8 @@ class Program
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
                 var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
@@ -284,8 +284,8 @@ class Program
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
                 var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
