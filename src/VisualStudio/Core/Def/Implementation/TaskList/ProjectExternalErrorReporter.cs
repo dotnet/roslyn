@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return true;
             }
 
-            return _diagnosticProvider.SupportedDiagnosticId(_projectId, errorId);
+            return _diagnosticProvider.IsSupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)

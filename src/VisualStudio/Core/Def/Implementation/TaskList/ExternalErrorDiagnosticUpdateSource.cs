@@ -82,9 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return _lastBuiltResult;
         }
 
-        public bool SupportedDiagnosticId(ProjectId projectId, string id)
+        public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
         {
-            return BuildInprogressState?.SupportedDiagnosticId(projectId, id) ?? false;
+            return BuildInprogressState?.IsSupportedDiagnosticId(projectId, id) ?? false;
         }
 
         public void ClearErrors(ProjectId projectId)
@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _owner.RaiseBuildProgressChanged(BuildProgress.Done);
             }
 
-            public bool SupportedDiagnosticId(ProjectId projectId, string id)
+            public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             {
                 lock (_allDiagnosticIdMap)
                 {
@@ -575,7 +575,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     var fullSolutionAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
                     if (!project.SupportsCompilation || fullSolutionAnalysis)
                     {
-                        return SupportedDiagnosticId(project.Id, id);
+                        return IsSupportedDiagnosticId(project.Id, id);
                     }
 
                     // set ids set

@@ -66,8 +66,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(True))
 
-                Assert.True(source.SupportedDiagnosticId(project.Id, "CS1002"))
-                Assert.False(source.SupportedDiagnosticId(project.Id, "CA1002"))
+                Assert.True(source.IsSupportedDiagnosticId(project.Id, "CS1002"))
+                Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
             End Using
         End Sub
 
@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(True))
 
-                Parallel.For(0, 100, Sub(i As Integer) source.SupportedDiagnosticId(project.Id, "CS1002"))
+                Parallel.For(0, 100, Sub(i As Integer) source.IsSupportedDiagnosticId(project.Id, "CS1002"))
             End Using
         End Sub
 
