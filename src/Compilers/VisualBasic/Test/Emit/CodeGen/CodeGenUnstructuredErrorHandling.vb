@@ -5,7 +5,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenUnstructuredErrorHandling
         Inherits BasicTestBase
 
-
         <Fact>
         Public Sub Erl_Property_SimpleBehaviourMultipleLabels()
             Dim source =
@@ -33,7 +32,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[5
 10
 ]]>)
@@ -73,7 +72,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Inner5
 10
 No Error]]>)
@@ -112,7 +111,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Inner5
 11
 No Error]]>)
@@ -149,7 +148,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_MultiplyDefined1, "10").WithArguments("10"))
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest).VerifyDiagnostics(Diagnostic(ERRID.ERR_MultiplyDefined1, "10").WithArguments("10"))
         End Sub
 
         <Fact>
@@ -181,7 +180,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 1
 ]]>)
@@ -215,7 +214,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 2147483647
 ]]>)
@@ -249,7 +248,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 0
 ]]>)
@@ -283,7 +282,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 0
 ]]>)
@@ -314,7 +313,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 0
 ]]>)
@@ -350,7 +349,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 20
 ]]>)
@@ -395,7 +394,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Outer5
 20
 ]]>)
@@ -427,7 +426,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[5
 1
 Finish
@@ -462,7 +461,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[5
 1
 Finish
@@ -506,7 +505,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Finish
 0
 ]]>)
@@ -613,7 +612,7 @@ End Structure
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1
 0
 3
@@ -668,7 +667,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[10
 10
 0
@@ -708,7 +707,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[10
 10
 0
@@ -763,7 +762,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[10
 21
 21
@@ -811,7 +810,7 @@ End Interface
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[10
 10
 0
@@ -855,7 +854,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[21
 0
 0
@@ -905,7 +904,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[21
 0
 0
@@ -954,7 +953,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1
 2
 Expected Exception Occurred
@@ -1000,7 +999,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1
 3
 ]]>)
@@ -1041,7 +1040,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_Syntax, "-"))
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest).VerifyDiagnostics(Diagnostic(ERRID.ERR_Syntax, "-"))
         End Sub
 
         <Fact>
@@ -1074,7 +1073,7 @@ End Module]]>
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1
 ]]>)
         End Sub
@@ -1117,7 +1116,7 @@ End Module
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_Syntax, "1L"),
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest).VerifyDiagnostics(Diagnostic(ERRID.ERR_Syntax, "1L"),
                                                                                                                                                                                           Diagnostic(ERRID.ERR_Syntax, "2S"),
                                                                                                                                                                                           Diagnostic(ERRID.ERR_Syntax, "1%"))
         End Sub
@@ -1357,7 +1356,7 @@ End Class
         </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Exception
 21
 Exception
@@ -1404,9 +1403,6 @@ End Module
                                                                             options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True)).VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotDeclared1, "Err").WithArguments("Err"),
                                                                                                                                                 Diagnostic(ERRID.ERR_NameNotDeclared1, "err").WithArguments("err"),
                                                                                                                                                 Diagnostic(ERRID.ERR_NameNotDeclared1, "err").WithArguments("err"))
-
-
-
         End Sub
 
         <Fact>
@@ -1434,7 +1430,8 @@ End Sub
 End Module
     </file>
     </compilation>,
-    options:=TestOptions.ReleaseExe)
+    options:=TestOptions.ReleaseExe,
+    targetFramework:=TargetFramework.StandardAndVBRuntimeLatest)
             CompileAndVerify(
                 comp,
                 expectedOutput:=<![CDATA[5
