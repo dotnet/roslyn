@@ -53,6 +53,59 @@ interface C
         }
 
         [Fact]
+        public void NullCheckedPartialMethod()
+        {
+            var source = @"
+partial class C
+{
+    partial void M(int x!);
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,24): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    //     partial void M(int x!);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void NullCheckedInterfaceProperty()
+        {
+            var source = @"
+interface C
+{
+    public string this[int index!] { get; set; }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,28): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
+                    //     public string this[int index!] { get; set; }
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 28));
+        }
+
+        [Fact]
+        public void NullCheckedAbstractProperty()
+        {
+            var source = @"
+abstract class C
+{
+    public abstract string this[int index!] { get; }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,37): error CS8714: Parameter 'index' can only have exclamation-point null checking in implementation methods.
+                    //     public abstract string this[int index!] { get; }
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "index").WithArguments("index").WithLocation(4, 37));
+        }
+
+        [Fact]
+        public void NullCheckedIndexedProperty()
+        {
+            var source = @"
+class C
+{
+    public string this[int index!] => null;
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullCheckedExternMethod()
         {
             var source = @"
