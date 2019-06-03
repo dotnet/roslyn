@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Singleton the subscribes to the running document table and connects/disconnects files to files that are opened.
         /// </summary>
-        public sealed partial class OpenFileTracker
+        public sealed class OpenFileTracker
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
@@ -101,24 +101,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             private void HandleBeforeDocumentOpenedEvent(object sender, RunningDocumentTableInitializedEventArgs args)
-            {
-                TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
-            }
+                => TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
 
             private void HandleInitializedDocumentEvent(object sender, RunningDocumentTableInitializedEventArgs args)
-            {
-                TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
-            }
+                => TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
 
             private void HandleRefreshDocumentContextEvent(object sender, RunningDocumentTableEventArgs args)
-            {
-                RefreshContextForRunningDocumentTableCookie(args.DocCookie, args.Moniker);
-            }
+                => RefreshContextForRunningDocumentTableCookie(args.DocCookie, args.Moniker);
 
             private void HandleCloseDocumentEvent(object sender, RunningDocumentTableEventArgs args)
-            {
-                TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
-            }
+                => TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider,
                 RunningDocumentTableEventSink runningDocumentTableEventSink)
