@@ -23,6 +23,7 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.VisualStudio.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -46,7 +47,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(CPSProjectFactory),
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory))
+                                            GetType(VisualStudioMetadataReferenceManagerFactory),
+                                            GetType(MockIVsEditorAdaptersFactoryService),
+                                            GetType(MockIVsRunningDocumentTable4),
+                                            GetType(RunningDocumentTableEventSink))
                 Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
             End Function)
 
@@ -177,7 +181,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
                     Case GetType(SVsFileChangeEx)
                         Return _fileChangeEx
-
+                    Case GetType(SVsRunningDocumentTable)
+                        Return New MockIVsRunningDocumentTable4
                     Case Else
                         Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select
