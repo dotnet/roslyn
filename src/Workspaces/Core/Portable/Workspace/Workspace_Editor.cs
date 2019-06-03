@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.WithOptionsChanged());
 
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
             }
         }
     }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -126,8 +127,15 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void SetOptions(OptionSet optionSet)
             {
-                _globalOptionService.SetOptions(optionSet);
-                _workspace.OnOptionsChanged();
+                var currentOptions = GetOptions();
+
+                // Only set options when there have been changes.
+                var haveOptionsChanged = optionSet.GetChangedOptions(currentOptions).Any();
+                if (haveOptionsChanged)
+                {
+                    _globalOptionService.SetOptions(optionSet);
+                    _workspace.OnOptionsChanged();
+                }
             }
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -111,15 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var oldOptions = s_optionService.GetOptions();
             var newOptions = s_optionStore.GetOptions();
 
-            // Only save options when there have been changes.
-            var haveOptionsChanged = newOptions.GetChangedOptions(oldOptions).Any();
-            if (haveOptionsChanged)
-            {
-                // Must log the option change before setting the new option values via s_optionService,
-                // otherwise oldOptions and newOptions would be identical and nothing will be logged.
-                OptionLogger.Log(oldOptions, newOptions);
-                s_optionService.SetOptions(newOptions);
-            }
+            // Must log the option change before setting the new option values via s_optionService,
+            // otherwise oldOptions and newOptions would be identical and nothing will be logged.
+            OptionLogger.Log(oldOptions, newOptions);
+            s_optionService.SetOptions(newOptions);
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated
