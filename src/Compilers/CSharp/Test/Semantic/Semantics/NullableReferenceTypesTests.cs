@@ -95755,7 +95755,7 @@ public class Program
         }
         else
         {
-            Console.WriteLine(value.s); // 2
+            Console.WriteLine(value.s);
         }
     }
 }";
@@ -95846,12 +95846,12 @@ public class Program
         if (x?.Length == 2 ? y?.Length == 2 : y?.Length == 3)
         {
             Console.WriteLine(x.Length); // 1
-            Console.WriteLine(y.Length);
+            Console.WriteLine(y.Length); // 2
         }
         else
         {
-            Console.WriteLine(x.Length); // 2
-            Console.WriteLine(y.Length); // 3
+            Console.WriteLine(x.Length); // 3
+            Console.WriteLine(y.Length); // 4
         }
     }
 }";
@@ -95863,13 +95863,13 @@ public class Program
                     //             Console.WriteLine(x.Length); // 1
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 31),
                     // (11,31): warning CS8602: Dereference of a possibly null reference.
-                    //             Console.WriteLine(y.Length);
+                    //             Console.WriteLine(y.Length); // 2
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 31),
                     // (15,31): warning CS8602: Dereference of a possibly null reference.
-                    //             Console.WriteLine(x.Length); // 2
+                    //             Console.WriteLine(x.Length); // 3
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 31),
                     // (16,31): warning CS8602: Dereference of a possibly null reference.
-                    //             Console.WriteLine(y.Length); // 3
+                    //             Console.WriteLine(y.Length); // 4
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 31)
 );
         }
