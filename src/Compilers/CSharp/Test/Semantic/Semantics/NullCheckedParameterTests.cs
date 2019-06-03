@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class NullCheckedVariableTests : CompilingTestBase
     {
         [Fact]
-        public void NullCheckedMethodDeclaration()
+        public void NullCheckedDelegateDeclaration()
         {
             var source = @"
 delegate void Del(int x!, int y);
