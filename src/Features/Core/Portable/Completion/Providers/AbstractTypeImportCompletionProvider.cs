@@ -34,19 +34,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
+        internal override bool IsExtendedItemProvider => true;
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
 
-            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
+            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via extended filter in completion list)
+            if (!completionContext.Options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
             {
-                return;
+                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+
+                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+                if (importCompletionOptionValue == false ||
+                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
+                {
+                    return;
+                }
             }
 
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);

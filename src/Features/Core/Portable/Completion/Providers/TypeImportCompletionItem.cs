@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : "<>",
-                 inlineDescription: containingNamespace);
+                 inlineDescription: containingNamespace,
+                 isExpandedItem: true);
         }
 
         public static string GetContainingNamespace(CompletionItem item)

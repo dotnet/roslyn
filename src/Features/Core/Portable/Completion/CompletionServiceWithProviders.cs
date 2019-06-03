@@ -152,6 +152,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options)
         {
+            if (options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
+            {
+                providers = providers.Where(p => p.IsExtendedItemProvider).ToImmutableArray();
+            }
+
             // If the caller passed along specific options that affect snippets,
             // then defer to those.  Otherwise if the caller just wants the default
             // behavior, then get the snippets behavior from our own rules.

@@ -136,10 +136,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
             // However, we prefer using the original snapshot in some projection scenarios.
-            if (!session.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot snapshotForDocument))
-            {
-                snapshotForDocument = data.Snapshot;
-            }
+            var snapshotForDocument = session.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation)
+                ? triggerLocation.Snapshot
+                : data.Snapshot;
 
             var document = snapshotForDocument.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();

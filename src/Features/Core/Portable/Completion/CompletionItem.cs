@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal bool IsCached { get; set; }
 
+        public bool IsExpandedItem { get; }
+
         private CompletionItem(
             string displayText,
             string filterText,
@@ -110,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItemRules rules,
             string displayTextPrefix,
             string displayTextSuffix,
-            string inlineDescription)
+            string inlineDescription,
+            bool isExpandedItem)
         {
             this.DisplayText = displayText ?? "";
             this.DisplayTextPrefix = displayTextPrefix ?? "";
@@ -122,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
+            this.IsExpandedItem = isExpandedItem;
         }
 
         // binary back compat overload
@@ -152,6 +156,20 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionItem Create(
             string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix,
+            string inlineDescription)
+        {
+            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription, isExpandedItem: false);
+        }
+
+        public static CompletionItem Create(
+            string displayText,
             string filterText = null,
             string sortText = null,
             ImmutableDictionary<string, string> properties = null,
@@ -159,7 +177,8 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItemRules rules = null,
             string displayTextPrefix = null,
             string displayTextSuffix = null,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            bool isExpandedItem = false)
         {
             return new CompletionItem(
                 span: default,
@@ -171,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
                 displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isExpandedItem: isExpandedItem);
         }
 
         /// <summary>
@@ -206,7 +226,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: null,
                 displayTextSuffix: null,
-                inlineDescription: null);
+                inlineDescription: null,
+                isExpandedItem: false);
         }
 
         private CompletionItem With(
@@ -219,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+            Optional<string> inlineDescription = default,
+            Optional<bool> isExpandedItem = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
@@ -231,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newRules = rules.HasValue ? rules.Value : this.Rules;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : this.DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : this.DisplayTextSuffix;
+            var newIsExpandedItem = isExpandedItem.HasValue ? isExpandedItem.Value : this.IsExpandedItem;
 
             if (newSpan == this.Span &&
                 newDisplayText == this.DisplayText &&
@@ -241,7 +264,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 newRules == this.Rules &&
                 newDisplayTextPrefix == this.DisplayTextPrefix &&
                 newDisplayTextSuffix == this.DisplayTextSuffix &&
-                newInlineDescription == this.InlineDescription)
+                newInlineDescription == this.InlineDescription &&
+                newIsExpandedItem == this.IsExpandedItem)
             {
                 return this;
             }
@@ -256,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
                 displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription)
+                inlineDescription: newInlineDescription,
+                isExpandedItem: newIsExpandedItem)
             {
                 AutomationText = AutomationText,
                 ProviderName = ProviderName
