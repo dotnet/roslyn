@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public bool IsUnmanaged => ((InternalSyntax.TypeSyntax)this.Green).IsUnmanaged;
 
-        public bool IsNotnull => ((InternalSyntax.TypeSyntax)this.Green).IsNotnull;
+        public bool IsNotNull => ((InternalSyntax.TypeSyntax)this.Green).IsNotNull;
     }
 }

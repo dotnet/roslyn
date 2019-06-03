@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool HasNotnullConstraint
+        public override bool HasNotNullConstraint
         {
             get
             {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
-                    !HasNotnullConstraint)
+                    !HasNotNullConstraint)
                 {
                     PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
                     GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(module);

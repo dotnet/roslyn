@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool? fromReferenceTypeConstraint = false;
 
-            if (this.HasNotnullConstraint)
+            if (this.HasNotNullConstraint)
             {
                 return true;
             }
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool? ReferenceTypeConstraintIsNullable { get; }
 
-        public abstract bool HasNotnullConstraint { get; }
+        public abstract bool HasNotNullConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
 

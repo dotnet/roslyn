@@ -282,7 +282,7 @@
         <target state="translated">"{0}": el tipo usado en una instrucción using debe poder convertirse de forma implícita en "System.IDisposable" o implemente un método "Dispose" adecuado. ¿Quiso decir "await using" en lugar de "using"?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotnullConstraintMustBeFirst">
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
@@ -899,7 +899,7 @@
         <target state="translated">&lt;NULL&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_NotnullGenericTypeConstraint">
+      <trans-unit id="IDS_NotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
         <target state="new">notnull generic type constraint</target>
         <note />
@@ -1664,12 +1664,12 @@
         <target state="translated">El tipo no se puede usar como parámetro de tipo en el tipo o método genérico. La nulabilidad del argumento de tipo no coincide con el tipo de restricción</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotnullConstraint">
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
         <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotnullConstraint_Title">
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
         <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
         <note />

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             None,
             Unmanaged,
-            Notnull,
+            NotNull,
         }
 
         private NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAliasOrConstraintKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out ConstraintContextualKeyword keyword)
@@ -132,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 keyword = ConstraintContextualKeyword.Unmanaged;
             }
-            else if (syntax.IsNotnull)
+            else if (syntax.IsNotNull)
             {
-                keyword = ConstraintContextualKeyword.Notnull;
+                keyword = ConstraintContextualKeyword.NotNull;
             }
             else
             {
@@ -153,8 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case ConstraintContextualKeyword.Unmanaged:
                             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
                             break;
-                        case ConstraintContextualKeyword.Notnull:
-                            CheckFeatureAvailability(identifierSyntax, MessageID.IDS_NotnullGenericTypeConstraint, diagnostics);
+                        case ConstraintContextualKeyword.NotNull:
+                            CheckFeatureAvailability(identifierSyntax, MessageID.IDS_NotNullGenericTypeConstraint, diagnostics);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(keyword);

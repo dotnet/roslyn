@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override bool HasNotnullConstraint => false;
+        public override bool HasNotNullConstraint => false;
 
         internal override bool? IsNotNullableIfReferenceType => null;
 

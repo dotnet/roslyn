@@ -256,10 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     constraints |= TypeParameterConstraintKind.Unmanaged;
                                     continue;
 
-                                case ConstraintContextualKeyword.Notnull:
+                                case ConstraintContextualKeyword.NotNull:
                                     if (i != 0)
                                     {
-                                        diagnostics.Add(ErrorCode.ERR_NotnullConstraintMustBeFirst, typeSyntax.GetLocation());
+                                        diagnostics.Add(ErrorCode.ERR_NotNullConstraintMustBeFirst, typeSyntax.GetLocation());
                                     }
 
                                     constraints |= TypeParameterConstraintKind.NotNull;

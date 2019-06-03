@@ -7722,9 +7722,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to The &apos;notnull&apos; constraint must come before any other constraints.
         /// </summary>
-        internal static string ERR_NotnullConstraintMustBeFirst {
+        internal static string ERR_NotNullConstraintMustBeFirst {
             get {
-                return ResourceManager.GetString("ERR_NotnullConstraintMustBeFirst", resourceCulture);
+                return ResourceManager.GetString("ERR_NotNullConstraintMustBeFirst", resourceCulture);
             }
         }
         
@@ -11962,9 +11962,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to notnull generic type constraint.
         /// </summary>
-        internal static string IDS_NotnullGenericTypeConstraint {
+        internal static string IDS_NotNullGenericTypeConstraint {
             get {
-                return ResourceManager.GetString("IDS_NotnullGenericTypeConstraint", resourceCulture);
+                return ResourceManager.GetString("IDS_NotNullGenericTypeConstraint", resourceCulture);
             }
         }
         
@@ -15595,18 +15595,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be used as type parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{2}&apos; doesn&apos;t match &apos;notnull&apos; constraint..
         /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeParameterNotnullConstraint {
+        internal static string WRN_NullabilityMismatchInTypeParameterNotNullConstraint {
             get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotnullConstraint", resourceCulture);
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotNullConstraint", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match &apos;notnull&apos; constraint..
         /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeParameterNotnullConstraint_Title {
+        internal static string WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title {
             get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotnullConstraint_Title", resourceCulture);
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title", resourceCulture);
             }
         }
         

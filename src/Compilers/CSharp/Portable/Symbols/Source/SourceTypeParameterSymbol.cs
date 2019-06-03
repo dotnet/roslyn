@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
                    this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()) ||
-                   this.HasNotnullConstraint ||
+                   this.HasNotNullConstraint ||
                    (!this.HasReferenceTypeConstraint && !this.HasValueTypeConstraint &&
                     this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false);
         }
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
             }
-            else if (this.HasNotnullConstraint)
+            else if (this.HasNotNullConstraint)
             {
                 nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasNotnullConstraint
+        public override bool HasNotNullConstraint
         {
             get
             {
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasNotnullConstraint
+        public override bool HasNotNullConstraint
         {
             get
             {
@@ -863,11 +863,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasNotnullConstraint
+        public override bool HasNotNullConstraint
         {
             get
             {
-                return this.OverriddenTypeParameter?.HasNotnullConstraint == true;
+                return this.OverriddenTypeParameter?.HasNotNullConstraint == true;
             }
         }
 

@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool HasNotnullConstraint
+        public override bool HasNotNullConstraint
         {
             get
             {
-                return _underlyingTypeParameter.HasNotnullConstraint;
+                return _underlyingTypeParameter.HasNotNullConstraint;
             }
         }
 
