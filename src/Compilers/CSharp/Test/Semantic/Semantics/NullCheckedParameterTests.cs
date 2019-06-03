@@ -67,6 +67,41 @@ interface C
         }
 
         [Fact]
+        public void NullCheckedAutoProperty()
+        {
+            var source = @"
+abstract class C
+{
+    string FirstName! { get; set; }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,12): warning CS0169: The field 'C.FirstName' is never used
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "FirstName").WithArguments("C.FirstName").WithLocation(4, 12),
+                    // (4,21): error CS1003: Syntax error, ',' expected
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(4, 21),
+                    // (4,25): error CS1002: ; expected
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "get").WithLocation(4, 25),
+                    // (4,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 28),
+                    // (4,28): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 28),
+                    // (4,33): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 33),
+                    // (4,33): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                    //     string FirstName! { get; set; }
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 33),
+                    // (5,1): error CS1022: Type or namespace definition, or end-of-file expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 1));
+        }
+
+        [Fact]
         public void NullCheckedPartialMethod()
         {
             var source = @"
