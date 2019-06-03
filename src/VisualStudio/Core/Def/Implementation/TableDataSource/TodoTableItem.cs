@@ -21,14 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override TableItem WithCache(SharedInfoCache cache)
             => new TodoTableItem(Workspace, cache, Data);
 
-        public override DocumentId PrimaryDocumentId
+        public override DocumentId DocumentId
             => Data.DocumentId;
 
         public override ProjectId ProjectId
             => Data.DocumentId.ProjectId;
-
-        public override LinePosition GetTrackingPosition()
-            => new LinePosition(Data.OriginalLine, Data.OriginalColumn);
 
         public override int GetDeduplicationKey()
             => Hash.Combine(Data.OriginalColumn, Data.OriginalLine);
@@ -39,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override string GetOriginalFilePath()
             => Data.OriginalFilePath;
 
-        public override bool EqualsModuloLocation(TableItem other)
+        public override bool EqualsIgnoringLocation(TableItem other)
         {
             if (!(other is TodoTableItem otherTodoItem))
             {

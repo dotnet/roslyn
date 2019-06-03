@@ -24,15 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public abstract TableItem WithCache(SharedInfoCache cache);
 
-        public abstract DocumentId PrimaryDocumentId { get; }
+        public abstract DocumentId DocumentId { get; }
         public abstract ProjectId ProjectId { get; }
 
-        public abstract LinePosition GetTrackingPosition();
         public abstract int GetDeduplicationKey();
 
         public abstract LinePosition GetOriginalPosition();
         public abstract string GetOriginalFilePath();
-        public abstract bool EqualsModuloLocation(TableItem other);
+        public abstract bool EqualsIgnoringLocation(TableItem other);
 
         public string ProjectName
         {

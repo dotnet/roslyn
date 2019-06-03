@@ -21,14 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override TableItem WithCache(SharedInfoCache cache)
             => new DiagnosticTableItem(Workspace, cache, Data);
 
-        public override DocumentId PrimaryDocumentId
+        public override DocumentId DocumentId
             => Data.DocumentId;
 
         public override ProjectId ProjectId
             => Data.ProjectId;
-
-        public override LinePosition GetTrackingPosition()
-            => new LinePosition(Data.DataLocation?.OriginalStartLine ?? 0, Data.DataLocation?.OriginalStartColumn ?? 0);
 
         public override int GetDeduplicationKey()
         {
@@ -58,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public override string GetOriginalFilePath()
             => Data.DataLocation?.OriginalFilePath;
 
-        public override bool EqualsModuloLocation(TableItem other)
+        public override bool EqualsIgnoringLocation(TableItem other)
         {
             if (!(other is DiagnosticTableItem otherDiagnosticItem))
             {

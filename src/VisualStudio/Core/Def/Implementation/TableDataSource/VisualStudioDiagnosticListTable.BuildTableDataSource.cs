@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
                     var item = GetItem(index);
-                    if (item?.PrimaryDocumentId == null)
+                    if (item?.DocumentId == null)
                     {
                         return false;
                     }
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private DocumentId GetProperDocumentId(DiagnosticTableItem item)
                 {
-                    var documentId = item.PrimaryDocumentId;
+                    var documentId = item.DocumentId;
                     var projectId = item.ProjectId;
 
                     // check whether documentId still exist. it might have changed if project it belong to has reloaded.

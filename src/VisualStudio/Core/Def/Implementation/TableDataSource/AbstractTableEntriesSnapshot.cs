@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
                 var newItem = ourSnapshot.GetItem(i);
-                if (item.EqualsModuloLocation(newItem))
+                if (item.EqualsIgnoringLocation(newItem))
                 {
                     return i;
                 }
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected bool TryNavigateToItem(int index, bool previewTab)
         {
             var item = GetItem(index);
-            var documentId = item?.PrimaryDocumentId;
+            var documentId = item?.DocumentId;
             if (documentId == null)
             {
                 return false;

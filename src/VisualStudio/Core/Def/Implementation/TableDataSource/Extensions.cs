@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             Contract.ThrowIfTrue(items.Count == 0);
-            Contract.ThrowIfTrue(items.Any(i => i.PrimaryDocumentId == null), "Contains an item with null PrimaryDocumentId");
+            Contract.ThrowIfTrue(items.Any(i => i.DocumentId == null), "Contains an item with null PrimaryDocumentId");
 
 #if DEBUG
             var key = items[0].DeduplicationKey;
@@ -57,11 +57,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 #endif
             // deterministic ordering
-            var orderedItems = items.OrderBy(i => i.PrimaryDocumentId.Id).ToList();
+            var orderedItems = items.OrderBy(i => i.DocumentId.Id).ToList();
 
             // order of item is important. make sure we maintain it.
-            int collectionHash = Hash.CombineValues(orderedItems.Select(item => item.PrimaryDocumentId.Id));
-            var cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.PrimaryDocumentId).ToImmutableArray()));
+            int collectionHash = Hash.CombineValues(orderedItems.Select(item => item.DocumentId.Id));
+            var cache = SharedInfoCache.GetOrAdd(collectionHash, orderedItems, c => new SharedInfoCache(c.Select(i => i.DocumentId).ToImmutableArray()));
             return (TItem)orderedItems[0].WithCache(cache);
         }
 
