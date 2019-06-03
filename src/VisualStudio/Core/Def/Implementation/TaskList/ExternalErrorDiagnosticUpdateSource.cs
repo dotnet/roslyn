@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // building is done. reset the state
-            // and get local copy of inprogress state
+            // and get local copy of in-progress state
             var inProgressState = ClearInProgressState();
 
             // enqueue build/live sync in the queue.

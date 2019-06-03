@@ -29,11 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly VisualStudioWorkspace _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
-        {
-        }
-
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
         {
             Debug.Assert(workspace != null);
@@ -89,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                 projectErrors.Add(GetDiagnosticData(
                     documentId: null,
+                    _projectId,
                     GetErrorId(error),
                     error.bstrText,
                     GetDiagnosticSeverity(error),
@@ -170,6 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             // right location on closed Venus file.
             return GetDiagnosticData(
                 documentId,
+                _projectId,
                 GetErrorId(error),
                 message: error.bstrText,
                 GetDiagnosticSeverity(error),
@@ -216,47 +213,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _ => throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority))
             };
 
+            DocumentId documentId;
             if (bstrFileName == null || iStartLine < 0 || iStartColumn < 0)
             {
-                // take care of errors that do not belong to a file:
-                var projectDiagnostic = GetDiagnosticData(
-                    documentId: null,
-                    errorId: bstrErrorId,
-                    message: bstrErrorMessage,
-                    severity: severity,
-                    mappedFilePath: null,
-                    mappedStartLine: 0,
-                    mappedStartColumn: 0,
-                    mappedEndLine: 0,
-                    mappedEndColumn: 0,
-                    originalFilePath: bstrFileName,
-                    originalStartLine: 0,
-                    originalStartColumn: 0,
-                    originalEndLine: 0,
-                    originalEndColumn: 0);
-
-                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
-                return;
+                documentId = null;
+                iStartLine = iStartColumn = iEndLine = iEndColumn = 0;
             }
-
-            var documentId = TryGetDocumentId(bstrFileName);
-            if (documentId == null)
+            else
             {
-                var projectDiagnostic = GetDiagnosticData(
-                    documentId: null, bstrErrorId, bstrErrorMessage, severity,
-                    mappedFilePath: null, iStartLine, iStartColumn, iEndLine, iEndColumn,
-                    bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
-
-                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
-                return;
+                documentId = TryGetDocumentId(bstrFileName);
             }
 
             var diagnostic = GetDiagnosticData(
-                documentId, bstrErrorId, bstrErrorMessage, severity,
-                mappedFilePath: null, iStartLine, iStartColumn, iEndLine, iEndColumn,
-                bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
+                documentId,
+                _projectId,
+                bstrErrorId,
+                bstrErrorMessage,
+                severity,
+                mappedFilePath: null,
+                iStartLine, iStartColumn, iEndLine, iEndColumn,
+                bstrFileName,
+                iStartLine, iStartColumn, iEndLine, iEndColumn);
 
-            _diagnosticProvider.AddNewErrors(documentId, diagnostic);
+            if (documentId == null)
+            {
+                _diagnosticProvider.AddNewErrors(_projectId, diagnostic);
+            }
+            else
+            {
+                _diagnosticProvider.AddNewErrors(documentId, diagnostic);
+            }
         }
 
         public int ClearErrors()
@@ -265,8 +251,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return VSConstants.S_OK;
         }
 
-        private DiagnosticData GetDiagnosticData(
+        private static DiagnosticData GetDiagnosticData(
             DocumentId documentId,
+            ProjectId projectId,
             string errorId,
             string message,
             DiagnosticSeverity severity,
@@ -293,8 +280,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
                 customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
-                projectId: _projectId,
-                location: new DiagnosticDataLocation(documentId,
+                projectId: projectId,
+                location: new DiagnosticDataLocation(
+                    documentId,
                     sourceSpan: null,
                     originalFilePath: originalFilePath,
                     originalStartLine: originalStartLine,
