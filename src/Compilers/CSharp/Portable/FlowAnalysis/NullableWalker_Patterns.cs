@@ -2,10 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -174,6 +171,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             labelStateMap.Free();
             return initialState;
+        }
+
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
+        {
+            TakeIncrementalSnapshot(node);
+            SetState(UnreachableState());
+            foreach (var label in node.SwitchLabels)
+            {
+                TakeIncrementalSnapshot(label);
+                VisitLabel(label.Label, node);
+            }
+
+            VisitStatementList(node);
         }
 
         private PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>
@@ -493,7 +503,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
+                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
+                TakeIncrementalSnapshot(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(RValueType.Type.Equals(LValueType.Type, TypeCompareKind.ConsiderEverything));
             }
 
-            private string GetDebuggerDisplay() => $"{{LValue: {LValueType.GetDebuggerDisplay()}, RValue: {RValueType.GetDebuggerDisplay()}}}";
+            internal string GetDebuggerDisplay() => $"{{LValue: {LValueType.GetDebuggerDisplay()}, RValue: {RValueType.GetDebuggerDisplay()}}}";
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In addition to storing the <see cref="VisitResult"/>, also stores the <see cref="LocalState"/>
         /// for reanalyzing a lambda.
         /// </summary>
-        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        [DebuggerDisplay("{VisitResult.GetDebuggerDisplay(), nq}")]
         private readonly struct VisitArgumentResult
         {
             public readonly VisitResult VisitResult;
@@ -145,7 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
         /// compiler.
         /// </summary>
-        private readonly Dictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMapOpt;
+        private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)>.Builder _analyzedNullabilityMapOpt;
+
+        /// <summary>
+        /// Manages creating snapshots of the walker as appropriate. Null if we're not taking snapshots of
+        /// this walker.
+        /// </summary>
+        private readonly SnapshotManager.Builder _snapshotBuilderOpt;
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -315,9 +321,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             Conversions conversions,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
+            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            SnapshotManager.Builder snapshotBuilderOpt)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true, maxSlotDepth: 5)
@@ -326,8 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _conversions = (Conversions)conversions.WithNullability(true);
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
-            _returnTypesOpt = returnTypesOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
+            _returnTypesOpt = returnTypesOpt;
+            _snapshotBuilderOpt = snapshotBuilderOpt;
 
             if (initialState != null)
             {
@@ -339,9 +347,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _variableSlot.Add(variable, slot);
                 }
                 this.variableBySlot = variableBySlot.ToArray();
-                foreach (var pair in initialState.VariableTypes)
+                foreach (var (key, value) in initialState.VariableTypes)
                 {
-                    _variableTypes.Add(pair.Key, pair.Value);
+                    _variableTypes.Add(key, value);
                 }
                 this.State = initialState.VariableNullableStates.Clone();
             }
@@ -382,6 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
             }
 
+            // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
+            _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             return pendingReturns;
         }
@@ -406,9 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: method,
-                returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: null);
+                analyzedNullabilityMapOpt: null,
+                snapshotBuilderOpt: null,
+                returnTypesOpt: null);
         }
 
         internal static BoundNode AnalyzeAndRewrite(
@@ -416,10 +428,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             BoundNode node,
             Binder binder,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool createSnapshots,
+            out SnapshotManager snapshotManager)
         {
-            var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
+            var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>();
             var methodSymbol = symbol as MethodSymbol;
+            // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
+            // Until we have a workaround for this, disable snapshots for null symbols.
+            // https://github.com/dotnet/roslyn/issues/36066
+            var snapshotBuilder = createSnapshots && symbol != null ? new SnapshotManager.Builder() : null;
             Analyze(
                 compilation,
                 symbol,
@@ -429,17 +447,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: !(methodSymbol is null),
                 methodSignatureOpt: methodSymbol,
-                returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: analyzedNullabilities);
+                analyzedNullabilityMapOpt: analyzedNullabilities,
+                snapshotBuilder,
+                returnTypesOpt: null);
 
-            var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutableDictionaryAndFree();
+            var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
+
+            snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
             if (compilation.NullableAnalysisEnabled)
             {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, node);
+                DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
 #endif
             return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
@@ -465,9 +486,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: null,
-                returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: null);
+                analyzedNullabilityMapOpt: null,
+                snapshotBuilderOpt: null,
+                returnTypesOpt: null);
         }
 
         internal static void Analyze(
@@ -476,9 +498,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            SnapshotManager.Builder snapshotBuilderOpt,
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Analyze(
                 compilation,
@@ -489,9 +512,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
                 methodSignatureOpt: delegateInvokeMethod,
-                returnTypes,
                 initialState,
-                analyzedNullabilityMapOpt);
+                analyzedNullabilityMapOpt,
+                snapshotBuilderOpt,
+                returnTypesOpt);
         }
 
         private static void Analyze(
@@ -503,9 +527,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
+            SnapshotManager.Builder snapshotBuilderOpt,
+            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(
@@ -516,15 +541,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 binder,
                 conversions,
-                returnTypes,
                 initialState,
-                analyzedNullabilityMapOpt);
+                returnTypesOpt,
+                analyzedNullabilityMapOpt,
+                snapshotBuilderOpt);
 
             try
             {
                 bool badRegion = false;
                 Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
+                var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
@@ -536,6 +564,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 walker.Free();
             }
+        }
+
+        private SharedWalkerState SaveSharedState() =>
+            new SharedWalkerState(
+                _variableSlot.ToImmutableDictionary(),
+                variableBySlot.ToImmutableArray(),
+                _variableTypes.ToImmutableDictionary(),
+                _symbol);
+
+        private void TakeIncrementalSnapshot(BoundNode node)
+        {
+            Debug.Assert(!IsConditionalState);
+            _snapshotBuilderOpt?.TakeIncrementalSnapshot(node, State);
         }
 
         protected override void Normalize(ref LocalState state)
@@ -1450,6 +1491,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
+        public override BoundNode Visit(BoundNode node)
+        {
+            TakeIncrementalSnapshot(node);
+            return base.Visit(node);
+        }
+
         protected override void VisitStatement(BoundStatement statement)
         {
             SetInvalidResult();
@@ -1542,6 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
+            TakeIncrementalSnapshot(node);
             switch (node.Kind)
             {
                 case BoundKind.ObjectInitializerExpression:
@@ -1596,12 +1644,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectElementInitializer(int containingSlot, BoundAssignmentOperator node)
         {
+            TakeIncrementalSnapshot(node);
             var left = node.Left;
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
                     {
                         var objectInitializer = (BoundObjectInitializerMember)left;
+                        TakeIncrementalSnapshot(left);
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
@@ -1697,7 +1747,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int GetOrCreatePlaceholderSlot(object identifier, TypeWithAnnotations type)
         {
             _placeholderLocalsOpt ??= PooledDictionary<object, PlaceholderLocal>.GetInstance();
-
             if (!_placeholderLocalsOpt.TryGetValue(identifier, out PlaceholderLocal placeholder))
             {
                 placeholder = new PlaceholderLocal(_symbol, identifier, type);
@@ -1735,6 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
                     if (!(currentDeclaration is null))
                     {
+                        TakeIncrementalSnapshot(currentDeclaration);
                         SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
                     }
                 }
@@ -1778,6 +1828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ArrayTypeSymbol VisitArrayInitializer(BoundArrayCreation node)
         {
+            TakeIncrementalSnapshot(node.InitializerOpt);
             BoundArrayInitialization initialization = node.InitializerOpt;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, expressions);
@@ -1807,6 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundExpression expressionNoConversion, Conversion conversion) = RemoveConversion(expression, includeExplicitConversions: false);
                     expressionsNoConversions.Add(expressionNoConversion);
                     conversions.Add(conversion);
+                    SnapshotWalkerThroughConversionGroup(expression, expressionNoConversion);
                     var resultType = VisitRvalueWithState(expressionNoConversion);
                     resultTypes.Add(resultType);
                     placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionNoConversion, resultType.ToTypeWithAnnotations()));
@@ -1878,9 +1930,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             node,
                                             binder: null,
                                             conversions: conversions,
-                                            returnTypesOpt: null,
                                             initialState: null,
-                                            analyzedNullabilityMapOpt: null);
+                                            returnTypesOpt: null,
+                                            analyzedNullabilityMapOpt: null,
+                                            snapshotBuilderOpt: null);
 
             int n = returns.Count;
             var resultTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
@@ -2612,6 +2665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
+                SnapshotWalkerThroughConversionGroup(operand, operandNoConversion);
                 Visit(operandNoConversion);
                 return (operandNoConversion, conversion, ResultType);
             }
@@ -3275,7 +3329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) RemoveArgumentConversions(
+        private (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) RemoveArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt)
         {
@@ -3297,6 +3351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
                         if (argument != before)
                         {
+                            SnapshotWalkerThroughConversionGroup(before, argument);
                             includedConversion = true;
                         }
                     }
@@ -3809,6 +3864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetType.HasType);
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
+            SnapshotWalkerThroughConversionGroup(node, operand);
             TypeWithState operandType = VisitRvalueWithState(operand);
             SetResultType(node,
                 VisitConversion(
@@ -3842,6 +3898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
+            SnapshotWalkerThroughConversionGroup(expr, operand);
             var operandType = VisitRvalueWithState(operand);
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:
@@ -4682,6 +4739,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operandType;
         }
 
+        private void SnapshotWalkerThroughConversionGroup(BoundExpression conversionExpression, BoundExpression convertedNode)
+        {
+            if (_snapshotBuilderOpt is null)
+            {
+                return;
+            }
+
+            var conversionOpt = conversionExpression as BoundConversion;
+            var conversionGroup = conversionOpt?.ConversionGroupOpt;
+            while (conversionOpt != null &&
+                   conversionOpt != convertedNode &&
+                   conversionOpt.Syntax.SpanStart != convertedNode.Syntax.SpanStart)
+            {
+                Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
+                TakeIncrementalSnapshot(conversionOpt);
+                conversionOpt = conversionOpt.Operand as BoundConversion;
+            }
+        }
+
         private void TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState resultType, BoundConversion conversionOpt, BoundExpression convertedNode)
         {
             var visitResult = new VisitResult(resultType, resultType.ToTypeWithAnnotations());
@@ -4916,9 +4992,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _conversions,
                 diagnostics,
                 delegateTypeOpt?.DelegateInvokeMethod,
-                returnTypes: null,
                 initialState: initialState ?? GetVariableState(State.Clone()),
-                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
+                _snapshotBuilderOpt,
+                returnTypesOpt: null);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
@@ -4936,6 +5013,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = node.Body;
             if (body != null)
             {
+                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap = _analyzedNullabilityMapOpt;
+                SnapshotManager.Builder snapshotBuilder = _snapshotBuilderOpt;
+                if (_disableNullabilityAnalysis)
+                {
+                    analyzedNullabilityMap = null;
+                    snapshotBuilder = null;
+                }
+
                 Analyze(compilation,
                         node.Symbol,
                         body,
@@ -4944,9 +5029,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Diagnostics,
                         useMethodSignatureParameterTypes: false,
                         methodSignatureOpt: null,
-                        returnTypes: null,
                         initialState: GetVariableState(this.TopState()),
-                        analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+                        analyzedNullabilityMapOpt: analyzedNullabilityMap,
+                        snapshotBuilderOpt: snapshotBuilder,
+                        returnTypesOpt: null);
             }
             SetInvalidResult();
             return null;
@@ -5679,6 +5765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
+            SnapshotWalkerThroughConversionGroup(node.Expression, expr);
 
             // There are 7 ways that a foreach can be created:
             //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
@@ -6645,6 +6732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitCatchBlock(BoundCatchBlock node, ref LocalState finallyState)
         {
+            TakeIncrementalSnapshot(node);
             if (node.Locals.Length > 0)
             {
                 LocalSymbol local = node.Locals[0];
