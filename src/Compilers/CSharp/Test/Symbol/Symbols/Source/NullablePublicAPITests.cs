@@ -825,23 +825,47 @@ class C
         {
             var source =
 @"#nullable enable
-class C
+class C : System.IDisposable
 {
-    void M(object? x, object x2)
+    void M(C? x, C x2)
     {
-        var/*T:object?*/ y = x;
-        var/*T:object!*/ y2 = x2;
+        var /*T:C?*/ y = x;
+        var /*T:C!*/ y2 = x2;
+
+        using var /*T:C?*/ y3 = x;
+        using var /*T:C!*/ y4 = x2;
+
+        using (var /*T:C?*/ y5 = x) { }
+        using (var /*T:C?*/ y6 = x) { }
+
+        ref var/*T:C?*/ y7 = ref x;
+        ref var/*T:C!*/ y8 = ref x2;
 
         if (x == null) 
             return;
-        var/*T:object!*/ y3 = x;
+        var /*T:C!*/ y9 = x;
+        using var /*T:C!*/ y10 = x;
+        ref var /*T:C!*/ y11 = ref x;
 
         x = null;
-        var /*T:object?*/ y4 = x;
+        var /*T:C?*/ y12 = x;
+        using var /*T:C?*/ y13 = x;
+        ref var /*T:C?*/ y14 = ref x;
+
+        x2 = null; // 1
+        var /*T:C?*/ y15 = x2;
+        using var /*T:C?*/ y16 = x2;
+        ref var /*T:C?*/ y17 = ref x2;
     }
+
+    public void Dispose() { }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (29,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(29, 14)
+                );
             comp.VerifyTypes();
         }
     }

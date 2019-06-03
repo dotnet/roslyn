@@ -1371,29 +1371,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations type = local.TypeWithAnnotations;
             TypeWithState valueType;
+            bool inferredType = node.InferredType;
             if (local.IsRef)
             {
                 valueType = VisitRefExpression(initializer, type);
             }
             else
             {
-                bool inferredType = node.InferredType;
-                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
-                if (inferredType)
+                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);         
+            }
+
+            if (inferredType)
+            {
+                if (valueType.HasNullType)
                 {
-                    if (valueType.HasNullType)
-                    {
-                        Debug.Assert(type.Type.IsErrorType());
-                        valueType = type.ToTypeWithState();
-                    }
+                    Debug.Assert(type.Type.IsErrorType());
+                    valueType = type.ToTypeWithState();
+                }
 
-                    type = valueType.ToTypeWithAnnotations();
-                    _variableTypes[local] = type;
+                type = valueType.ToTypeWithAnnotations();
+                _variableTypes[local] = type;
 
-                    if (node.DeclaredTypeOpt != null)
-                    {
-                        SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(valueType, type), true);
-                    }
+                if (node.DeclaredTypeOpt != null)
+                {
+                    SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(valueType, type), true);
                 }
             }
 

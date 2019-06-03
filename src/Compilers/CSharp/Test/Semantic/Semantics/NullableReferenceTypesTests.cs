@@ -2958,6 +2958,58 @@ class C
                 comp.VerifyDiagnostics(expected);
             }
         }
+        [Fact]
+        public void RefAssignment_Inferred()
+        {
+            var source = @"
+class C
+{
+    void M1(C x)
+    {
+        ref var y = ref x;
+        y = null; // 1
+        x.ToString();
+        y.ToString(); // 2
+    }
+
+    void M2(C? x)
+    {
+        ref var y = ref x;
+        y = null;
+        x.ToString(); // 3
+        y.ToString(); // 4
+    }
+
+    void M3(C? x)
+    {
+        ref var y = ref x;
+        x.ToString(); // 5
+        y.ToString(); // 6
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9),
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 9),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 9),
+                // (23,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(23, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(24, 9)
+                );
+        }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void TestLambdaWithError19()
@@ -97429,6 +97481,40 @@ class Program
         [Fact]
         [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
         public void Operator_10()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class
+{
+#nullable disable
+    public static C<T> operator |(
+#nullable enable
+        C<T> a,
+#nullable disable
+        C<T> b) => a;
+}
+class Program
+{
+    static void M<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y)
+        where T : class
+    {
+        _ = x | x;
+        _ = x | y;
+        _ = y | x;
+        _ = y | y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void RefLocal()
         {
             var source =
 @"#nullable enable
