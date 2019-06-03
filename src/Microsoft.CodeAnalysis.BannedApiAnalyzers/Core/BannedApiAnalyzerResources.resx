@@ -135,4 +135,13 @@
   <data name="SymbolIsBannedTitle" xml:space="preserve">
     <value>Do not used banned APIs</value>
   </data>
+  <data name="RestrictedInternalsVisibleToDescription" xml:space="preserve">
+    <value>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</value>
+  </data>
+  <data name="RestrictedInternalsVisibleToMessage" xml:space="preserve">
+    <value>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</value>
+  </data>
+  <data name="RestrictedInternalsVisibleToTitle" xml:space="preserve">
+    <value>External access to internal symbols outside the restricted namespace(s) is prohibited</value>
+  </data>
 </root>
