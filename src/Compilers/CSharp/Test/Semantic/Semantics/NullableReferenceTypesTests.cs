@@ -95781,6 +95781,41 @@ public class Program
     {
         string? x = ""42"";
         string? y = ""43"";
+        if (x?.Length != 2 || y?.Length != 2)
+        {
+            Console.WriteLine(x.Length); // 1
+            Console.WriteLine(y.Length); // 2
+        }
+        else
+        {
+            Console.WriteLine(x.Length);
+            Console.WriteLine(y.Length);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (12,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(x.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 31),
+                    // (13,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(y.Length); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(13, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_06()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main()
+    {
+        string? x = ""42"";
+        string? y = ""43"";
         if (x?.Length == 2 ? y?.Length == 2 : y?.Length == 3)
         {
             Console.WriteLine(x.Length); // 1
@@ -95813,7 +95848,7 @@ public class Program
         }
 
         [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
-        public void ConditionalAccess_06()
+        public void ConditionalAccess_07()
         {
             var source =
 @"#nullable enable
