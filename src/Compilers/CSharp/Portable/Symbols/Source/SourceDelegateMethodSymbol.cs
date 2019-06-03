@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameterSyntax = syntax.ParameterList.Parameters[i];
                 if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
                 {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Location, parameterSyntax.ToString());
+                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }
             }
 

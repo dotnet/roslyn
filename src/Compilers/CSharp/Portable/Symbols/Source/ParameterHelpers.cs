@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (owner.IsAbstract || owner.IsImplementableInterfaceMember() || owner.IsPartialDefinition() || owner.IsExtern)
                     {
-                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Location, parameterSyntax.ToString());
+                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                     }
                 }
 
