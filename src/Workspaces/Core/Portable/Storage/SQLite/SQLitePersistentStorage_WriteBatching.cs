@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         private async Task FlushSpecificWritesAsync<TKey>(
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
             Dictionary<TKey, Task> keyToWriteTask,
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // Get's the task representing the current writes being performed by another
             // thread for this queue+key, and a TaskCompletionSource we can use to let
             // other threads know about our own progress writing any new writes in this queue.
-            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync().ConfigureAwait(false);
+            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync(_writeQueueGate, keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
             try
             {
                 // Wait for all previous writes to be flushed.
@@ -121,14 +122,20 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // Local functions
             //[PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", OftenCompletesSynchronously = true)]
-            async ValueTask<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
+            static async ValueTask<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync(
+                SemaphoreSlim gate,
+                MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
+                Dictionary<TKey, Task> keyToWriteTask,
+                TKey key,
+                ArrayBuilder<Action<SqlConnection>> writesToProcess,
+                CancellationToken cancellationToken)
             {
                 // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
                 // and 'keyToWriteTask' collections.
                 //
                 // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes
                 // performed by FlushAllPendingWritesAsync.
-                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // Get the writes we need to process. 
                     // Note: explicitly foreach so we operate on the struct enumerator for
