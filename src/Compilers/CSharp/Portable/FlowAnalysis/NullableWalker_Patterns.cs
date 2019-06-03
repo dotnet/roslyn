@@ -503,10 +503,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
-                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the checkpoint?
+                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
-                SnapshotWalkerThroughConversionGroup(arm.Value as BoundConversion, expression);
+                SnapshotWalkerThroughConversionGroup(arm.Value, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);

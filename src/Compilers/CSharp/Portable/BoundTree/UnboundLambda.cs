@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
                 // https://github.com/dotnet/roslyn/issues/31752: Can we avoid generating extra
-                // diagnostics? And is this exponential when there are nested lambdas
+                // diagnostics? And is this exponential when there are nested lambdas?
                 var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();

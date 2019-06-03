@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode Visit(BoundNode node)
             {
-                // Ensure that we always have a checkpoint for every BoundExpression in the map
+                // Ensure that we always have a snapshot for every BoundExpression in the map
                 if (_snapshotManager != null && node != null)
                 {
                     _snapshotManager.VerifyNode(node);

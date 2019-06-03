@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class SnapshotManager
         {
             /// <summary>
-            /// The int key corresponds to <see cref="Snapshot.GlobalStateIndex"/>.
+            /// The int key corresponds to <see cref="Snapshot.SharedStateIndex"/>.
             /// </summary>
             private readonly ImmutableArray<SharedWalkerState> _walkerGlobalStates;
             /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var globalState = _walkerGlobalStates[incrementalSnapshot.GlobalStateIndex];
+                var globalState = _walkerGlobalStates[incrementalSnapshot.SharedStateIndex];
                 var variableState = new VariableState(globalState.VariableSlot, globalState.VariableBySlot, globalState.VariableTypes, incrementalSnapshot.VariableState.Clone());
                 var method = globalState.Symbol as MethodSymbol;
                 return new NullableWalker(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(_incrementalSnapshots.ContainsKey(node.Syntax.SpanStart), $"Did not find a snapshot for {node} `{node.Syntax}.`");
-                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[node.Syntax.SpanStart].GlobalStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
+                Debug.Assert(_walkerGlobalStates.Length > _incrementalSnapshots[node.Syntax.SpanStart].SharedStateIndex, $"Did not find global state for {node} `{node.Syntax}`.");
             }
 #endif
 
@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private sealed class DescendingIntComparer : IComparer<int>
             {
+                internal static readonly DescendingIntComparer Singleton = new DescendingIntComparer();
                 public int Compare(int x, int y) => y.CompareTo(x);
             }
 
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Snapshots are kept in a dictionary of position -> snapshot at that position. These are stored in descending order.
                 /// </summary>
-                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>(new DescendingIntComparer());
+                private readonly ImmutableSortedDictionary<int, Snapshot>.Builder _incrementalSnapshots = ImmutableSortedDictionary.CreateBuilder<int, Snapshot>(DescendingIntComparer.Singleton);
                 /// <summary>
                 /// Every walker is walking a specific symbol, and can potentially walk each symbol multiple times
                 /// to get to a stable state. Each of these symbols gets a single global state slot, which this
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Contains the shared state state used to restore the walker at a specific point
+        /// Contains the shared state used to restore the walker at a specific point
         /// </summary>
         internal struct SharedWalkerState
         {
@@ -190,12 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly struct Snapshot
         {
             internal readonly LocalState VariableState;
-            internal readonly int GlobalStateIndex;
+            internal readonly int SharedStateIndex;
 
             internal Snapshot(LocalState variableState, int globalStateIndex)
             {
                 VariableState = variableState;
-                GlobalStateIndex = globalStateIndex;
+                SharedStateIndex = globalStateIndex;
             }
         }
     }

@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundExpression expressionNoConversion, Conversion conversion) = RemoveConversion(expression, includeExplicitConversions: false);
                     expressionsNoConversions.Add(expressionNoConversion);
                     conversions.Add(conversion);
-                    SnapshotWalkerThroughConversionGroup(expression as BoundConversion, expressionNoConversion);
+                    SnapshotWalkerThroughConversionGroup(expression, expressionNoConversion);
                     var resultType = VisitRvalueWithState(expressionNoConversion);
                     resultTypes.Add(resultType);
                     placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionNoConversion, resultType.ToTypeWithAnnotations()));
@@ -2685,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
-                SnapshotWalkerThroughConversionGroup(operand as BoundConversion, operandNoConversion);
+                SnapshotWalkerThroughConversionGroup(operand, operandNoConversion);
                 Visit(operandNoConversion);
                 return (operandNoConversion, conversion, ResultType);
             }
@@ -3371,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
                         if (argument != before)
                         {
-                            SnapshotWalkerThroughConversionGroup(before as BoundConversion, argument);
+                            SnapshotWalkerThroughConversionGroup(before, argument);
                             includedConversion = true;
                         }
                     }
@@ -3875,7 +3875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetType.HasType);
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
-            SnapshotWalkerThroughConversionGroup(node as BoundConversion, operand);
+            SnapshotWalkerThroughConversionGroup(node, operand);
             TypeWithState operandType = VisitRvalueWithState(operand);
             SetResultType(node,
                 VisitConversion(
@@ -3909,7 +3909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
-            SnapshotWalkerThroughConversionGroup(expr as BoundConversion, operand);
+            SnapshotWalkerThroughConversionGroup(expr, operand);
             var operandType = VisitRvalueWithState(operand);
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:
@@ -4739,12 +4739,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operandType;
         }
 
-        private void SnapshotWalkerThroughConversionGroup(BoundConversion conversionOpt, BoundExpression convertedNode)
+        private void SnapshotWalkerThroughConversionGroup(BoundExpression conversionExpression, BoundExpression convertedNode)
         {
+            if (_snapshotBuilderOpt is null)
+            {
+                return;
+            }
+
+            var conversionOpt = conversionExpression as BoundConversion;
             var conversionGroup = conversionOpt?.ConversionGroupOpt;
             while (conversionOpt != null &&
                    conversionOpt != convertedNode &&
-                   conversionOpt.Syntax.SpanStart != conversionOpt.Syntax.SpanStart)
+                   conversionOpt.Syntax.SpanStart != convertedNode.Syntax.SpanStart)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
                 TakeIncrementalSnapshot(conversionOpt);
@@ -5751,7 +5757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
-            SnapshotWalkerThroughConversionGroup(node.Expression as BoundConversion, expr);
+            SnapshotWalkerThroughConversionGroup(node.Expression, expr);
 
             // There are 7 ways that a foreach can be created:
             //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
