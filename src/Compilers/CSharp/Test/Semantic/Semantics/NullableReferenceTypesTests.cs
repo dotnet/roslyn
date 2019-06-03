@@ -97511,39 +97511,5 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
-
-        [Fact]
-        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
-        public void RefLocal()
-        {
-            var source =
-@"#nullable enable
-class C<T> where T : class
-{
-#nullable disable
-    public static C<T> operator |(
-#nullable enable
-        C<T> a,
-#nullable disable
-        C<T> b) => a;
-}
-class Program
-{
-    static void M<T>(
-#nullable disable
-        C<T> x,
-#nullable enable
-        C<T> y)
-        where T : class
-    {
-        _ = x | x;
-        _ = x | y;
-        _ = y | x;
-        _ = y | y;
-    }
-}";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
     }
 }
