@@ -2349,6 +2349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2358,6 +2359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Class:
+                    AddSynthesizedRecordMembersIfNecessary(builder.NonTypeNonIndexerMembers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
+                    break;
+
                 case TypeKind.Interface:
                 case TypeKind.Submission:
                     // No additional checking required.
@@ -2865,8 +2870,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void AddSynthesizedRecordMembersIfNecessary(ArrayBuilder<Symbol> members, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(TypeKind == TypeKind.Class || TypeKind == TypeKind.Struct);
+
+            ParameterListSyntax paramList = null;
+            foreach (SingleTypeDeclaration decl in declaration.Declarations)
+            {
+                var syntaxNode = decl.SyntaxReference.GetSyntax();
+                ParameterListSyntax curParamList = null;
+                switch (declaration.Kind)
+                {
+                    case DeclarationKind.Class:
+                        var classDecl = (ClassDeclarationSyntax)syntaxNode;
+                        curParamList = classDecl.ParameterList;
+                        break;
+                    case DeclarationKind.Struct:
+                        var structDecl = (StructDeclarationSyntax)syntaxNode;
+                        curParamList = structDecl.ParameterList;
+                        break;
+                }
+
+                if (paramList is null)
+                {
+                    paramList = curParamList;
+                }
+                else
+                {
+                    // PROTOTYPE: Add error for multiple parameter lists
+                }
+            }
+
+            if (paramList is null)
+            {
+                return;
+            }
+
+            BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
+            var binder = binderFactory.GetBinder(paramList);
+
+            // PROTOTYPE: This adds members unconditionally, but instead we should check if
+            // the members are already written in user code
+            var ctor = new SynthesizedRecordConstructor(
+                this,
+                binder,
+                paramList,
+                diagnostics);
+            members.Add(ctor);
+            foreach (SynthesizedRecordPropertySymbol property in ctor.Properties)
+            {
+                members.Add(property.BackingField);
+                members.Add(property.GetMethod);
+                members.Add(property);
+            }
+            var syntaxRef = paramList.GetReference();
+            var equals = new SynthesizedRecordEqualsSymbol(this, syntaxRef, ctor.Properties);
+            members.Add(equals);
+            members.Add(new SynthesizedRecordObjEqualsSymbol(this, syntaxRef, equals));
+            members.Add(new SynthesizedRecordGetHashCodeSymbol(this, syntaxRef, ctor.Properties));
+        }
+
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
         {
+            switch (declaration.Kind)
+            {
+                case DeclarationKind.Class:
+                case DeclarationKind.Struct:
+                    break;
+            }
+
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
             var hasInstanceConstructor = false;

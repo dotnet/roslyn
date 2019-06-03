@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                             }
                         }
-                        else
+                        else if (property is SourcePropertySymbol sourceProperty)
                         {
-                            var isNewProperty = ((SourcePropertySymbol)property).IsNew;
+                            var isNewProperty = sourceProperty.IsNew;
                             CheckNonOverrideMember(property, isNewProperty, property.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
 
                             if (!suppressAccessors)
