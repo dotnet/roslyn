@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
     internal class CSharpUseAutoPropertyCodeFixProvider
         : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseAutoPropertyCodeFixProvider()
+        {
+        }
+
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
             var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;

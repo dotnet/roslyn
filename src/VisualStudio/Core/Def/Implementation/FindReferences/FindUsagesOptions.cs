@@ -25,6 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [ExportOptionProvider, Shared]
     internal class FindUsagesOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FindUsagesOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FindUsagesOptions.DefinitionGroupingPriority);
     }

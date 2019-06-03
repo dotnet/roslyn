@@ -13,6 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
     [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.CSharp), Shared]
     internal partial class CSharpLanguageDebugInfoService : ILanguageDebugInfoService
     {
+        [ImportingConstructor]
+        public CSharpLanguageDebugInfoService()
+        {
+        }
+
         public Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken);

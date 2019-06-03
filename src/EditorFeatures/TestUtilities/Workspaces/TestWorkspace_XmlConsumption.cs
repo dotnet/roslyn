@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -89,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspace = new TestWorkspace(exportProvider, workspaceKind);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
-            var documentElementToFilePath = new Dictionary<XElement, string>();
             var projectElementToProjectName = new Dictionary<XElement, string>();
             var filePathToTextBufferMap = new Dictionary<string, ITextBuffer>();
             int projectIdentifier = 0;
@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     projectElement,
                     exportProvider,
                     workspace,
-                    documentElementToFilePath,
                     filePathToTextBufferMap,
                     documentServiceProvider,
                     ref projectIdentifier,
@@ -255,7 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             XElement projectElement,
             ExportProvider exportProvider,
             TestWorkspace workspace,
-            Dictionary<XElement, string> documentElementToFilePath,
             Dictionary<string, ITextBuffer> filePathToTextBufferMap,
             IDocumentServiceProvider documentServiceProvider,
             ref int projectId,
@@ -311,10 +309,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     ref documentId);
 
                 documents.Add(document);
-                documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
+            var additionalDocuments = new List<TestHostDocument>();
+            var additionalDocumentElements = projectElement.Elements(AdditionalDocumentElementName).ToList();
+            foreach (var additionalDocumentElement in additionalDocumentElements)
+            {
+                var document = CreateDocument(
+                    workspace,
+                    workspaceElement,
+                    additionalDocumentElement,
+                    language,
+                    exportProvider,
+                    languageServices,
+                    filePathToTextBufferMap,
+                    documentServiceProvider,
+                    ref documentId);
+
+                additionalDocuments.Add(document);
+            }
+
+            var analyzerConfigDocuments = new List<TestHostDocument>();
+            var analyzerConfigElements = projectElement.Elements(AnalyzerConfigDocumentElementName).ToList();
+            foreach (var analyzerConfigElement in analyzerConfigElements)
+            {
+                var document = CreateDocument(
+                    workspace,
+                    workspaceElement,
+                    analyzerConfigElement,
+                    language,
+                    exportProvider,
+                    languageServices,
+                    filePathToTextBufferMap,
+                    documentServiceProvider,
+                    ref documentId);
+
+                analyzerConfigDocuments.Add(document);
+            }
+
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpRemoveUnnecessaryImportsCodeFixProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_Unnecessary_Usings;
     }

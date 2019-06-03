@@ -534,6 +534,9 @@
   <data name="ERR_EventNeedsBothAccessors" xml:space="preserve">
     <value>'{0}': event property must have both add and remove accessors</value>
   </data>
+  <data name="ERR_AbstractEventHasAccessors" xml:space="preserve">
+    <value>'{0}': abstract event cannot use event accessor syntax</value>
+  </data>
   <data name="ERR_EventNotDelegate" xml:space="preserve">
     <value>'{0}': event must be of a delegate type</value>
   </data>
@@ -4732,9 +4735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AutoPropertyMustOverrideSet" xml:space="preserve">
     <value>Auto-implemented properties must override all accessors of the overridden property.</value>
-  </data>
-  <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
-    <value>Instance auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
     <value>Structs without explicit constructors cannot contain members with initializers.</value>

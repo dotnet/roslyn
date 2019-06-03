@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     [ExportLanguageService(typeof(IAnalyzerDriverService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpAnalyzerDriverService : IAnalyzerDriverService
     {
+        [ImportingConstructor]
+        public CSharpAnalyzerDriverService()
+        {
+        }
+
         public void ComputeDeclarationsInSpan(
             SemanticModel model,
             TextSpan span,

@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
     [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
     internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
+        [ImportingConstructor]
+        public CSharpOptionsSerializationService()
+        {
+        }
+
         public override void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WriteCompilationOptionsTo(options, writer, cancellationToken);

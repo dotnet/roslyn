@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
     Friend NotInheritable Class VisualBasicAnalyzerDriverService
         Implements IAnalyzerDriverService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Sub ComputeDeclarationsInSpan(model As SemanticModel,
                                              span As TextSpan,
                                              getSymbol As Boolean,

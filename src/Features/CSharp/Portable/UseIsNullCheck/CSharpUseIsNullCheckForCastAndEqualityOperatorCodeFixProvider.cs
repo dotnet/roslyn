@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
@@ -69,10 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return isPattern;
             }
 
-            // convert:  (object)expr != null   to    !(expr is null)
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
+            // convert:  (object)expr != null   to    expr is object
+            return SyntaxFactory
+                .BinaryExpression(
+                    SyntaxKind.IsExpression,
+                    isPattern.Expression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                .WithTriviaFrom(isPattern);
         }
 
         private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)

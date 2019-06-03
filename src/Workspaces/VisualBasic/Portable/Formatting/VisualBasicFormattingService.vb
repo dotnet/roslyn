@@ -9,5 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class VisualBasicFormattingService
         Inherits AbstractFormattingService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

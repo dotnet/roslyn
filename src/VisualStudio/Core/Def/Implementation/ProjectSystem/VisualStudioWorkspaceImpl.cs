@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using EnvDTE;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -57,6 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
+        private readonly Lazy<IVsSolution> _lazyVsSolution;
+
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
@@ -65,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly ForegroundThreadAffinitizedObject _foregroundObject;
 
-        private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
 
         /// <summary>
@@ -102,6 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
+
+            _lazyVsSolution = new Lazy<IVsSolution>(() => exportProvider.GetExport<SVsServiceProvider>().Value.GetService<IVsSolution>());
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -149,12 +154,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
+        internal void AddProjectToInternalMaps(VisualStudioProject project, Guid projectGuid, string projectSystemName)
         {
             lock (_gate)
             {
-                _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
-                _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
+                _projectToGuidMap = _projectToGuidMap.Add(project.Id, projectGuid);
                 _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
             }
         }
@@ -209,20 +213,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
-        internal VisualStudioProject GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
+        internal VisualStudioProject GetProjectWithGuidAndName(Guid projectGuid, string projectName)
         {
+            Debug.Assert(projectGuid != Guid.Empty);
+            Debug.Assert(projectName != null);
+
             lock (_gate)
             {
                 if (_projectSystemNameToProjectsMap.TryGetValue(projectName, out var projects))
                 {
                     foreach (var project in projects)
                     {
-                        if (_projectToHierarchyMap.TryGetValue(project.Id, out var projectHierarchy))
+                        if (GetProjectGuid(project.Id) == projectGuid)
                         {
-                            if (projectHierarchy == hierarchy)
-                            {
-                                return project;
-                            }
+                            return project;
                         }
                     }
                 }
@@ -318,11 +322,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var pc in projectChanges)
             {
                 if (pc.GetAddedAdditionalDocuments().Any() ||
+                    pc.GetAddedAnalyzerConfigDocuments().Any() ||
                     pc.GetAddedAnalyzerReferences().Any() ||
                     pc.GetAddedDocuments().Any() ||
                     pc.GetAddedMetadataReferences().Any() ||
                     pc.GetAddedProjectReferences().Any() ||
                     pc.GetRemovedAdditionalDocuments().Any() ||
+                    pc.GetRemovedAnalyzerConfigDocuments().Any() ||
                     pc.GetRemovedAnalyzerReferences().Any() ||
                     pc.GetRemovedDocuments().Any() ||
                     pc.GetRemovedMetadataReferences().Any() ||
@@ -438,6 +444,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
                 case ApplyChangesKind.ChangeDocumentInfo:
+                case ApplyChangesKind.AddAnalyzerConfigDocument:
+                case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeAnalyzerConfigDocument:
                     return true;
 
                 default:
@@ -717,15 +726,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
-            AddDocumentCore(info, text, isAdditionalDocument: false);
+            AddDocumentCore(info, text, TextDocumentKind.Document);
         }
 
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
-            AddDocumentCore(info, text, isAdditionalDocument: true);
+            AddDocumentCore(info, text, TextDocumentKind.AdditionalDocument);
         }
 
-        private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
+        protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
+        {
+            AddDocumentCore(info, text, TextDocumentKind.AnalyzerConfigDocument);
+        }
+
+        private void AddDocumentCore(DocumentInfo info, SourceText initialText, TextDocumentKind documentKind)
         {
             GetProjectData(info.Id.ProjectId, out var hierarchy, out var project);
 
@@ -741,26 +755,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
             }
             else
             {
-                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, documentKind, initialText, info.FilePath);
             }
 
             var undoManager = TryGetUndoManager();
 
-            if (isAdditionalDocument)
+            switch (documentKind)
             {
-                undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
-            }
-            else
-            {
-                undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id));
+                case TextDocumentKind.AdditionalDocument:
+                    undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
+                    break;
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                    undoManager?.Add(new RemoveAnalyzerConfigDocumentUndoUnit(this, info.Id));
+                    break;
+
+                case TextDocumentKind.Document:
+                    undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id));
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
 
@@ -826,9 +849,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DocumentId documentId,
             string documentName,
             SourceCodeKind sourceCodeKind,
+            TextDocumentKind documentKind,
             SourceText initialText = null,
-            string filePath = null,
-            bool isAdditionalDocument = false)
+            string filePath = null)
         {
             string folderPath = null;
             if (filePath == null && !project.TryGetFullPath(out folderPath))
@@ -837,7 +860,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToFolder(
@@ -846,9 +869,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IEnumerable<string> folders,
             string documentName,
             SourceCodeKind sourceCodeKind,
+            TextDocumentKind documentKind,
             SourceText initialText = null,
-            string filePath = null,
-            bool isAdditionalDocument = false)
+            string filePath = null)
         {
             var folder = project.FindOrCreateFolder(folders);
 
@@ -859,7 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, documentKind);
         }
 
         private ProjectItem AddDocumentToProjectItems(
@@ -870,12 +893,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             SourceText initialText,
             string filePath,
-            bool isAdditionalDocument)
+            TextDocumentKind documentKind)
         {
             if (filePath == null)
             {
                 var baseName = Path.GetFileNameWithoutExtension(documentName);
-                var extension = isAdditionalDocument ? Path.GetExtension(documentName) : GetPreferredExtension(documentId, sourceCodeKind);
+                var extension = documentKind == TextDocumentKind.Document ? GetPreferredExtension(documentId, sourceCodeKind) : Path.GetExtension(documentName);
                 var uniqueName = projectItems.GetUniqueName(baseName, extension);
                 filePath = Path.Combine(folderPath, uniqueName);
             }
@@ -893,8 +916,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return projectItems.AddFromFile(filePath);
         }
 
-        private void RemoveDocumentCore(
-            DocumentId documentId, bool isAdditionalDocument)
+        private void RemoveDocumentCore(DocumentId documentId, TextDocumentKind documentKind)
         {
             if (documentId == null)
             {
@@ -920,25 +942,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var undoManager = TryGetUndoManager();
                 var docInfo = CreateDocumentInfoWithoutText(document);
 
-                if (isAdditionalDocument)
+                switch (documentKind)
                 {
-                    undoManager?.Add(new AddAdditionalDocumentUndoUnit(this, docInfo, text));
-                }
-                else
-                {
-                    undoManager?.Add(new AddDocumentUndoUnit(this, docInfo, text));
+                    case TextDocumentKind.AdditionalDocument:
+                        undoManager?.Add(new AddAdditionalDocumentUndoUnit(this, docInfo, text));
+                        break;
+
+                    case TextDocumentKind.AnalyzerConfigDocument:
+                        undoManager?.Add(new AddAnalyzerConfigDocumentUndoUnit(this, docInfo, text));
+                        break;
+
+                    case TextDocumentKind.Document:
+                        undoManager?.Add(new AddDocumentUndoUnit(this, docInfo, text));
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(documentKind);
                 }
             }
         }
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId, isAdditionalDocument: false);
+            RemoveDocumentCore(documentId, TextDocumentKind.Document);
         }
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId, isAdditionalDocument: true);
+            RemoveDocumentCore(documentId, TextDocumentKind.AdditionalDocument);
+        }
+
+        protected override void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            RemoveDocumentCore(documentId, TextDocumentKind.AnalyzerConfigDocument);
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
@@ -951,12 +987,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OpenDocumentCore(documentId, activate);
         }
 
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            OpenDocumentCore(documentId, activate);
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             CloseDocumentCore(documentId);
         }
 
         public override void CloseAdditionalDocument(DocumentId documentId)
+        {
+            CloseDocumentCore(documentId);
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
         {
             CloseDocumentCore(documentId);
         }
@@ -1062,6 +1108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ApplyTextDocumentChange(documentId, newText);
         }
 
+        protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId documentId, SourceText newText)
+        {
+            ApplyTextDocumentChange(documentId, newText);
+        }
+
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
             EnsureEditableDocuments(documentId);
@@ -1075,7 +1126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (IsDocumentOpen(documentId))
                 {
-                    var textBuffer = this.CurrentSolution.GetDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container.TryGetTextBuffer();
+                    var textBuffer = this.CurrentSolution.GetTextDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container.TryGetTextBuffer();
 
                     if (textBuffer != null)
                     {
@@ -1190,8 +1241,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
         {
-            // This doesn't take a lock since _projectToHierarchyMap is immutable
-            return _projectToHierarchyMap.GetValueOrDefault(projectId, defaultValue: null);
+            _foregroundObject.AssertIsForeground();
+
+            // This doesn't take a lock since _projectToGuidMap is immutable
+            return _projectToGuidMap.TryGetValue(projectId, out var projectGuid) &&
+                   ErrorHandler.Succeeded(_lazyVsSolution.Value.GetProjectOfGuid(ref projectGuid, out var hierarchy)) ? hierarchy : null;
         }
 
         internal override Guid GetProjectGuid(ProjectId projectId)
@@ -1463,7 +1517,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
@@ -1486,7 +1540,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _projectReferenceInfoMap.Remove(projectId);
                 }
 
-                _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
                 _projectCompilationOutputs.Remove(projectId);
