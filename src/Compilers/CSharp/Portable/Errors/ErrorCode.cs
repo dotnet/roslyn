@@ -1719,6 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
         ERR_AbstractEventHasAccessors = 8712,
+        ERR_NeedSpaceBetweenExclamationAndEquals = 8713,
 
         #endregion diagnostics introduced for C# 8.0
 
