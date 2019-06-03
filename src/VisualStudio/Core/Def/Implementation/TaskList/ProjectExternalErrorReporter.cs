@@ -9,9 +9,8 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -31,6 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
         {
+            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
+            KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
+
             Debug.Assert(workspace != null);
 
             // TODO: re-enable this assert; right now it'll fail in unit tests
@@ -40,6 +42,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
             _diagnosticProvider = diagnosticProvider;
+        }
+
+        private void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
+        {
+            if (e.Activated)
+            {
+                _diagnosticProvider.OnSolutionBuildStarted();
+            }
+            else
+            {
+                _diagnosticProvider.OnSolutionBuildCompleted();
+            }
         }
 
         private bool CanHandle(string errorId)

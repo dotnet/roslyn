@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +13,12 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
-    internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
+    internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -30,20 +27,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
 
-        private readonly object _gate;
+        private readonly object _gate = new object();
         private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
-            VisualStudioWorkspaceImpl workspace,
+            VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider) :
-                this(workspace, diagnosticService, registrationService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
         {
-            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
+            registrationService.Register(this);
         }
 
         /// <summary>
@@ -52,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener listener)
         {
             // use queue to serialize work. no lock needed
@@ -65,10 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
-
-            _gate = new object();
-
-            registrationService.Register(this);
         }
 
         public event EventHandler<BuildProgress> BuildProgressChanged;
@@ -154,15 +145,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        internal void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
+        internal void OnSolutionBuildStarted()
         {
-            if (e.Activated)
-            {
-                // build just started, create the state and fire build in progress event.
-                _ = GetOrCreateInProgressState();
-                return;
-            }
+            // build just started, create the state and fire build in progress event.
+            // build just started, create the state and fire build in progress event.
+            _ = GetOrCreateInProgressState();
+        }
 
+        internal void OnSolutionBuildCompleted()
+        {
             // building is done. reset the state
             // and get local copy of in-progress state
             var inProgressState = ClearInProgressState();
@@ -194,13 +185,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private System.Threading.Tasks.Task CleanupAllLiveErrorsAsync(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
+        private Task CleanupAllLiveErrorsAsync(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
         {
             var map = projects.ToImmutableDictionary(p => p, _ => ImmutableArray<DiagnosticData>.Empty);
             return diagnosticService.SynchronizeWithBuildAsync(_workspace, map);
         }
 
-        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
+        private async Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
         {
             var solution = inProgressState.Solution;
             var map = await inProgressState.GetLiveDiagnosticsPerProjectAsync().ConfigureAwait(false);
