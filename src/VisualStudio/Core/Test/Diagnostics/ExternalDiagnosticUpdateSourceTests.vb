@@ -338,15 +338,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
 
                 Dim diagnostic = New DiagnosticData(
-                    "CS1002",
-                    "Test",
-                    "Test Message",
-                    "Test Message Format",
-                    DiagnosticSeverity.Error,
-                    True,
-                    0,
+                    id:="CS1002",
+                    category:="Test",
+                    message:="Test Message",
+                    enuMessageForBingSearch:="Test Message Format",
+                    severity:=DiagnosticSeverity.Error,
+                    defaultSeverity:=DiagnosticSeverity.Error,
+                    isEnabledByDefault:=True,
+                    warningLevel:=0,
+                    customTags:=ImmutableArray(Of String).Empty,
+                    properties:=ImmutableDictionary(Of String, String).Empty,
                     project.Id,
-                    New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4))
+                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4))
 
                 AddHandler service.DiagnosticsUpdated, Sub(o, args)
                                                            Assert.Single(args.Diagnostics)
@@ -404,7 +407,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Function GetDiagnosticData(projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(
-                id, "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, projectId, properties:=properties)
+                id,
+                category:="Test",
+                message:="Test Message",
+                enuMessageForBingSearch:="Test Message Format",
+                severity:=DiagnosticSeverity.Error,
+                defaultSeverity:=DiagnosticSeverity.Error,
+                isEnabledByDefault:=True,
+                warningLevel:=0,
+                projectId:=projectId,
+                customTags:=ImmutableArray(Of String).Empty,
+                properties:=properties)
         End Function
 
         Private Class TestDiagnosticAnalyzerService

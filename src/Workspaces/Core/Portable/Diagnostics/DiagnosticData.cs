@@ -51,31 +51,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string message,
             string enuMessageForBingSearch,
             DiagnosticSeverity severity,
-            bool isEnabledByDefault,
-            int warningLevel,
-            ProjectId projectId,
-            DiagnosticDataLocation location = null,
-            IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
-            string title = null,
-            string description = null,
-            string helpLink = null,
-            bool isSuppressed = false,
-            IReadOnlyList<string> customTags = null,
-            ImmutableDictionary<string, string> properties = null) :
-                this(
-                    id, category, message, enuMessageForBingSearch,
-                    severity, severity, isEnabledByDefault, warningLevel,
-                    customTags ?? ImmutableArray<string>.Empty, properties ?? ImmutableDictionary<string, string>.Empty,
-                    projectId, location, additionalLocations, title, description, helpLink, isSuppressed)
-        {
-        }
-
-        public DiagnosticData(
-            string id,
-            string category,
-            string message,
-            string enuMessageForBingSearch,
-            DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
