@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
         AbstractRemoveUnnecessaryParenthesesCodeFixProvider<ParenthesizedExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpRemoveUnnecessaryParenthesesCodeFixProvider()
+        {
+        }
+
         protected override bool CanRemoveParentheses(ParenthesizedExpressionSyntax current, SemanticModel semanticModel)
         {
             return CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(

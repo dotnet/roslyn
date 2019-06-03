@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         Name = PredefinedCodeRefactoringProviderNames.ExtractInterface), Shared]
     internal class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public ExtractInterfaceCodeRefactoringProvider()
+        {
+        }
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var service = context.Document.GetLanguageService<AbstractExtractInterfaceService>();

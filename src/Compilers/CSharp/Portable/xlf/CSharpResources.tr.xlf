@@ -12,6 +12,11 @@
         <target state="translated">Oluşturulmuş genel tür, genel olmayan türden oluşturulamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen '{0}' veya daha yüksek bir dil sürümü kullanın.</target>
@@ -8651,11 +8656,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">Otomatik uygulanan özellikler geçersiz kılınan özelliğin tüm erişicilerini geçersiz kılmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Arabirimlerin içinde örneğin otomatik olarak uygulanan özelliklerinin başlatıcıları olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">

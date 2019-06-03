@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
     {
         [ImportingConstructor]
-        internal CommentUncommentSelectionCommandHandler(
+        public CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(undoHistoryRegistry, editorOperationsFactoryService)

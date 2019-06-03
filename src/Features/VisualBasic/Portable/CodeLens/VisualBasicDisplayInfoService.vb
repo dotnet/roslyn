@@ -23,6 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
                 SymbolDisplayKindOptions.None,
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         ''' <summary>
         ''' Returns the node that should be displayed
         ''' </summary>

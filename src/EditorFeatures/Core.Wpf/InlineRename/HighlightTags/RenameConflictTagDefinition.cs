@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
         public static double StrokeThickness => 1.5;
         public static double[] StrokeDashArray => new[] { 8.0, 4.0 };
 
+        [ImportingConstructor]
         public RenameConflictTagDefinition()
         {
             this.Border = new Pen(Brushes.Red, thickness: StrokeThickness) { DashStyle = new DashStyle(StrokeDashArray, 0) };

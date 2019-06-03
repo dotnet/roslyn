@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     {
         private TrackingSession _sessionOpt;
 
-        internal ActiveStatementTrackingService()
+        [ImportingConstructor]
+        public ActiveStatementTrackingService()
         {
         }
 

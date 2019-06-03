@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Notification
     [ExportIncrementalAnalyzerProvider(nameof(SemanticChangeNotificationService), workspaceKinds: null)]
     internal class SemanticChangeNotificationService : ISemanticChangeNotificationService, IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public SemanticChangeNotificationService()
+        {
+        }
+
         public event EventHandler<Document> OpenedDocumentSemanticChanged;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

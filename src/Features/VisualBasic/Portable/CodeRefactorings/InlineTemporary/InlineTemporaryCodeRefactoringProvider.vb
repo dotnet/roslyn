@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     Partial Friend Class InlineTemporaryCodeRefactoringProvider
         Inherits CodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overloads Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document
             Dim textSpan = context.Span

@@ -11,35 +11,20 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Event accessor that has been synthesized for a field-like event declared in source.
+    /// Event accessor that has been synthesized for a field-like event declared in source,
+    /// or for an event re-abstraction in an interface.
     /// </summary>
     /// <remarks>
-    /// Associated with <see cref="SourceFieldLikeEventSymbol"/>.
+    /// Associated with <see cref="SourceFieldLikeEventSymbol"/> and <see cref="SourceCustomEventSymbol"/>.
     /// </remarks>
-    internal sealed class SynthesizedFieldLikeEventAccessorSymbol : SourceEventAccessorSymbol
+    internal sealed class SynthesizedEventAccessorSymbol : SourceEventAccessorSymbol
     {
         // Since we don't have a syntax reference, we'll have to use another object for locking.
         private readonly object _methodChecksLockObject = new object();
 
-        private readonly string _name;
-
-        internal SynthesizedFieldLikeEventAccessorSymbol(SourceFieldLikeEventSymbol @event, bool isAdder)
-            : base(@event, null, @event.Locations)
+        internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, EventSymbol explicitlyImplementedEventOpt = null, string aliasQualifierOpt = null)
+            : base(@event, null, @event.Locations, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder)
         {
-            this.MakeFlags(
-                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
-                @event.Modifiers,
-                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                isExtensionMethod: false,
-                isMetadataVirtualIgnoringModifiers: false);
-
-            _name = GetOverriddenAccessorName(@event, isAdder) ??
-                SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
-        }
-
-        public override string Name
-        {
-            get { return _name; }
         }
 
         public override bool IsImplicitlyDeclared

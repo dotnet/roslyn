@@ -108,6 +108,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             return await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+        {
+            var solution = _workspace.CurrentSolution;
+            var (documentId, node) = await GetDocumentIdAndNodeAsync(
+                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+            if (documentId == null)
+            {
+                return null;
+            }
+
+            var service = _workspace.Services.GetService<ICodeLensReferencesService>();
+            return await service.FindReferenceMethodsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        }
+
         private async Task<(DocumentId, SyntaxNode)> GetDocumentIdAndNodeAsync(
             Solution solution, CodeLensDescriptor descriptor, Text.Span span, CancellationToken cancellationToken)
         {

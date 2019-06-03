@@ -16,7 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageServiceFactory(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
-        private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+        private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+
+        [ImportingConstructor]
+        public CSharpSyntaxTreeFactoryServiceFactory()
+        {
+        }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {

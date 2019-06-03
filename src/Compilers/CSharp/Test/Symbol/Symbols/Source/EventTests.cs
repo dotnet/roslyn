@@ -2145,10 +2145,7 @@ class A
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.IFormattable").WithArguments("<invalid-global-code>.", "System.IFormattable").WithLocation(1, 21),
                 // (1,41): error CS0539: '<invalid-global-code>.' in explicit interface declaration is not a member of interface
                 // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41),
-                // (1,41): error CS0065: '<invalid-global-code>.': event property must have both add and remove accessors
-                // event System.Action System.IFormattable.
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("<invalid-global-code>.").WithLocation(1, 41));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

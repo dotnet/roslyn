@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
     internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
         AbstractConvertForEachToForCodeRefactoringProvider<ForEachStatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForEachToForCodeRefactoringProvider()
+        {
+        }
+
         protected override string Title => CSharpFeaturesResources.Convert_to_for;
 
         protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)

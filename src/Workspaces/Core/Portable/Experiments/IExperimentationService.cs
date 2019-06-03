@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Experiments
     internal class DefaultExperimentationService : IExperimentationService
     {
         public bool ReturnValue = false;
+
+        [ImportingConstructor]
+        public DefaultExperimentationService()
+        {
+        }
+
         public bool IsExperimentEnabled(string experimentName) => ReturnValue;
     }
 

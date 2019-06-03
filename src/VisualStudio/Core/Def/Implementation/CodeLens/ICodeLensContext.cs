@@ -39,5 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         /// </summary>
         Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
+        /// </summary>
+        Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
     }
 }

@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
     internal class CSharpAddImportsService : AbstractAddImportsService<
         CompilationUnitSyntax, NamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportsService()
+        {
+        }
+
         // C# doesn't have global imports.
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation)
             => ImmutableArray<SyntaxNode>.Empty;

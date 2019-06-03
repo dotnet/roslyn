@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
             public const string CodeActionsConvertForEachToQuery = "CodeActions.ConvertForEachToQuery";
+            public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
@@ -186,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DebuggingNameResolver = "Debugging.NameResolver";
             public const string DebuggingProximityExpressions = "Debugging.ProximityExpressions";
             public const string Diagnostics = nameof(Diagnostics);
+            public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string DocCommentFormatting = nameof(DocCommentFormatting);
             public const string DocumentationComments = nameof(DocumentationComments);
             public const string EditorConfig = nameof(EditorConfig);
