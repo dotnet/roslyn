@@ -20,8 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
@@ -33,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly IAsynchronousOperationListener _listener;
 
         private readonly object _gate;
-        private InprogressState _stateDoNotAccessDirectly = null;
+        private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
@@ -161,25 +159,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (e.Activated)
             {
                 // build just started, create the state and fire build in progress event.
-                _ = GetOrCreateInprogressState();
+                _ = GetOrCreateInProgressState();
                 return;
             }
 
             // building is done. reset the state
             // and get local copy of inprogress state
-            var inprogressState = ClearInprogressState();
+            var inProgressState = ClearInProgressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
             _taskQueue.ScheduleTask(async () =>
             {
                 // nothing to do
-                if (inprogressState == null)
+                if (inProgressState == null)
                 {
                     return;
                 }
 
-                _lastBuiltResult = inprogressState.GetBuildDiagnostics();
+                _lastBuiltResult = inProgressState.GetBuildDiagnostics();
 
                 // we are about to update live analyzer data using one from build.
                 // pause live analyzer
@@ -187,11 +185,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
-                        await CleanupAllLiveErrorsAsync(diagnosticService, inprogressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
-                        await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState).ConfigureAwait(false);
+                        await CleanupAllLiveErrorsAsync(diagnosticService, inProgressState.GetProjectsWithoutErrors()).ConfigureAwait(false);
+                        await SyncBuildErrorsAndReportAsync(diagnosticService, inProgressState).ConfigureAwait(false);
                     }
 
-                    inprogressState.Done();
+                    inProgressState.Done();
                 }
             }).CompletesAsyncOperation(asyncToken);
         }
@@ -202,10 +200,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return diagnosticService.SynchronizeWithBuildAsync(_workspace, map);
         }
 
-        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InprogressState inprogressState)
+        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
         {
-            var solution = inprogressState.Solution;
-            var map = await inprogressState.GetLiveDiagnosticsPerProjectAsync().ConfigureAwait(false);
+            var solution = inProgressState.Solution;
+            var map = await inProgressState.GetLiveDiagnosticsPerProjectAsync().ConfigureAwait(false);
 
             // make those errors live errors
             await diagnosticService.SynchronizeWithBuildAsync(_workspace, map).ConfigureAwait(false);
@@ -268,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
             // capture state that will be processed in background thread.
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -280,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
             // capture state that will be processed in background thread.
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Document New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -293,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
             // capture state that will be processed in background thread
-            var state = GetOrCreateInprogressState();
+            var state = GetOrCreateInProgressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
@@ -307,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private InprogressState BuildInprogressState
+        private InProgressState BuildInprogressState
         {
             get
             {
@@ -318,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private InprogressState ClearInprogressState()
+        private InProgressState ClearInProgressState()
         {
             lock (_gate)
             {
@@ -329,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private InprogressState GetOrCreateInprogressState()
+        private InProgressState GetOrCreateInProgressState()
         {
             lock (_gate)
             {
@@ -338,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
                     // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                     // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                    _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
+                    _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution);
                 }
 
                 return _stateDoNotAccessDirectly;
@@ -381,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             Done
         }
 
-        private class InprogressState
+        private sealed class InProgressState
         {
             private int _incrementDoNotAccessDirectly = 0;
 
@@ -395,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             private readonly Dictionary<ProjectId, Dictionary<DiagnosticData, int>> _projectMap = new Dictionary<ProjectId, Dictionary<DiagnosticData, int>>();
             private readonly Dictionary<DocumentId, Dictionary<DiagnosticData, int>> _documentMap = new Dictionary<DocumentId, Dictionary<DiagnosticData, int>>();
 
-            public InprogressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
+            public InProgressState(ExternalErrorDiagnosticUpdateSource owner, Solution solution)
             {
                 _owner = owner;
                 Solution = solution;
@@ -655,7 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class ArgumentKey : BuildToolId.Base<object>
+        private sealed class ArgumentKey : BuildToolId.Base<object>
         {
             public ArgumentKey(object key) : base(key)
             {
@@ -683,7 +681,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
+        private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
         {
             public static readonly DiagnosticDataComparer Instance = new DiagnosticDataComparer();
 
