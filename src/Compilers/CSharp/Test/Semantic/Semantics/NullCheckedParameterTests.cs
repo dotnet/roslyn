@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to binding (but not lowering) null-checked variables and lambdas.
     /// </summary>
-    public class NullCheckedVariableTests : CompilingTestBase
+    public class NullCheckedParameterTests : CompilingTestBase
     {
         [Fact]
         public void NullCheckedDelegateDeclaration()
@@ -33,9 +33,9 @@ abstract class C
     abstract public int M(int x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4, 27): error CS8713: Parameter 'int x!' can only have exclamation - point null checking in implementation methods.
-                    // delegate void Del(int x!, int y);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "int x!").WithArguments("int x!").WithLocation(4, 27));
+                    // (4,31): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    //     abstract public int M(int x!);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 31));
         }
 
         [Fact]
@@ -47,9 +47,9 @@ interface C
     public int M(int x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (4, 18): error CS8713: Parameter 'int x!' can only have exclamation - point null checking in implementation methods.
-                    // delegate void Del(int x!, int y);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "int x!").WithArguments("int x!").WithLocation(4, 18));
+                    // (4,22): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    //     public int M(int x!);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 22));
         }
 
         [Fact]
@@ -63,9 +63,9 @@ class C
     public static extern int M(int x!);
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                    // (6, 32): error CS8713: Parameter 'int x!' can only have exclamation - point null checking in implementation methods.
-                    // delegate void Del(int x!, int y);
-                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "int x!").WithArguments("int x!").WithLocation(6, 32));
+                    // (6,36): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
+                    //     public static extern int M(int x!);
+                    Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(6, 36));
         }
     }
 }
