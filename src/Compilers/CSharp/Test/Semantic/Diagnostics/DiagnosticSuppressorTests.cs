@@ -288,7 +288,7 @@ class C { }";
                 compilation.VerifyAnalyzerDiagnostics(analyzersAndSuppresors, null, null, true,
                     Diagnostic("AD0001").WithArguments(suppressor.ToString(),
                                                        typeof(NotImplementedException).FullName,
-                                                       "The method or operation is not implemented.")
+                                                       new NotImplementedException().Message)
                                         .WithLocation(1, 1),
                     Diagnostic("ID1000", "class C { }").WithLocation(2, 1));
 
