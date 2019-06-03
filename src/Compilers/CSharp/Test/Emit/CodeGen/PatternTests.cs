@@ -1115,7 +1115,7 @@ public class C {
         [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead04()
         {
-            // Cannot combine the evalations of name here, since we first check if p is Teacher,
+            // Cannot combine the evaluations of name here, since we first check if p is Teacher,
             // and only if that fails check if p is null. 
             // Combining the evaluations would mean first checking if p is null, then evaluating name, then checking if p is Teacher.
             // This would not necessarily be more performant.
@@ -1185,7 +1185,7 @@ public class C {
         [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead05()
         {
-            // Cannot combine the evalations of name here, since we first check if p is Teacher,
+            // Cannot combine the evaluations of name here, since we first check if p is Teacher,
             // and only if that fails check if p is Student. 
             // Combining the evaluations would mean first checking if p is null, 
             // then evaluating name, 
@@ -1324,7 +1324,7 @@ public class C {
         [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
         public void NoRedundantPropertyRead07()
         {
-            // Cannot combine the evalations of name here, since we first check if name is MemoryStream,
+            // Cannot combine the evaluations of name here, since we first check if name is MemoryStream,
             // and only if that fails check if name is null. 
             // Combining the evaluations would mean first checking if name is null, then evaluating name, then checking if p is Teacher.
             // This would not necessarily be more performant.
@@ -1440,6 +1440,134 @@ public class C {
   IL_0035:  stloc.1
   IL_0036:  ldloc.1
   IL_0037:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead09()
+        {
+            var source = @"using System;
+
+public class Person {
+    public virtual string Name { get; set; }
+}
+
+public class Student : Person { }
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       68 (0x44)
+  .maxstack  3
+  .locals init (string V_0) //name
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0043
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.0
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_0023
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  brtrue.s   IL_002e
+  IL_0022:  ret
+  IL_0023:  ldstr      ""Hey Bill!""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""Hello student ""
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""!""
+  IL_0039:  call       ""string string.Concat(string, string, string)""
+  IL_003e:  call       ""void System.Console.WriteLine(string)""
+  IL_0043:  ret
+}");
+        }
+
+        [Fact, WorkItem(34933, "https://github.com/dotnet/roslyn/issues/34933")]
+        public void NoRedundantPropertyRead10()
+        {
+            // Currently we don't combine these redundant property reads.
+            // However we could do so in the future.
+
+            var source = @"using System;
+
+public abstract class Person {
+    public abstract string Name { get; set; }
+}
+
+public class Student : Person { 
+    public override string Name { get; set; }
+}
+
+public class C {
+    public void M(Person p) {
+        switch (p) {
+            case { Name: ""Bill"" }:
+                Console.WriteLine(""Hey Bill!"");
+            break;
+            case Student { Name: var name }:
+                Console.WriteLine($""Hello student { name}!"");
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       78 (0x4e)
+  .maxstack  3
+  .locals init (string V_0, //name
+                string V_1,
+                Student V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_004d
+  IL_0003:  ldarg.1
+  IL_0004:  callvirt   ""string Person.Name.get""
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  ldloc.1
+  IL_000e:  ldstr      ""Bill""
+  IL_0013:  call       ""bool string.op_Equality(string, string)""
+  IL_0018:  brtrue.s   IL_002d
+  IL_001a:  ldarg.1
+  IL_001b:  isinst     ""Student""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  brfalse.s  IL_004d
+  IL_0024:  ldloc.2
+  IL_0025:  callvirt   ""string Person.Name.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0038
+  IL_002d:  ldstr      ""Hey Bill!""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+  IL_0038:  ldstr      ""Hello student ""
+  IL_003d:  ldloc.0
+  IL_003e:  ldstr      ""!""
+  IL_0043:  call       ""string string.Concat(string, string, string)""
+  IL_0048:  call       ""void System.Console.WriteLine(string)""
+  IL_004d:  ret
 }");
         }
 
