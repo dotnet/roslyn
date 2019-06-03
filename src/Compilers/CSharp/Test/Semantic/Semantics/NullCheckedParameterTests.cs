@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -50,6 +52,18 @@ interface C
                     // (4,22): error CS8714: Parameter 'x' can only have exclamation-point null checking in implementation methods.
                     //     public int M(int x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(4, 22));
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        public void NullCheckedInterfaceMethod2()
+        {
+            var source = @"
+interface C
+{
+    public void M(int x!) { }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]

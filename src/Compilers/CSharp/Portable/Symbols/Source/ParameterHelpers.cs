@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
                 {
-                    if (owner.IsAbstract || owner.IsImplementableInterfaceMember() || owner.IsPartialDefinition() || owner.IsExtern)
+                    if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
                     {
                         diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                     }
