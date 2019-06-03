@@ -2034,8 +2034,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
         {
             //TODO: Implement UsingLocalDeclaration operations correctly.
-            //      For now we return an implicit operationNone, 
-            //      and GetIoperationChildren will return a single child 
+            //      For now we return an implicit operationNone,
+            //      and GetIOperationChildren will return a single child
             //      consisting of the using declaration parsed as if it were a standard variable declaration.
             //      See: https://github.com/dotnet/roslyn/issues/32100
             return new CSharpLazyNoneOperation(
