@@ -697,82 +697,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool Equals(DiagnosticData item1, DiagnosticData item2)
             {
-                // crash if any one of them is NULL
-                if ((IsNull(item1.DocumentId) ^ IsNull(item2.DocumentId)) ||
-                    (IsNull(item1.ProjectId) ^ IsNull(item2.ProjectId)))
+                if ((item1.DocumentId == null) != (item2.DocumentId == null) ||
+                    item1.Id != item2.Id ||
+                    item1.ProjectId != item2.ProjectId ||
+                    item1.Severity != item2.Severity ||
+                    item1.Message != item2.Message ||
+                    (item1.DataLocation?.MappedStartLine ?? 0) != (item2.DataLocation?.MappedStartLine ?? 0) ||
+                    (item1.DataLocation?.MappedStartColumn ?? 0) != (item2.DataLocation?.MappedStartColumn ?? 0) ||
+                    (item1.DataLocation?.OriginalStartLine ?? 0) != (item2.DataLocation?.OriginalStartLine ?? 0) ||
+                    (item1.DataLocation?.OriginalStartColumn ?? 0) != (item2.DataLocation?.OriginalStartColumn ?? 0))
                 {
                     return false;
                 }
 
-                var lineColumn1 = GetOriginalOrMappedLineColumn(item1);
-                var lineColumn2 = GetOriginalOrMappedLineColumn(item2);
-
-                if (item1.DocumentId != null && item2.DocumentId != null)
-                {
-                    return item1.Id == item2.Id &&
-                           item1.Message == item2.Message &&
-                           item1.ProjectId == item2.ProjectId &&
-                           item1.DocumentId == item2.DocumentId &&
-                           lineColumn1.Item1 == lineColumn2.Item1 &&
-                           lineColumn1.Item2 == lineColumn2.Item2 &&
-                           item1.Severity == item2.Severity;
-                }
-
-                return item1.Id == item2.Id &&
-                       item1.Message == item2.Message &&
-                       item1.ProjectId == item2.ProjectId &&
-                       item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath &&
-                       lineColumn1.Item1 == lineColumn2.Item1 &&
-                       lineColumn1.Item2 == lineColumn2.Item2 &&
-                       item1.Severity == item2.Severity;
+                return (item1.DocumentId != null) ?
+                    item1.DocumentId == item2.DocumentId :
+                    item1.DataLocation?.OriginalFilePath == item2.DataLocation?.OriginalFilePath;
             }
 
             public int GetHashCode(DiagnosticData obj)
             {
-                var lineColumn = GetOriginalOrMappedLineColumn(obj);
+                int result =
+                    Hash.Combine(obj.Id,
+                    Hash.Combine(obj.Message,
+                    Hash.Combine(obj.ProjectId,
+                    Hash.Combine(obj.DataLocation?.MappedStartLine ?? 0,
+                    Hash.Combine(obj.DataLocation?.MappedStartColumn ?? 0,
+                    Hash.Combine(obj.DataLocation?.OriginalStartLine ?? 0,
+                    Hash.Combine(obj.DataLocation?.OriginalStartColumn ?? 0, (int)obj.Severity)))))));
 
-                if (obj.DocumentId != null)
-                {
-                    return Hash.Combine(obj.Id,
-                           Hash.Combine(obj.Message,
-                           Hash.Combine(obj.ProjectId,
-                           Hash.Combine(obj.DocumentId,
-                           Hash.Combine(lineColumn.Item1,
-                           Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
-                }
-
-                return Hash.Combine(obj.Id,
-                       Hash.Combine(obj.Message,
-                       Hash.Combine(obj.ProjectId,
-                       Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0,
-                       Hash.Combine(lineColumn.Item1,
-                       Hash.Combine(lineColumn.Item2, (int)obj.Severity))))));
-            }
-
-            private static ValueTuple<int, int> GetOriginalOrMappedLineColumn(DiagnosticData data)
-            {
-                var workspace = data.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                if (data.DocumentId == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                if (workspace.TryGetContainedDocument(data.DocumentId) == null)
-                {
-                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
-                }
-
-                return ValueTuple.Create(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
-            private bool IsNull<T>(T item) where T : class
-            {
-                return item == null;
+                return obj.DocumentId != null ?
+                    Hash.Combine(obj.DocumentId, result) :
+                    Hash.Combine(obj.DataLocation?.OriginalFilePath?.GetHashCode() ?? 0, result);
             }
         }
     }

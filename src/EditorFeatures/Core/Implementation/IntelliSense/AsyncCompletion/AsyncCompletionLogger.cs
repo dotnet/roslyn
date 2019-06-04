@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
             // For type import completion
             SessionWithTypeImportCompletionEnabled,
             CommitWithTypeImportCompletionEnabled,
-            CommitTypeImportCompletionItem,
+            CommitsOfTypeImportCompletionItem,
 
             // For targeted type completion
             SessionHasTargetTypeFilterEnabled,
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
         internal static void LogCommitWithTypeImportCompletionEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTypeImportCompletionEnabled);
 
-        internal static void LogCommitTypeImportCompletionItem() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitTypeImportCompletionItem);
+        internal static void LogCommitOfTypeImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
 
         internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);

@@ -88,8 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    Hierarchy = hierarchy,
-                    ProjectGuid = GetProjectIDGuid(hierarchy),
+                    ProjectGuid = hierarchy.GetProjectGuid(),
                 });
 
             ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
@@ -251,32 +250,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             {
                 VisualStudioProject.OutputRefFilePath = null;
             }
-        }
-
-        private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
-        {
-            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
-            {
-                return guid;
-            }
-
-            return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
-            {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>

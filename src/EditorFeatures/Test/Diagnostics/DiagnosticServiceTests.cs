@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return new DiagnosticData(
                                 "test1", "Test", "test1 message", "test1 message format",
                                 DiagnosticSeverity.Info, false, 1,
-                                workspace, projectId, new DiagnosticDataLocation(documentId,
+                                projectId, new DiagnosticDataLocation(documentId,
                                     null, "originalFile1", 10, 10, 20, 20));
         }
 

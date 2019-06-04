@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
         }
 
-        internal DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
+        internal DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
-            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id,
+            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, document.Project.Id,
                 new DiagnosticDataLocation(document.Id, span));
         }
 

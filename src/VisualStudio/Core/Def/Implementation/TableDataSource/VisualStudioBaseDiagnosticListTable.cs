@@ -53,27 +53,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public static string GetHelpLink(DiagnosticData item)
+        public static string GetHelpLink(Workspace workspace, DiagnosticData data)
         {
-            if (BrowserHelper.TryGetUri(item.HelpLink, out var link))
+            if (BrowserHelper.TryGetUri(data.HelpLink, out var link))
             {
                 return link.AbsoluteUri;
             }
 
-            if (!string.IsNullOrWhiteSpace(item.Id))
+            if (!string.IsNullOrWhiteSpace(data.Id))
             {
-                return BrowserHelper.CreateBingQueryUri(item).AbsoluteUri;
+                return BrowserHelper.CreateBingQueryUri(workspace, data).AbsoluteUri;
             }
 
             return null;
         }
 
-        public static string GetHelpLinkToolTipText(DiagnosticData item)
+        public static string GetHelpLinkToolTipText(Workspace workspace, DiagnosticData item)
         {
             var isBing = false;
             if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
             {
-                helpUri = BrowserHelper.CreateBingQueryUri(item);
+                helpUri = BrowserHelper.CreateBingQueryUri(workspace, item);
                 isBing = true;
             }
 
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return null;
         }
 
-        protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticData>
+        protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
         {
             public abstract string BuildTool { get; }
             public abstract bool SupportSpanTracking { get; }

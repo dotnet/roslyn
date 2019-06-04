@@ -5947,5 +5947,28 @@ class C2
             Assert.True(foreachSymbolInfo.CurrentConversion.Exists);
             Assert.False(foreachSymbolInfo.CurrentConversion.IsImplicit);
         }
+
+        [Fact, WorkItem(29933, "https://github.com/dotnet/roslyn/issues/29933")]
+        public void SpeculativelyBindBaseInXmlDoc()
+        {
+            var text = @"
+class C
+{
+    /// <summary> </summary>
+    static void M() { }
+}
+";
+
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var position = text.IndexOf(">", StringComparison.Ordinal);
+            var syntax = SyntaxFactory.ParseExpression("base");
+
+            var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.NotReferencable, info.CandidateReason);
+        }
     }
 }

@@ -312,7 +312,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 warningLevel: GetWarningLevel(severity),
                 customTags: GetCustomTags(errorId),
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
-                workspace: _workspace,
                 projectId: _projectId,
                 location: new DiagnosticDataLocation(id,
                     sourceSpan: null,
