@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -13,8 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Class to register with the RDT and forward RDT events.
     /// Handles common conditions before sending out notifications.
     /// </summary>
-    internal class RunningDocumentTableEventTracker : IVsRunningDocTableEvents3, IDisposable
+    internal sealed class RunningDocumentTableEventTracker : IVsRunningDocTableEvents3, IDisposable
     {
+        private bool _isDisposed = false; // To detect redundant calls
+
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
@@ -29,6 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable)
         {
+            Contract.ThrowIfNull(threadingContext);
+            Contract.ThrowIfNull(editorAdaptersFactoryService);
+            Contract.ThrowIfNull(runningDocumentTable);
+
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
             _runningDocumentTable = runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -170,11 +177,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         #region IDisposable Support
-        private bool _disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
-            if (!_disposedValue)
+            if (!_isDisposed)
             {
                 if (disposing)
                 {
@@ -183,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _runningDocumentTableEventsCookie = 0;
                 }
 
-                _disposedValue = true;
+                _isDisposed = true;
             }
         }
 
