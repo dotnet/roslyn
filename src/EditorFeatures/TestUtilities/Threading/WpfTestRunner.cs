@@ -70,7 +70,7 @@ namespace Roslyn.Test.Utilities
                         // Reset our flag ensuring that part of this test actually needs WpfFact
                         s_wpfFactRequirementReason = null;
 
-                        if (_passedTests.TryGetValue(TestMethod.Name, out var info))
+                        if (_passedTests.TryGetValue(Test.DisplayName, out var info))
                         {
                             return info.Time;
                         }
