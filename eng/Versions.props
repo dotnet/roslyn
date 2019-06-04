@@ -39,7 +39,7 @@
     <ICSharpCodeDecompilerVersion>4.0.0.4285-beta1</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -163,6 +163,7 @@
     <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.19057.1</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
+    <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <StreamJsonRpcVersion>2.0.167</StreamJsonRpcVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
