@@ -8,11 +8,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class NotnullKeywordRecommenderTests : RecommenderTests
+    public class NotNullKeywordRecommenderTests : RecommenderTests
     {
-        private readonly NotnullKeywordRecommender _recommender = new NotnullKeywordRecommender();
+        private readonly NotNullKeywordRecommender _recommender = new NotNullKeywordRecommender();
 
-        public NotnullKeywordRecommenderTests()
+        public NotNullKeywordRecommenderTests()
         {
             this.keywordText = "notnull";
             this.RecommendKeywordsAsync = (position, context) => _recommender.RecommendKeywordsAsync(position, context, CancellationToken.None);

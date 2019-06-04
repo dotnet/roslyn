@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class NotnullKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
+    internal class NotNullKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
         public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
