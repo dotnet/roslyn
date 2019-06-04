@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 
 namespace Roslyn.Test.Utilities
 {
-    public struct TestInfo
+    public readonly struct TestInfo
     {
         public decimal Time { get; }
 
@@ -15,39 +16,26 @@ namespace Roslyn.Test.Utilities
             Time = time;
         }
 
-        public static IDictionary<string, TestInfo> GetPassedTestsInfo()
+        public static ImmutableDictionary<string, TestInfo> GetPassedTestsInfo()
         {
-            var result = new Dictionary<string, TestInfo>();
+            var result = ImmutableDictionary.CreateBuilder<string, TestInfo>();
             var filePath = System.Environment.GetEnvironmentVariable("OutputXmlFilePath");
             if (filePath != null)
             {
                 if (File.Exists(filePath))
                 {
-                    var doc = new XmlDocument();
-                    doc.Load(filePath);
-                    foreach (XmlNode assemblies in doc.SelectNodes("assemblies"))
+                    var doc = XDocument.Load(filePath);
+                    foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Pass']"))
                     {
-                        foreach (XmlNode assembly in assemblies.SelectNodes("assembly"))
+                        if (decimal.TryParse(test.Attribute("time").Value, out var time))
                         {
-                            foreach (XmlNode collection in assembly.SelectNodes("collection"))
-                            {
-                                foreach (XmlNode test in assembly.SelectNodes("test"))
-                                {
-                                    if (test.SelectNodes("failure").Count == 0)
-                                    {
-                                        if (decimal.TryParse(test.Attributes["time"].InnerText, out var time))
-                                        {
-                                            result.Add(test.Name, new TestInfo(time));
-                                        }
-                                    }
-                                }
-                            }
+                            result.Add(test.Attribute("name").Value, new TestInfo(time));
                         }
                     }
                 }
             }
 
-            return result;
+            return result.ToImmutable();
         }
     }
 }
