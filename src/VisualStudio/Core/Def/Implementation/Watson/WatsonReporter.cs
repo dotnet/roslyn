@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
+        /// <param name="critical">indicate whether reported NFW is critical or not</param>
         public static void Report(Exception exception, bool critical = false)
         {
             Report("Roslyn NonFatal Watson", exception, critical);
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
+        /// <param name="critical">indicate whether reported NFW is critical or not</param>
         public static void Report(string description, Exception exception, bool critical = false)
         {
             Report(description, exception, s_defaultCallback, critical);
