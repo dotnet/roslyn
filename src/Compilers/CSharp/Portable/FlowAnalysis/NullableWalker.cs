@@ -2094,38 +2094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind op = binary.OperatorKind.Operator();
 
-            // learn from non-null constant
-            BoundExpression operandComparedToNonNull = null;
-            if (isNonNullConstant(binary.Left))
-            {
-                operandComparedToNonNull = binary.Right;
-            }
-            else if (isNonNullConstant(binary.Right))
-            {
-                operandComparedToNonNull = binary.Left;
-            }
-
-            if (operandComparedToNonNull != null)
-            {
-                switch (op)
-                {
-                    case BinaryOperatorKind.Equal:
-                    case BinaryOperatorKind.GreaterThan:
-                    case BinaryOperatorKind.LessThan:
-                    case BinaryOperatorKind.GreaterThanOrEqual:
-                    case BinaryOperatorKind.LessThanOrEqual:
-                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
-                        return;
-                    case BinaryOperatorKind.NotEqual:
-                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
-                        return;
-                    default:
-                        break;
-                };
-            }
-
             // learn from null constant
             if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
             {
@@ -2150,23 +2118,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
                     LearnFromNullTest(operandComparedToNull, ref nonNullCase ? ref StateWhenFalse : ref StateWhenTrue);
+                    return;
                 }
             }
 
-            static BoundExpression skipImplicitNullableConversions(BoundExpression possiblyConversion)
+            // learn from comparison between non-null and maybe-null, possibly updating maybe-null to non-null
+            BoundExpression operandComparedToNonNull = null;
+            if (leftType.IsNotNull && rightType.MayBeNull)
             {
-                while (possiblyConversion.Kind == BoundKind.Conversion &&
-                    possiblyConversion is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Operand: var operand })
-                {
-                    possiblyConversion = operand;
-                }
-                return possiblyConversion;
+                operandComparedToNonNull = binary.Right;
+            }
+            else if (rightType.IsNotNull && leftType.MayBeNull)
+            {
+                operandComparedToNonNull = binary.Left;
             }
 
-            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
+            if (operandComparedToNonNull != null)
+            {
+                switch (op)
+                {
+                    case BinaryOperatorKind.Equal:
+                    case BinaryOperatorKind.GreaterThan:
+                    case BinaryOperatorKind.LessThan:
+                    case BinaryOperatorKind.GreaterThanOrEqual:
+                    case BinaryOperatorKind.LessThanOrEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
+                        return;
+                    case BinaryOperatorKind.NotEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
+                        return;
+                };
+            }
+
+            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
+                GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
                 if (slotBuilder.Count != 0)
                 {
                     Split();
@@ -2175,9 +2164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 slotBuilder.Free();
             }
-
-            static bool isNonNullConstant(BoundExpression expr)
-                => skipImplicitNullableConversions(expr).ConstantValue?.IsNull == false;
         }
 
         /// <summary>
@@ -2302,6 +2288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int LearnFromNullTest(BoundExpression expression, ref LocalState state)
         {
+            // nothing to learn about a constant
+            if (expression.ConstantValue != null)
+            {
+                return -1;
+            }
+
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
             return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state);

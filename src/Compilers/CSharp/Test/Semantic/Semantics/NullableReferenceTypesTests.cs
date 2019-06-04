@@ -21867,7 +21867,7 @@ public class C
     {
         if (s != string.Empty) s.ToString(); // warn
         d.BeginInvoke(s, null, null);
-        s.ToString(); // warn 2
+        s.ToString();
     }
 }
 ", NotNullAttributeDefinition }, options: WithNonNullTypesTrue());
@@ -21875,10 +21875,7 @@ public class C
             c.VerifyDiagnostics(
                 // (8,32): warning CS8602: Dereference of a possibly null reference.
                 //         if (s != string.Empty) s.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 32),
-                // (10,9): warning CS8602: Dereference of a possibly null reference.
-                //         s.ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(10, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 32)
                 );
         }
 
@@ -98687,6 +98684,263 @@ class Box<T>
                 // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
                 //         if (x == null) return; // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_01()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? value)
+    {
+        int count = 84;
+        if (value?.Length == count)
+        {
+            Console.WriteLine(value.Length);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_02()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? value)
+    {
+        if (value?.Length == (int?) null)
+        {
+            Console.WriteLine(value.Length); // 1
+        }
+        else
+        {
+            Console.WriteLine(value.Length);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (10,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(value.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(10, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_03()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? value)
+    {
+        int? i = null;
+        if (value?.Length == i)
+        {
+            Console.WriteLine(value.Length); // 1
+        }
+        else
+        {
+            Console.WriteLine(value.Length); // 2
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (11,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(value.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(11, 31),
+                    // (15,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(value.Length); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(15, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_04()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class C
+{
+    public string? s;
+}
+
+public class Program
+{
+    static void Main(C? value)
+    {
+        const object? i = null;
+        if (value?.s == i)
+        {
+            Console.WriteLine(value.s); // 1
+        }
+        else
+        {
+            Console.WriteLine(value.s);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (16,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(value.s); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(16, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_05()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? x, string? y)
+    {
+        if (x?.Length == 2 && y?.Length == 2)
+        {
+            Console.WriteLine(x.Length);
+            Console.WriteLine(y.Length);
+        }
+        else
+        {
+            Console.WriteLine(x.Length); // 1
+            Console.WriteLine(y.Length); // 2
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (15,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(x.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 31),
+                    // (16,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(y.Length); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_06()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? x, string? y)
+    {
+        if (x?.Length != 2 || y?.Length != 2)
+        {
+            Console.WriteLine(x.Length); // 1
+            Console.WriteLine(y.Length); // 2
+        }
+        else
+        {
+            Console.WriteLine(x.Length);
+            Console.WriteLine(y.Length);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (10,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(x.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 31),
+                    // (11,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(y.Length); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 31));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_07()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main(string? x, string? y)
+    {
+        if (x?.Length == 2 ? y?.Length == 2 : y?.Length == 3)
+        {
+            Console.WriteLine(x.Length); // 1
+            Console.WriteLine(y.Length); // 2
+        }
+        else
+        {
+            Console.WriteLine(x.Length); // 3
+            Console.WriteLine(y.Length); // 4
+        }
+    }
+}";
+            // The first warning produced for y.Length is unexpected.
+            // https://github.com/dotnet/roslyn/issues/36096
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (10,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(x.Length); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 31),
+                    // (11,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(y.Length); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 31),
+                    // (15,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(x.Length); // 3
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 31),
+                    // (16,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(y.Length); // 4
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 31)
+);
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalAccess_08()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class A
+{
+    public static explicit operator B(A? a) => new B();
+}
+
+public class B { }
+
+
+public class Program
+{
+    static void Main(A? a)
+    {
+        B b = new B();
+        if ((B)a == b)
+        {
+            Console.WriteLine(a.ToString()); // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (19,31): warning CS8602: Dereference of a possibly null reference.
+                    //             Console.WriteLine(a.ToString()); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(19, 31));
         }
 
         [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
