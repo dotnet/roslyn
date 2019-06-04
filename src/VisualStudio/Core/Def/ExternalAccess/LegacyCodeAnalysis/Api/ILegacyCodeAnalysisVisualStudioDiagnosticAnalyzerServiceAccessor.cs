@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
+namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api
 {
     internal interface ILegacyCodeAnalysisVisualStudioDiagnosticAnalyzerServiceAccessor
     {

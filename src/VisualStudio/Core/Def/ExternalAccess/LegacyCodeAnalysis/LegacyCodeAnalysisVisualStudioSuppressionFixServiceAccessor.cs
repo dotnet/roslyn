@@ -2,11 +2,12 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Internal
+namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
 {
     [Export(typeof(ILegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor))]
     [Shared]
