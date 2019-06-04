@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         // factory that will cache trivia info
         private readonly AbstractTriviaDataFactory _factory;
 
+        /// <summary>
+        /// An approximation for the length of a token in this stream
+        /// </summary>
+        float AverageTokenLength { get; }
+
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
@@ -51,10 +56,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _treeData = treeData;
                 _optionSet = optionSet;
 
-                // use some heuristics to get initial size of list rather than blindly start from default size == 4
-                int sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
                 _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArrayOrEmpty();
-                this.AverageTokenLength = Math.Max(1, (_tokens[_tokens.Length - 1].Position - _tokens[0].Position) * 1.0f / _tokens.Length);
+                // estimate average token length to speed up searches for token index in the stream
+                int approximateStreamLength = _tokens[_tokens.Length - 1].FullSpan.Start - _tokens[0].FullSpan.Start;
+                float averageTokenLength = (float)approximateStreamLength / _tokens.Length;
+                this.AverageTokenLength = Math.Max(0.1f, averageTokenLength);
 
                 Debug.Assert(this.TokenCount > 0);
 
@@ -179,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // using ref to avoid copying the entire struct
         private SyntaxToken FirstTokenOfBaseTokenLine(ref TokenData tokenData)
         {
-            while (!this.IsFirstTokenOnLine(tokenData))
+            while (!this.IsFirstTokenOnLine(in tokenData))
             {
                 tokenData = this.GetPreviousTokenData(tokenData);
             }
@@ -198,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private bool TwoTokensOnSameLineWorker<TDataGetter>(SyntaxToken token1, SyntaxToken token2, TDataGetter dataGetter)
-            where TDataGetter : ITriviaDataGetter
+            where TDataGetter : struct, ITriviaDataGetter
         {
             // check easy case
             if (token1 == token2)
@@ -278,25 +284,33 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetColumn(tokenWithIndex, new OriginalTriviaDataGetter(this));
         }
 
-        interface ITriviaDataGetter
+        private interface ITriviaDataGetter
         {
             TriviaData GetTriviaData(TokenData token1, TokenData token2);
         }
 
-        struct TriviaDataGetter : ITriviaDataGetter
+        private struct TriviaDataGetter : ITriviaDataGetter
         {
-            readonly TokenStream _tokenStream;
-            public TriviaDataGetter(TokenStream tokenStream) { _tokenStream = tokenStream; }
+            private readonly TokenStream _tokenStream;
+            public TriviaDataGetter(TokenStream tokenStream)
+            {
+                _tokenStream = tokenStream;
+            }
 
-            public TriviaData GetTriviaData(TokenData token1, TokenData token2) => _tokenStream.GetTriviaData(token1, token2);
+            public TriviaData GetTriviaData(TokenData token1, TokenData token2)
+                => _tokenStream.GetTriviaData(token1, token2);
         }
 
-        struct OriginalTriviaDataGetter : ITriviaDataGetter
+        private struct OriginalTriviaDataGetter : ITriviaDataGetter
         {
-            readonly TokenStream _tokenStream;
-            public OriginalTriviaDataGetter(TokenStream tokenStream) { _tokenStream = tokenStream; }
+            private readonly TokenStream _tokenStream;
+            public OriginalTriviaDataGetter(TokenStream tokenStream)
+            {
+                _tokenStream = tokenStream;
+            }
 
-            public TriviaData GetTriviaData(TokenData token1, TokenData token2) => _tokenStream.GetOriginalTriviaData(token1, token2);
+            public TriviaData GetTriviaData(TokenData token1, TokenData token2)
+                => _tokenStream.GetOriginalTriviaData(token1, token2);
         }
 
         /// <summary>
@@ -304,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// * column means text position on a line where all tabs are converted to spaces that first position on a line becomes 0
         /// </summary>
         private int GetColumn<TDataGetter>(TokenData tokenData, TDataGetter dataGetter)
-            where TDataGetter : ITriviaDataGetter
+            where TDataGetter : struct, ITriviaDataGetter
         {
             // at the beginning of a file.
             var previousToken = tokenData.GetPreviousTokenData();
@@ -512,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             var previousTokenWithIndex = tokenData.GetPreviousTokenData();
 
-            return IsFirstTokenOnLine(previousTokenWithIndex, tokenData);
+            return IsFirstTokenOnLine(in previousTokenWithIndex, in tokenData);
         }
 
         // this can be called with tokens that are outside of token stream
@@ -531,10 +545,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         /// <summary>
-        /// An approximation for the length of a token in this stream
-        /// </summary>
-        float AverageTokenLength { get; }
-        /// <summary>
         /// Gets approximated index bounds for a token with specified position, which will definitely contain
         /// the token, if it is present in the stream.
         /// </summary>
@@ -542,22 +552,30 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             float avgLength = this.AverageTokenLength;
             Debug.Assert(avgLength > 0);
-            lowerBound = upperBound = Bounded((int)((position - _tokens[0].Position) / avgLength), min: 0, max: _tokens.Length - 1);
+            // make an initial guess about the token position
+            lowerBound = upperBound = Bounded((int)((position - _tokens[0].FullSpan.Start) / avgLength), min: 0, max: _tokens.Length - 1);
 
-            while (_tokens[lowerBound].Position >= position && lowerBound > 0)
+            // decrease lower bound until the desired position is strictly after it
+            while (_tokens[lowerBound].FullSpan.Start >= position && lowerBound > 0)
             {
-                lowerBound = Math.Max(0, lowerBound - Math.Max(1, (int)((_tokens[lowerBound].Position - position) / avgLength)));
+                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - position) / avgLength);
+                lowerBound = Math.Max(0, lowerBound - Math.Max(1, estimatedError));
             }
 
-            while (_tokens[upperBound].Position <= position && upperBound < _tokens.Length - 1)
+            // increase upper bound until the desired position is strictly before it
+            while (_tokens[upperBound].FullSpan.Start <= position && upperBound < _tokens.Length - 1)
             {
-                upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, (int)((position - _tokens[upperBound].Position) / avgLength)));
+                int estimatedError = (int)((position - _tokens[upperBound].FullSpan.Start) / avgLength);
+                upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, estimatedError));
             }
         }
-        private static int Bounded(int value, int min, int max) => Math.Min(max, Math.Max(value, min));
+
+        private static int Bounded(int value, int min, int max)
+            => Math.Min(max, Math.Max(value, min));
+
         private int GetTokenIndexInStream(SyntaxToken token)
         {
-            GetTokenIndexBounds(token.Position, out int lowerBound, out int upperBound);
+            GetTokenIndexBounds(token.FullSpan.Start, out int lowerBound, out int upperBound);
             var tokenIndex = _tokens.BinarySearch(lowerBound, length: upperBound - lowerBound + 1, token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)
             {
@@ -616,13 +634,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private struct TokenOrderComparer : IComparer<SyntaxToken>
+        private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {
             public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
-                int dpos = x.Position.CompareTo(y.Position);
+                int dpos = x.FullSpan.Start.CompareTo(y.FullSpan.Start);
                 return dpos != 0 ? dpos : x.FullSpan.End.CompareTo(y.FullSpan.End);
             }
         }
