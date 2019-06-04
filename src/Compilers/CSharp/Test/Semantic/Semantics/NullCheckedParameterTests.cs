@@ -61,6 +61,11 @@ interface C
 interface C
 {
     public void M(int x!) { }
+}
+
+class C
+{
+    static void Main() { }
 }";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
                                                          parseOptions: TestOptions.Regular);
