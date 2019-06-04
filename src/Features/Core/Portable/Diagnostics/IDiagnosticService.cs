@@ -8,6 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    /// <summary>
+    /// Aggregates events from various diagnostic sources.
+    /// </summary>
     internal interface IDiagnosticService
     {
         /// <summary>
