@@ -129,7 +129,18 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction(Action action)
+        public void RunInTransaction<TState>(Action<TState> action, TState state)
+        {
+            RunInTransaction(
+                state =>
+                {
+                    state.action(state.state);
+                    return (object)null;
+                },
+                (action, state));
+        }
+
+        public TResult RunInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
         {
             try
             {
@@ -141,8 +152,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 IsInTransaction = true;
 
                 ExecuteCommand("begin transaction");
-                action();
+                var result = action(state);
                 ExecuteCommand("commit transaction");
+                return result;
             }
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
@@ -185,6 +197,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
@@ -196,11 +209,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
             // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
             // SQLITE_ABORT.
-            Stream stream = null;
-            RunInTransaction(() =>
-            {
-                stream = ReadBlob_InTransaction(dataTableName, dataColumnName, rowId);
-            });
+            var stream = RunInTransaction(
+                state => state.self.ReadBlob_InTransaction(state.dataTableName, state.dataColumnName, state.rowId),
+                (self: this, dataTableName, dataColumnName, rowId));
 
             return stream;
         }
