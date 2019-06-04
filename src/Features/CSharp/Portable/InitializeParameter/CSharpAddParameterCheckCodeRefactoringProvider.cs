@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddParameterCheckCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 

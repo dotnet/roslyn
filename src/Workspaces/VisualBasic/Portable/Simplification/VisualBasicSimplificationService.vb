@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicVariableDeclaratorReducer(),
                 New VisualBasicInferredMemberNameReducer())
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub

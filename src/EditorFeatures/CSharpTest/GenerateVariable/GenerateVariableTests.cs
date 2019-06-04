@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         private const int ReadonlyFieldIndex = 1;
         private const int PropertyIndex = 2;
         private const int LocalIndex = 3;
+        private const int Parameter = 4;
+        private const int ParameterAndOverrides = 5;
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
@@ -216,7 +218,27 @@ index: PropertyIndex);
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleWriteInOverrideCount()
+        {
+            await TestExactActionSetOfferedAsync(
+@"
+abstract class Base
+{
+    public abstract void Method(int i);
+}
+
+class Class : Base
+{
+    public override void Method(int i)
+    {
+        [|goo|] = 1;
+    }
+}",
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -371,7 +393,7 @@ class Class
         Method(out [|goo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2001,7 +2023,7 @@ class D
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
 
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -4513,7 +4535,7 @@ class C
 #line hidden
 }
 ";
-            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar") });
+            await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar") });
 
             await TestInRegularAndScriptAsync(code,
 @"
@@ -8939,6 +8961,144 @@ class C
         public int X;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|goo|];
+    }
+}",
+@"class Class
+{
+    void Method(object goo)
+    {
+        goo;
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameter_DoesntAddToInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class
+{
+    public void Method()
+    {
+        [|goo|];
+    }
+}",
+@"interface Interface
+{
+    void Method();
+}
+
+class Class
+{
+    public void Method(object goo)
+    {
+        [|goo|];
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterAndOverrides_AddsToInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class : Interface
+{
+    public void Method()
+    {
+        [|goo|];
+    }
+}",
+@"interface Interface
+{
+    void Method(object goo);
+}
+
+class Class : Interface
+{
+    public void Method(object goo)
+    {
+        [|goo|];
+    }
+}", index: ParameterAndOverrides);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterIsOfCorrectType()
+        {
+            await TestInRegularAndScriptAsync(
+    @"class Class
+{
+    void Method()
+    {
+        M1([|goo|]);
+    }
+
+    void M1(int a);
+}",
+    @"class Class
+{
+    void Method(int goo)
+    {
+        M1(goo);
+    }
+
+    void M1(int a);
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestAddParameterAndOverrides_IsOfCorrectType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Interface
+{
+    void Method();
+}
+
+class Class : Interface
+{
+    public void Method()
+    {
+        M1([|goo|]);
+    }
+
+    void M1(int a);
+}",
+@"interface Interface
+{
+    void Method(int goo);
+}
+
+class Class : Interface
+{
+    public void Method(int goo)
+    {
+        M1(goo);
+    }
+
+    void M1(int a);
+}", index: ParameterAndOverrides);
         }
     }
 }

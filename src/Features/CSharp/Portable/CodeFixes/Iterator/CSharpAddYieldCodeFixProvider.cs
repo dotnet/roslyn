@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// </summary>
         private const string CS0266 = nameof(CS0266);
 
+        [ImportingConstructor]
+        public CSharpAddYieldCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0029, CS0266); }

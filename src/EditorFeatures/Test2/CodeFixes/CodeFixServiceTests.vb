@@ -187,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         Private Class WorkspaceCodeFixProvider
             Inherits CodeFixProvider
 
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
+
             Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
                 Get
                     Return ImmutableArray.Create("TEST0000")
@@ -206,6 +210,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         <ExportCodeFixProvider(LanguageNames.CSharp, Name:="ProjectCodeFixProvider"), [Shared]>
         Public Class ProjectCodeFixProvider
             Inherits CodeFixProvider
+
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
 
             Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
                 Get

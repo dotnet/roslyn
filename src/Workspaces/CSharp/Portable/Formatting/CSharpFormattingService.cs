@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportLanguageService(typeof(IFormattingService), LanguageNames.CSharp), Shared]
     internal class CSharpFormattingService : AbstractFormattingService
     {
+        [ImportingConstructor]
+        public CSharpFormattingService()
+        {
+        }
     }
 }

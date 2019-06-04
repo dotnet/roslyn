@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
             StatementSyntax, IfStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider()
+        {
+        }
+
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 

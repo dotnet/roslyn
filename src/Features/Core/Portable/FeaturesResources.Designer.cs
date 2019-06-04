@@ -1183,6 +1183,51 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_field_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_field_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable fields should be disposed.
+        /// </summary>
+        internal static string Disposable_fields_should_be_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_fields_should_be_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable object created by &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_object_created_by_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_object_created_by_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field..
+        /// </summary>
+        internal static string DisposableFieldsShouldBeDisposedDescription {
+            get {
+                return ResourceManager.GetString("DisposableFieldsShouldBeDisposedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dispose objects before losing scope.
+        /// </summary>
+        internal static string Dispose_objects_before_losing_scope {
+            get {
+                return ResourceManager.GetString("Dispose_objects_before_losing_scope", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Document.
         /// </summary>
         internal static string Document {
@@ -1692,6 +1737,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_overrides {
             get {
                 return ResourceManager.GetString("Generate_overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_parameter_0 {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (and overrides/implementations).
+        /// </summary>
+        internal static string Generate_parameter_0_and_overrides_implementations {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0_and_overrides_implementations", resourceCulture);
             }
         }
         
@@ -4398,6 +4461,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that object created by &apos;{0}&apos; is disposed on all paths: using statement/declaration or try/finally.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on" +
+                        "_all_paths_using_statement_declaration_or_try_finally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
         /// </summary>
         internal static string Use_simple_using_statement {
@@ -4421,6 +4503,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string UseRecommendedDisposePatternDescription {
+            get {
+                return ResourceManager.GetString("UseRecommendedDisposePatternDescription", resourceCulture);
             }
         }
         

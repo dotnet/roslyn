@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
     [ExportWorkspaceService(typeof(IMoveToNamespaceOptionsService), layer: ServiceLayer.Host), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
+        [ImportingConstructor]
+        public VisualStudioMoveToNamespaceOptionsService()
+        {
+        }
+
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,

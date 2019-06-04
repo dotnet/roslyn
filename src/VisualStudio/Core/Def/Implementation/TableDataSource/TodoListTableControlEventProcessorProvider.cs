@@ -13,8 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     [DataSource(VisualStudioTodoListTable.IdentifierString)]
     [Name(Name)]
     [Order(Before = "default")]
-    internal class TodoListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TodoItem>
+    internal sealed class TodoListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TodoTableItem>
     {
         internal const string Name = "C#/VB Todo List Table Event Processor";
+
+        [ImportingConstructor]
+        public TodoListTableControlEventProcessorProvider()
+        {
+        }
     }
 }

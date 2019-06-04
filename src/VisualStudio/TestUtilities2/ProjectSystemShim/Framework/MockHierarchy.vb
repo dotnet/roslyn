@@ -21,6 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private _projectBinPath As String
         Private ReadOnly _projectRefPath As String
         Private ReadOnly _projectCapabilities As String
+        Private ReadOnly _projectGuid As Guid
         Private ReadOnly _projectMock As Mock(Of EnvDTE.Project) = New Mock(Of EnvDTE.Project)(MockBehavior.Strict)
 
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
@@ -30,11 +31,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                        projectFilePath As String,
                        projectBinPath As String,
                        projectRefPath As String,
-                       projectCapabilities As String)
+                       projectCapabilities As String,
+                       projectGuid As Guid)
             _projectName = projectName
             _projectBinPath = projectBinPath
             _projectRefPath = projectRefPath
             _projectCapabilities = projectCapabilities
+            _projectGuid = projectGuid
             _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectFilePath)
         End Sub
 
@@ -84,9 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetGuidProperty(itemid As UInteger, propid As Integer, ByRef pguid As Guid) As Integer Implements IVsHierarchy.GetGuidProperty
-            If itemid = VSConstants.VSITEMID_ROOT And propid = CType(__VSHPROPID.VSHPROPID_ProjectIDGuid, Integer) Then
-                pguid = Guid.NewGuid()
-
+            If itemid = VSConstants.VSITEMID_ROOT And propid = __VSHPROPID.VSHPROPID_ProjectIDGuid Then
+                pguid = _projectGuid
                 Return VSConstants.S_OK
             End If
 

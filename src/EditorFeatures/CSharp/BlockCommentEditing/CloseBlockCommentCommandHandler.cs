@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [Order(After = nameof(BlockCommentEditingCommandHandler))]
     internal sealed class CloseBlockCommentCommandHandler : VSCommanding.ICommandHandler<TypeCharCommandArgs>
     {
+        [ImportingConstructor]
+        public CloseBlockCommentCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
         public bool ExecuteCommand(TypeCharCommandArgs args, VSCommanding.CommandExecutionContext executionContext)

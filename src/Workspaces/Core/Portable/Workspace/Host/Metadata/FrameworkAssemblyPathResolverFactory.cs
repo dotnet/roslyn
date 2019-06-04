@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Default), Shared]
     internal sealed class FrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public FrameworkAssemblyPathResolverFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service();

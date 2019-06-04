@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -4179,6 +4181,178 @@ class C
 
             // Cannot convert expressions with preprocessor directives
             await TestMissingAsync(source);
+        }
+
+        #endregion
+
+        #region Name Generation
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionDoesNotUseLocalFunctionName()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        void enumerable() { }
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable1()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable1();
+
+        void enumerable() { }
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionCanUseLocalFunctionParameterName()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        void M(IEnumerable<int> enumerable) { }
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable();
+
+        void M(IEnumerable<int> enumerable) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionDoesNotUseLambdaParameterNameWithCSharpLessThan8()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        Action<int> myLambda = enumerable => { };
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable1()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable1();
+
+        Action<int> myLambda = enumerable => { };
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionCanUseLambdaParameterNameInCSharp8()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        Action<int> myLambda = enumerable => { };
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable();
+
+        Action<int> myLambda = enumerable => { };
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output, parseOptions: new CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp8));
         }
 
         #endregion

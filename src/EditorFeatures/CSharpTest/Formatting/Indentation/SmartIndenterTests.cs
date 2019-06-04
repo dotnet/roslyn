@@ -2618,7 +2618,7 @@ class Program
                 expectedIndentation: 8);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void PatternPropertyIndentFirst()
         {
             var code = @"
@@ -2661,7 +2661,7 @@ class C
                 expectedIndentation: 12);
         }
 
-        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void PatternPropertyIndentNestedFirst()
         {
             var code = @"

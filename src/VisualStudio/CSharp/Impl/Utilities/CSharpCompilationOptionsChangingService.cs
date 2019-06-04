@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
     [ExportLanguageService(typeof(ICompilationOptionsChangingService), LanguageNames.CSharp), Shared]
     internal class CSharpCompilationOptionsChangingService : ICompilationOptionsChangingService
     {
+        [ImportingConstructor]
+        public CSharpCompilationOptionsChangingService()
+        {
+        }
+
         public bool CanApplyChange(CompilationOptions oldOptions, CompilationOptions newOptions)
         {
             var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;

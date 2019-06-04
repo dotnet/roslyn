@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public PopulateSwitchCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
