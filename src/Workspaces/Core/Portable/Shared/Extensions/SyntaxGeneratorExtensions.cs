@@ -526,6 +526,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
+                    // There is no need for an override to have same parameters attributes as the original method.
+                    // Just clear attributes when generating an override.
+                    parameters: overriddenMethod.Parameters.SelectAsArray(p => p.WithAttributes(ImmutableArray<AttributeData>.Empty)),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

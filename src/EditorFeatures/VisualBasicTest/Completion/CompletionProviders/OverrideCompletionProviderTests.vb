@@ -1102,6 +1102,53 @@ End Class]]></a>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParameterAttributesAreNotGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub $$
+End Class]]></a>
+
+            Dim expectedCode = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub M(i As Integer)
+        MyBase.M(i)$$
+    End Sub
+End Class]]></a>
+
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitGenericMethod() As Task
             Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub goo(Of T)(x As T)

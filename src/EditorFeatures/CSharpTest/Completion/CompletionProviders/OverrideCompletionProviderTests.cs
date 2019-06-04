@@ -970,6 +970,43 @@ public class Derived : Base
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitParameterAttributesAreNotGenerated()
+        {
+            var markupBeforeCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }    
+}
+
+public class Class2 : Class1
+{
+    public override void $$
+}";
+
+            var expectedCodeAfterCommit = @"using System;
+
+public class Class1
+{
+    private class MyPrivate : Attribute { }
+    public class MyPublic : Attribute { }
+    public virtual void M([MyPrivate, MyPublic] int i) { }    
+}
+
+public class Class2 : Class1
+{
+    public override void M(int i)
+    {
+        base.M(i);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "M(int i)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitVoidMethod()
         {
             var markupBeforeCommit = @"class c
