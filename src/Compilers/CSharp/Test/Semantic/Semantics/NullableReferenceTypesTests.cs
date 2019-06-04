@@ -6701,7 +6701,7 @@ class C
         z.ToString();
     }
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class C2
 {
     void M(string z)
@@ -6745,16 +6745,16 @@ class C2
         public void NonNullTypesOnPartialSymbol()
         {
             var source = @"
-" + NonNullTypesOn() + @"
+#nullable enable
 partial class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial void M();
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 partial class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial void M() { }
 }
 ";
@@ -8434,16 +8434,16 @@ public class Oblivious
 
             var lib = @"
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class External
 {
     public static string s;
     public static string? ns;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string fs;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string? fns;
 }
 ";
@@ -8458,10 +8458,10 @@ public class External
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class A
     {
         public static string s;
@@ -8476,36 +8476,36 @@ public class B
     public static string? ns;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string s;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string? ns;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
     public class D
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string s;
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string? ns;
     }
 }
 
 public class Oblivious2
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string s;
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string? ns;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -8612,9 +8612,9 @@ public class External
     public static List2<string> s;
     public static List2<string?> ns;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public static List2<string> fs;
-" + NonNullTypesOff() + @"
+#nullable disable
     public static List2<string?> fns;
 }
 ";
@@ -8625,10 +8625,10 @@ public class External
 
 public class List3<T> { public T Item { get; set; } = default!; }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class A
     {
         public static List3<string> s;
@@ -8643,25 +8643,25 @@ public class B
     public static List3<string?> ns;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
     public class D
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static List3<string> s;
-" + NonNullTypesOn() + @"
+#nullable enable
         public static List3<string?> ns;
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class Oblivious2
 {
     public static List3<string> s;
     public static List3<string?> ns;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -8734,10 +8734,10 @@ public class External
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class A
     {
         public static (string s, string? ns) t;
@@ -8750,22 +8750,22 @@ public class B
     public static (string s, string? ns) t;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
     public class D
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static (string s, string? ns) t;
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class Oblivious2
 {
     public static (string s, string? ns) t;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -8837,10 +8837,10 @@ public class External
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class A
     {
         public static string[] s;
@@ -8855,25 +8855,25 @@ public class B
     public static string?[] ns;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
     public class D
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string[] s;
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string?[] ns;
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class Oblivious2
 {
     public static string[] s;
     public static string?[] ns;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -8946,14 +8946,14 @@ public class External
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
     public class A
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string s { get; set; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string? ns { get; set; }
     }
 }
@@ -8965,10 +8965,10 @@ public class B
     public static string? ns { get; set; }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class D
     {
         public static string s { get; set; }
@@ -8978,12 +8978,12 @@ public class OuterD
 
 public class Oblivious2
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string s { get; set; }
-" + NonNullTypesOff() + @"
+#nullable disable
     public static string? ns { get; set; }
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -9055,10 +9055,10 @@ public class External
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterA
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class A
     {
         public static string Method(string s) => throw null!;
@@ -9073,25 +9073,25 @@ public class B
     public static string? NMethod(string? ns) => throw null!;
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class OuterD
 {
     public class D
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string Method(string s) => throw null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public static string? NMethod(string? ns) => throw null!;
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class Oblivious2
 {
     public static string Method(string s) => throw null!;
     public static string? NMethod(string? ns) => throw null!;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class E
 {
     public void M()
@@ -9145,7 +9145,7 @@ class E
         public void NonNullTypes_OnModule()
         {
             var obliviousLib =
-NonNullTypesOff() + @"
+@"#nullable disable
 public class Oblivious { }
 ";
 
@@ -9161,7 +9161,7 @@ public class Oblivious { }
         public void NonNullTypes_ValueTypeArgument()
         {
             var source =
-NonNullTypesOff() + @"
+@"#nullable disable
 class A<T> { }
 class B
 {
@@ -9176,7 +9176,7 @@ class B
         public void NonNullTypes_GenericOverriddenMethod_ValueType()
         {
             var source =
-NonNullTypesOff() + @"
+@"#nullable disable
 class C<T> { }
 abstract class A
 {
@@ -9293,7 +9293,7 @@ class C
 
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M2()
     {
         foreach (string s in Collection())
@@ -9337,16 +9337,16 @@ class C
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     string[] Collection() => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     string?[] NCollection() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     string[] FalseCollection() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     string?[] FalseNCollection() => throw null!; // 5
 }
 ";
@@ -9381,7 +9381,7 @@ class C
 
 class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M2()
     {
         foreach (string s in Collection())
@@ -9425,16 +9425,16 @@ class C
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     string[] Collection() => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     string?[] NCollection() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     string[] FalseCollection() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     string?[] FalseNCollection() => throw null!; // 3
 }
 ";
@@ -9462,7 +9462,7 @@ class C
 
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M()
     {
         Out(out string s2);
@@ -9498,16 +9498,16 @@ class C
         ns5 = null;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void Out(out string s) => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void NOut(out string? ns) => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     void FalseOut(out string s) => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     void FalseNOut(out string? ns) => throw null!; // warn 7
 }
 ";
@@ -9551,7 +9551,7 @@ class C
 
 class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M()
     {
         Out(out string s2);
@@ -9587,16 +9587,16 @@ class C
         ns5 = null;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void Out(out string s) => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void NOut(out string? ns) => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     void FalseOut(out string s) => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     void FalseNOut(out string? ns) => throw null!; // 8
 }
 ";
@@ -9622,7 +9622,7 @@ class C
             var source = @"
 
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class C : Base
 {
     public void M()
@@ -9662,16 +9662,16 @@ public class C : Base
 }
 public class Base
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public string Method() => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public string? NMethod() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public string FalseMethod() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public string? FalseNMethod() => throw null!; // warn 8
 }
 ";
@@ -9716,7 +9716,7 @@ public class Base
             var source = @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class C : Base
 {
     public void M()
@@ -9756,16 +9756,16 @@ public class C : Base
 }
 public class Base
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public string Method() => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public string? NMethod() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public string FalseMethod() => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public string? FalseNMethod() => throw null!; // 3
 }
 ";
@@ -9792,7 +9792,7 @@ public class Base
 
 public class S { }
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public struct C<T> where T : S
 {
     public void M(T t)
@@ -9802,7 +9802,7 @@ public struct C<T> where T : S
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public struct D<T> where T : S
 {
     public void M(T t)
@@ -9827,12 +9827,12 @@ public struct D<T> where T : S
             var source = @"
 
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public delegate string[] MyDelegate(string[] x);
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public delegate string[] MyFalseDelegate(string[] x);
-" + NonNullTypesOn() + @"
+#nullable enable
 public delegate string[]? MyNullableDelegate(string[]? x);
 
 class C
@@ -9853,12 +9853,12 @@ class C
         MyNullableDelegate z5 = NullableParameterMethod;
      }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public string[] Method(string[] x) => throw null!;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public string[] FalseMethod(string[] x) => throw null!;
-" + NonNullTypesOn() + @"
+#nullable enable
     public string[]? NullableReturnMethod(string[] x) => throw null!;
     public string[] NullableParameterMethod(string[]? x) => throw null!;
 }
@@ -9886,21 +9886,21 @@ class C
 
 public class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public C(string[] x) => throw null!;
 }
 public class D
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public D(string[] x) => throw null!;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public class E
 {
     public string[] field = null!;
-" + NonNullTypesOff() + @"
+#nullable disable
     public string[] obliviousField;
-" + NonNullTypesOn() + @"
+#nullable enable
     public string[]? nullableField;
 
     void M()
@@ -9931,7 +9931,7 @@ public class E
 public class S { }
 public class List<T> { public T Item { get; set; } = default!; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public struct C<T, NT>
     where T : List<S>
     where NT : List<S?>
@@ -9945,7 +9945,7 @@ public struct C<T, NT>
     }
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public struct D<T, NT>
     where T : List<S>
     where NT : List<S?> // warn 3
@@ -9988,7 +9988,7 @@ class C1
     int? F4() => throw null!;
     Nullable<int> F5() => throw null!;
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 class C2
 {
     string F1() => throw null!;
@@ -9997,7 +9997,7 @@ class C2
     int? F4() => throw null!;
     Nullable<int> F5() => throw null!;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class C3
 {
     string F1() => throw null!;
@@ -10059,7 +10059,7 @@ class C1
     T? F6<T>() where T : struct => throw null!;
     Nullable<T> F7<T>() where T : struct => throw null!;
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 class C2
 {
     T F1<T>() => throw null!;
@@ -10070,7 +10070,7 @@ class C2
     T? F6<T>() where T : struct => throw null!;
     Nullable<T> F7<T>() where T : struct => throw null!;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class C3
 {
     T F1<T>() => throw null!;
@@ -11191,9 +11191,9 @@ class B2 : A
 
 public abstract class A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public abstract System.Action<string> Oblivious1(System.Action<string> x);
-" + NonNullTypesOn() + @"
+#nullable enable
 
     public abstract System.Action<string> Oblivious2(System.Action<string> x);
     public abstract System.Action<string> M3(System.Action<string> x);
@@ -11215,12 +11215,12 @@ public class B2 : A
 
     public override System.Action<string> Oblivious1(System.Action<string> x) => throw null!;
     public override System.Action<string> Oblivious2(System.Action<string> x) => throw null!;
-" + NonNullTypesOff() + @"
+#nullable disable
     public override System.Action<string> M3(System.Action<string> x) => throw null!;
-" + NonNullTypesOn() + @"
+#nullable enable
 
     public override System.Action<string> M4(System.Action<string> x) => throw null!;
-" + NonNullTypesOff() + @"
+#nullable disable
     public override System.Action<string> M5(System.Action<string> x) => throw null!;
 }
 ";
@@ -11268,7 +11268,7 @@ public class B2 : A
         {
             var source = @"
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class List<T> { }
 public class Base<T>
 {
@@ -11276,7 +11276,7 @@ public class Base<T>
 }
 public class Class<T> : Base<T>
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override List<T?> P { get; set; } = default;
 }
 ";
@@ -11302,7 +11302,7 @@ public class Class<T> : Base<T>
         {
             var source = @"
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class List<T> { }
 public class Base<T> where T : class
 {
@@ -11310,7 +11310,7 @@ public class Base<T> where T : class
 }
 public class Class<T> : Base<T> where T : class
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override List<T?> P { get; set; } = default;
 }
 ";
@@ -11337,7 +11337,7 @@ public class Base<T> where T : struct
 }
 public class Class<T> : Base<T> where T : struct
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override List<T?> P { get; set; } = default;
 }
 ";
@@ -11359,11 +11359,11 @@ public class Base
 }
 public class Class : Base
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override List<string[]> this[List<string[]> x] { get => throw null!; set => throw null!; }
 }
 public class Class2 : Base {
-" + NonNullTypesOn() + @"
+#nullable enable
     public override List<string[]> this[List<string[]> x] { get => throw null!; set => throw null!; }
 }
 ";
@@ -11376,14 +11376,14 @@ public class Class2 : Base {
         {
             var source = @"
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class List<T> { }
 public class Oblivious
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public virtual List<string[]> this[List<string[]> x] { get => throw null!; set => throw null!; }
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public class Class : Oblivious
 {
     public override List<string[]> this[List<string[]> x] { get => throw null!; set => throw null!; }
@@ -11413,19 +11413,19 @@ abstract class A
 
 class B1 : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override event System.Action<string?> E1 {add {} remove{}} // 1
-" + NonNullTypesOff() + @"
+#nullable disable
     public override event System.Action<string> E2 {add {} remove{}}
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B2 : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override event System.Action<string?> E1; // 3
-" + NonNullTypesOff() + @"
+#nullable disable
     public override event System.Action<string> E2;
-" + NonNullTypesOn() + @"
+#nullable enable
     void Dummy()
     {
         var e1 = E1;
@@ -11752,19 +11752,19 @@ abstract class A1
 
 class B1 : A1
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string[] P1 {get; set;}
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string[]? P2 {get; set;} // 3
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string[] this[int x]
     {
         get {throw new System.NotImplementedException();}
         set {}
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string[]? this[short x] // 4
     {
         get {throw new System.NotImplementedException();}
@@ -12057,13 +12057,13 @@ abstract class A
 
 class B : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string?[] M1()
     {
         return new string?[] {};
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override S?[] M2<S>()
     {
         return new S?[] {};
@@ -12259,13 +12259,13 @@ interface IA
 
 class B : IA
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     string?[] IA.M1()
     {
         return new string?[] {};
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     S?[] IA.M2<S>()
     {
         return new S?[] {};
@@ -12318,13 +12318,13 @@ interface IA
 
 class B : IA
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     string?[] IA.M1()
     {
         return new string?[] {};
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     S?[] IA.M2<S>() where S : class
     {
         return new S?[] {};
@@ -12360,12 +12360,12 @@ class B : IA
             var source = @"
 interface IA
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     string?[] M1();
-" + NonNullTypesOff() + @"
+#nullable disable
     T?[] M2<T>() where T : class;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B : IA
 {
     string[] IA.M1() => throw null!;
@@ -12398,12 +12398,12 @@ class B : IA
             var source = @"
 interface IA
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     void M1(string?[] x);
-" + NonNullTypesOff() + @"
+#nullable disable
     void M2<T>(T?[] x) where T : class;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B : IA
 {
     void IA.M1(string[] x) => throw null!;
@@ -12437,12 +12437,12 @@ class B : IA
             var source = @"
 interface IA
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     string[] M1();
-" + NonNullTypesOff() + @"
+#nullable disable
     T[] M2<T>() where T : class;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B : IA
 {
     string[] IA.M1() => throw null!;
@@ -12527,7 +12527,7 @@ class B : A
         public void Overriding_24()
         {
             var source = @"
-" + NonNullTypesOn() + @"
+#nullable enable
 
 abstract class A
 {
@@ -12537,12 +12537,12 @@ abstract class A
 
 class B : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override void M1(string?[] x)
     {
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override void M2<T>(T?[] x)
     {
     }
@@ -12881,13 +12881,13 @@ abstract class A
 
 class B : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override string?[] M1()
     {
         return new string?[] {};
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override S?[] M2<S>() where S : class
     {
         return new S?[] {};
@@ -12973,7 +12973,7 @@ class B : A
         public void Overriding_31()
         {
             var source = @"
-" + NonNullTypesOn() + @"
+#nullable enable
 
 abstract class A
 {
@@ -12983,12 +12983,12 @@ abstract class A
 
 class B : A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public override void M1(string?[] x)
     {
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public override void M2<T>(T?[] x) where T : class
     {
     }
@@ -15108,7 +15108,7 @@ partial class C1
             var source = @"
 partial class C1
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
 }
 
@@ -15190,10 +15190,10 @@ partial class C1
             var source = @"
 partial class C1
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 partial class C1
 {
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
@@ -15253,7 +15253,7 @@ partial class C1
 
 partial class C1
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
@@ -34990,11 +34990,10 @@ class C
         {
             // https://github.com/dotnet/roslyn/issues/29635 Need to re-infer discards
             var source =
-NonNullTypesOff() +
-@"
+@"#nullable disable
 class C<T>
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void F(object o1, object? o2, C<object> o3, C<object?> o4)
     {
         _ /*T:object?*/ = o1;
@@ -35002,7 +35001,7 @@ class C<T>
         _ /*T:C<object!>?*/ = o3;
         _ /*T:C<object?>?*/ = o4;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     void F(C<object> o)
     {
         _ /*T:C<object>?*/ = o;
@@ -35019,11 +35018,10 @@ class C<T>
             // https://github.com/dotnet/roslyn/issues/33393 Need to re-infer discards.
             // The types below should have non-oblivious type arguments in the expected results.
             var source =
-NonNullTypesOff() +
-@"
+@"#nullable disable
 class C<T>
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void F(bool b, object o1, object? o2, C<object> o3, C<object?> o4)
     {
         _ /*T:object?*/ = (b ? o1 : o2);
@@ -35032,7 +35030,7 @@ class C<T>
         _ /*T:C<object>?*/ = (b ? o3 : o5);
         _ /*T:C<object>?*/ = (b ? o4 : o5);
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     static C<object> o5 = null;
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -35051,11 +35049,10 @@ class C<T>
         public void Discard_04()
         {
             var source =
-NonNullTypesOff() +
-@"
+@"#nullable disable
 class C<T>
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void F(bool b, object o1)
     {
         (_ /*T:object?*/ = o1) /*T:object!*/.ToString();
@@ -39413,19 +39410,19 @@ partial class C
         public event Action E1;
         public event Action? E2;
 
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test13(Action x13)
         {
             x13 = E2;
@@ -39441,7 +39438,7 @@ partial class C
 {
     partial class B 
     {
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -39449,7 +39446,7 @@ partial class C
             c.M3(x21);
         }
 
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -39457,7 +39454,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2;
@@ -39500,30 +39497,30 @@ partial class C
 @"
 using System;
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class CL0
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public class CL1
     {
-" + NonNullTypesOn() + @"
+#nullable enable
 #pragma warning disable 8618
         public Action F1;
-" + NonNullTypesOn() + @"
+#nullable enable
 #pragma warning disable 8618
         public Action? F2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
 #pragma warning disable 8618
         public Action P1 { get; set; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? P2 { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action M1() { throw new System.NotImplementedException(); }
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? M2() { return null; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public void M3(Action x3) {}
     }
 }
@@ -39539,24 +39536,24 @@ partial class C
 
     partial class B 
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action E1;
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action? E2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test13(Action x13)
         {
             x13 = E2;
@@ -39569,13 +39566,13 @@ partial class C
 @"#pragma warning disable 8618
 using System;
 
-" + NonNullTypesOff() + @"
+#nullable disable
 partial class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial class B
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -39583,7 +39580,7 @@ partial class C
             c.M3(x21);
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -39591,7 +39588,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2;
@@ -39684,21 +39681,21 @@ public class CL0
 {
     public class CL1
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action F1 = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? F2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action P1 { get; set; } = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? P2 { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action M1() { throw new System.NotImplementedException(); }
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? M2() { return null; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public void M3(Action x3) {}
     }
 }
@@ -39713,11 +39710,11 @@ partial class C
 
     partial class B
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action E1;
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action? E2;
-" + NonNullTypesOff() + @"
+#nullable disable
         void Test11(Action? x11) // 1
         {
             E1 = x11; // 2
@@ -39845,26 +39842,26 @@ partial class C
             string lib = @"
 using System;
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public class CL0
 {
     public class CL1
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action F1 = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? F2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action P1 { get; set; } = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? P2 { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action M1() { throw new System.NotImplementedException(); }
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? M2() { return null; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public void M3(Action x3) {}
     }
 }
@@ -39877,9 +39874,9 @@ partial class C
 {
     partial class B 
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action E1;
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action? E2;
 
         void Test11(Action? x11) // 1
@@ -39903,7 +39900,7 @@ partial class C
             string source2 = @"
 using System;
 
-" + NonNullTypesOff() + @"
+#nullable disable
 partial class C
 {
     partial class B
@@ -39981,27 +39978,27 @@ partial class C
             string lib = @"
 using System;
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class CL0
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public class CL1
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action F1 = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? F2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action P1 { get; set; } = null!;
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? P2 { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action M1() { throw new System.NotImplementedException(); }
-" + NonNullTypesOn() + @"
+#nullable enable
         public Action? M2() { return null; }
-" + NonNullTypesOn() + @"
+#nullable enable
         public void M3(Action x3) {}
     }
 }
@@ -40014,9 +40011,9 @@ partial class C
 {
     partial class B 
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action E1;
-" + NonNullTypesOn() + @"
+#nullable enable
         public event Action? E2;
 
         void Test11(Action? x11) // 1
@@ -40040,10 +40037,10 @@ partial class C
             string source2 = @"
 using System;
 
-" + NonNullTypesOn() + @"
+#nullable enable
 partial class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     partial class B
     {
         void Test21(CL0.CL1 c, Action? x21) // 4
@@ -40118,27 +40115,27 @@ partial class C
             string lib = @"
 using System;
 
-" + NonNullTypesOn() + @"
+#nullable enable
 public class CL0
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public class CL1
     {
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action F1 = null!;
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action? F2;
 
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action P1 { get; set; } = null!;
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action? P2 { get; set; }
 
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action M1() { throw new System.NotImplementedException(); }
-" + NonNullTypesOff() + @"
+#nullable disable
         public Action? M2() { return null; }
-" + NonNullTypesOff() + @"
+#nullable disable
         public void M3(Action x3) {}
     }
 }
@@ -40147,30 +40144,30 @@ public class CL0
             string source1 = @"
 using System;
 
-" + NonNullTypesOn() + @"
+#nullable enable
 partial class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     partial class B
     {
-" + NonNullTypesOff() + @"
+#nullable disable
         public event Action E1;
-" + NonNullTypesOff() + @"
+#nullable disable
         public event Action? E2;
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test13(Action x13)
         {
             x13 = E2; // warn 1
@@ -40186,7 +40183,7 @@ partial class C
 {
     partial class B 
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -40194,7 +40191,7 @@ partial class C
             c.M3(x21);
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -40202,7 +40199,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-" + NonNullTypesOn() + @"
+#nullable enable
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2; // warn 2
@@ -44419,7 +44416,7 @@ class C
             var source1 =
 @"partial class C
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     static void F(object o) { }
 }";
             var source2 =
@@ -44969,25 +44966,25 @@ class P
         public void NonNullTypesInCSharp7_InSource()
         {
             var source = @"
-" + NonNullTypesOn() + @"
+#nullable enable
 public class C
 {
     public static string field;
 }
 public class D
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string field;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string Method(string s) => throw null;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string Property { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static event System.Action Event;
-" + NonNullTypesOff() + @"
+#nullable disable
     void M()
     {
         C.field = null;
@@ -45025,23 +45022,23 @@ public class D
         public void NonNullTypesInCSharp7_FromMetadata()
         {
             var libSource = @"
-" + NonNullTypesOn() + @"
+#nullable enable
 public class C
 {
     public static string field;
 }
 public class D
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string field;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string Method(string s) => throw null!;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static string Property { get; set; }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public static event System.Action Event;
 }
 ";
@@ -67952,11 +67949,11 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
             var source =
 @"
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : ID<string>
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IC : IA<ID<string>?>
 {}
 
@@ -67973,10 +67970,10 @@ class B
         IA<ID<string>?> y1;
         IA<ID<string>> z1;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: ID<string>
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(ID<string> b2, ID<string>? c2)
     {
         M1(b2);
@@ -67998,11 +67995,11 @@ class B
             var source =
 @"
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : class
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IB : IA<string?>
 {}
 
@@ -68016,10 +68013,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -68053,31 +68050,31 @@ class B
 public interface IA<TA> where TA : ID<string>
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : ID<string?> // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : ID<string>? // 2
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IE<TIE> : IA<TIE> where TIE : ID<string> // 3
 {}
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface ID<T>
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3 : ID<string> {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 4
         IA<TB2> y1; // 5
         IA<TB3> z1; // 6
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: ID<string>
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB3 b2, TB2 c2)
     {
         M1(a2); // 7
@@ -68124,27 +68121,27 @@ class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3
 public interface IA<TA> where TA : class
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
-" + NonNullTypesOn() + @"
+#nullable enable
 public class C
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB1 : C? where TB2 : C {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -68274,24 +68271,24 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
 public interface IA<TA> where TA : class
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : class? // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : class // 2
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB1 : class? where TB2 : class {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -68410,11 +68407,11 @@ public interface IF
             var source =
 @"
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : IE?, ID<string>, IF?
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IB<TIB> : IA<TIB> where TIB : IE?, ID<string?>, IF?
 {}
 
@@ -68441,10 +68438,10 @@ class B<TB1, TB2, TB3, TB4>
         IA<TB4> u1;
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: IE?, ID<string>, IF?
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB3 b2, TB2 c2, TB4 d2)
     {
         M1(a2);
@@ -68479,29 +68476,29 @@ public interface IA<TA> where TA : IE?, ID<string>, IF?
 {
 }
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : IE?, ID<string?>, IF? // 1
 {}
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : IE?, ID<string>?, IF? // 2
 {}
 
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IE<TIE> : IA<TIE> where TIE : IE?, ID<string>, IF? // 3
 {}
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface ID<T>
 {}
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2, TB3, TB4>
     where TB1 : IE?, ID<string?>, IF?
     where TB2 : IE?, ID<string>?, IF?
     where TB3 : IE?, ID<string>, IF?
     where TB4 : IE, ID<string>?, IF?
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 4
@@ -68510,11 +68507,11 @@ class B<TB1, TB2, TB3, TB4>
         IA<TB4> u1; // 7
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: IE?, ID<string>, IF?
     {}
 
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB3 b2, TB2 c2, TB4 d2)
     {
         M1(a2); // 8
@@ -68695,10 +68692,10 @@ public interface IB
             var source =
 @"
 class B<TB1> where TB1 : class, IB? {
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1, TM2>(TM1 x, TM2 y) where TM2 : TM1
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1? a2, TB1 b2)
     {
         M1(b2, a2); // 1
@@ -68765,10 +68762,10 @@ public interface IC
             var source =
 @"
 class B<TB1> where TB1 : A?, IB, IC? {
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1, TM2>(TM1 x, TM2 y) where TM2 : TM1
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1? a2, TB1 b2)
     {
         M1(b2, a2); // 1
@@ -68833,7 +68830,6 @@ class B
         M1<string?>(b2); // 5
         M1<string>(b2);
     }
-    
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68892,7 +68888,6 @@ class B
         M1<string?>(b2); // 5
         M1<string>(b2);
     }
-    
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68921,11 +68916,11 @@ class B
             var source =
 @"
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IB : IA<string?>
 {}
 
@@ -68939,10 +68934,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -68951,7 +68946,6 @@ class B
         M1<string?>(b2);
         M1<string>(b2);
     }
-
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -68980,11 +68974,11 @@ class B
             var source =
 @"#pragma warning disable CS8715
 #pragma warning disable CS0168
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IA<TA> where TA : object
 {
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 public interface IB : IA<string?>
 {}
 
@@ -68998,10 +68992,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -69010,7 +69004,6 @@ class B
         M1<string?>(b2);
         M1<string>(b2);
     }
-
 }
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -69029,27 +69022,27 @@ class B
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
 
 public class C
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB1 : C? where TB2 : C {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -69085,27 +69078,27 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C {
 public interface IA<TA> where TA : object
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
 
 public class C
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB1 : C? where TB2 : C {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -69258,24 +69251,24 @@ class B<TB1, TB2> where TB2 : object
 public interface IA<TA> where TA : notnull
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : notnull // 2
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB2 : notnull {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: notnull
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -69300,24 +69293,24 @@ class B<TB1, TB2> where TB2 : notnull {
 public interface IA<TA> where TA : object
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IB<TIB> : IA<TIB> // 1
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 public interface IC<TIC> : IA<TIC> where TIC : object // 2
 {}
-" + NonNullTypesOff() + @"
+#nullable disable
 class B<TB1, TB2> where TB2 : object {
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-" + NonNullTypesOn() + @"
+#nullable enable
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-" + NonNullTypesOn() + @"
+#nullable enable
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -71659,9 +71652,9 @@ public class B2<T> where T : A2<object> { }";
 @"
 public class A1 { }
 public class A2<T> { }
-" + NonNullTypesOff() + @"
+#nullable disable
 public class B1<T, U> where T : A1 where U : A1? { }
-" + NonNullTypesOff() + @"
+#nullable disable
 public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
             var comp0 = CreateCompilation(new[] { source0 });
             comp0.VerifyDiagnostics(
@@ -71706,13 +71699,13 @@ public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
 public interface I<T> { }
 public abstract class A<T> where T : class
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     public abstract void F1<U>() where U : T, I<T>;
-" + NonNullTypesOff() + @"
+#nullable disable
     public abstract void F2<U>() where U : T?, I<T?>;
-" + NonNullTypesOn() + @"
+#nullable enable
     public abstract void F3<U>() where U : T, I<T>;
-" + NonNullTypesOn() + @"
+#nullable enable
     public abstract void F4<U>() where U : T?, I<T?>;
 }";
             var comp0 = CreateCompilation(new[] { source0 });
@@ -71739,7 +71732,7 @@ public abstract class A<T> where T : class
 
             var source =
 @"
-" + NonNullTypesOff() + @"
+#nullable disable
 class B1 : A<string>
 {
     public override void F1<U>() { }
@@ -71747,7 +71740,7 @@ class B1 : A<string>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 class B2 : A<string?>
 {
     public override void F1<U>() { }
@@ -71755,7 +71748,7 @@ class B2 : A<string?>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B3 : A<string>
 {
     public override void F1<U>() { }
@@ -71763,7 +71756,7 @@ class B3 : A<string>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B4 : A<string?>
 {
     public override void F1<U>() { }
@@ -71845,7 +71838,7 @@ class B4 : A<string?>
             var source = @"
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         local(new C(), new C(), new C(), null);
@@ -71855,7 +71848,7 @@ class C
             x!.ToString();
         }
     }
-" + NonNullTypesOff() + @"
+#nullable disable
     void M2()
     {
         local(new C(), new C(), new C(), null);
@@ -72038,11 +72031,11 @@ public class B0<T> where T : A { }";
 
 class B1<T> where T : A? { }
 class B2<T> where T : A { }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B3<T> where T : A? { }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B4<T> where T : A { }
-" + NonNullTypesOff() + @"
+#nullable disable
 class C
 {
     B0<A?> F1; // 1
@@ -72056,7 +72049,7 @@ class C
     B4<A?> F9; // 5 and 6
     B4<A> F10;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class D
 {
     B0<A?> G1;
@@ -72112,11 +72105,11 @@ public class B0<T> where T : A<object> { }";
 
 class B1<T> where T : A<object?> { }
 class B2<T> where T : A<object> { }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B3<T> where T : A<object?> { }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B4<T> where T : A<object> { }
-" + NonNullTypesOff() + @"
+#nullable disable
 class C
 {
     B0<A<object?>> F1; // 1
@@ -72130,7 +72123,7 @@ class C
     B4<A<object?>> F9; // 5 and 6
     B4<A<object>> F10;
 }
-" + NonNullTypesOn() + @"
+#nullable enable
 class D
 {
     B0<A<object?>> G1;
@@ -72198,9 +72191,9 @@ public class A2<T, U>
 @"
 class B1<T> where T : A1<T, T?> { } // 1
 class B2<T> where T : A2<T?, T> { } // 2
-" + NonNullTypesOn() + @"
+#nullable enable
 class B3<T> where T : A1<T, T?> { }
-" + NonNullTypesOn() + @"
+#nullable enable
 class B4<T> where T : A2<T?, T> { }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
 
@@ -72849,15 +72842,15 @@ class C
 @"
 
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class A<T1, T2> where T1 : class where T2 : class
 {
     T1 F;
 
-" + NonNullTypesOff() + @"
+#nullable disable
     class B : A<T1, T2>
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void M1()
         {
             F = null; // 1
@@ -72869,30 +72862,30 @@ class A<T1, T2> where T1 : class where T2 : class
         F = null; // 2
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     class C : A<C, C>
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void M3()
         {
             F = null; // 3
         }
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     class D : A<T1, D>
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void M4()
         {
             F = null; // 4
         }
     }
 
-" + NonNullTypesOff() + @"
+#nullable disable
     class E : A<T2, T2>
     {
-" + NonNullTypesOn() + @"
+#nullable enable
         void M5()
         {
             F = null; // 5
@@ -72940,14 +72933,14 @@ class A<T1, T2> where T1 : class where T2 : class
 @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2> where T1 : class where T2 : class
 {
-" + NonNullTypesOn() + @"
+#nullable enable
 #pragma warning disable 8618
     T1 F;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class B : A<T1, T2>
     {
         void M1()
@@ -72956,13 +72949,13 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M2()
     {
         F = null; // 2
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class C : A<C, C>
     {
         void M3()
@@ -72971,7 +72964,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class D : A<T1, D>
     {
         void M4()
@@ -72980,7 +72973,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class E : A<T2, T2>
     {
         void M5()
@@ -73020,7 +73013,7 @@ class A<T1, T2> where T1 : class where T2 : class
         public void GenericSubstitution_03()
         {
             var source =
-NonNullTypesOff() + @"
+@"#nullable disable
 class A<T> where T : class
 {
     class B : A<T>
@@ -73040,7 +73033,7 @@ class A<T> where T : class
         public void GenericSubstitution_04()
         {
             var source =
-NonNullTypesOn() + @"
+@"#nullable enable
 class A<T> where T : class
 {
     class B : A<T>
@@ -73063,12 +73056,12 @@ class A<T> where T : class
 @"
 
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class A<T1, T2> where T1 : class where T2 : class
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     T1 F;
-" + NonNullTypesOn() + @"
+#nullable enable
     class B : A<T1, T2>
     {
         void M1()
@@ -73141,12 +73134,12 @@ class A<T1, T2> where T1 : class where T2 : class
 @"
 
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2> where T1 : class where T2 : class
 {
     T1 F;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class B : A<T1, T2>
     {
         void M1()
@@ -73155,13 +73148,13 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M2()
     {
         F = null;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class C : A<C, C>
     {
         void M3()
@@ -73170,7 +73163,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class D : A<T1, D>
     {
         void M3()
@@ -73179,7 +73172,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     class E : A<T2, T2>
     {
         void M3()
@@ -73281,10 +73274,10 @@ using System.Runtime.CompilerServices;
 
 class A
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     B[] F1;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     C[] F2;
 }
 
@@ -74876,7 +74869,7 @@ $@"
 +
 @"
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : B
 {
     T1 F1;
@@ -74884,7 +74877,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
     T3 F3;
     B F4;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         F1.ToString();
@@ -74893,7 +74886,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         F4.ToString();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M2()
     {
         T1 x2 = default;
@@ -74901,7 +74894,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         T3 z2 = default;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M3()
     {
         C.Test<T1>();
@@ -74909,7 +74902,7 @@ class A<T1, T2, T3> where T2 : class where T3 : B
         C.Test<T3>();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M4()
     {
         D.Test(F1);
@@ -74921,14 +74914,14 @@ class A<T1, T2, T3> where T2 : class where T3 : B
 
 class B {}
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class C
 {
     public static void Test<T>() where T : notnull
     {}
 }
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class D
 {
     public static void Test<T>(T x) where T : notnull
@@ -74965,7 +74958,7 @@ $@"
 +
 @"
 
-" + NonNullTypesOff() + @"
+#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     T1 F1;
@@ -74973,7 +74966,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
     T3 F3;
     B F4;
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         F1.ToString();
@@ -74982,7 +74975,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         F4.ToString();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M2()
     {
         T1 x2 = default;
@@ -74990,7 +74983,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         T3 z2 = default;
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M3()
     {
         C.Test<T1>();
@@ -74998,7 +74991,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         C.Test<T3>();
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M4()
     {
         D.Test(F1);
@@ -75010,14 +75003,14 @@ class A<T1, T2, T3> where T2 : class where T3 : object
 
 class B {}
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class C
 {
     public static void Test<T>() where T : object
     {}
 }
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class D
 {
     public static void Test<T>(T x) where T : object
@@ -75050,15 +75043,15 @@ $@"
 @"
 
 
-" + NonNullTypesOn() + @"
+#nullable enable
 class A<T1> where T1 : class
 {
-" + NonNullTypesOff() + @"
+#nullable disable
     class B<T2> where T2 : T1
     {
     }
 
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         B<T1> a1;
