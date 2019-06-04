@@ -1943,8 +1943,8 @@ End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DisposeAnalysis)>
-        Public Async Function DisposableCreationNotAssignedToAVariable_Diagnostic() As Task
-            Await TestDiagnosticsAsync(
+        Public Async Function DisposableCreationNotAssignedToAVariable_BailOut_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
 "Imports System
 
 Class A
@@ -1967,8 +1967,7 @@ Class Test
         New A(2).M()    ' Error
         Dim x = New A(3).X
     End Sub|]
-End Class",
-            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "New A(3)").WithLocation(21, 17))
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DisposeAnalysis)>

@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             private readonly ImmutableHashSet<IFieldSymbol> _disposableFields;
             private readonly ConcurrentDictionary<IFieldSymbol, /*disposed*/bool> _fieldDisposeValueMap;
             private readonly DisposeAnalysisHelper _disposeAnalysisHelper;
+            private bool _hasErrors;
 
             public SymbolAnalyzer(ImmutableHashSet<IFieldSymbol> disposableFields, DisposeAnalysisHelper disposeAnalysisHelper)
             {
@@ -110,6 +111,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
             {
+                if (_hasErrors)
+                {
+                    return;
+                }
+
                 foreach (var kvp in _fieldDisposeValueMap)
                 {
                     IFieldSymbol field = kvp.Key;
@@ -126,6 +132,13 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             [MethodImpl(MethodImplOptions.NoInlining)]
             private void OnOperationBlockStart(OperationBlockStartAnalysisContext operationBlockStartContext)
             {
+                if (_hasErrors)
+                {
+                    return;
+                }
+
+                operationBlockStartContext.RegisterOperationAction(_ => _hasErrors = true, OperationKind.Invalid);
+
                 switch (operationBlockStartContext.OwningSymbol)
                 {
                     case IFieldSymbol _:
@@ -182,7 +195,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                     // Check if this is a Disposable field that is not currently being tracked.
                     if (_fieldDisposeValueMap.ContainsKey(field) ||
-                        !_disposableFields.Contains(field))
+                        !_disposableFields.Contains(field) ||
+                        _hasErrors)
                     {
                         return;
                     }
@@ -209,6 +223,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             {
                                 Interlocked.CompareExchange(ref lazyPointsToAnalysisResult, pointsToAnalysisResult, null);
                             }
+                            else
+                            {
+                                _hasErrors = true;
+                                return;
+                            }
                         }
 
                         PointsToAbstractValue assignedPointsToValue = lazyPointsToAnalysisResult[simpleAssignmentOperation.Value.Kind, simpleAssignmentOperation.Value.Syntax];
@@ -225,6 +244,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 void AnalyzeDisposeMethod()
                 {
+                    if (_hasErrors)
+                    {
+                        return;
+                    }
+
                     // Perform dataflow analysis to compute dispose value of disposable fields at the end of dispose method.
                     if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext, containingMethod,
                         s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: true,
@@ -267,6 +291,10 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        _hasErrors = true;
                     }
                 }
             }
