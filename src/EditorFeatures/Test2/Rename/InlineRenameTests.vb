@@ -1780,8 +1780,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
@@ -1804,8 +1803,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
@@ -1832,8 +1830,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
@@ -1860,8 +1857,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
@@ -1884,8 +1880,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
@@ -1906,8 +1901,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                DisableFileRenameExperiment(workspace)
-                Dim session = StartSession(workspace)
+                Dim session = StartSession(workspace, fileRenameEnabled:=False)
 
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using

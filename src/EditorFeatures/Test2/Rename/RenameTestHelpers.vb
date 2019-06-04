@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
                 GetType(MockDocumentNavigationServiceFactory),
-                GetType(MockFileRenameExperimentationService)))
+                GetType(TestExperimentationService)))
 
         Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory
             Get
@@ -51,24 +50,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return Tuple.Create(solution.GetDocument(hostdoc.Id), token.Span)
         End Function
 
-        Public Function StartSession(workspace As TestWorkspace) As InlineRenameSession
+        Public Function StartSession(workspace As TestWorkspace, Optional fileRenameEnabled As Boolean = True) As InlineRenameSession
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
+
+            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
+            Dim fileExperiment = DirectCast(experiment, TestExperimentationService)
+            fileExperiment.SetExperimentOption(WellKnownExperimentNames.RoslynInlineRenameFile, fileRenameEnabled)
+
             Dim sessionInfo = GetSessionInfo(workspace)
 
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)
         End Function
-
-        Public Sub EnableFileRenameExperiment(workspace As TestWorkspace)
-            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
-            Dim fileExperiment = DirectCast(experiment, MockFileRenameExperimentationService)
-            fileExperiment.SetEnabled(True)
-        End Sub
-
-        Public Sub DisableFileRenameExperiment(workspace As TestWorkspace)
-            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
-            Dim fileExperiment = DirectCast(experiment, MockFileRenameExperimentationService)
-            fileExperiment.SetEnabled(False)
-        End Sub
 
         Public Sub AssertTokenRenamable(workspace As TestWorkspace)
             Dim renameService = DirectCast(workspace.GetService(Of IInlineRenameService)(), InlineRenameService)
