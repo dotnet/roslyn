@@ -31,8 +31,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
+        public static void Report(Exception exception)
+        {
+            Report("Roslyn NonFatal Watson", exception, critical: false);
+        }
+
+        /// <summary>
+        /// Report Non-Fatal Watson
+        /// </summary>
+        /// <param name="exception">Exception that triggered this non-fatal error</param>
         /// <param name="critical">indicate whether reported NFW is critical or not</param>
-        public static void Report(Exception exception, bool critical = false)
+        public static void Report(Exception exception, bool critical)
         {
             Report("Roslyn NonFatal Watson", exception, critical);
         }
