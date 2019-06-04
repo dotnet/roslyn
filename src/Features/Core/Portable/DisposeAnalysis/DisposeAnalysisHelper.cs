@@ -109,12 +109,15 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 if (cfg != null)
                 {
                     var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-                    disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
+                    disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                         defaultDisposeOwnershipTransferAtConstructor: true);
-                    return true;
+                    if (disposeAnalysisResult != null)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -140,12 +143,15 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 if (cfg != null)
                 {
                     var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
-                    disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
+                    disposeAnalysisResult = FlowAnalysis.DataFlow.DisposeAnalysis.DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, wellKnownTypeProvider,
                         context.Options, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         exceptionPathsAnalysis: false, context.CancellationToken, out pointsToAnalysisResult,
                         interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
                         defaultDisposeOwnershipTransferAtConstructor: true);
-                    return true;
+                    if (disposeAnalysisResult != null)
+                    {
+                        return true;
+                    }
                 }
             }
 

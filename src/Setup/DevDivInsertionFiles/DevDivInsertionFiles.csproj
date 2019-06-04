@@ -48,6 +48,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>

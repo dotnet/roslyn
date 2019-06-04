@@ -30,39 +30,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _documentIds = documentIds;
         }
 
-        public string GetProjectName(Workspace workspace)
+        public string GetProjectName(Solution solution)
         {
-            return GetCache(workspace).GetProjectName(workspace);
+            return GetCache(solution).GetProjectName(solution);
         }
 
-        public string[] GetProjectNames(Workspace workspace)
+        public string[] GetProjectNames(Solution solution)
         {
-            return GetCache(workspace).GetProjectNames(workspace);
+            return GetCache(solution).GetProjectNames(solution);
         }
 
         public Guid[] GetProjectGuids(Workspace workspace)
         {
-            return GetCache(workspace).GetProjectGuids(workspace);
+            return GetCache(workspace.CurrentSolution).GetProjectGuids(workspace);
         }
 
-        private ProjectInfoCache GetCache(Workspace workspace)
+        private ProjectInfoCache GetCache(Solution solution)
         {
             if (_cache == null)
             {
                 // make sure this is deterministic
                 var orderedItems = _documentIds.Select(d => d.ProjectId).Distinct().OrderBy(p => p.Id);
-                _cache = ProjectInfoCache.GetOrAdd(GetHashCode(workspace, orderedItems), orderedItems, c => new ProjectInfoCache(orderedItems.ToImmutableArray()));
+                _cache = ProjectInfoCache.GetOrAdd(GetHashCode(solution, orderedItems), orderedItems, c => new ProjectInfoCache(orderedItems.ToImmutableArray()));
             }
 
             return _cache;
         }
 
-        private int GetHashCode(Workspace workspace, IEnumerable<ProjectId> ordereditems)
+        private int GetHashCode(Solution solution, IEnumerable<ProjectId> ordereditems)
         {
             var collectionHash = 1;
             foreach (var item in ordereditems)
             {
-                collectionHash = Hash.Combine(workspace.GetProjectName(item), Hash.Combine(item.GetHashCode(), collectionHash));
+                collectionHash = Hash.Combine(solution.GetProjectName(item), Hash.Combine(item.GetHashCode(), collectionHash));
             }
 
             return collectionHash;
@@ -88,21 +88,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _projectIds = projectIds;
             }
 
-            public string GetProjectName(Workspace workspace)
+            public string GetProjectName(Solution solution)
             {
                 if (_projectName == null)
                 {
-                    _projectName = workspace.GetProjectName(_projectIds);
+                    _projectName = solution.GetProjectName(_projectIds);
                 }
 
                 return _projectName;
             }
 
-            public string[] GetProjectNames(Workspace workspace)
+            public string[] GetProjectNames(Solution solution)
             {
                 if (_projectNames == null)
                 {
-                    _projectNames = workspace.GetProjectNames(_projectIds);
+                    _projectNames = solution.GetProjectNames(_projectIds);
                 }
 
                 return _projectNames;

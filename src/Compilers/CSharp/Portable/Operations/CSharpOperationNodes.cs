@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +11,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
+
+    internal sealed class CSharpLazyNoneOperation : LazyNoneOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNode _boundNode;
+
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _boundNode = boundNode;
+        }
+
+        protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
+    }
+
+
     internal sealed class CSharpLazyAddressOfOperation : LazyAddressOfOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
