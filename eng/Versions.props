@@ -5,15 +5,18 @@
     Roslyn version
   -->
   <PropertyGroup>
-    <VersionPrefix>3.2.0</VersionPrefix>
+    <MajorVersion>3</MajorVersion>
+    <MinorVersion>2</MinorVersion>
+    <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    
+    <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
-      By default the assembly version in official builds is "$(VersionPrefix).0".
-      When building servicing set AssemblyVersion property to a fixed value to avoid updating binding redirects in VS.
+      By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
-    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(VersionPrefix).0</AssemblyVersion>
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions

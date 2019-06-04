@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(object obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public virtual bool Equals(BoundDagEvaluation other)
         {
-            return other != (object)null && this.Kind == other.Kind && this.Input.Equals(other.Input) && this.Symbol == other.Symbol;
+            return other != (object)null && this.Kind == other.Kind && this.GetOriginalInput().Equals(other.GetOriginalInput()) && this.Symbol == other.Symbol;
         }
         private Symbol Symbol
         {
@@ -28,8 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
+            return Hash.Combine(GetOriginalInput().GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
+
+        /// <summary>
+        /// Returns the original input for this evaluation, stripped of all Type Evaluations.
+        /// 
+        /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to
+        /// So two evaluations act on the same input so long as they have the same original input.
+        /// </summary>
+        private BoundDagTemp GetOriginalInput()
+        {
+            var input = this.Input;
+            while (input.Source is BoundDagTypeEvaluation source)
+            {
+                input = source.Input;
+            }
+            return input;
+        }
+
         public static bool operator ==(BoundDagEvaluation left, BoundDagEvaluation right)
         {
             return (left is null) ? right is null : left.Equals(right);
