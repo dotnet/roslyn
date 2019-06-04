@@ -12,7 +12,7 @@
     mc:Ignorable="d" d:DesignHeight="279" d:DesignWidth="514">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <localOptions:CodeStyleNoticeTextBlock />
+            <localOptions:CodeStyleNoticeTextBlock Margin="5 0 5 0" />
             <GroupBox x:Uid="GroupBox_1" Header="{x:Static local:FormattingGeneralOptionPageStrings.General}">
                 <StackPanel>
                     <CheckBox x:Name="FormatWhenTypingCheckBox" x:Uid="FormatWhenTypingCheckBox" />

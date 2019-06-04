@@ -50,7 +50,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Margin="5 0 5 0 " TextWrapping="Wrap" Text="{x:Static style:NamingStyleOptionPageControl.ExplanatoryText}" />
-        <options:CodeStyleNoticeTextBlock Grid.Row="2" />
+        <options:CodeStyleNoticeTextBlock Grid.Row="2" Margin="5 0 5 0" />
         <DataGrid
             Grid.Row="3"
             x:Uid="CodeStyleContent"
