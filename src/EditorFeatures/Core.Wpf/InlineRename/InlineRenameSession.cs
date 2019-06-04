@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
 
             if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynInlineRenameFile)
-                && _renameInfo is IIInlineRenameInfoWithFileRename renameInfoWithFileRename)
+                && _renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
             {
                 FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
             }

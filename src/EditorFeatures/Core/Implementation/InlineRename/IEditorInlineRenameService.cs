@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
     }
 
-    internal interface IIInlineRenameInfoWithFileRename : IInlineRenameInfo
+    internal interface IInlineRenameInfoWithFileRename : IInlineRenameInfo
     {
         /// <summary>
         /// Returns information about the file rename capabilities of 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IIInlineRenameInfoWithFileRename
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -248,24 +248,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     && (RenameSymbol.Locations.Length == 1)
                     && (OriginalNameMatches(_document, RenameSymbol.Name));
 
-                if (kindSupportsFileRename && allowRename)
-                {
-                    return InlineRenameFileRenameInfo.Allowed;
-                }
-                else if (kindSupportsFileRename)
-                {
-                    return InlineRenameFileRenameInfo.Disabled;
-                }
-
-                return InlineRenameFileRenameInfo.NotAllowed;
+                return kindSupportsFileRename
+                    ? allowRename
+                        ? InlineRenameFileRenameInfo.Allowed
+                        : InlineRenameFileRenameInfo.Disabled
+                    : InlineRenameFileRenameInfo.NotAllowed;
 
                 // Local Functions
 
                 static bool OriginalNameMatches(Document document, string name)
-                {
-                    return Path.GetFileNameWithoutExtension(document.Name)
+                    =>  Path.GetFileNameWithoutExtension(document.Name)
                         .Equals(name, StringComparison.OrdinalIgnoreCase);
-                }
             }
         }
     }
