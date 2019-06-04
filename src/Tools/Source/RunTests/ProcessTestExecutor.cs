@@ -73,7 +73,7 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.TestVsi && !result.Succeeded)
+            if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
