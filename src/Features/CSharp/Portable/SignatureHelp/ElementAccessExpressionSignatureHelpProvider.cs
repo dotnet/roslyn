@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
-            indexers = semanticModel.LookupSymbols(position, expressionType.UnwrapNullabilitySymbol(), WellKnownMemberNames.Indexer)
+            indexers = semanticModel.LookupSymbols(position, expressionType.WithoutNullability(), WellKnownMemberNames.Indexer)
                 .OfType<IPropertySymbol>()
                 .ToImmutableArray();
             return true;

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static T UnwrapNullabilitySymbol<T>(this T typeSymbol) where T : ITypeSymbol
+        public static T WithoutNullability<T>(this T typeSymbol) where T : ITypeSymbol
         {
             if (typeSymbol is TypeSymbolWithNullableAnnotation typeSymbolWithNullability)
             {

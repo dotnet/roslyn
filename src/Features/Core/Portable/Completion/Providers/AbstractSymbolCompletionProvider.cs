@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var inferredType in inferredTypes)
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type.UnwrapNullabilitySymbol(), inferredType.UnwrapNullabilitySymbol()).IsImplicit)
+                if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
                 {
                     return true;
                 }

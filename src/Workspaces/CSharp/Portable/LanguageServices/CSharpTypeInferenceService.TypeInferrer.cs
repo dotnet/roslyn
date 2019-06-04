@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will actually return a viable type given where this invocation expression
                         // is.
                         var filteredMethods = instantiatedMethods.Where(m =>
-                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType.UnwrapNullabilitySymbol(), t.UnwrapNullabilitySymbol()).IsImplicit)).ToList();
+                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType.WithoutNullability(), t.WithoutNullability()).IsImplicit)).ToList();
 
                         // If we filtered down to nothing, then just fall back to the instantiated list.
                         // this is a best effort after all.
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rightTypes
                     .Select(x => x.InferredType.IsValueType
                                      // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType.UnwrapNullabilitySymbol())) // Goo() ?? 0
+                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType.WithoutNullability())) // Goo() ?? 0
                                      : x); // Goo() ?? ""
             }
 
@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
 
                 // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType.UnwrapNullabilitySymbol())));
+                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType.WithoutNullability())));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                             }
 
-                            elementTypesBuilder.Add(patternType.InferredType.UnwrapNullabilitySymbol());
+                            elementTypesBuilder.Add(patternType.InferredType.WithoutNullability());
                         }
 
                         var type = Compilation.CreateTupleTypeSymbol(
@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
-                                return CreateResult(ienumerableType.Construct(typeArg.UnwrapNullabilitySymbol()));
+                                return CreateResult(ienumerableType.Construct(typeArg.WithoutNullability()));
                             }
                         }
                     }
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // TODO: pass along nullability to Construct when https://github.com/dotnet/roslyn/issues/36046 is fixed.
-                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType.UnwrapNullabilitySymbol())));
+                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType.WithoutNullability())));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInYieldStatement(YieldStatementSyntax yieldStatement, SyntaxToken? previousToken = null)
@@ -2138,7 +2138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36047 is fixed
-                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.UnwrapNullabilitySymbol()), elementNames);
+                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames);
             }
 
             private bool TryGetTupleTypesAndNames(

@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         {
-            return compilation.ClassifyConversion(sourceType.UnwrapNullabilitySymbol(), targetType.UnwrapNullabilitySymbol()).IsImplicit;
+            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
         }
 
         public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(

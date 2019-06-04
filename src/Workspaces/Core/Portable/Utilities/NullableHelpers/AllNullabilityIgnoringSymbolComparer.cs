@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // TODO: also ignore nested nullability. Right now there is no compiler API to do this, but it's being tracked in https://github.com/dotnet/roslyn/issues/35933.
                 // The fixing of this code will be tracked by https://github.com/dotnet/roslyn/issues/36044 and tests can then be unskipped there.
-                return xTypeSymbol.UnwrapNullabilitySymbol().Equals(yTypeSymbol.UnwrapNullabilitySymbol());
+                return xTypeSymbol.WithoutNullability().Equals(yTypeSymbol.WithoutNullability());
             }
 
             return object.Equals(x, y);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (symbol is ITypeSymbol typeSymbol)
             {
-                return typeSymbol.UnwrapNullabilitySymbol().GetHashCode();
+                return typeSymbol.WithoutNullability().GetHashCode();
             }
             else
             {
