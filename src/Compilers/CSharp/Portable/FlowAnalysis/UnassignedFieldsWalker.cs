@@ -64,6 +64,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
+        {
+            VisitRvalue(binary.Right);
+
+            var thisSlot = VariableSlot(MethodThisParameter);
+            switch (binary.OperatorKind.Operator())
+            {
+                case BinaryOperatorKind.Equal:
+                    if (isComparisonToDefault(binary.Left, binary.Right))
+                    {
+                        markAssigned(binary.Left, whenTrue: false);
+                    }
+                    else if (isComparisonToDefault(binary.Right, binary.Left))
+                    {
+                        markAssigned(binary.Right, whenTrue: false);
+                    }
+
+                    break;
+                case BinaryOperatorKind.NotEqual:
+                    if (isComparisonToDefault(binary.Left, binary.Right))
+                    {
+                        markAssigned(binary.Left, whenTrue: true);
+                    }
+                    else if (isComparisonToDefault(binary.Right, binary.Left))
+                    {
+                        markAssigned(binary.Right, whenTrue: true);
+                    }
+
+                    break;
+                default:
+                    base.AfterLeftChildHasBeenVisited(binary);
+                    break;
+            }
+
+            static bool isComparisonToDefault(BoundExpression expr, BoundExpression possiblyDefault) =>
+                possiblyDefault.ConstantValue == expr.Type.GetDefaultValue() && expr.ConstantValue is null;
+
+            void markAssigned(BoundExpression assigned, bool whenTrue)
+            {
+                var fieldSlot = VariableSlot(assigned.ExpressionSymbol, thisSlot);
+                if (fieldSlot != -1)
+                {
+                    Split();
+                    if (whenTrue)
+                    {
+                        StateWhenTrue.Assign(fieldSlot);
+                    }
+                    else
+                    {
+                        StateWhenFalse.Assign(fieldSlot);
+                    }
+                }
+            }
+        }
+
         private void ReportUninitializedNonNullableReferenceTypeFields()
         {
             var thisParameter = MethodThisParameter;

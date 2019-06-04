@@ -844,5 +844,94 @@ class C
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
         }
+
+        [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_01()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s;
+    C(bool a)
+    {
+        if (a)
+            s = string.Empty;
+        if (s == null)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_02()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s;
+    C(bool a)
+    {
+        if (a)
+            s = string.Empty;
+        if (s == default)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_03()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s1, s2;
+    C(bool a)
+    {
+        if (a)
+        {
+            s1 = string.Empty;
+            s2 = string.Empty;
+        }
+        if (s1 == default)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (6,5): warning CS8618: Non-nullable field 's2' is uninitialized.
+                    //     C(bool a)
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "s2").WithLocation(6, 5));
+        }
+
+        [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_04()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s1, s2;
+    C(bool a)
+    {
+        if (a)
+        {
+            s1 = string.Empty;
+            s2 = string.Empty;
+        }
+        if (s1 == default || s2 == default)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }
