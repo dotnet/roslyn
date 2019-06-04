@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var errorReportingService = workspace.Services.GetService<IErrorReportingService>();
                 infoBarUIs.Add(
-                    new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.Button, () =>
+                    new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () =>
                         errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: true));
             }
 
