@@ -64,8 +64,8 @@ Trivial/optimized cases:
 NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
 NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
 NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has no type constraints, `notnull`, `class`, `struct` and `unmanaged` constraints and
-is declared in a context where nullable type annotations are allowed, that is eqivalent to having an `object?` constraint.
+NullableAttribute(2) should be placed on a type parameter definition that has no `notnull`, `class`, `struct`, `unmanaged` and type constraints and
+is declared in a context where nullable type annotations are allowed, that is equivalent to having an `object?` constraint.
 Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
 
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
