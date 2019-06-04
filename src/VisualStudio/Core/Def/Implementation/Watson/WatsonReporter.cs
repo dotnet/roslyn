@@ -33,17 +33,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(Exception exception)
         {
-            Report("Roslyn NonFatal Watson", exception, critical: false);
+            Report("Roslyn NonFatal Watson", exception, WatsonSeverity.Default);
         }
 
         /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="critical">indicate whether reported NFW is critical or not</param>
-        public static void Report(Exception exception, bool critical)
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(Exception exception, WatsonSeverity severity)
         {
-            Report("Roslyn NonFatal Watson", exception, critical);
+            Report("Roslyn NonFatal Watson", exception, severity);
         }
 
         /// <summary>
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="critical">indicate whether reported NFW is critical or not</param>
-        public static void Report(string description, Exception exception, bool critical = false)
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(string description, Exception exception, WatsonSeverity severity = WatsonSeverity.Default)
         {
-            Report(description, exception, s_defaultCallback, critical);
+            Report(description, exception, s_defaultCallback, severity);
         }
 
         /// <summary>
@@ -65,9 +65,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
         /// a dump of the current process, but this can be used to add further information or files to the
         /// CAB.</param>
-        /// <param name="critical">indicate whether reported NFW is critical or not</param>
-        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback, bool critical = false)
+        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
+        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback, WatsonSeverity severity = WatsonSeverity.Default)
         {
+            var critical = severity == WatsonSeverity.Critical;
             var emptyCallstack = exception.SetCallstackIfEmpty();
 
             if (!WatsonDisabled.s_reportWatson ||
@@ -105,5 +106,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 WatsonDisabled.s_reportWatson = false;
             }
         }
+    }
+
+    internal enum WatsonSeverity
+    {
+        /// <summary>
+        /// Indicate that this watson is informative and not urgent
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Indicate that this watson is critical and need to be addressed soon
+        /// </summary>
+        Critical,
     }
 }
