@@ -101,7 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IRunningDocumentTableEventListener.OnReloadDocumentData(uint docCookie, string moniker)
             {
                 // This event is not relevant to the VS workspace open file tracker.
-                return;
             }
 
             void IRunningDocumentTableEventListener.OnBeforeOpenDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
@@ -113,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             void IRunningDocumentTableEventListener.OnRenameDocument(uint docCookie, string newMoniker, string oldMoniker)
             {
                 // This event is not relevant to the VS workspace open file tracker.
-                return;
             }
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)

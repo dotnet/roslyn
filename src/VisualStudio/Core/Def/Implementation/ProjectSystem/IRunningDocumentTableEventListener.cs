@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Defines the methods that get called by the <see cref="RunningDocumentTableEventTracker"/>
     /// for getting notified about running document table events.
     /// </summary>
-    interface IRunningDocumentTableEventListener
+    internal interface IRunningDocumentTableEventListener
     {
         void OnCloseDocument(uint docCookie, string moniker);
 

@@ -85,7 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void IRunningDocumentTableEventListener.OnRefreshDocumentContext(uint docCookie, string moniker)
         {
             // This event is not relevant to the misc workspace.
-            return;
         }
 
         void IRunningDocumentTableEventListener.OnReloadDocumentData(uint docCookie, string moniker)
@@ -102,7 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void IRunningDocumentTableEventListener.OnBeforeOpenDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
         {
             // This event is not relevant to the misc workspace.
-            return;
         }
 
         void IRunningDocumentTableEventListener.OnInitializedDocument(uint docCookie, string moniker, ITextBuffer textBuffer)

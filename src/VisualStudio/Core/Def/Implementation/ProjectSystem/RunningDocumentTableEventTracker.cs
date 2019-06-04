@@ -21,21 +21,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly IRunningDocumentTableEventListener _runningDocumentTableEventListener;
+        private readonly IRunningDocumentTableEventListener _listener;
         private uint _runningDocumentTableEventsCookie;
 
         public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable,
-            IRunningDocumentTableEventListener runningDocumentTableEventListener)
+            IRunningDocumentTableEventListener listener)
         {
             Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(editorAdaptersFactoryService);
             Contract.ThrowIfNull(runningDocumentTable);
-            Contract.ThrowIfNull(runningDocumentTableEventListener);
+            Contract.ThrowIfNull(listener);
 
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
             _runningDocumentTable = runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _runningDocumentTableEventListener = runningDocumentTableEventListener;
+            _listener = listener;
 
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
         }
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    _runningDocumentTableEventListener.OnCloseDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _listener.OnCloseDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    _runningDocumentTableEventListener.OnRenameDocument(docCookie, pszMkDocumentNew, pszMkDocumentOld);
+                    _listener.OnRenameDocument(docCookie, pszMkDocumentNew, pszMkDocumentOld);
                 }
             }
 
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (TryGetBuffer(docCookie, out var buffer))
                 {
-                    _runningDocumentTableEventListener.OnInitializedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
+                    _listener.OnInitializedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
                 }
             }
 
@@ -94,13 +94,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    _runningDocumentTableEventListener.OnReloadDocumentData(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _listener.OnReloadDocumentData(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
             {
-                _runningDocumentTableEventListener.OnRefreshDocumentContext(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                _listener.OnRefreshDocumentContext(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
             }
 
             return VSConstants.S_OK;
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (TryGetBuffer(docCookie, out var buffer))
                 {
-                    _runningDocumentTableEventListener.OnBeforeOpenDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
+                    _listener.OnBeforeOpenDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
                 }
             }
 
