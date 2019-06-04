@@ -104,7 +104,7 @@ namespace RunTests
 
                 if (retry)
                 {
-                    Logger.Log("Starting a retry. It will run once again tests failed.");
+                    ConsoleUtil.WriteLine("Starting a retry. It will run once again tests failed.");
                     // If running the process with this varialbe added, we assume that this file contains 
                     // xml logs from the first attempt.
                     environmentVariables.Add("OutputXmlFilePath", GetResultsFilePath(assemblyInfo));
