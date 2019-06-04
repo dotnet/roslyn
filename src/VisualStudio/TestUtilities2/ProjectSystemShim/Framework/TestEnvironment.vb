@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(VisualStudioMetadataReferenceManagerFactory),
                                             GetType(MockIVsEditorAdaptersFactoryService),
                                             GetType(MockIVsRunningDocumentTable4),
-                                            GetType(RunningDocumentTableEventSink))
+                                            GetType(RunningDocumentTableEventTracker))
                 Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
             End Function)
 

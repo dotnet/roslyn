@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
-            var runningDocTableEventSink = exportProvider.GetExportedValue<RunningDocumentTableEventSink>();
+            var runningDocTableEventSink = exportProvider.GetExportedValue<RunningDocumentTableEventTracker>();
             System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider, runningDocTableEventSink));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider,
-            RunningDocumentTableEventSink runningDocumentTableEventSink)
+            RunningDocumentTableEventTracker runningDocumentTableEventSink)
         {
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();

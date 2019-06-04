@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Class to register with the RDT and forward RDT events.
     /// Handles common conditions before sending out notifications.
     /// </summary>
-    [Export(typeof(RunningDocumentTableEventSink))]
-    internal class RunningDocumentTableEventSink : IVsRunningDocTableEvents3, IDisposable
+    [Export(typeof(RunningDocumentTableEventTracker))]
+    internal class RunningDocumentTableEventTracker : IVsRunningDocTableEvents3, IDisposable
     {
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public event EventHandler<RunningDocumentTableRenamedEventArgs> OnRenameDocument;
 
         [ImportingConstructor]
-        public RunningDocumentTableEventSink(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
         {
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));

@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly IVsRunningDocumentTable4 _runningDocumentTable;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
-            private readonly RunningDocumentTableEventSink _runningDocumentTableEventSink;
+            private readonly RunningDocumentTableEventTracker _runningDocumentTableEventSink;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
             private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel,
-                RunningDocumentTableEventSink runningDocumentTableEventSink)
+                RunningDocumentTableEventTracker runningDocumentTableEventSink)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 => TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider,
-                RunningDocumentTableEventSink runningDocumentTableEventSink)
+                RunningDocumentTableEventTracker runningDocumentTableEventSink)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable4)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);

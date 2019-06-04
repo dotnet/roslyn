@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsTextManager _textManager;
 
-        private readonly RunningDocumentTableEventSink _runningDocumentTableEventSink;
+        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventSink;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
 
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
             SVsServiceProvider serviceProvider,
-            RunningDocumentTableEventSink runningDocumentTableEventSink) :
+            RunningDocumentTableEventTracker runningDocumentTableEventSink) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
