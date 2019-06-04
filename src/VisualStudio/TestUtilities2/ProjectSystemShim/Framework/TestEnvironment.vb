@@ -23,7 +23,6 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
-Imports Microsoft.VisualStudio.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
