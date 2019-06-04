@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
             var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
 
-            var typeSymbolCompilation = await GetCompilationOrNull(typeSymbolProject, cancellationToken).ConfigureAwait(false);
-            var interfaceMemberCompilation = await GetCompilationOrNull(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
+            var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
+            var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // local functions
 
-            static Task<Compilation> GetCompilationOrNull(Project project, CancellationToken cancellationToken)
-                => project?.GetCompilationAsync(cancellationToken) ?? Task.FromResult<Compilation>(null);
+            static Task<Compilation> GetCompilationOrNullAsync(Project project, CancellationToken cancellationToken)
+                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Default<Compilation>();
         }
 
 
