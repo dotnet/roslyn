@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly IVsRunningDocumentTable4 _runningDocumentTable;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
-            private readonly RunningDocumentTableEventTracker _runningDocumentTableEventSink;
+            private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -81,23 +82,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel,
-                RunningDocumentTableEventTracker runningDocumentTableEventSink)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _runningDocumentTable = runningDocumentTable;
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
-                _runningDocumentTableEventSink = runningDocumentTableEventSink;
-                SubscrubeToRunningDocTableEvents();
+                _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
+                    componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable);
+                SubscribeToRunningDocTableEvents();
             }
 
-            private void SubscrubeToRunningDocTableEvents()
+            private void SubscribeToRunningDocTableEvents()
             {
-                _runningDocumentTableEventSink.OnBeforeOpenDocument += HandleBeforeDocumentOpenedEvent;
-                _runningDocumentTableEventSink.OnInitializedDocument += HandleInitializedDocumentEvent;
-                _runningDocumentTableEventSink.OnRefreshDocumentContext += HandleRefreshDocumentContextEvent;
-                _runningDocumentTableEventSink.OnCloseDocument += HandleCloseDocumentEvent;
+                _runningDocumentTableEventTracker.OnBeforeOpenDocument += HandleBeforeDocumentOpenedEvent;
+                _runningDocumentTableEventTracker.OnInitializedDocument += HandleInitializedDocumentEvent;
+                _runningDocumentTableEventTracker.OnRefreshDocumentContext += HandleRefreshDocumentContextEvent;
+                _runningDocumentTableEventTracker.OnCloseDocument += HandleCloseDocumentEvent;
             }
 
             private void HandleBeforeDocumentOpenedEvent(object sender, RunningDocumentTableInitializedEventArgs args)
@@ -112,13 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void HandleCloseDocumentEvent(object sender, RunningDocumentTableEventArgs args)
                 => TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
 
-            public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider,
-                RunningDocumentTableEventTracker runningDocumentTableEventSink)
+            public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable4)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 
-                return new OpenFileTracker(workspace, runningDocumentTable, componentModel, runningDocumentTableEventSink);
+                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 
             private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     foreach (var cookie in GetInitializedRunningDocumentTableCookies())
                     {
-                        if (_runningDocumentTableEventSink.TryGetBuffer(cookie, out var buffer))
+                        if (_runningDocumentTableEventTracker.TryGetBuffer(cookie, out var buffer))
                         {
                             TryOpeningDocumentsForNewCookie(cookie, _runningDocumentTable.GetDocumentMoniker(cookie), buffer);
                         }
@@ -454,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (_runningDocumentTable.IsMonikerValid(filename))
                         {
                             var cookie = _runningDocumentTable.GetDocumentCookie(filename);
-                            if (_runningDocumentTableEventSink.TryGetBuffer(cookie, out var buffer))
+                            if (_runningDocumentTableEventTracker.TryGetBuffer(cookie, out var buffer))
                             {
                                 TryOpeningDocumentsForNewCookie(cookie, _runningDocumentTable.GetDocumentMoniker(cookie), buffer);
                             }

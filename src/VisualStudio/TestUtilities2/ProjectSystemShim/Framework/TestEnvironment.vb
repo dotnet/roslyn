@@ -47,10 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(CPSProjectFactory),
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory),
-                                            GetType(MockIVsEditorAdaptersFactoryService),
-                                            GetType(MockIVsRunningDocumentTable4),
-                                            GetType(RunningDocumentTableEventTracker))
+                                            GetType(VisualStudioMetadataReferenceManagerFactory))
                 Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog)
             End Function)
 
@@ -181,8 +178,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
                     Case GetType(SVsFileChangeEx)
                         Return _fileChangeEx
-                    Case GetType(SVsRunningDocumentTable)
-                        Return New MockIVsRunningDocumentTable4
+
                     Case Else
                         Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select

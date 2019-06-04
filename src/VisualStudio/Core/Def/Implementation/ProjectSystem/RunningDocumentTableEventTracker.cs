@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -15,7 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// Class to register with the RDT and forward RDT events.
     /// Handles common conditions before sending out notifications.
     /// </summary>
-    [Export(typeof(RunningDocumentTableEventTracker))]
     internal class RunningDocumentTableEventTracker : IVsRunningDocTableEvents3, IDisposable
     {
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
@@ -30,11 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public event EventHandler<RunningDocumentTableInitializedEventArgs> OnInitializedDocument;
         public event EventHandler<RunningDocumentTableRenamedEventArgs> OnRenameDocument;
 
-        [ImportingConstructor]
-        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable)
         {
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
-            _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            _runningDocumentTable = runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);

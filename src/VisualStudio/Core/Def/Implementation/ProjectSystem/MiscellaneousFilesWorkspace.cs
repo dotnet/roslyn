@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsTextManager _textManager;
 
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventSink;
+        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
 
@@ -60,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
-            SVsServiceProvider serviceProvider,
-            RunningDocumentTableEventTracker runningDocumentTableEventSink) :
+            SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
@@ -71,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
-            _runningDocumentTableEventSink = runningDocumentTableEventSink;
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, _runningDocumentTable);
             SubscribeToRunningDocTableEvents();
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
@@ -384,18 +383,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void SubscribeToRunningDocTableEvents()
         {
-            _runningDocumentTableEventSink.OnRenameDocument += HandleRenameDocumentEvent;
-            _runningDocumentTableEventSink.OnReloadDocumentData += HandleReloadDocumentEvent;
-            _runningDocumentTableEventSink.OnInitializedDocument += HandleInitializedDocumentEvent;
-            _runningDocumentTableEventSink.OnCloseDocument += HandleCloseDocumentEvent;
+            _runningDocumentTableEventTracker.OnRenameDocument += HandleRenameDocumentEvent;
+            _runningDocumentTableEventTracker.OnReloadDocumentData += HandleReloadDocumentEvent;
+            _runningDocumentTableEventTracker.OnInitializedDocument += HandleInitializedDocumentEvent;
+            _runningDocumentTableEventTracker.OnCloseDocument += HandleCloseDocumentEvent;
         }
 
         private void UnSubscribeFromRunningDocTableEvents()
         {
-            _runningDocumentTableEventSink.OnRenameDocument -= HandleRenameDocumentEvent;
-            _runningDocumentTableEventSink.OnReloadDocumentData -= HandleReloadDocumentEvent;
-            _runningDocumentTableEventSink.OnInitializedDocument -= HandleInitializedDocumentEvent;
-            _runningDocumentTableEventSink.OnCloseDocument -= HandleCloseDocumentEvent;
+            _runningDocumentTableEventTracker.OnRenameDocument -= HandleRenameDocumentEvent;
+            _runningDocumentTableEventTracker.OnReloadDocumentData -= HandleReloadDocumentEvent;
+            _runningDocumentTableEventTracker.OnInitializedDocument -= HandleInitializedDocumentEvent;
+            _runningDocumentTableEventTracker.OnCloseDocument -= HandleCloseDocumentEvent;
         }
 
         private void HandleRenameDocumentEvent(object sender, RunningDocumentTableRenamedEventArgs args)
@@ -407,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // 2) the old file was a different extension that we weren't tracking, which may have now changed
             if (TryUntrackClosingDocument(args.DocCookie, args.OldMoniker) || TryGetLanguageInformation(args.OldMoniker) == null)
             {
-                if (_runningDocumentTableEventSink.TryGetBuffer(args.DocCookie, out var buffer))
+                if (_runningDocumentTableEventTracker.TryGetBuffer(args.DocCookie, out var buffer))
                 {
                     // Add the new one, if appropriate.
                     TrackOpenedDocument(args.DocCookie, args.Moniker, buffer);
@@ -419,7 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (args.Moniker != null && TryGetLanguageInformation(args.Moniker) != null && !_docCookiesToProjectIdAndContainer.ContainsKey(args.DocCookie))
             {
-                if (_runningDocumentTableEventSink.TryGetBuffer(args.DocCookie, out var buffer))
+                if (_runningDocumentTableEventTracker.TryGetBuffer(args.DocCookie, out var buffer))
                 {
                     TrackOpenedDocument(args.DocCookie, args.Moniker, buffer);
                 }
