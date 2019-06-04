@@ -73,17 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #if DEBUG
             static PackedFlags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
-                // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
-                // the attribute completion and data mask.
+                // Verify masks are sufficient for values.
                 Debug.Assert(EnumUtilities.ContainsAllValues<WellKnownAttributeFlags>(WellKnownAttributeDataMask));
-
-                // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
-                // the ref kind mask.
                 Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
-
                 Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(FlowAnalysisAnnotationsMask));
             }
 #endif
@@ -160,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isContainingSymbolVirtual,
             int ordinal,
             ParamInfo<TypeSymbol> parameterInfo,
+            byte? nullableContext,
             ImmutableArray<byte> extraAnnotations,
             bool isReturn,
             out bool isBad)
@@ -167,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return Create(
                 moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
                 parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type, extraAnnotations,
-                parameterInfo.Handle, parameterInfo.CustomModifiers, isReturn, out isBad);
+                parameterInfo.Handle, nullableContext, parameterInfo.CustomModifiers, isReturn, out isBad);
         }
 
         /// <summary>
@@ -178,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="ordinal"></param>
         /// <param name="handle">The property parameter doesn't have a name in metadata,
         /// so this is the handle of a corresponding accessor parameter, if there is one,
-        /// or of the ParamInfo passed in, otherwise).</param>
+        /// or of the ParamInfo passed in, otherwise.</param>
         /// <param name="parameterInfo" />
         /// <param name="isBad" />
         internal static PEParameterSymbol Create(
@@ -188,13 +181,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameterInfo,
+            byte? nullableContext,
             ImmutableArray<byte> extraAnnotations,
             out bool isBad)
         {
             return Create(
                 moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
                 parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type, extraAnnotations,
-                handle, parameterInfo.CustomModifiers, isReturn: false, out isBad);
+                handle, nullableContext, parameterInfo.CustomModifiers, isReturn: false, out isBad);
         }
 
         private PEParameterSymbol(
@@ -205,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeWithAnnotations typeWithAnnotations,
             ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
+            byte? nullableContext,
             int countOfCustomModifiers,
             out bool isBad)
         {
@@ -229,9 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
                     TypeWithAnnotations.Create(tuple) :
                     typeWithAnnotations;
-                if (!extraAnnotations.IsDefault)
+                if (!extraAnnotations.IsDefault || nullableContext != null)
                 {
-                    typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, defaultTransformFlag: 0, extraAnnotations);
+                    typeWithAnnotations = NullableTypeDecoder.TransformType(
+                        typeWithAnnotations,
+                        defaultTransformFlag: extraAnnotations.IsDefault ? nullableContext.GetValueOrDefault() : (byte)0,
+                        extraAnnotations);
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -268,12 +266,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                // CONSIDER: Can we make parameter type computation lazy?
                 var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
                 typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, extraAnnotations);
+
+                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+                // for property parameters
+                // (when synthesizing nullable state for a private member in a [NullableContext] but without
+                // explicit [Nullable]) because the accessibility of the property has not been calculated yet.
+                // At worst, this means we have incorrect nullability info for inaccessible properties.
+                var accessSymbol = containingSymbol.Kind == SymbolKind.Property ? containingSymbol.ContainingSymbol : containingSymbol;
+                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol, nullableContext, extraAnnotations);
                 typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
             }
 
@@ -310,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol type,
             ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
+            byte? nullableContext,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             bool isReturn,
             out bool isBad)
@@ -318,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeWithModifiers = TypeWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
 
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
-                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad)
-                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, extraAnnotations, handle, out isBad);
+                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, nullableContext, 0, out isBad)
+                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, extraAnnotations, handle, nullableContext, out isBad);
 
             bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
 
@@ -355,8 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations type,
                 ImmutableArray<byte> extraAnnotations,
                 ParameterHandle handle,
+                byte? nullableContext,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, extraAnnotations, handle,
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, extraAnnotations, handle, nullableContext,
                          refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length,
                          out isBad)
             {

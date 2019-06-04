@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
-                // - IsUnmanagedAttribute is allowed iif there is an unmanaged pattern
+                // - IsUnmanagedAttribute is allowed iff there is an unmanaged pattern
                 if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
                     hasUnmanagedModreqPattern != peModule.HasIsUnmanagedAttribute(_handle))
                 {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var type = TypeWithAnnotations.Create(typeSymbol);
-            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
+            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol, _containingSymbol, _containingSymbol.GetNullableContextValue());
             type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
             return type;
         }

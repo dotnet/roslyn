@@ -148,7 +148,7 @@ for members that are inaccessible outside the assembly (`private` members, and a
 if the assembly does not contain `InternalsVisibleToAttribute` attributes).
 
 The compiler behavior is configured from a command-line flag.
-For now a feature flag is used: `-feature:nullablePublicOnly`.
+For now a feature flag is used: `-features:nullablePublicOnly`.
 
 If private member attributes are dropped, the compiler will emit a `[module: NullablePublicOnly]` attribute.
 The presence or absence of the `NullablePublicOnlyAttribute` can be used by tools to interpret

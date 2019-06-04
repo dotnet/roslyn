@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -184,9 +185,11 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Byte' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Int32' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Int32").WithLocation(1, 1)
-                );
+                // 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Int32").WithLocation(1, 1));
         }
 
         [Fact]
@@ -216,6 +219,8 @@ class C
                 // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -255,6 +260,8 @@ class C
                 // (3,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
@@ -487,6 +494,59 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_01()
+        {
+            var source =
+@"public class Program
+{
+    public object? F;
+    public object?[]? G;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var expected =
+@"[NullableContext(2)] [Nullable(0)] Program
+    System.Object? F
+    System.Object?[]? G
+    Program()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_02()
+        {
+            var source =
+@"public class Program
+{
+    public object? F(object?[]? args) => null;
+    public object G(object[] args) => null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var expected =
+@"Program
+    [NullableContext(2)] System.Object? F(System.Object?[]? args)
+    [NullableContext(1)] System.Object! G(System.Object![]! args)
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_03()
+        {
+            var source =
+@"public class Program
+{
+    public static void F(string x, string y, string z) { }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var expected =
+@"Program
+    [NullableContext(1)] void F(System.String! x, System.String! y, System.String! z)
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_BaseClass()
         {
             var source =
@@ -500,17 +560,14 @@ public class B2 : A<object?>
 {
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("A`1");
-                AssertNoNullableAttribute(type.GetAttributes());
-                type = module.ContainingAssembly.GetTypeByMetadataName("B1");
-                AssertNoNullableAttribute(type.BaseType().GetAttributes());
-                AssertNullableAttribute(type.GetAttributes());
-                type = module.ContainingAssembly.GetTypeByMetadataName("B2");
-                AssertNoNullableAttribute(type.BaseType().GetAttributes());
-                AssertNullableAttribute(type.GetAttributes());
-            });
+            var expected =
+@"A<T>
+    [Nullable(2)] T
+[Nullable({ 0, 1 })] B1
+[Nullable({ 0, 2 })] B2
+";
+            AssertNullableAttributes(comp, expected);
+
             var source2 =
 @"class C
 {
@@ -815,7 +872,6 @@ public class C<T> where T : A<object>
             Assert.Equal("A<System.Object!>!", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
         }
 
-        // https://github.com/dotnet/roslyn/issues/29976: Test `class C<T> where T : class? { }`.
         [Fact]
         public void EmitAttribute_Constraint_TypeParameter()
         {
@@ -866,6 +922,111 @@ public class C<T> where T : A<object>
         }
 
         [Fact]
+        public void EmitAttribute_Constraints_SameAsContext()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public class C0<T0>
+#nullable disable
+        where T0 : class
+#nullable enable
+    {
+#nullable disable
+        public object F01;
+        public object F02;
+#nullable enable
+    }
+    public class C1<T1>
+        where T1 : class
+    {
+        public object F11;
+        public object F12;
+    }
+    public class C2<T2>
+        where T2 : class?
+    {
+        public object? F21;
+        public object? F22;
+    }
+    public object F31;
+    public object F32;
+    public object F33;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F31
+    System.Object! F32
+    System.Object! F33
+    Program()
+    [NullableContext(0)] Program.C0<T0> where T0 : class
+        T0
+        System.Object F01
+        System.Object F02
+        C0()
+    [Nullable(0)] Program.C1<T1> where T1 : class!
+        T1
+        System.Object! F11
+        System.Object! F12
+        C1()
+    [NullableContext(2)] [Nullable(0)] Program.C2<T2> where T2 : class?
+        T2
+        System.Object? F21
+        System.Object? F22
+        C2()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
+        public void EmitAttribute_Constraints_DifferentFromContext()
+        {
+            var source =
+@"#nullable enable
+public class C0<T0>
+#nullable disable
+    where T0 : class
+#nullable enable
+{
+    public object F01;
+    public object F02;
+}
+public class C1<T1>
+    where T1 : class
+{
+    public object? F11;
+    public object? F12;
+}
+public class C2<T2>
+    where T2 : class?
+{
+    public object F21;
+    public object F22;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] C0<T0> where T0 : class
+    [Nullable(0)] T0
+    System.Object! F01
+    System.Object! F02
+    C0()
+[NullableContext(2)] [Nullable(0)] C1<T1> where T1 : class!
+    [Nullable(1)] T1
+    System.Object? F11
+    System.Object? F12
+    C1()
+[NullableContext(1)] [Nullable(0)] C2<T2> where T2 : class?
+    [Nullable(2)] T2
+    System.Object! F21
+    System.Object! F22
+    C2()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_MethodReturnType()
         {
             var source =
@@ -874,29 +1035,35 @@ public class C<T> where T : A<object>
     public object? F() => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("F").Single();
-                AssertNullableAttribute(method.GetReturnTypeAttributes());
-            });
+            var expected =
+@"C
+    [NullableContext(2)] System.Object? F()
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
         public void EmitAttribute_MethodParameters()
         {
             var source =
-@"public class C
+@"public class A
 {
     public void F(object?[] c) { }
+}
+#nullable enable
+public class B
+{
+    public void F(object x, object y) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("F").Single();
-                AssertNullableAttribute(method.Parameters.Single().GetAttributes());
-            });
+            var expected =
+@"A
+    void F(System.Object?[] c)
+        [Nullable({ 0, 2 })] System.Object?[] c
+B
+    [NullableContext(1)] void F(System.Object! x, System.Object! y)
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -908,12 +1075,12 @@ public class C<T> where T : A<object>
     public C(object?[] c) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = type.Constructors.Single();
-                AssertNullableAttribute(method.Parameters.Single().GetAttributes());
-            });
+            var expected =
+@"C
+    C(System.Object?[] c)
+        [Nullable({ 0, 2 })] System.Object?[] c
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -925,30 +1092,45 @@ public class C<T> where T : A<object>
     public object? P => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var property = (PropertySymbol)type.GetMembers("P").Single();
-                AssertNullableAttribute(property.GetAttributes());
-            });
+            var expected =
+@"[NullableContext(2)] [Nullable(0)] C
+    C()
+    System.Object? P { get; }
+        System.Object? P.get
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
         public void EmitAttribute_PropertyParameters()
         {
             var source =
-@"public class C
+@"public class A
 {
     public object this[object x, object? y] => throw new System.NotImplementedException();
+}
+#nullable enable
+public class B
+{
+    public object this[object x, object y] => throw new System.NotImplementedException();
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var property = (PropertySymbol)type.GetMembers("this[]").Single();
-                AssertNoNullableAttribute(property.Parameters[0].GetAttributes());
-                AssertNullableAttribute(property.Parameters[1].GetAttributes());
-            });
+            var expected =
+@"A
+    System.Object this[System.Object x, System.Object? y] { get; }
+        [Nullable(2)] System.Object? y
+        System.Object this[System.Object x, System.Object? y].get
+            [Nullable(2)] System.Object? y
+[NullableContext(1)] [Nullable(0)] B
+    B()
+    System.Object! this[System.Object! x, System.Object! y] { get; }
+        System.Object! x
+        System.Object! y
+        System.Object! this[System.Object! x, System.Object! y].get
+            System.Object! x
+            System.Object! y
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -960,13 +1142,11 @@ public class C<T> where T : A<object>
     public static object? operator+(C a, C b) => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("op_Addition").Single();
-                AssertNullableAttribute(method.GetReturnTypeAttributes());
-                AssertNoNullableAttribute(method.GetAttributes());
-            });
+            var expected =
+@"C
+    [Nullable(2)] System.Object? operator +(C a, C b)
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -978,13 +1158,12 @@ public class C<T> where T : A<object>
     public static object operator+(C a, object?[] b) => a;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("op_Addition").Single();
-                AssertNoNullableAttribute(method.Parameters[0].GetAttributes());
-                AssertNullableAttribute(method.Parameters[1].GetAttributes());
-            });
+            var expected =
+@"C
+    System.Object operator +(C a, System.Object?[] b)
+        [Nullable({ 0, 2 })] System.Object?[] b
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -993,12 +1172,12 @@ public class C<T> where T : A<object>
             var source =
 @"public delegate object? D();";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
-                AssertNullableAttribute(method.GetReturnTypeAttributes());
-                AssertNoNullableAttribute(method.GetAttributes());
-            });
+            var expected =
+@"D
+    [NullableContext(2)] System.Object? Invoke()
+    [Nullable(2)] System.Object? EndInvoke(System.IAsyncResult result)
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -1007,11 +1186,14 @@ public class C<T> where T : A<object>
             var source =
 @"public delegate void D(object?[] o);";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
-                AssertNullableAttribute(method.Parameters[0].GetAttributes());
-            });
+            var expected =
+@"D
+    void Invoke(System.Object?[] o)
+        [Nullable({ 0, 2 })] System.Object?[] o
+    System.IAsyncResult BeginInvoke(System.Object?[] o, System.AsyncCallback callback, System.Object @object)
+        [Nullable({ 0, 2 })] System.Object?[] o
+";
+            AssertNullableAttributes(comp, expected);
         }
 
         [Fact]
@@ -1034,7 +1216,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            AssertNoNullableAttribute(comp);
+            AssertNoNullableAttributes(comp);
         }
 
         [Fact]
@@ -1053,7 +1235,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            AssertNoNullableAttribute(comp);
+            AssertNoNullableAttributes(comp);
         }
 
         // See https://github.com/dotnet/roslyn/issues/28862.
@@ -1081,7 +1263,7 @@ class B
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
-            AssertNoNullableAttribute(comp);
+            AssertNoNullableAttributes(comp);
         }
 
         [Fact]
@@ -1217,6 +1399,31 @@ class C
         }
 
         [Fact]
+        public void EmitAttribute_Byte0()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+#nullable disable
+    public object
+#nullable enable
+        F1(object x, object y) => null;
+#nullable disable
+    public object
+#nullable enable
+        F2(object? x, object? y) => null;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"Program
+    [NullableContext(1)] [Nullable(0)] System.Object F1(System.Object! x, System.Object! y)
+    [NullableContext(2)] [Nullable(0)] System.Object F2(System.Object? x, System.Object? y)
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitPrivateMetadata_Types()
         {
             var source =
@@ -1310,7 +1517,7 @@ InternalTypes
             var expectedPublicOnly = @"
 Program
     Program.ProtectedDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
@@ -1319,13 +1526,13 @@ Program
             var expectedPublicAndInternal = @"
 Program
     Program.ProtectedDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
         [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
     Program.InternalDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
@@ -1334,19 +1541,19 @@ Program
             var expectedAll = @"
 Program
     Program.ProtectedDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
         [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
     Program.InternalDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
         [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
     Program.PrivateDelegate
-        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+        [NullableContext(1)] System.Object! Invoke(System.Object? arg)
             [Nullable(2)] System.Object? arg
         System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
             [Nullable(2)] System.Object? arg
@@ -1364,24 +1571,38 @@ public delegate void D<T>(T t);
 #nullable enable
 public class Program
 {
+    public event D<object?>? PublicEvent { add { } remove { } }
+    internal event D<object> InternalEvent { add { } remove { } }
     protected event D<object?> ProtectedEvent { add { } remove { } }
-    internal event D<object?> InternalEvent { add { } remove { } }
-    private event D<object?> PrivateEvent { add { } remove { } }
+    protected internal event D<object?> ProtectedInternalEvent { add { } remove { } }
+    private protected event D<object>? PrivateProtectedEvent { add { } remove { } }
+    private event D<object?>? PrivateEvent { add { } remove { } }
 }";
             var expectedPublicOnly = @"
-Program
+[NullableContext(2)] [Nullable(0)] Program
+    Program()
+    event D<System.Object?>? PublicEvent
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
 ";
             var expectedPublicAndInternal = @"
-Program
+[NullableContext(1)] [Nullable(0)] Program
+    Program()
+    [Nullable(2)] event D<System.Object?>? PublicEvent
+    event D<System.Object!>! InternalEvent
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
-    [Nullable({ 1, 2 })] event D<System.Object?>! InternalEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
+    [Nullable({ 2, 1 })] event D<System.Object!>? PrivateProtectedEvent
 ";
             var expectedAll = @"
-Program
+[NullableContext(2)] [Nullable(0)] Program
+    Program()
+    event D<System.Object?>? PublicEvent
+    [Nullable(1)] event D<System.Object!>! InternalEvent
     [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
-    [Nullable({ 1, 2 })] event D<System.Object?>! InternalEvent
-    [Nullable({ 1, 2 })] event D<System.Object?>! PrivateEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedInternalEvent
+    [Nullable({ 2, 1 })] event D<System.Object!>? PrivateProtectedEvent
+    event D<System.Object?>? PrivateEvent
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1392,24 +1613,38 @@ Program
             var source =
 @"public class Program
 {
-    protected object? ProtectedField;
+    public object PublicField;
     internal object? InternalField;
+    protected object ProtectedField;
+    protected internal object? ProtectedInternalField;
+    private protected object? PrivateProtectedField;
     private object? PrivateField;
 }";
             var expectedPublicOnly = @"
-Program
-    [Nullable(2)] System.Object? ProtectedField
+[NullableContext(1)] [Nullable(0)] Program
+    System.Object! PublicField
+    System.Object! ProtectedField
+    [Nullable(2)] System.Object? ProtectedInternalField
+    Program()
 ";
             var expectedPublicAndInternal = @"
-Program
-    [Nullable(2)] System.Object? ProtectedField
-    [Nullable(2)] System.Object? InternalField
+[NullableContext(2)] [Nullable(0)] Program
+    [Nullable(1)] System.Object! PublicField
+    System.Object? InternalField
+    [Nullable(1)] System.Object! ProtectedField
+    System.Object? ProtectedInternalField
+    System.Object? PrivateProtectedField
+    Program()
 ";
             var expectedAll = @"
-Program
-    [Nullable(2)] System.Object? ProtectedField
-    [Nullable(2)] System.Object? InternalField
-    [Nullable(2)] System.Object? PrivateField
+[NullableContext(2)] [Nullable(0)] Program
+    [Nullable(1)] System.Object! PublicField
+    System.Object? InternalField
+    [Nullable(1)] System.Object! ProtectedField
+    System.Object? ProtectedInternalField
+    System.Object? PrivateProtectedField
+    System.Object? PrivateField
+    Program()
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1420,30 +1655,52 @@ Program
             var source =
 @"public class Program
 {
-    protected object? ProtectedMethod(object arg) => null;
-    internal object? InternalMethod(object arg) => null;
-    private object? PrivateMethod(object arg) => null;
+    public void PublicMethod(object arg) { }
+    internal object? InternalMethod(object? arg) => null;
+    protected object ProtectedMethod(object? arg) => null;
+    protected internal object? ProtectedInternalMethod(object? arg) => null;
+    private protected void PrivateProtectedMethod(object? arg) { }
+    private object? PrivateMethod(object? arg) => null;
 }";
             var expectedPublicOnly = @"
-Program
-    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
+[NullableContext(1)] [Nullable(0)] Program
+    void PublicMethod(System.Object! arg)
+        System.Object! arg
+    System.Object! ProtectedMethod(System.Object? arg)
+        [Nullable(2)] System.Object? arg
+    [NullableContext(2)] System.Object? ProtectedInternalMethod(System.Object? arg)
+        System.Object? arg
+    Program()
 ";
             var expectedPublicAndInternal = @"
-Program
-    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
-    [Nullable(2)] System.Object? InternalMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
+[NullableContext(2)] [Nullable(0)] Program
+    [NullableContext(1)] void PublicMethod(System.Object! arg)
+        System.Object! arg
+    System.Object? InternalMethod(System.Object? arg)
+        System.Object? arg
+    [NullableContext(1)] System.Object! ProtectedMethod(System.Object? arg)
+        [Nullable(2)] System.Object? arg
+    System.Object? ProtectedInternalMethod(System.Object? arg)
+        System.Object? arg
+    void PrivateProtectedMethod(System.Object? arg)
+        System.Object? arg
+    Program()
 ";
             var expectedAll = @"
-Program
-    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
-    [Nullable(2)] System.Object? InternalMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
-    [Nullable(2)] System.Object? PrivateMethod(System.Object! arg)
-        [Nullable(1)] System.Object! arg
+[NullableContext(2)] [Nullable(0)] Program
+    [NullableContext(1)] void PublicMethod(System.Object! arg)
+        System.Object! arg
+    System.Object? InternalMethod(System.Object? arg)
+        System.Object? arg
+    [NullableContext(1)] System.Object! ProtectedMethod(System.Object? arg)
+        [Nullable(2)] System.Object? arg
+    System.Object? ProtectedInternalMethod(System.Object? arg)
+        System.Object? arg
+    void PrivateProtectedMethod(System.Object? arg)
+        System.Object? arg
+    System.Object? PrivateMethod(System.Object? arg)
+        System.Object? arg
+    Program()
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1454,24 +1711,233 @@ Program
             var source =
 @"public class Program
 {
-    protected object? ProtectedProperty => null;
+    public object PublicProperty => null;
     internal object? InternalProperty => null;
+    protected object ProtectedProperty => null;
+    protected internal object? ProtectedInternalProperty => null;
+    private protected object? PrivateProtectedProperty => null;
     private object? PrivateProperty => null;
 }";
             var expectedPublicOnly = @"
-Program
-    [Nullable(2)] System.Object? ProtectedProperty { get; }
+[NullableContext(1)] [Nullable(0)] Program
+    Program()
+    System.Object! PublicProperty { get; }
+        System.Object! PublicProperty.get
+    System.Object! ProtectedProperty { get; }
+        System.Object! ProtectedProperty.get
+    [Nullable(2)] System.Object? ProtectedInternalProperty { get; }
+        [NullableContext(2)] System.Object? ProtectedInternalProperty.get
 ";
             var expectedPublicAndInternal = @"
-Program
-    [Nullable(2)] System.Object? ProtectedProperty { get; }
-    [Nullable(2)] System.Object? InternalProperty { get; }
+[NullableContext(2)] [Nullable(0)] Program
+    Program()
+    [Nullable(1)] System.Object! PublicProperty { get; }
+        [NullableContext(1)] System.Object! PublicProperty.get
+    System.Object? InternalProperty { get; }
+        System.Object? InternalProperty.get
+    [Nullable(1)] System.Object! ProtectedProperty { get; }
+        [NullableContext(1)] System.Object! ProtectedProperty.get
+    System.Object? ProtectedInternalProperty { get; }
+        System.Object? ProtectedInternalProperty.get
+    System.Object? PrivateProtectedProperty { get; }
+        System.Object? PrivateProtectedProperty.get
 ";
             var expectedAll = @"
-Program
-    [Nullable(2)] System.Object? ProtectedProperty { get; }
-    [Nullable(2)] System.Object? InternalProperty { get; }
-    [Nullable(2)] System.Object? PrivateProperty { get; }
+[NullableContext(2)] [Nullable(0)] Program
+    Program()
+    [Nullable(1)] System.Object! PublicProperty { get; }
+        [NullableContext(1)] System.Object! PublicProperty.get
+    System.Object? InternalProperty { get; }
+        System.Object? InternalProperty.get
+    [Nullable(1)] System.Object! ProtectedProperty { get; }
+        [NullableContext(1)] System.Object! ProtectedProperty.get
+    System.Object? ProtectedInternalProperty { get; }
+        System.Object? ProtectedInternalProperty.get
+    System.Object? PrivateProtectedProperty { get; }
+        System.Object? PrivateProtectedProperty.get
+    System.Object? PrivateProperty { get; }
+        System.Object? PrivateProperty.get
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Indexers()
+        {
+            var source =
+@"public class Program
+{
+    public class PublicType
+    {
+        public object? this[object? x, object y] => null;
+    }
+    internal class InternalType
+    {
+        public object this[object x, object y] { get => null; set { } }
+    }
+    protected class ProtectedType
+    {
+        public object? this[object x, object? y] { get => null; set { } }
+    }
+    protected internal class ProtectedInternalType
+    {
+        public object this[object x, object y]  { set { } }
+    }
+    private protected class PrivateProtectedType
+    {
+        public object this[object x, object y] => null;
+    }
+    private class PrivateType
+    {
+        public object this[object x, object y] => null;
+    }
+}";
+            var expectedPublicOnly = @"
+[NullableContext(2)] [Nullable(0)] Program
+    Program()
+    [Nullable(0)] Program.PublicType
+        PublicType()
+        System.Object? this[System.Object? x, System.Object! y] { get; }
+            System.Object? x
+            [Nullable(1)] System.Object! y
+            System.Object? this[System.Object? x, System.Object! y].get
+                System.Object? x
+                [Nullable(1)] System.Object! y
+    [Nullable(0)] Program.ProtectedType
+        ProtectedType()
+        System.Object? this[System.Object! x, System.Object? y] { get; set; }
+            [Nullable(1)] System.Object! x
+            System.Object? y
+            System.Object? this[System.Object! x, System.Object? y].get
+                [Nullable(1)] System.Object! x
+                System.Object? y
+            void this[System.Object! x, System.Object? y].set
+                [Nullable(1)] System.Object! x
+                System.Object? y
+                System.Object? value
+    [NullableContext(1)] [Nullable(0)] Program.ProtectedInternalType
+        ProtectedInternalType()
+        System.Object! this[System.Object! x, System.Object! y] { set; }
+            System.Object! x
+            System.Object! y
+            void this[System.Object! x, System.Object! y].set
+                System.Object! x
+                System.Object! y
+                System.Object! value
+";
+            var expectedPublicAndInternal = @"
+[NullableContext(1)] [Nullable(0)] Program
+    Program()
+    [NullableContext(2)] [Nullable(0)] Program.PublicType
+        PublicType()
+        System.Object? this[System.Object? x, System.Object! y] { get; }
+            System.Object? x
+            [Nullable(1)] System.Object! y
+            System.Object? this[System.Object? x, System.Object! y].get
+                System.Object? x
+                [Nullable(1)] System.Object! y
+    [Nullable(0)] Program.InternalType
+        InternalType()
+        System.Object! this[System.Object! x, System.Object! y] { get; set; }
+            System.Object! x
+            System.Object! y
+            System.Object! this[System.Object! x, System.Object! y].get
+                System.Object! x
+                System.Object! y
+            void this[System.Object! x, System.Object! y].set
+                System.Object! x
+                System.Object! y
+                System.Object! value
+    [NullableContext(2)] [Nullable(0)] Program.ProtectedType
+        ProtectedType()
+        System.Object? this[System.Object! x, System.Object? y] { get; set; }
+            [Nullable(1)] System.Object! x
+            System.Object? y
+            System.Object? this[System.Object! x, System.Object? y].get
+                [Nullable(1)] System.Object! x
+                System.Object? y
+            void this[System.Object! x, System.Object? y].set
+                [Nullable(1)] System.Object! x
+                System.Object? y
+                System.Object? value
+    [Nullable(0)] Program.ProtectedInternalType
+        ProtectedInternalType()
+        System.Object! this[System.Object! x, System.Object! y] { set; }
+            System.Object! x
+            System.Object! y
+            void this[System.Object! x, System.Object! y].set
+                System.Object! x
+                System.Object! y
+                System.Object! value
+    [Nullable(0)] Program.PrivateProtectedType
+        PrivateProtectedType()
+        System.Object! this[System.Object! x, System.Object! y] { get; }
+            System.Object! x
+            System.Object! y
+            System.Object! this[System.Object! x, System.Object! y].get
+                System.Object! x
+                System.Object! y
+";
+            var expectedAll = @"
+[NullableContext(1)] [Nullable(0)] Program
+    Program()
+    [NullableContext(2)] [Nullable(0)] Program.PublicType
+        PublicType()
+        System.Object? this[System.Object? x, System.Object! y] { get; }
+            System.Object? x
+            [Nullable(1)] System.Object! y
+            System.Object? this[System.Object? x, System.Object! y].get
+                System.Object? x
+                [Nullable(1)] System.Object! y
+    [Nullable(0)] Program.InternalType
+        InternalType()
+        System.Object! this[System.Object! x, System.Object! y] { get; set; }
+            System.Object! x
+            System.Object! y
+            System.Object! this[System.Object! x, System.Object! y].get
+                System.Object! x
+                System.Object! y
+            void this[System.Object! x, System.Object! y].set
+                System.Object! x
+                System.Object! y
+                System.Object! value
+    [NullableContext(2)] [Nullable(0)] Program.ProtectedType
+        ProtectedType()
+        System.Object? this[System.Object! x, System.Object? y] { get; set; }
+            [Nullable(1)] System.Object! x
+            System.Object? y
+            System.Object? this[System.Object! x, System.Object? y].get
+                [Nullable(1)] System.Object! x
+                System.Object? y
+            void this[System.Object! x, System.Object? y].set
+                [Nullable(1)] System.Object! x
+                System.Object? y
+                System.Object? value
+    [Nullable(0)] Program.ProtectedInternalType
+        ProtectedInternalType()
+        System.Object! this[System.Object! x, System.Object! y] { set; }
+            System.Object! x
+            System.Object! y
+            void this[System.Object! x, System.Object! y].set
+                System.Object! x
+                System.Object! y
+                System.Object! value
+    [Nullable(0)] Program.PrivateProtectedType
+        PrivateProtectedType()
+        System.Object! this[System.Object! x, System.Object! y] { get; }
+            System.Object! x
+            System.Object! y
+            System.Object! this[System.Object! x, System.Object! y].get
+                System.Object! x
+                System.Object! y
+    [Nullable(0)] Program.PrivateType
+        PrivateType()
+        System.Object! this[System.Object! x, System.Object! y] { get; }
+            System.Object! x
+            System.Object! y
+            System.Object! this[System.Object! x, System.Object! y].get
+                System.Object! x
+                System.Object! y
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1575,12 +2041,10 @@ Public
             var expectedPublicAndInternal = @"";
             var expectedAll = @"
 Public
-    void PrivateMethod(System.String! x)
-        [Nullable(1)] System.String! x
+    [NullableContext(1)] void PrivateMethod(System.String! x)
     Public.<>c
         [Nullable({ 0, 2 })] System.Action<System.String?> <>9__0_0
-        void <PrivateMethod>b__0_0(System.String! y)
-            [Nullable(1)] System.String! y
+        [NullableContext(1)] void <PrivateMethod>b__0_0(System.String! y)
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1627,6 +2091,8 @@ Program
     [Nullable({ 1, 2 })] System.Collections.Generic.IEnumerable<System.Object?>! F()
     Program.<F>d__0
         [Nullable(2)] System.Object? <>2__current
+        System.Object System.Collections.Generic.IEnumerator<System.Object>.Current { get; }
+            [Nullable(2)] System.Object? System.Collections.Generic.IEnumerator<System.Object>.Current.get
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }
@@ -1639,10 +2105,10 @@ Program
 
             var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
-            VerifyNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions), expectedAll);
-            VerifyNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
-            VerifyNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions), expectedAll);
-            VerifyNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicAndInternal);
+            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions), expectedAll);
+            AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
+            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions), expectedAll);
+            AssertNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicAndInternal);
         }
 
         /// <summary>
@@ -1970,6 +2436,7 @@ class Program
 @"#nullable enable
 class Program
 {
+    System.ValueTuple F0;
     (int, int) F1;
     (int?, int?)? F2;
 #nullable disable
@@ -1993,6 +2460,7 @@ class Program
             static void validate(ModuleSymbol module)
             {
                 var globalNamespace = module.GlobalNamespace;
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F0").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "System.ValueTuple");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "(int, int)");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0 }, new byte[] { 0 }, "(int?, int?)?");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "(int, object)");
@@ -2422,7 +2890,10 @@ class C : I<(object X, object? Y)>
             comp.VerifyEmitDiagnostics(
                 // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     object? F() => null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5),
+                // (3,13): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     object? F() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(3, 13));
         }
 
         [Fact]
@@ -2465,6 +2936,9 @@ class C : I<(object X, object? Y)>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // class C
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 7),
                 // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     object? P => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5));
@@ -2480,6 +2954,9 @@ class C : I<(object X, object? Y)>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // class C
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 7),
                 // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     object this[object x, object? y] => throw new System.NotImplementedException();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(3, 5),
@@ -2543,7 +3020,10 @@ class C : I<(object X, object? Y)>
             comp.VerifyEmitDiagnostics(
                 // (1,10): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // delegate object? D();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 10),
+                // (1,18): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // delegate object? D();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "D").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 18));
         }
 
         [Fact]
@@ -2601,12 +3081,18 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
+                // (1,15): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // delegate void D<T>(T t);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "D").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(1, 15),
                 // (1,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // delegate void D<T>(T t);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 17),
                 // (1,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // delegate void D<T>(T t);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T t").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 20),
+                // (4,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                //     static void F<T>(D<T> d)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 17),
                 // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     static void F<T>(D<T> d)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 19),
@@ -2681,7 +3167,7 @@ class C
                 AssertAttributes(reader, customAttributes,
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                     "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
-                var customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
+                var customAttribute = GetAttributeByConstructorName(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 AssertEx.Equal(ImmutableArray.Create<byte>(0, 0, 2, 0, 2, 0, 0, 0, 0, 2, 0, 2), reader.ReadByteArray(customAttribute.Value));
 
                 // Long tuple
@@ -2690,7 +3176,7 @@ class C
                 AssertAttributes(reader, customAttributes,
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                     "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
-                customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
+                customAttribute = GetAttributeByConstructorName(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                 AssertEx.Equal(ImmutableArray.Create<byte>(0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 2), reader.ReadByteArray(customAttribute.Value));
             });
 
@@ -2812,7 +3298,7 @@ public class B<T> :
                         "MemberReference:Void System.Runtime.CompilerServices.DynamicAttribute..ctor(Boolean[])",
                         "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                         "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
-                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(2)), addOne);
+                    checkNullableAttribute(customAttributes, addOne);
                 }
 
                 void checkAttributesNoDynamic(CustomAttributeHandleCollection customAttributes, byte? addOne = null)
@@ -2820,11 +3306,12 @@ public class B<T> :
                     AssertAttributes(reader, customAttributes,
                         "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                         "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
-                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(1)), addOne);
+                    checkNullableAttribute(customAttributes, addOne);
                 }
 
-                void checkAttribute(CustomAttribute customAttribute, byte? addOne)
+                void checkNullableAttribute(CustomAttributeHandleCollection customAttributes, byte? addOne)
                 {
+                    var customAttribute = GetAttributeByConstructorName(reader, customAttributes, "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Byte[])");
                     var expectedBits = ImmutableArray.Create<byte>(0, 2, 0, 1, 2, 1, 2, 1, 2, 1, 0, 2);
                     if (addOne.HasValue)
                     {
@@ -2889,14 +3376,14 @@ public class B<T> :
             var source =
 @"public class C
 {
-    public void F(object? c) { }
+    public void F(object? x, object y, object z) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = (MethodSymbol)type.GetMembers("F").Single();
-                var attributes = method.Parameters.Single().GetAttributes();
+                var attributes = method.Parameters[0].GetAttributes();
                 AssertNullableAttribute(attributes);
 
                 var nullable = GetNullableAttribute(attributes);
@@ -2917,7 +3404,7 @@ using System;
 using System.Linq;
 public class C
 {
-    public void F(object? c) { }
+    public void F(object? x, object y, object z) { }
 
     public static void Main()
     {
@@ -2931,15 +3418,12 @@ public class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "{ 2 }", symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("F").Single();
-                var attributes = method.Parameters.Single().GetAttributes();
-                AssertNullableAttribute(attributes);
-
-                var nullable = GetNullableAttribute(attributes);
-                var args = nullable.ConstructorArguments;
-                Assert.Single(args);
-                Assert.Equal((byte)2, args.First().Value);
+                var expected =
+@"C
+    [NullableContext(1)] void F(System.Object? x, System.Object! y, System.Object! z)
+        [Nullable(2)] System.Object? x
+";
+                AssertNullableAttributes(module, expected);
             });
         }
 
@@ -2967,20 +3451,12 @@ public class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "{ 1,2,2,1,2 }", symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
-                var method = (MethodSymbol)type.GetMembers("F").Single();
-                var attributes = method.Parameters.Single().GetAttributes();
-                AssertNullableAttribute(attributes);
-
-                var nullable = GetNullableAttribute(attributes);
-                var args = nullable.ConstructorArguments;
-                Assert.Single(args);
-                var byteargs = args.First().Values;
-                Assert.Equal((byte)1, byteargs[0].Value);
-                Assert.Equal((byte)2, byteargs[1].Value);
-                Assert.Equal((byte)2, byteargs[2].Value);
-                Assert.Equal((byte)1, byteargs[3].Value);
-                Assert.Equal((byte)2, byteargs[4].Value);
+                var expected =
+@"C
+    void F(System.Action<System.Object?, System.Action<System.Object!, System.Object?>?>! c)
+        [Nullable({ 1, 2, 2, 1, 2 })] System.Action<System.Object?, System.Action<System.Object!, System.Object?>?>! c
+";
+                AssertNullableAttributes(module, expected);
             });
         }
 
@@ -3000,15 +3476,15 @@ public class C
             AssertEx.SetEqual(actualNames, expectedNames);
         }
 
-        private static void AssertNoNullableAttribute(CSharpCompilation comp)
+        private static void AssertNoNullableAttributes(CSharpCompilation comp)
         {
-            string attributeName = "NullableAttribute";
             var image = comp.EmitToArray();
             using (var reader = new PEReader(image))
             {
                 var metadataReader = reader.GetMetadataReader();
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
-                Assert.False(attributes.Contains(attributeName));
+                Assert.False(attributes.Contains("NullableContextAttribute"));
+                Assert.False(attributes.Contains("NullableAttribute"));
             }
         }
 
@@ -3022,19 +3498,31 @@ public class C
             return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
         }
 
+        private static string GetAttributeConstructorName(MetadataReader reader, CustomAttributeHandle handle)
+        {
+            return reader.Dump(reader.GetCustomAttribute(handle).Constructor);
+        }
+
+        private static CustomAttribute GetAttributeByConstructorName(MetadataReader reader, CustomAttributeHandleCollection handles, string name)
+        {
+            return reader.GetCustomAttribute(handles.FirstOrDefault(h => GetAttributeConstructorName(reader, h) == name));
+        }
+
         private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
         {
-            var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
+            var actualNames = handles.Select(h => GetAttributeConstructorName(reader, h)).ToArray();
             AssertEx.SetEqual(actualNames, expectedNames);
         }
 
-        private void VerifyNullableAttributes(CSharpCompilation comp, string expected)
+        private void AssertNullableAttributes(CSharpCompilation comp, string expected)
         {
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                var actual = NullableAttributesVisitor.GetString(module);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
-            });
+            CompileAndVerify(comp, symbolValidator: module => AssertNullableAttributes(module, expected));
+        }
+
+        private static void AssertNullableAttributes(ModuleSymbol module, string expected)
+        {
+            var actual = NullableAttributesVisitor.GetString((PEModuleSymbol)module);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
         }
     }
 }

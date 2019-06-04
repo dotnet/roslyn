@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |          n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |      ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // l = isOverriddenOrHiddenMembers populated. 1 bit
             // m = isReadOnly. 1 bit.
             // n = isReadOnlyPopulated. 1 bit.
-            // 14 bits remain for future purposes.
+            // o = NullableContext. 3 bits.
+            // 11 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
-
             private const int MethodKindMask = 0x1F;
 
             private const int MethodKindIsPopulatedBit = 0x1 << 5;
@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 15;
             private const int IsReadOnlyBit = 0x1 << 16;
             private const int IsReadOnlyPopulatedBit = 0x1 << 17;
+            private const int NullableContextOffset = 18;
+            private const int NullableContextMask = 0x7;
 
             private int _bits;
 
@@ -113,12 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #if DEBUG
             static PackedFlags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
-                // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
-                // method kind mask.
+                // Verify masks are sufficient for values.
                 Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextFlags>(NullableContextMask));
             }
 #endif
 
@@ -182,6 +181,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void SetIsOverriddenOrHiddenMembersPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsOverriddenOrHiddenMembersPopulatedBit);
+            }
+
+            public bool TryGetNullableContext(out byte? value)
+            {
+                return ((NullableContextFlags)((_bits >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
+            }
+
+            public bool SetNullableContext(byte? value)
+            {
+                return ThreadSafeFlagOperations.Set(ref _bits, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
             }
         }
 
@@ -599,6 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int count = paramInfo.Length - 1;
             ImmutableArray<ParameterSymbol> @params;
             bool isBadParameter;
+            byte? nullableContext = GetNullableContextValue();
 
             string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
             ImmutableArray<ImmutableArray<byte>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
@@ -613,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     builder.Add(PEParameterSymbol.Create(
                         moduleSymbol, this, this.IsMetadataVirtual(), i,
-                        paramInfo[i + 1], extraAnnotations, isReturn: false, out isBadParameter));
+                        paramInfo[i + 1], nullableContext, extraAnnotations, isReturn: false, out isBadParameter));
 
                     if (isBadParameter)
                     {
@@ -636,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<byte> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
             var returnParam = PEParameterSymbol.Create(
                 moduleSymbol, this, this.IsMetadataVirtual(), 0,
-                paramInfo[0], extraReturnAnnotations, isReturn: true, out isBadParameter);
+                paramInfo[0], nullableContext, extraReturnAnnotations, isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {
@@ -808,6 +818,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder) => GetAttributes();
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => Signature.ReturnParam.GetAttributes();
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            byte? value;
+            if (!_packedFlags.TryGetNullableContext(out value))
+            {
+                value = _containingType.ContainingPEModule.Module.HasNullableContextAttribute(_handle, out byte arg) ? (byte?)arg : null;
+                _packedFlags.SetNullableContext(value);
+            }
+
+            return value;
+        }
 
         public override MethodKind MethodKind
         {

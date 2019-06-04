@@ -47,12 +47,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedBit = 1 << 31;
 
             private int _flags;
-            private bool _returnsVoid;
 
-            public bool ReturnsVoid
+            // More flags.
+            //
+            // |                         |vvv|yy|
+            //
+            // y = ReturnsVoid. 2 bits.
+            // v = NullableContext. 3 bits.
+            private const int ReturnsVoidBit = 1 << 0;
+            private const int ReturnsVoidIsSetBit = 1 << 1;
+
+            private const int NullableContextOffset = 2;
+            private const int NullableContextMask = 0x7;
+
+            private int _flags2;
+
+            public bool TryGetReturnsVoid(out bool value)
             {
-                get { return _returnsVoid; }
-                set { _returnsVoid = value; }
+                int bits = _flags2;
+                value = (bits & ReturnsVoidBit) != 0;
+                return (bits & ReturnsVoidIsSetBit) != 0;
+            }
+
+            public void SetReturnsVoid(bool value)
+            {
+                ThreadSafeFlagOperations.Set(ref _flags2, (int)(ReturnsVoidIsSetBit | (value ? ReturnsVoidBit : 0)));
             }
 
             public MethodKind MethodKind
@@ -78,16 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
             static Flags()
             {
-                // Verify a few things about the values we combine into flags.  This way, if they ever
-                // change, this will get hit and you will know you have to update this type as well.
-
-                // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
-                // method kind mask.
+                // Verify masks are sufficient for values.
                 Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
-
-                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-                // the declaration modifier mask.
                 Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationModifiers>(DeclarationModifiersMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextFlags>(NullableContextMask));
             }
 #endif
 
@@ -112,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
                 _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
-                _returnsVoid = returnsVoid;
+                _flags2 = returnsVoid ? ReturnsVoidBit : 0;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -143,6 +156,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualBit);
                 }
+            }
+
+            public bool TryGetNullableContext(out byte? value)
+            {
+                return ((NullableContextFlags)((_flags2 >> NullableContextOffset) & NullableContextMask)).TryGetByte(out value);
+            }
+
+            public bool SetNullableContext(byte? value)
+            {
+                return ThreadSafeFlagOperations.Set(ref _flags2, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
             }
         }
 
@@ -243,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void SetReturnsVoid(bool returnsVoid)
         {
-            this.flags.ReturnsVoid = returnsVoid;
+            this.flags.SetReturnsVoid(returnsVoid);
         }
 
         /// <remarks>
@@ -354,7 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.flags.ReturnsVoid;
+                flags.TryGetReturnsVoid(out bool value);
+                return value;
             }
         }
 
@@ -1654,10 +1678,51 @@ done:
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
+            var compilation = this.DeclaringCompilation;
+            var location = locations[0];
+
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
+
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                ShouldEmitNullableContextValue(out _))
+            {
+                compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            byte? value;
+            if (!flags.TryGetNullableContext(out value))
+            {
+                value = ComputeNullableContextValue();
+                flags.SetNullableContext(value);
+            }
+            return value;
+        }
+
+        private byte? ComputeNullableContextValue()
+        {
+            var compilation = DeclaringCompilation;
+            if (!compilation.ShouldEmitNullableAttributes(this))
+            {
+                return null;
+            }
+
+            var builder = new MostCommonNullableValueBuilder();
+            foreach (var typeParameter in TypeParameters)
+            {
+                typeParameter.GetCommonNullableValues(compilation, ref builder);
+            }
+            builder.AddValue(ReturnTypeWithAnnotations);
+            foreach (var parameter in Parameters)
+            {
+                parameter.GetCommonNullableValues(compilation, ref builder);
+            }
+            return builder.MostCommonValue;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -1669,6 +1734,14 @@ done:
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
+            var compilation = this.DeclaringCompilation;
+
+            if (compilation.ShouldEmitNullableAttributes(this) &&
+                ShouldEmitNullableContextValue(out byte nullableContextValue))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
+            }
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
@@ -1676,8 +1749,6 @@ done:
             {
                 return;
             }
-
-            var compilation = this.DeclaringCompilation;
 
             // The async state machine type is not synthesized until the async method body is rewritten. If we are
             // only emitting metadata the method body will not have been rewritten, and the async state machine

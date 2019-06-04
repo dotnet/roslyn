@@ -381,20 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = DeclaringCompilation;
-            if (compilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            var container = ContainingSymbol;
+            if (compilation.ShouldEmitNullableAttributes(container))
             {
-                byte nullableAttributeValue = GetSynthesizedNullableAttributeValue();
-                if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
-                {
-                    NamedTypeSymbol byteType = compilation.GetSpecialType(SpecialType.System_Byte);
-                    Debug.Assert((object)byteType != null);
-
-                    AddSynthesizedAttribute(
-                        ref attributes,
-                        moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
-                                                                  ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                          nullableAttributeValue))));
-                }
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(container.GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
             }
         }
 

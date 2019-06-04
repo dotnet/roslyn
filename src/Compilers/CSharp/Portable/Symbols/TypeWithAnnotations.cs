@@ -547,6 +547,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithTypeAndModifiers(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithTypeAndModifiers(this, typeSymbol, customModifiers);
 
+        // Used by callers before calling CSharpCompilation.EnsureNullableAttributeExists().
+        // This method ignores any [NullableContext], so if there is a [NullableContext(1)] at the
+        // container for instance, and this type reference is oblivious, NeedsNullableAttribute()
+        // will return false so EnsuresNullableAttributeExists() will not be called even a [Nullable(0)]
+        // will be emitted for this type reference. That shouldn't be an issue though since
+        // EnsuresNullableAttributeExists() should have been called for any of the implicit
+        // [Nullable(1)] type references that were aggregated to a [NullableContext(1)].
         public bool NeedsNullableAttribute()
         {
             return NeedsNullableAttribute(this, typeOpt: null);
