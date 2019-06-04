@@ -84,6 +84,9 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenPairWithOperations.cs" Link="Formatting\Engine\TokenPairWithOperations.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.Changes.cs" Link="Formatting\Engine\TokenStream.Changes.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.cs" Link="Formatting\Engine\TokenStream.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.ITriviaDataGetter.cs" Link="Formatting\Engine\TokenStream.ITriviaDataGetter.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.OriginalTriviaDataGetter.cs" Link="Formatting\Engine\TokenStream.OriginalTriviaDataGetter.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.TriviaDataGetter.cs" Link="Formatting\Engine\TokenStream.TriviaDataGetter.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TokenStream.Iterator.cs" Link="Formatting\Engine\TokenStream.Iterator.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.cs" Link="Formatting\Engine\TreeData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.Debug.cs" Link="Formatting\Engine\TreeData.Debug.cs" />

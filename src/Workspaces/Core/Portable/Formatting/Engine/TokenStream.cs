@@ -284,35 +284,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetColumn(tokenWithIndex, new OriginalTriviaDataGetter(this));
         }
 
-        private interface ITriviaDataGetter
-        {
-            TriviaData GetTriviaData(TokenData token1, TokenData token2);
-        }
-
-        private struct TriviaDataGetter : ITriviaDataGetter
-        {
-            private readonly TokenStream _tokenStream;
-            public TriviaDataGetter(TokenStream tokenStream)
-            {
-                _tokenStream = tokenStream;
-            }
-
-            public TriviaData GetTriviaData(TokenData token1, TokenData token2)
-                => _tokenStream.GetTriviaData(token1, token2);
-        }
-
-        private struct OriginalTriviaDataGetter : ITriviaDataGetter
-        {
-            private readonly TokenStream _tokenStream;
-            public OriginalTriviaDataGetter(TokenStream tokenStream)
-            {
-                _tokenStream = tokenStream;
-            }
-
-            public TriviaData GetTriviaData(TokenData token1, TokenData token2)
-                => _tokenStream.GetOriginalTriviaData(token1, token2);
-        }
-
         /// <summary>
         /// Get column of the token 
         /// * column means text position on a line where all tabs are converted to spaces that first position on a line becomes 0
