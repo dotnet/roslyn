@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -97,12 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
-            foreach (var parameter in invoke.Parameters)
+            for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
+                var parameterSymbol = invoke.Parameters[i];
+                if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                }
+                var parameterSyntax = syntax.ParameterList.Parameters[i];
+                if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }
             }
 
