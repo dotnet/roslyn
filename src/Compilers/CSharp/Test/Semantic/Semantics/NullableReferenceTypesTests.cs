@@ -95657,9 +95657,8 @@ using System;
 
 public class Program
 {
-    static void Main()
+    static void Main(string? value)
     {
-        string? value = ""42"";
         int count = 84;
         if (value?.Length == count)
         {
@@ -95680,9 +95679,8 @@ using System;
 
 public class Program
 {
-    static void Main()
+    static void Main(string? value)
     {
-        string? value = ""42"";
         if (value?.Length == (int?) null)
         {
             Console.WriteLine(value.Length); // 1
@@ -95695,9 +95693,9 @@ public class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                    // (11,31): warning CS8602: Dereference of a possibly null reference.
+                    // (10,31): warning CS8602: Dereference of a possibly null reference.
                     //             Console.WriteLine(value.Length); // 1
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(11, 31));
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(10, 31));
         }
 
         [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
