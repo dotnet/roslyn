@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(MiscellaneousFilesWorkspace))]
-    internal sealed partial class MiscellaneousFilesWorkspace : Workspace
+    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
@@ -70,11 +70,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, _runningDocumentTable);
-            SubscribeToRunningDocTableEvents();
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, _runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
             saveEventsService.StartSendingSaveEvents();
+        }
+
+        void IRunningDocumentTableEventListener.OnCloseDocument(uint docCookie, string moniker)
+        {
+            _foregroundThreadAffinitization.AssertIsForeground();
+            TryUntrackClosingDocument(docCookie, moniker);
+        }
+
+        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(uint docCookie, string moniker)
+        {
+            // This event is not relevant to the misc workspace.
+            return;
+        }
+
+        void IRunningDocumentTableEventListener.OnReloadDocumentData(uint docCookie, string moniker)
+        {
+            if (moniker != null && TryGetLanguageInformation(moniker) != null && !_docCookiesToProjectIdAndContainer.ContainsKey(docCookie))
+            {
+                if (_runningDocumentTableEventTracker.TryGetBuffer(docCookie, out var buffer))
+                {
+                    TrackOpenedDocument(docCookie, moniker, buffer);
+                }
+            }
+        }
+
+        void IRunningDocumentTableEventListener.OnBeforeOpenDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
+        {
+            // This event is not relevant to the misc workspace.
+            return;
+        }
+
+        void IRunningDocumentTableEventListener.OnInitializedDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
+        {
+            // The document is now initialized, we should try tracking it
+            TrackOpenedDocument(docCookie, moniker, textBuffer);
+        }
+
+        void IRunningDocumentTableEventListener.OnRenameDocument(uint docCookie, string newMoniker, string oldMoniker)
+        {
+            // We want to consider this file to be added in one of two situations:
+            //
+            // 1) the old file already was a misc file, at which point we might just be doing a rename from
+            //    one name to another with the same extension
+            // 2) the old file was a different extension that we weren't tracking, which may have now changed
+            if (TryUntrackClosingDocument(docCookie, oldMoniker) || TryGetLanguageInformation(oldMoniker) == null)
+            {
+                if (_runningDocumentTableEventTracker.TryGetBuffer(docCookie, out var buffer))
+                {
+                    // Add the new one, if appropriate.
+                    TrackOpenedDocument(docCookie, newMoniker, buffer);
+                }
+            }
         }
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
@@ -381,66 +432,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void SubscribeToRunningDocTableEvents()
-        {
-            _runningDocumentTableEventTracker.OnRenameDocument += HandleRenameDocumentEvent;
-            _runningDocumentTableEventTracker.OnReloadDocumentData += HandleReloadDocumentEvent;
-            _runningDocumentTableEventTracker.OnInitializedDocument += HandleInitializedDocumentEvent;
-            _runningDocumentTableEventTracker.OnCloseDocument += HandleCloseDocumentEvent;
-        }
-
-        private void UnSubscribeFromRunningDocTableEvents()
-        {
-            _runningDocumentTableEventTracker.OnRenameDocument -= HandleRenameDocumentEvent;
-            _runningDocumentTableEventTracker.OnReloadDocumentData -= HandleReloadDocumentEvent;
-            _runningDocumentTableEventTracker.OnInitializedDocument -= HandleInitializedDocumentEvent;
-            _runningDocumentTableEventTracker.OnCloseDocument -= HandleCloseDocumentEvent;
-        }
-
-        private void HandleRenameDocumentEvent(object sender, RunningDocumentTableRenamedEventArgs args)
-        {
-            // We want to consider this file to be added in one of two situations:
-            //
-            // 1) the old file already was a misc file, at which point we might just be doing a rename from
-            //    one name to another with the same extension
-            // 2) the old file was a different extension that we weren't tracking, which may have now changed
-            if (TryUntrackClosingDocument(args.DocCookie, args.OldMoniker) || TryGetLanguageInformation(args.OldMoniker) == null)
-            {
-                if (_runningDocumentTableEventTracker.TryGetBuffer(args.DocCookie, out var buffer))
-                {
-                    // Add the new one, if appropriate.
-                    TrackOpenedDocument(args.DocCookie, args.Moniker, buffer);
-                }
-            }
-        }
-
-        private void HandleReloadDocumentEvent(object sender, RunningDocumentTableEventArgs args)
-        {
-            if (args.Moniker != null && TryGetLanguageInformation(args.Moniker) != null && !_docCookiesToProjectIdAndContainer.ContainsKey(args.DocCookie))
-            {
-                if (_runningDocumentTableEventTracker.TryGetBuffer(args.DocCookie, out var buffer))
-                {
-                    TrackOpenedDocument(args.DocCookie, args.Moniker, buffer);
-                }
-            }
-        }
-
-        private void HandleInitializedDocumentEvent(object sender, RunningDocumentTableInitializedEventArgs args)
-        {
-            // The document is now initialized, we should try tracking it
-            TrackOpenedDocument(args.DocCookie, args.Moniker, args.TextBuffer);
-        }
-
-        private void HandleCloseDocumentEvent(object sender, RunningDocumentTableEventArgs args)
-        {
-            _foregroundThreadAffinitization.AssertIsForeground();
-            TryUntrackClosingDocument(args.DocCookie, args.Moniker);
-        }
-
         protected override void Dispose(bool finalize)
         {
             StopSolutionCrawler();
-            UnSubscribeFromRunningDocTableEvents();
             base.Dispose(finalize);
         }
 

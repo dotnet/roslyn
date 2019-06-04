@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Singleton the subscribes to the running document table and connects/disconnects files to files that are opened.
         /// </summary>
-        public sealed class OpenFileTracker
+        public sealed class OpenFileTracker : IRunningDocumentTableEventListener
         {
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
@@ -89,29 +89,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _runningDocumentTable = runningDocumentTable;
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
-                    componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable);
-                SubscribeToRunningDocTableEvents();
+                    componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
             }
 
-            private void SubscribeToRunningDocTableEvents()
+            void IRunningDocumentTableEventListener.OnCloseDocument(uint docCookie, string moniker)
+                => TryClosingDocumentsForCookie(docCookie, moniker);
+
+            void IRunningDocumentTableEventListener.OnRefreshDocumentContext(uint docCookie, string moniker)
+                => RefreshContextForRunningDocumentTableCookie(docCookie, moniker);
+
+            void IRunningDocumentTableEventListener.OnReloadDocumentData(uint docCookie, string moniker)
             {
-                _runningDocumentTableEventTracker.OnBeforeOpenDocument += HandleBeforeDocumentOpenedEvent;
-                _runningDocumentTableEventTracker.OnInitializedDocument += HandleInitializedDocumentEvent;
-                _runningDocumentTableEventTracker.OnRefreshDocumentContext += HandleRefreshDocumentContextEvent;
-                _runningDocumentTableEventTracker.OnCloseDocument += HandleCloseDocumentEvent;
+                // This event is not relevant to the VS workspace open file tracker.
+                return;
             }
 
-            private void HandleBeforeDocumentOpenedEvent(object sender, RunningDocumentTableInitializedEventArgs args)
-                => TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
+            void IRunningDocumentTableEventListener.OnBeforeOpenDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
+                => TryOpeningDocumentsForNewCookie(docCookie, moniker, textBuffer);
 
-            private void HandleInitializedDocumentEvent(object sender, RunningDocumentTableInitializedEventArgs args)
-                => TryOpeningDocumentsForNewCookie(args.DocCookie, args.Moniker, args.TextBuffer);
+            void IRunningDocumentTableEventListener.OnInitializedDocument(uint docCookie, string moniker, ITextBuffer textBuffer)
+                => TryOpeningDocumentsForNewCookie(docCookie, moniker, textBuffer);
 
-            private void HandleRefreshDocumentContextEvent(object sender, RunningDocumentTableEventArgs args)
-                => RefreshContextForRunningDocumentTableCookie(args.DocCookie, args.Moniker);
-
-            private void HandleCloseDocumentEvent(object sender, RunningDocumentTableEventArgs args)
-                => TryClosingDocumentsForCookie(args.DocCookie, args.Moniker);
+            void IRunningDocumentTableEventListener.OnRenameDocument(uint docCookie, string newMoniker, string oldMoniker)
+            {
+                // This event is not relevant to the VS workspace open file tracker.
+                return;
+            }
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {

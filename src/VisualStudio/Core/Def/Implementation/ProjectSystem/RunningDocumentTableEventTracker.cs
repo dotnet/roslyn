@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     /// <summary>
     /// Class to register with the RDT and forward RDT events.
-    /// Handles common conditions before sending out notifications.
+    /// Handles common conditions and delegates implementation to the <see cref="IRunningDocumentTableEventListener"/>
     /// </summary>
     internal sealed class RunningDocumentTableEventTracker : IVsRunningDocTableEvents3, IDisposable
     {
@@ -21,24 +21,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
+        private readonly IRunningDocumentTableEventListener _runningDocumentTableEventListener;
         private uint _runningDocumentTableEventsCookie;
 
-        public event EventHandler<RunningDocumentTableEventArgs> OnCloseDocument;
-        public event EventHandler<RunningDocumentTableEventArgs> OnRefreshDocumentContext;
-        public event EventHandler<RunningDocumentTableEventArgs> OnReloadDocumentData;
-        public event EventHandler<RunningDocumentTableInitializedEventArgs> OnBeforeOpenDocument;
-        public event EventHandler<RunningDocumentTableInitializedEventArgs> OnInitializedDocument;
-        public event EventHandler<RunningDocumentTableRenamedEventArgs> OnRenameDocument;
-
-        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable)
+        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable,
+            IRunningDocumentTableEventListener runningDocumentTableEventListener)
         {
             Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(editorAdaptersFactoryService);
             Contract.ThrowIfNull(runningDocumentTable);
+            Contract.ThrowIfNull(runningDocumentTableEventListener);
 
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
             _runningDocumentTable = runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _runningDocumentTableEventListener = runningDocumentTableEventListener;
 
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
         }
@@ -54,8 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    var args = new RunningDocumentTableEventArgs(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
-                    OnCloseDocument?.Invoke(this, args);
+                    _runningDocumentTableEventListener.OnCloseDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
@@ -79,8 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    var args = new RunningDocumentTableRenamedEventArgs(docCookie, pszMkDocumentNew, pszMkDocumentOld);
-                    OnRenameDocument?.Invoke(this, args);
+                    _runningDocumentTableEventListener.OnRenameDocument(docCookie, pszMkDocumentNew, pszMkDocumentOld);
                 }
             }
 
@@ -88,8 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (TryGetBuffer(docCookie, out var buffer))
                 {
-                    var args = new RunningDocumentTableInitializedEventArgs(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
-                    OnInitializedDocument?.Invoke(this, args);
+                    _runningDocumentTableEventListener.OnInitializedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
                 }
             }
 
@@ -100,15 +94,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (CheckPreconditions(docCookie))
                 {
-                    var args = new RunningDocumentTableEventArgs(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
-                    OnReloadDocumentData?.Invoke(this, args);
+                    _runningDocumentTableEventListener.OnReloadDocumentData(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
             {
-                var args = new RunningDocumentTableEventArgs(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
-                OnRefreshDocumentContext?.Invoke(this, args);
+                _runningDocumentTableEventListener.OnRefreshDocumentContext(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
             }
 
             return VSConstants.S_OK;
@@ -120,8 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (TryGetBuffer(docCookie, out var buffer))
                 {
-                    var args = new RunningDocumentTableInitializedEventArgs(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
-                    OnBeforeOpenDocument?.Invoke(this, args);
+                    _runningDocumentTableEventListener.OnBeforeOpenDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
                 }
             }
 
@@ -197,48 +188,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Dispose(true);
         }
         #endregion
-    }
-
-    /// <summary>
-    /// Base event args for events coming from the RDT.
-    /// </summary>
-    internal class RunningDocumentTableEventArgs : EventArgs
-    {
-        public uint DocCookie { get; private set; }
-
-        public string Moniker { get; private set; }
-
-        public RunningDocumentTableEventArgs(uint docCookie, string moniker)
-        {
-            DocCookie = docCookie;
-            Moniker = moniker;
-        }
-    }
-
-    /// <summary>
-    /// Event args for document open events that also include the text buffer.
-    /// </summary>
-    internal class RunningDocumentTableInitializedEventArgs : RunningDocumentTableEventArgs
-    {
-        public ITextBuffer TextBuffer { get; private set; }
-
-        public RunningDocumentTableInitializedEventArgs(uint docCookie, string moniker, ITextBuffer textBuffer) : base(docCookie, moniker)
-        {
-            TextBuffer = textBuffer;
-        }
-    }
-
-    /// <summary>
-    /// Event for document full path event changes.
-    /// Includes the old document moniker and new document moniker.
-    /// </summary>
-    internal class RunningDocumentTableRenamedEventArgs : RunningDocumentTableEventArgs
-    {
-        public string OldMoniker { get; private set; }
-
-        public RunningDocumentTableRenamedEventArgs(uint docCookie, string moniker, string oldMoniker) : base(docCookie, moniker)
-        {
-            OldMoniker = oldMoniker;
-        }
     }
 }
