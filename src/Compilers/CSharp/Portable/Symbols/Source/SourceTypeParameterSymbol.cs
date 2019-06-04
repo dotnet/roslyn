@@ -300,13 +300,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
         {
-            if ((this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
-                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()) ||
-                (!this.HasReferenceTypeConstraint && !this.HasValueTypeConstraint &&
-                 this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false))
+            if (ConstraintsNeedNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
             }
+        }
+
+        internal bool ConstraintsNeedNullableAttribute()
+        {
+            return (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
+                   this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()) ||
+                   this.HasNotNullConstraint ||
+                   (!this.HasReferenceTypeConstraint && !this.HasValueTypeConstraint &&
+                    this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false);
         }
 
         private NamedTypeSymbol GetDefaultBaseType()
@@ -371,6 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
                         break;
                 }
+            }
+            else if (this.HasNotNullConstraint)
+            {
+                nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
             else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false)
             {
@@ -491,6 +501,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.NotNull) != 0;
+            }
+        }
+
         internal override bool? IsNotNullableIfReferenceType
         {
             get
@@ -592,6 +611,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetDeclaredConstraints();
                 return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
+            }
+        }
+
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.NotNull) != 0;
             }
         }
 
@@ -832,6 +860,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeParameterSymbol typeParameter = this.OverriddenTypeParameter;
                 return ((object)typeParameter != null) ? typeParameter.ReferenceTypeConstraintIsNullable : false;
+            }
+        }
+
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                return this.OverriddenTypeParameter?.HasNotNullConstraint == true;
             }
         }
 
