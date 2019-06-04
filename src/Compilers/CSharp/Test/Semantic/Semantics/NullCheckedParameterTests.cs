@@ -62,7 +62,8 @@ interface C
 {
     public void M(int x!) { }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+                                                         parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
         }
 
