@@ -10014,7 +10014,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10074,7 +10075,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics();
 
@@ -10134,7 +10136,8 @@ class Test1 : I1
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
 
                 compilation3.VerifyDiagnostics(
                     // (10,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -29713,7 +29716,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest,
-                                                 references: new[] { TestReferences.NetStandard30.SystemThreadingTasksRef });
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemThreadingTasksRef });
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -39514,7 +39517,8 @@ class Test4 : Test1
                                          (comp0:compilation0.EmitToImageReference(), comp1:compilation1.EmitToImageReference()) })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation2 = compilation2.AddReferences(refs.comp0);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -39531,7 +39535,8 @@ C6.M
 ");
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.StandardLatest);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
                 CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -39851,6 +39856,94 @@ interface Test4 : I1
                     // (15,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         i1.P600 = 13;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P600").WithLocation(15, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected interface I2 {}
+    protected internal interface I3 {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source3 =
+@"
+interface Test3 : I1
+{
+    class C
+    {
+        static void M1(I1.I2 x)
+        {
+            System.Console.WriteLine(""M1"");
+        }
+
+        static void M2(I1.I3 x)
+        {
+            System.Console.WriteLine(""M2"");
+        }
+
+        static void Main()
+        {
+            M1(null);
+            M2(null);
+        }
+    }
+}
+";
+
+            var source4 =
+@"
+class Test4 : I1
+{
+    interface Test5 : I1.I2
+    {
+    }
+
+    interface Test6 : I1.I3
+    {
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics(
+                    // (6,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         static void M1(I1.I2 x)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I2").WithLocation(6, 27),
+                    // (11,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         static void M2(I1.I3 x)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I3").WithLocation(11, 27)
+                    );
+
+                var compilation4 = CreateCompilation(source4, options: TestOptions.DebugDll,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation4.VerifyDiagnostics(
+                    // (4,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //     interface Test5 : I1.I2
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I2").WithLocation(4, 26),
+                    // (8,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //     interface Test6 : I1.I3
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I3").WithLocation(8, 26)
                     );
             }
         }
@@ -42795,7 +42888,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.NetStandard30.SystemRuntimeRef },
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -43993,13 +44086,69 @@ public interface ITest33
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef });
+                var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseDll, references: new[] { reference1, attributesRef }, targetFramework: TargetFramework.StandardLatest);
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce });
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35911")]
+        [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
+        public void NoPia_10()
+        {
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributesRef = attributes.EmitToImageReference();
+
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: PrimaryInteropAssemblyAttribute(1,1)]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+    void M1();
+}
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58280"")]
+public interface ITest44 : ITest33
+{
+    abstract void ITest33.M1();
+}
+";
+
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
+
+            string consumer = @"
+class UsePia
+{
+    public static void Main(ITest44 x)
+    {
+        x.M1();
+    }
+} 
+";
+
+            foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
+            {
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation1.VerifyEmitDiagnostics(
+                    // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
+                    //     public static void Main(ITest44 x)
+                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType, "ITest44").WithArguments("ITest44").WithLocation(4, 29)
+                    );
             }
         }
 

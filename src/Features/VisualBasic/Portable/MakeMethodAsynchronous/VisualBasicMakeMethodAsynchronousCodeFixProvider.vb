@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
+        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTypes) As Boolean
+            Return IsTaskLike(type, knownTypes)
+        End Function
+
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
                 knownTypes As KnownTypes) As SyntaxNode
