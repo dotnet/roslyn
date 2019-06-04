@@ -9,38 +9,34 @@ namespace Roslyn.Test.Utilities
     public class WpfFactDiscoverer : FactDiscoverer
     {
         private readonly IMessageSink _diagnosticMessageSink;
-        private readonly IDictionary<string, TestInfo> _passedTests;
 
         public WpfFactDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
         {
             _diagnosticMessageSink = diagnosticMessageSink;
-            _passedTests = TestInfo.GetPassedTestsInfo();
         }
 
         protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
-            => new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, _passedTests);
+            => new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
     }
 
     public class WpfTheoryDiscoverer : TheoryDiscoverer
     {
         private readonly IMessageSink _diagnosticMessageSink;
-        private readonly IDictionary<string, TestInfo> _passedTests;
 
         public WpfTheoryDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
         {
             _diagnosticMessageSink = diagnosticMessageSink;
-            _passedTests = TestInfo.GetPassedTestsInfo();
         }
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
         {
-            var testCase = new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, _passedTests, dataRow);
+            var testCase = new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow);
             return new[] { testCase };
         }
 
         protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
         {
-            var testCase = new WpfTheoryTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, _passedTests);
+            var testCase = new WpfTheoryTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
             return new[] { testCase };
         }
     }

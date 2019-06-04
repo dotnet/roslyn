@@ -12,7 +12,6 @@ namespace Roslyn.Test.Utilities
     public sealed class WpfTestCaseRunner : XunitTestCaseRunner
     {
         public WpfTestSharedData SharedData { get; }
-        public readonly IDictionary<string, TestInfo> _passedTests;
 
         public WpfTestCaseRunner(
             WpfTestSharedData sharedData,
@@ -23,17 +22,15 @@ namespace Roslyn.Test.Utilities
             object[] testMethodArguments,
             IMessageBus messageBus,
             ExceptionAggregator aggregator,
-            IDictionary<string, TestInfo> passedTests,
             CancellationTokenSource cancellationTokenSource)
             : base(testCase, displayName, skipReason, constructorArguments, testMethodArguments, messageBus, aggregator, cancellationTokenSource)
         {
             SharedData = sharedData;
-            _passedTests = passedTests;
         }
 
         protected override XunitTestRunner CreateTestRunner(ITest test, IMessageBus messageBus, Type testClass, object[] constructorArguments, MethodInfo testMethod, object[] testMethodArguments, string skipReason, IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
-            var runner = new WpfTestRunner(SharedData, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, _passedTests, cancellationTokenSource);
+            var runner = new WpfTestRunner(SharedData, test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource);
             return runner;
         }
     }

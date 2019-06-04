@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -25,10 +26,15 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public sealed class WpfTestRunner : XunitTestRunner
     {
+        private static readonly ImmutableDictionary<string, TestInfo> _passedTests;
         private static string s_wpfFactRequirementReason;
 
         public WpfTestSharedData SharedData { get; }
-        public readonly IDictionary<string, TestInfo> _passedTests;
+
+        static WpfTestRunner()
+        {
+            _passedTests = TestInfo.GetPassedTestsInfo();
+        }
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,
@@ -41,12 +47,10 @@ namespace Roslyn.Test.Utilities
             string skipReason,
             IReadOnlyList<BeforeAfterTestAttribute> beforeAfterAttributes,
             ExceptionAggregator aggregator,
-            IDictionary<string, TestInfo> passedTests,
             CancellationTokenSource cancellationTokenSource)
             : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource)
         {
             SharedData = sharedData;
-            _passedTests = passedTests;
         }
 
         protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
