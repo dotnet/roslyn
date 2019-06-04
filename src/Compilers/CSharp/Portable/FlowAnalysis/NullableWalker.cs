@@ -305,6 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
 
+        private bool IsAnalyzingAttribute => methodMainNode.Kind == BoundKind.Attribute;
+
         protected override void Free()
         {
             _methodGroupReceiverMapOpt?.Free();
@@ -2765,8 +2767,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            var type = method.ReturnTypeWithAnnotations;
-            SetLvalueResultType(node, type);
+            var result = GetReturnType(method);
+            SetResult(node, result.RValueType, result.LValueType);
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -2808,19 +2810,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiverType;
         }
 
+        private VisitResult GetReturnType(MethodSymbol method)
+        {
+            var type = method.ReturnTypeWithAnnotations;
+            var rvalueType = TypeWithState.Create(type, GetAnnotations(method));
+            return new VisitResult(rvalueType, type);
+        }
+
+        private FlowAnalysisAnnotations GetAnnotations(ParameterSymbol parameter)
+        {
+            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
+            // in attributes are error scenarios, so missing warnings should not be important.)
+            return IsAnalyzingAttribute ?
+                FlowAnalysisAnnotations.None :
+                parameter.FlowAnalysisAnnotations;
+        }
+
+        private FlowAnalysisAnnotations GetAnnotations(MethodSymbol method)
+        {
+            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
+            // in attributes are error scenarios, so missing warnings should not be important.)
+            return IsAnalyzingAttribute ?
+                FlowAnalysisAnnotations.None :
+                method.ReturnTypeAnnotationAttributes;
+        }
+
         /// <summary>
-        /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
-        /// NotNull.
+        /// For each argument, get the annotation from the corresponding parameter.
         /// </summary>
-        private static ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
+        private ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
         {
             ArrayBuilder<FlowAnalysisAnnotations> builder = null;
 
             for (int i = 0; i < numArguments; i++)
             {
-                (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-                FlowAnalysisAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+                (ParameterSymbol parameter, _, FlowAnalysisAnnotations annotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
 
                 annotations = removeInapplicableAnnotations(parameter, annotations);
 
@@ -2893,6 +2918,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return annotations;
             }
+        }
+
+        private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
+        {
+            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
+            {
+                return declaredType.AsNotAnnotated();
+            }
+            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) == FlowAnalysisAnnotations.AllowNull)
+            {
+                return declaredType.AsAnnotated();
+            }
+
+            return declaredType;
+        }
+
+        private static TypeWithAnnotations ApplyRValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
+        {
+            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
+            {
+                return declaredType.AsNotAnnotated();
+            }
+            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
+            {
+                return declaredType.AsAnnotated();
+            }
+
+            return declaredType;
         }
 
         // https://github.com/dotnet/roslyn/issues/29863 Record in the node whether type
@@ -2990,11 +3043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
-            // to get the proper result state. Annotations are ignored when binding an attribute to avoid cycles.
-            // (Additional warnings are only expected in error scenarios, particularly calling a method in an attribute argument.)
+            // to get the proper result state.
             ImmutableArray<FlowAnalysisAnnotations> annotations =
-                (this.methodMainNode.Kind == BoundKind.Attribute) ?
-                default :
                 GetAnnotations(argumentsNoConversions.Length, expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
@@ -3193,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < argumentsNoConversions.Length; i++)
             {
-                (ParameterSymbol parameter, TypeWithAnnotations parameterType) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                 if (parameter is null)
                 {
                     continue;
@@ -3207,6 +3257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetRefKind(refKindsOpt, i),
                     parameter,
                     parameterType,
+                    parameterAnnotations,
                     results[i],
                     invokedAsExtensionMethod && i == 0);
             }
@@ -3222,6 +3273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refKind,
             ParameterSymbol parameter,
             TypeWithAnnotations parameterType,
+            FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
             bool extensionMethodThisArgument)
         {
@@ -3240,7 +3292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 conversionOpt: conversionOpt,
                                 conversionOperand: argumentNoConversion,
                                 conversion: conversion,
-                                targetTypeWithNullability: parameterType,
+                                targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
                                 operandType: resultType,
                                 checkConversion: true,
                                 fromExplicitCast: false,
@@ -3264,12 +3316,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 // types match, but state would let a null in
-                                ReportNullableAssignmentIfNecessary(argumentNoConversion, parameterType, resultType, useLegacyWarnings: false);
+                                ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
                             }
                         }
 
                         // Check assignment from a fictional value from the parameter to the argument.
-                        var parameterWithState = parameterType.ToTypeWithState();
+                        var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
                         if (argumentNoConversion.IsSuppressed)
                         {
                             parameterWithState = parameterWithState.WithNotNullState();
@@ -3285,13 +3337,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case RefKind.Out:
                     {
-                        var parameterWithState = parameterType.ToTypeWithState();
+                        var lValueType = result.LValueType;
+                        var parameterWithAnnotations = ApplyRValueAnnotations(parameterType, parameterAnnotations);
+                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
                         if (argumentNoConversion is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            _variableTypes[local.LocalSymbol] = parameterType;
+                            _variableTypes[local.LocalSymbol] = parameterWithAnnotations;
+                            lValueType = parameterWithAnnotations;
                         }
 
-                        var lValueType = result.LValueType;
                         // Check assignment from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argumentNoConversion.Syntax, parameter);
 
@@ -3370,7 +3424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localState.HasValue ? localState.Value : this.State.Clone());
         }
 
-        private static (ParameterSymbol Parameter, TypeWithAnnotations Type) GetCorrespondingParameter(
+        private (ParameterSymbol Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations) GetCorrespondingParameter(
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
@@ -3378,7 +3432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameters.IsDefault)
             {
-                return (default, default);
+                return default;
             }
 
             int n = parameters.Length;
@@ -3417,16 +3471,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter is null)
             {
                 Debug.Assert(!expanded);
-                return (default, default);
+                return default;
             }
 
             var type = parameter.TypeWithAnnotations;
             if (expanded && parameter.Ordinal == n - 1 && type.IsSZArray())
             {
                 type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
+                return (parameter, type, FlowAnalysisAnnotations.None);
             }
 
-            return (parameter, type);
+            return (parameter, type, GetAnnotations(parameter));
         }
 
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
@@ -4303,7 +4358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(conversionOperand != null);
-            Debug.Assert(targetTypeWithNullability.HasType);
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
             NullableFlowState resultState = NullableFlowState.NotNull;
@@ -5211,7 +5265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             VisitArgumentConversion(
-                                conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
+                                conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter),
                                 new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
                                 extensionMethodThisArgument: false);
                         }
@@ -6606,6 +6660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.RefKind,
                 parameter,
                 parameter.TypeWithAnnotations,
+                GetAnnotations(parameter),
                 new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations()),
                 stateForLambda: default),
                 extensionMethodThisArgument: true);
