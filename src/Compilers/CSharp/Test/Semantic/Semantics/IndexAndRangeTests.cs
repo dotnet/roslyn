@@ -390,17 +390,10 @@ class C
             var comp = CreateCompilation(src);
 
             comp.VerifyDiagnostics(
-                // At binding time we don't look for all the necessary members
-                // on the Index and Range types.
+                // (24,13): error CS0656: Missing compiler required member 'System.Range.get_...'
+                //         _ = this[0..];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[0..]").WithArguments("System.Range", "get_" + (propertyName == "Start" ? "End" : "Start")).WithLocation(24, 13)
                 );
-
-            comp.VerifyEmitDiagnostics(
-                // (22,5): error CS0656: Missing compiler required member 'System.Range.get_{propertyName}'
-                //     {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
-        _ = this[^0];
-        _ = this[0..];
-    }").WithArguments("System.Range", "get_" + (propertyName == "Start" ? "End" : "Start")).WithLocation(22, 5));
         }
 
         [Fact]

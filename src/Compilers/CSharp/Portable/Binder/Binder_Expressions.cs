@@ -7556,6 +7556,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
+                    // Check for some required well-known members. They may not be needed
+                    // during lowering, but it's simpler to always require them to prevent
+                    // the user from getting surprising errors when optimizations fail
+                    _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_Start, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_End, diagnostics, syntax: syntax);
                 }
             }
             else
@@ -7593,6 +7598,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
+                            // Check for some required well-known members. They may not be needed
+                            // during lowering, but it's simpler to always require them to prevent
+                            // the user from getting surprising errors when optimizations fail
+                            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_Start, diagnostics, syntax: syntax);
+                            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_End, diagnostics, syntax: syntax);
                             break;
                         }
                     }
