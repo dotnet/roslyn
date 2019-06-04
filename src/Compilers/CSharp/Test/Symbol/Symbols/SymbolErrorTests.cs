@@ -913,21 +913,15 @@ public interface I1
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                // (6,28): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
-                // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P10").WithLocation(6, 28),
                 // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
                 //     event System.Action I2.P10;
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
                 // (6,28): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(6, 28),
-                // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
-                //     event System.Action I2.P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(6, 28)
                 );
         }
 
@@ -947,18 +941,12 @@ P10;
                 // (6,25): error CS0540: 'I1.P10': containing type does not implement interface 'I2'
                 //     event System.Action I2.
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.P10", "I2").WithLocation(6, 25),
-                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
-                //     event System.Action I2.
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
-                // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,1): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 // P10;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P10").WithLocation(7, 1),
                 // (7,1): error CS0539: 'I1.P10' in explicit interface declaration is not found among members of the interface that can be implemented
                 // P10;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(7, 1),
-                // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
-                // P10;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P10").WithArguments("I1.P10").WithLocation(7, 1)
                 );
         }
 
@@ -3767,10 +3755,6 @@ partial class H2<T, U, V> where T : IA<V> where U : IB { }";
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E1").WithArguments("E1<T, U>", "T").WithLocation(32, 15),
                 // (32,15): error CS0265: Partial declarations of 'E1<T, U>' have inconsistent constraints for type parameter 'U'
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E1").WithArguments("E1<T, U>", "U").WithLocation(32, 15),
-                // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'T'
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "T").WithLocation(35, 15),
-                // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'U'
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "U").WithLocation(35, 15),
                 // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'T'
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "T").WithLocation(35, 15),
                 // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'U'
@@ -7833,18 +7817,12 @@ class MyClass : I
                 // (8,57): error CS0500: 'clx.P.set' cannot declare a body because it is marked abstract
                 //         public abstract object P { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("NS.clx.P.set").WithLocation(8, 57),
-                // (9,49): error CS0500: 'clx.E.add' cannot declare a body because it is marked abstract
+                // (9,47): error CS8712: 'clx.E': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.E.add").WithLocation(9, 49),
-                // (9,57): error CS0500: 'clx.E.remove' cannot declare a body because it is marked abstract
-                //         public abstract event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.E.remove").WithLocation(9, 57),
-                // (10,49): error CS0500: 'clx.X.add' cannot declare a body because it is marked abstract
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.E").WithLocation(9, 47),
+                // (10,47): error CS8712: 'clx.X': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action X { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("NS.clx.X.add").WithLocation(10, 49),
-                // (10,68): error CS0500: 'clx.X.remove' cannot declare a body because it is marked abstract
-                //         public abstract event System.Action X { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("NS.clx.X.remove").WithLocation(10, 68));
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.X").WithLocation(10, 47));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -9548,7 +9526,7 @@ public class Clx
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (11,20): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("default interface implementation").WithLocation(11, 20),
@@ -13835,36 +13813,60 @@ partial class C<X>
 }";
             // Note: Errors are reported on A1, A2, ... rather than A1<T>, A2<T, U>, ... See bug #9396.
             CreateCompilation(source).VerifyDiagnostics(
-                // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()").WithLocation(38, 18),
-                // (39,18): error CS0761: Partial method declarations of 'C<X>.A2<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A2").WithArguments("C<X>.A2<T, U>()").WithLocation(39, 18),
-                // (40,18): error CS0761: Partial method declarations of 'C<X>.A3<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A3").WithArguments("C<X>.A3<T>()").WithLocation(40, 18),
-                // (41,18): error CS0761: Partial method declarations of 'C<X>.A4<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A4").WithArguments("C<X>.A4<T, U>()").WithLocation(41, 18),
-                // (43,18): error CS0761: Partial method declarations of 'C<X>.B1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B1").WithArguments("C<X>.B1<T>()").WithLocation(43, 18),
-                // (44,18): error CS0761: Partial method declarations of 'C<X>.B2<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B2").WithArguments("C<X>.B2<T>()").WithLocation(44, 18),
-                // (45,18): error CS0761: Partial method declarations of 'C<X>.B3<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B3").WithArguments("C<X>.B3<T, U>()").WithLocation(45, 18),
-                // (47,18): error CS0761: Partial method declarations of 'C<X>.C1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C1").WithArguments("C<X>.C1<T>()").WithLocation(47, 18),
-                // (48,18): error CS0761: Partial method declarations of 'C<X>.C2<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C2").WithArguments("C<X>.C2<T>()").WithLocation(48, 18),
-                // (49,18): error CS0761: Partial method declarations of 'C<X>.C3<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C3").WithArguments("C<X>.C3<T, U>()").WithLocation(49, 18),
-                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()").WithLocation(22, 18),
-                // (24,18): error CS0761: Partial method declarations of 'C<X>.F1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F1").WithArguments("C<X>.F1<T, U>()").WithLocation(24, 18),
-                // (26,18): error CS0761: Partial method declarations of 'C<X>.G1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "G1").WithArguments("C<X>.G1<T, U>()").WithLocation(26, 18),
-                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()").WithLocation(29, 18),
-                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()").WithLocation(32, 18));
+                // (39,18): error CS0761: Partial method declarations of 'C<X>.A2<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void A2<T, U>() where T : struct where U : IB { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A2").WithArguments("C<X>.A2<T, U>()", "U").WithLocation(39, 18),
+                // (40,18): error CS0761: Partial method declarations of 'C<X>.A3<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A3<T>() where T : IA<IA<T>> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A3").WithArguments("C<X>.A3<T>()", "T").WithLocation(40, 18),
+                // (41,18): error CS0761: Partial method declarations of 'C<X>.A4<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A4<T, U>() where T : struct, IA<U> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A4").WithArguments("C<X>.A4<T, U>()", "T").WithLocation(41, 18),
+                // (43,18): error CS0761: Partial method declarations of 'C<X>.B1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B1<T>() where T : new() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B1").WithArguments("C<X>.B1<T>()", "T").WithLocation(43, 18),
+                // (44,18): error CS0761: Partial method declarations of 'C<X>.B2<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B2<T>() where T : class, X, new() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B2").WithArguments("C<X>.B2<T>()", "T").WithLocation(44, 18),
+                // (45,18): error CS0761: Partial method declarations of 'C<X>.B3<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B3<T, U>() where T : IB, IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B3").WithArguments("C<X>.B3<T, U>()", "T").WithLocation(45, 18),
+                // (47,18): error CS0761: Partial method declarations of 'C<X>.C1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void C1<T>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C1").WithArguments("C<X>.C1<T>()", "T").WithLocation(47, 18),
+                // (48,18): error CS0761: Partial method declarations of 'C<X>.C2<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void C2<T>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C2").WithArguments("C<X>.C2<T>()", "T").WithLocation(48, 18),
+                // (49,18): error CS0761: Partial method declarations of 'C<X>.C3<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void C3<T, U>() where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C3").WithArguments("C<X>.C3<T, U>()", "U").WithLocation(49, 18),
+                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void E1<T, U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()", "T").WithLocation(22, 18),
+                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void E1<T, U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()", "U").WithLocation(22, 18),
+                // (24,18): error CS0761: Partial method declarations of 'C<X>.F1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void F1<T, U>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F1").WithArguments("C<X>.F1<T, U>()", "U").WithLocation(24, 18),
+                // (26,18): error CS0761: Partial method declarations of 'C<X>.G1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void G1<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "G1").WithArguments("C<X>.G1<T, U>()", "U").WithLocation(26, 18),
+                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void H2<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()", "T").WithLocation(29, 18),
+                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void H2<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()", "U").WithLocation(29, 18),
+                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "T").WithLocation(32, 18),
+                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "U").WithLocation(32, 18),
+                // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A1<T>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()", "T").WithLocation(38, 18));
         }
 
         [Fact]
@@ -13899,8 +13901,9 @@ namespace N
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,22): error CS0761: Partial method declarations of 'N.C.M4<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("N.C.M4<T, U>()").WithLocation(25, 22));
+                // (25,22): error CS0761: Partial method declarations of 'C.M4<T, U>()' have inconsistent constraints for type parameter 'T'
+                //         partial void M4<T, U>() where T : NIA { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("N.C.M4<T, U>()", "T").WithLocation(25, 22));
         }
 
         [Fact]

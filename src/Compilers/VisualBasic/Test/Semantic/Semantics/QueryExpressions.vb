@@ -11476,9 +11476,9 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
   Expression: 
-    IInvalidOperation (OperationKind.Invalid, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
       Children(5):
           IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             Children(1):

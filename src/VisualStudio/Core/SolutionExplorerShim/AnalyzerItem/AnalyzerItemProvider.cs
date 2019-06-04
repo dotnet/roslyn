@@ -15,6 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         [Import(typeof(AnalyzersCommandHandler))]
         private IAnalyzersCommandHandler _commandHandler = null;
 
+        [ImportingConstructor]
+        public AnalyzerItemProvider()
+        {
+        }
+
         protected override IAttachedCollectionSource CreateCollectionSource(AnalyzersFolderItem analyzersFolder, string relationshipName)
         {
             if (relationshipName == KnownRelationships.Contains)

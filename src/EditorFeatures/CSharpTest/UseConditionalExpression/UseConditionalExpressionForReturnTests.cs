@@ -823,5 +823,25 @@ class C
     }
 }");
         }
+
+        [WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMissingWhenCrossingPreprocessorDirective()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    int M()
+    {
+        bool check = true;
+#if true
+        [||]if (check)
+            return 3;
+#endif
+        return 2;
+    }
+}");
+        }
     }
 }

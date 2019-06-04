@@ -97,7 +97,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
-                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics: true));
+                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length)));
             }
         }
 
@@ -140,7 +140,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
+                AdditionalText additionalStream = new AdditionalTextWithState(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 

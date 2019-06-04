@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
@@ -4187,6 +4191,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 

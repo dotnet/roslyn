@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxGenerator : SyntaxGenerator
     {
+        [ImportingConstructor]
+        public CSharpSyntaxGenerator()
+        {
+        }
+
         internal override SyntaxTrivia ElasticCarriageReturnLineFeed => SyntaxFactory.ElasticCarriageReturnLineFeed;
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
@@ -4317,6 +4322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
             => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, (PatternSyntax)pattern);
+
+        internal override SyntaxNode ConstantPattern(SyntaxNode expression)
+            => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
 
         internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
             => SyntaxFactory.DeclarationPattern(

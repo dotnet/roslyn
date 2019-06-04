@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private readonly IReadOnlyDictionary<string, string> _features;
+        // Protected for access in CSharpCompilation.WithAdditionalFeatures
+        protected readonly IReadOnlyDictionary<string, string> _features;
 
         public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }

@@ -1,67 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal struct TokenSemanticInfo
-    {
-        public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null, null, default(TextSpan));
-
-        public readonly ISymbol DeclaredSymbol;
-        public readonly IAliasSymbol AliasSymbol;
-        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
-        public readonly ITypeSymbol Type;
-        public readonly ITypeSymbol ConvertedType;
-        public readonly TextSpan Span;
-
-        public TokenSemanticInfo(
-            ISymbol declaredSymbol,
-            IAliasSymbol aliasSymbol,
-            ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type,
-            ITypeSymbol convertedType,
-            TextSpan span)
-        {
-            DeclaredSymbol = declaredSymbol;
-            AliasSymbol = aliasSymbol;
-            ReferencedSymbols = referencedSymbols;
-            Type = type;
-            ConvertedType = convertedType;
-            Span = span;
-        }
-
-        public ImmutableArray<ISymbol> GetSymbols(bool includeType)
-        {
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            result.AddIfNotNull(DeclaredSymbol);
-            result.AddIfNotNull(AliasSymbol);
-            result.AddRange(ReferencedSymbols);
-
-            if (includeType)
-            {
-                result.AddIfNotNull(Type ?? ConvertedType);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        public ISymbol GetAnySymbol(bool includeType)
-        {
-            return GetSymbols(includeType).FirstOrDefault();
-        }
-    }
-
     internal static class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
@@ -124,26 +74,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        public static TokenSemanticInfo GetSemanticInfo(
-            this SemanticModel semanticModel,
-            SyntaxToken token,
-            Workspace workspace,
-            CancellationToken cancellationToken)
-        {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
-            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsBindableToken(token))
-            {
-                return TokenSemanticInfo.Empty;
-            }
-
-            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
-
-            return GetSemanticInfo(
-                semanticModel, semanticFacts, syntaxFacts,
-                token, cancellationToken);
-        }
-
         private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
@@ -192,13 +122,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        private static TokenSemanticInfo GetSemanticInfo(
-            SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
-            ISyntaxFactsService syntaxFacts,
+        public static TokenSemanticInfo GetSemanticInfo(
+            this SemanticModel semanticModel,
             SyntaxToken token,
+            Workspace workspace,
             CancellationToken cancellationToken)
         {
+            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
+            if (!syntaxFacts.IsBindableToken(token))
+            {
+                return TokenSemanticInfo.Empty;
+            }
+
+            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
+
             IAliasSymbol aliasSymbol;
             ITypeSymbol type;
             ITypeSymbol convertedType;
@@ -284,29 +222,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static HashSet<ISymbol> GetAllDeclaredSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> filter = null)
         {
             var symbols = new HashSet<ISymbol>();
             if (container != null)
             {
-                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken);
+                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken, filter);
             }
 
             return symbols;
         }
 
         public static IEnumerable<ISymbol> GetExistingSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
             // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private static void GetAllDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode node,
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
@@ -319,9 +257,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (child.IsNode)
                 {
-                    GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
+                    var childNode = child.AsNode();
+                    if (ShouldDescendInto(childNode, descendInto))
+                    {
+                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
+                    }
                 }
             }
+
+            static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool> filter)
+                => filter != null ? filter(node) : true;
         }
     }
 }

@@ -5221,6 +5221,25 @@ _ = this is  C(  ){}  ; }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(34683, "https://github.com/dotnet/roslyn/issues/34683")]
+        public async Task FormatRecursivePattern_InBinaryOperation()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            var code = @"class C
+{
+    void M()
+    {
+        return
+            typeWithAnnotations is { } && true;
+    }
+}";
+            var expectedCode = code;
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_MultilineAndEmpty()
         {
             var code = @"class C
@@ -9161,6 +9180,57 @@ public unsafe class Test
     public static {operatorType} operator {targetType}{initialSpacing}() => throw null;
 }}",
                 changedOptionSet: changedOptionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclaration()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclarationAndPreserveSingleLine()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
         }
     }
 }

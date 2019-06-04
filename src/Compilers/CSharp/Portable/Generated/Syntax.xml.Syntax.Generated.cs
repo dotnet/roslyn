@@ -2501,99 +2501,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
-  /// <summary>Class which represents the syntax node for type clause in base expression.</summary>
-  public sealed partial class BaseExpressionTypeClauseSyntax : CSharpSyntaxNode
-  {
-    private TypeSyntax baseType;
-
-    internal BaseExpressionTypeClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
-        : base(green, parent, position)
-    {
-    }
-
-    /// <summary>Gets the open paren token.</summary>
-    public SyntaxToken OpenParenToken 
-    {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax)this.Green).openParenToken, this.Position, 0); }
-    }
-
-    /// <summary>Gets the base type syntax.</summary>
-    public TypeSyntax BaseType 
-    {
-        get
-        {
-            return this.GetRed(ref this.baseType, 1);
-        }
-    }
-
-    /// <summary>Gets the close paren token.</summary>
-    public SyntaxToken CloseParenToken 
-    {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
-    }
-
-    internal override SyntaxNode GetNodeSlot(int index)
-    {
-        switch (index)
-        {
-            case 1: return this.GetRed(ref this.baseType, 1);
-            default: return null;
-        }
-    }
-    internal override SyntaxNode GetCachedSlot(int index)
-    {
-        switch (index)
-        {
-            case 1: return this.baseType;
-            default: return null;
-        }
-    }
-
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitBaseExpressionTypeClause(this);
-    }
-
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitBaseExpressionTypeClause(this);
-    }
-
-    public BaseExpressionTypeClauseSyntax Update(SyntaxToken openParenToken, TypeSyntax baseType, SyntaxToken closeParenToken)
-    {
-        if (openParenToken != this.OpenParenToken || baseType != this.BaseType || closeParenToken != this.CloseParenToken)
-        {
-            var newNode = SyntaxFactory.BaseExpressionTypeClause(openParenToken, baseType, closeParenToken);
-            var annotations = this.GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-               return newNode.WithAnnotations(annotations);
-            return newNode;
-        }
-
-        return this;
-    }
-
-    public BaseExpressionTypeClauseSyntax WithOpenParenToken(SyntaxToken openParenToken)
-    {
-        return this.Update(openParenToken, this.BaseType, this.CloseParenToken);
-    }
-
-    public BaseExpressionTypeClauseSyntax WithBaseType(TypeSyntax baseType)
-    {
-        return this.Update(this.OpenParenToken, baseType, this.CloseParenToken);
-    }
-
-    public BaseExpressionTypeClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken)
-    {
-        return this.Update(this.OpenParenToken, this.BaseType, closeParenToken);
-    }
-  }
-
   /// <summary>Class which represents the syntax node for a base expression.</summary>
   public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
   {
-    private BaseExpressionTypeClauseSyntax typeClause;
-
     internal BaseExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
     {
@@ -2605,19 +2515,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionSyntax)this.Green).token, this.Position, 0); }
     }
 
-    public BaseExpressionTypeClauseSyntax TypeClause 
-    {
-        get
-        {
-            return this.GetRed(ref this.typeClause, 1);
-        }
-    }
-
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.typeClause, 1);
             default: return null;
         }
     }
@@ -2625,7 +2526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.typeClause;
             default: return null;
         }
     }
@@ -2640,11 +2540,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitBaseExpression(this);
     }
 
-    public BaseExpressionSyntax Update(SyntaxToken token, BaseExpressionTypeClauseSyntax typeClause)
+    public BaseExpressionSyntax Update(SyntaxToken token)
     {
-        if (token != this.Token || typeClause != this.TypeClause)
+        if (token != this.Token)
         {
-            var newNode = SyntaxFactory.BaseExpression(token, typeClause);
+            var newNode = SyntaxFactory.BaseExpression(token);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -2656,12 +2556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public BaseExpressionSyntax WithToken(SyntaxToken token)
     {
-        return this.Update(token, this.TypeClause);
-    }
-
-    public BaseExpressionSyntax WithTypeClause(BaseExpressionTypeClauseSyntax typeClause)
-    {
-        return this.Update(this.Token, typeClause);
+        return this.Update(token);
     }
   }
 
@@ -17883,6 +17778,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    public SyntaxToken SemicolonToken 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).semicolonToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(7), this.GetChildIndex(7));
+
+            return default(SyntaxToken);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -17916,11 +17823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitEventDeclaration(this);
     }
 
-    public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList)
+    public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList)
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList);
+            var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -17933,41 +17840,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal override BasePropertyDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
     public new EventDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
-        return this.Update(attributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(attributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     internal override BasePropertyDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
     public new EventDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(this.AttributeLists, modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     public EventDeclarationSyntax WithEventKeyword(SyntaxToken eventKeyword)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, eventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, eventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     internal override BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type) => WithType(type);
     public new EventDeclarationSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     internal override BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
     public new EventDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, explicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, explicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     public EventDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, identifier, this.AccessorList, this.SemicolonToken);
     }
 
     internal override BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList) => WithAccessorList(accessorList);
     public new EventDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList, this.SemicolonToken);
+    }
+
+    public EventDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    {
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, semicolonToken);
     }
     internal override BasePropertyDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
@@ -17985,7 +17897,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public new EventDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
     {
-        return this.WithAccessorList(this.AccessorList.WithAccessors(this.AccessorList.Accessors.AddRange(items)));
+        var accessorList = this.AccessorList ?? SyntaxFactory.AccessorList();
+        return this.WithAccessorList(accessorList.WithAccessors(accessorList.Accessors.AddRange(items)));
     }
   }
 

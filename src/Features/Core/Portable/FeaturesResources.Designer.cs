@@ -694,6 +694,27 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
+                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
+                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
+                        "l_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awaited task returns.
         /// </summary>
         internal static string Awaited_task_returns {
@@ -1158,6 +1179,51 @@ namespace Microsoft.CodeAnalysis {
         internal static string Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable field &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_field_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_field_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable fields should be disposed.
+        /// </summary>
+        internal static string Disposable_fields_should_be_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_fields_should_be_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disposable object created by &apos;{0}&apos; is never disposed.
+        /// </summary>
+        internal static string Disposable_object_created_by_0_is_never_disposed {
+            get {
+                return ResourceManager.GetString("Disposable_object_created_by_0_is_never_disposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field..
+        /// </summary>
+        internal static string DisposableFieldsShouldBeDisposedDescription {
+            get {
+                return ResourceManager.GetString("DisposableFieldsShouldBeDisposedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dispose objects before losing scope.
+        /// </summary>
+        internal static string Dispose_objects_before_losing_scope {
+            get {
+                return ResourceManager.GetString("Dispose_objects_before_losing_scope", resourceCulture);
             }
         }
         
@@ -1675,6 +1741,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_parameter_0 {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (and overrides/implementations).
+        /// </summary>
+        internal static string Generate_parameter_0_and_overrides_implementations {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0_and_overrides_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate property &apos;{1}.{0}&apos;.
         /// </summary>
         internal static string Generate_property_1_0 {
@@ -1860,6 +1944,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Source {
             get {
                 return ResourceManager.GetString("in_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in Source (attribute).
+        /// </summary>
+        internal static string in_Source_attribute {
+            get {
+                return ResourceManager.GetString("in_Source_attribute", resourceCulture);
             }
         }
         
@@ -2364,6 +2457,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Method_referenced_implicitly {
             get {
                 return ResourceManager.GetString("Method_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must return a stream that supports read and seek operations..
+        /// </summary>
+        internal static string MethodMustReturnStreamThatSupportsReadAndSeek {
+            get {
+                return ResourceManager.GetString("MethodMustReturnStreamThatSupportsReadAndSeek", resourceCulture);
             }
         }
         
@@ -3462,6 +3564,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream must support read and seek operations..
+        /// </summary>
+        internal static string StreamMustSupportReadAndSeek {
+            get {
+                return ResourceManager.GetString("StreamMustSupportReadAndSeek", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -3540,6 +3651,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Take_top {
             get {
                 return ResourceManager.GetString("Take_top", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target type matches.
+        /// </summary>
+        internal static string Target_type_matches {
+            get {
+                return ResourceManager.GetString("Target_type_matches", resourceCulture);
             }
         }
         
@@ -3723,6 +3843,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unknown_symbol_kind {
             get {
                 return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value_to_0 {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value_to_0", resourceCulture);
             }
         }
         
@@ -4323,6 +4461,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that object created by &apos;{0}&apos; is disposed on all paths: using statement/declaration or try/finally.
+        /// </summary>
+        internal static string Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally {
+            get {
+                return ResourceManager.GetString("Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on" +
+                        "_all_paths_using_statement_declaration_or_try_finally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use simple &apos;using&apos; statement.
         /// </summary>
         internal static string Use_simple_using_statement {
@@ -4346,6 +4503,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string UseRecommendedDisposePatternDescription {
+            get {
+                return ResourceManager.GetString("UseRecommendedDisposePatternDescription", resourceCulture);
             }
         }
         
@@ -4382,24 +4548,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to &apos;{0}&apos; is never used.
-        /// </summary>
-        internal static string Value_assigned_to_0_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_0_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to symbol is never used.
-        /// </summary>
-        internal static string Value_assigned_to_symbol_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_symbol_is_never_used", resourceCulture);
             }
         }
         

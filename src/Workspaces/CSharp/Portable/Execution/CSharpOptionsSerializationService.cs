@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
     [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
     internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
     {
+        [ImportingConstructor]
+        public CSharpOptionsSerializationService()
+        {
+        }
+
         public override void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WriteCompilationOptionsTo(options, writer, cancellationToken);
@@ -49,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferBraces, writer, cancellationToken);
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, writer, cancellationToken);
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, writer, cancellationToken);
         }
 
@@ -70,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferBraces, reader, cancellationToken);
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, reader, cancellationToken);
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, reader, cancellationToken);
 
             return options;

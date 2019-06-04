@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="new">Adding analyzer config documents is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
@@ -10,6 +15,11 @@
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">Archivos de C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="new">Changing analyzer config documents is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -50,6 +60,16 @@
       <trans-unit id="Modifier_preferences">
         <source>Modifier preferences</source>
         <target state="translated">Preferencias de modificador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="new">Naming styles</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -1202,6 +1222,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Elimine la línea siguiente si desea heredar la configuración de .editorconfig de directorios más elevados</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="new">Removing analyzer config documents is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">El símbolo "{0}" no procede del código fuente.</target>
@@ -1275,6 +1300,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">No se admite la adición de proyectos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="new">Symbol specifications</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">

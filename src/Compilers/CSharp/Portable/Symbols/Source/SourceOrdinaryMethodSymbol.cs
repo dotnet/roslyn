@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -181,7 +182,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            var location = this.Locations[0];
+            if (IsAsync)
+            {
+                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
+                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
+                    (Bodies.blockBody != null || Bodies.arrowBody != null))
+                {
+                    if (enumeratorCancellationCount == 0 &&
+                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
+                    {
+                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                    }
+
+                    if (enumeratorCancellationCount > 1)
+                    {
+                        // The [EnumeratorCancellation] attribute can only be used on one parameter
+                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, location);
+                    }
+                }
+            }
+
+            var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
                 Debug.Assert(returnTypeSyntax.HasErrors);
@@ -190,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // set ReturnsVoid flag
             this.SetReturnsVoid(returnsVoid);
 
-            var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
@@ -213,8 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
                                                     syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
 
+                    IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, _typeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 ref isValueTypeOverride,
                                                                                  diagnostics, isForOverride: true);
                 }
 
@@ -420,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(_hasAnyBody, location, diagnostics);
+            CheckModifiers(syntax.ExplicitInterfaceSpecifier != null, _hasAnyBody, location, diagnostics);
 
             return;
 
@@ -552,19 +579,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
         {
-            var clauses = _lazyTypeParameterConstraints;
-            if (clauses.IsDefault)
+            if (_lazyTypeParameterConstraints.IsDefault)
             {
-                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
                     this.DeclaringCompilation
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraintsEarly(
+                var constraints = this.MakeTypeParameterConstraints(
                     withTypeParametersBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
@@ -572,20 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.Identifier.GetLocation(),
                     diagnostics);
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-                clauses = _lazyTypeParameterConstraints;
-            }
-
-            if (!early && clauses.IsEarly())
-            {
-                // Late step.
-                var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
-                Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
@@ -820,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var defaultAccess = isInterface && modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0 ? (isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0 && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
@@ -854,6 +865,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.Partial |
                                                                DeclarationModifiers.AccessibilityMask;
                 }
+            }
+            else if (isInterface)
+            {
+                Debug.Assert(isExplicitInterfaceImplementation);
+                allowedModifiers |= DeclarationModifiers.Abstract;
             }
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
@@ -960,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        private void CheckModifiers(bool hasBody, Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
                      DeclarationModifiers.Virtual |
@@ -970,6 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                      DeclarationModifiers.Sealed |
                      DeclarationModifiers.Extern;
 
+            bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
+
             if (IsPartial && !ReturnsVoid)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
@@ -978,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }
-            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || IsAbstract || IsOverride))
+            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
                 diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
             }
@@ -992,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A member '{0}' marked as override cannot be marked as new or virtual
                 diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
             }
-            else if (IsSealed && !IsOverride)
+            else if (IsSealed && !IsOverride && !(isExplicitInterfaceImplementationInInterface && IsAbstract))
             {
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
@@ -1011,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
             }
-            else if (IsAbstract && IsSealed)
+            else if (IsAbstract && IsSealed && !isExplicitInterfaceImplementationInInterface)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
             }
@@ -1110,6 +1128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
             var location = GetSyntax().ReturnType.Location;
 
             Debug.Assert(location != null);
@@ -1138,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
+            if (_refKind == RefKind.RefReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1187,10 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
-            if (!HaveSameConstraints(definition, implementation))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
-            }
+            PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
             ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
             ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
@@ -1204,28 +1221,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns true if the two partial methods have the same constraints.
-        /// </summary>
-        private static bool HaveSameConstraints(SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!ReferenceEquals(part1, part2));
-            Debug.Assert(part1.Arity == part2.Arity);
+            Debug.Assert(!ReferenceEquals(definition, implementation));
+            Debug.Assert(definition.Arity == implementation.Arity);
 
-            var typeParameters1 = part1.TypeParameters;
+            var typeParameters1 = definition.TypeParameters;
 
             int arity = typeParameters1.Length;
             if (arity == 0)
             {
-                return true;
+                return;
             }
 
-            var typeParameters2 = part2.TypeParameters;
+            var typeParameters2 = implementation.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, includingNullability: true);
+            // Report any mismatched method constraints.
+            for (int i = 0; i < arity; i++)
+            {
+                var typeParameter1 = typeParameters1[i];
+                var typeParameter2 = typeParameters2[i];
+
+                if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+                else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+            }
         }
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)

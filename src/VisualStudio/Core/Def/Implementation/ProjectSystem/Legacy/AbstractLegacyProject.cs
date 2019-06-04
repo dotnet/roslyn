@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
+        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
+
         /// <summary>
         /// The path to the directory of the project. Read-only, since although you can rename
         /// a project in Visual Studio you can't change the folder of a project without an
@@ -86,8 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    Hierarchy = hierarchy,
-                    ProjectGuid = GetProjectIDGuid(hierarchy),
+                    ProjectGuid = hierarchy.GetProjectGuid(),
                 });
 
             ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
@@ -240,32 +241,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
-        }
 
-        private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
-        {
-            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
+            if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
             {
-                return guid;
+                VisualStudioProject.OutputRefFilePath = targetRefPath;
             }
-
-            return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
+            else
             {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
+                VisualStudioProject.OutputRefFilePath = null;
             }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>

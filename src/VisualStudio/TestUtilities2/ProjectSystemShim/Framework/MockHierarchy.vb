@@ -19,7 +19,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
         Private _projectName As String
         Private _projectBinPath As String
+        Private ReadOnly _projectRefPath As String
         Private ReadOnly _projectCapabilities As String
+        Private ReadOnly _projectGuid As Guid
         Private ReadOnly _projectMock As Mock(Of EnvDTE.Project) = New Mock(Of EnvDTE.Project)(MockBehavior.Strict)
 
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
@@ -28,10 +30,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Public Sub New(projectName As String,
                        projectFilePath As String,
                        projectBinPath As String,
-                       projectCapabilities As String)
+                       projectRefPath As String,
+                       projectCapabilities As String,
+                       projectGuid As Guid)
             _projectName = projectName
             _projectBinPath = projectBinPath
+            _projectRefPath = projectRefPath
             _projectCapabilities = projectCapabilities
+            _projectGuid = projectGuid
             _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectFilePath)
         End Sub
 
@@ -81,9 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetGuidProperty(itemid As UInteger, propid As Integer, ByRef pguid As Guid) As Integer Implements IVsHierarchy.GetGuidProperty
-            If itemid = VSConstants.VSITEMID_ROOT And propid = CType(__VSHPROPID.VSHPROPID_ProjectIDGuid, Integer) Then
-                pguid = Guid.NewGuid()
-
+            If itemid = VSConstants.VSITEMID_ROOT And propid = __VSHPROPID.VSHPROPID_ProjectIDGuid Then
+                pguid = _projectGuid
                 Return VSConstants.S_OK
             End If
 
@@ -324,9 +329,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             ElseIf pszPropName = "TargetFileName" Then
                 pbstrPropValue = PathUtilities.ChangeExtension(_projectName, "dll")
                 Return VSConstants.S_OK
+            ElseIf pszPropName = "TargetRefPath" Then
+                pbstrPropValue = _projectRefPath
+                Return VSConstants.S_OK
             End If
 
-            Throw New NotImplementedException()
+            Throw New NotSupportedException($"{NameOf(MockHierarchy)}.{NameOf(GetPropertyValue)} does not support reading {pszPropName}.")
         End Function
 
         Public Function SetPropertyValue(pszPropName As String, pszConfigName As String, storage As UInteger, pszPropValue As String) As Integer Implements IVsBuildPropertyStorage.SetPropertyValue

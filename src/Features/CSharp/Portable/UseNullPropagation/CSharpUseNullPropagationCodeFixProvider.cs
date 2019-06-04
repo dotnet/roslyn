@@ -18,5 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             ElementAccessExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseNullPropagationCodeFixProvider()
+        {
+        }
     }
 }

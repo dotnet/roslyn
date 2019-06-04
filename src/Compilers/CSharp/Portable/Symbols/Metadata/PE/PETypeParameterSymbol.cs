@@ -358,38 +358,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            if (!_lazyBounds.IsSet(early))
+            if (!_lazyBounds.IsSet())
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :
                     ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
-                EnsureAllConstraintsAreResolved(typeParameters, early);
+                EnsureAllConstraintsAreResolved(typeParameters);
             }
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress, early);
+            var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress, early: false);
+            var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.Interfaces : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress, early: false);
+            var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.EffectiveBaseClass : this.GetDefaultBaseType();
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            var bounds = this.GetBounds(inProgress, early: false);
+            var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.DeducedBaseType : this.GetDefaultBaseType();
         }
 
@@ -411,25 +411,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
+        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
         {
-            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
-            //Debug.Assert(!inProgress.ContainsReference(this));
-            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            Debug.Assert(!inProgress.ContainsReference(this));
+            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
-            var currentBounds = _lazyBounds;
-            if (currentBounds == TypeParameterBounds.Unset)
+            if (_lazyBounds == TypeParameterBounds.Unset)
             {
                 var constraintTypes = GetDeclaredConstraintTypes();
                 Debug.Assert(!constraintTypes.IsDefault);
-                var bounds = new TypeParameterBounds(constraintTypes);
-                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
-                currentBounds = _lazyBounds;
-            }
 
-            if (!currentBounds.IsSet(early))
-            {
-                var constraintTypes = currentBounds.ConstraintTypes;
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
@@ -460,15 +451,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostics.Free();
 
                 Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
-                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
+            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyBounds;
         }
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
-            EnsureAllConstraintsAreResolved(early: false);
+            EnsureAllConstraintsAreResolved();
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyConstraintsUseSiteErrorInfo;
         }

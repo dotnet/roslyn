@@ -32,6 +32,11 @@
         <target state="translated">设定文档设置的格式(试验)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">常规</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">生成事件订阅</target>
@@ -42,6 +47,16 @@
         <target state="translated">在关系运算符中: &lt;   &gt;   &lt;=   &gt;= 等同于 ==   !=</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">在格式设置期间执行其他代码清理</target>
@@ -51,6 +66,16 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">引用相等检查偏好 “is null”</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="new">Prefer switch expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
@@ -596,6 +621,11 @@
         <source>'this.' preferences:</source>
         <target state="translated">'"this." 首选项:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpFeaturesResources {
@@ -391,6 +391,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string conversion_operator {
             get {
                 return ResourceManager.GetString("conversion_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert switch statement to expression.
+        /// </summary>
+        internal static string Convert_switch_statement_to_expression {
+            get {
+                return ResourceManager.GetString("Convert_switch_statement_to_expression", resourceCulture);
             }
         }
         
@@ -1160,6 +1169,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Sort Usings.
+        /// </summary>
+        internal static string Sort_Usings {
+            get {
+                return ResourceManager.GetString("Sort_Usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to struct.
         /// </summary>
         internal static string struct_ {
@@ -1347,6 +1365,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Use_is_null_check {
             get {
                 return ResourceManager.GetString("Use_is_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;switch&apos; expression.
+        /// </summary>
+        internal static string Use_switch_expression {
+            get {
+                return ResourceManager.GetString("Use_switch_expression", resourceCulture);
             }
         }
         

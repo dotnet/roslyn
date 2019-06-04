@@ -12,9 +12,14 @@
         <target state="translated">Não é possível criar um tipo genérico construído com base em um tipo não genérico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="needs-review-translation">Para usar '@$' em vez de '$@' para uma cadeia de caracteres textual interpolada, use a versão da linguagem {0} ou superior.</target>
+        <target state="translated">Para usar '@$' em vez de '$@' para uma cadeia de caracteres textuais interpolada, use a versão de linguagem '{0}' ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -32,6 +37,11 @@
         <target state="translated">É ilegal usar o tipo de referência anulável '{0}?' em uma expressão as; use o tipo subjacente '{0}' em seu lugar.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
@@ -40,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -63,8 +68,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</source>
-        <target state="translated">Opção inválida '{0}' para /nullable; precisa ser 'disable', 'enable', 'safeonly', 'warnings' ou 'safeonlywarnings'</target>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <target state="needs-review-translation">Opção inválida '{0}' para /nullable; precisa ser 'disable', 'enable', 'safeonly', 'warnings' ou 'safeonlywarnings'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -94,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">O tipo '{0}' não pode ser inserido porque ele tem um membro non-abstract. Considere configurar a propriedade 'Inserir Tipos de Interoperabilidade' como falsa.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -239,12 +249,22 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="translated">O método '{0}' com um bloco iterador deve ser 'async' para retornar '\ {1 \}'</target>
+        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Padrão ausente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -262,29 +282,14 @@
         <target state="translated">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado. Você quis dizer 'await using' em vez de 'using'?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="new">'{0}' is not base type or interface of {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="new">'{0}' is not an immediate member of {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="new">'{0}' is not implemented in base interface {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
-        <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
-        <target state="translated">Esperado 'enable', 'safeonly', 'disable' ou 'restore'</target>
+        <source>Expected 'enable', 'disable', or 'restore'</source>
+        <target state="needs-review-translation">Esperado 'enable', 'safeonly', 'disable' ou 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="needs-review-translation">Valor '{0}' inválido: '{1}' para C# {2}. Use a versão da linguagem {3} ou superior.</target>
+        <target state="translated">Valor '{0}' inválido: '{1}' para C# {2}. Use a versão de linguagem '{3}' ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -349,7 +354,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
+        <target state="translated">O tempo de execução de destino não é compatível com a acessibilidade 'protegida', 'protegida internamente' ou 'protegida de forma privada' para um membro de uma interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -533,8 +538,8 @@
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Specify nullable context option enable|disable|warnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -589,7 +594,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –
@@ -737,11 +742,6 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="new">specifying base type in base expression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">descartável</target>
@@ -792,6 +792,11 @@
         <target state="translated">sombreamento de nome em funções aninhadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNestedStackalloc">
+        <source>stackalloc in nested expressions</source>
+        <target state="new">stackalloc in nested expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">tipos de referência que permitem valor nulo</target>
@@ -807,9 +812,9 @@
         <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
-        <source>warning action enable or safeonly</source>
-        <target state="translated">ação de aviso enable ou safeonly</target>
+      <trans-unit id="IDS_FeaturePragmaWarningEnable">
+        <source>warning action enable</source>
+        <target state="new">warning action enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -869,7 +874,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
         <source>unmanaged constructed types</source>
-        <target state="new">unmanaged constructed types</target>
+        <target state="translated">tipos construídos não gerenciados</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -1269,12 +1274,12 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">O operador 'as' pode produzir um valor nulo quando '{0}' é um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
         <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
+        <target state="translated">O operador 'as' pode produzir um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1289,12 +1294,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">O acesso condicional pode produzir um valor nulo quando '{0}' é um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
         <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="new">Conditional access may produce a null value for a type parameter.</target>
+        <target state="translated">O acesso condicional pode produzir um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
@@ -1309,12 +1314,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">Uma expressão padrão introduz um valor nulo quando '{0}' é um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
         <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="new">A default expression introduces a null value for a type parameter.</target>
+        <target state="translated">Uma expressão padrão apresenta um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1357,16 +1362,6 @@
         <target state="translated">A expressão fornecida nunca corresponde ao padrão fornecido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly">
-        <source>Expected nullable</source>
-        <target state="translated">Esperado anulável</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
-        <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="translated">Esperado anulável após #pragma warning safeonly</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
         <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
         <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
@@ -1399,22 +1394,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="needs-review-translation">Não é possível converter uma literal nula em referência não nula ou em parâmetro de tipo irrestrito.</target>
+        <target state="translated">Não é possível converter um literal nulo em um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="needs-review-translation">Não é possível converter uma literal nula em referência não nula ou em parâmetro de tipo irrestrito.</target>
+        <target state="translated">Não é possível converter um literal nulo em um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">Um literal nulo introduz um valor nulo quando '{0}' é um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
         <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="new">A null literal introduces a null value for a type parameter.</target>
+        <target state="translated">Um literal nulo apresenta um valor nulo para um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1449,12 +1444,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="needs-review-translation">Possível desreferência de uma referência nula.</target>
+        <target state="translated">Desreferência de uma referência possivelmente nula.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="needs-review-translation">Possível desreferência de uma referência nula.</target>
+        <target state="translated">Desreferência de uma referência possivelmente nula.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1469,22 +1464,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="needs-review-translation">A anulabilidade de tipos de referência em um argumento do tipo '{0}' não coincide com o tipo de destino '{1}' para o parâmetro '{2}' em '{3}'.</target>
+        <target state="translated">O argumento de tipo '{0}' não pode ser usado para parâmetro '{2}' de tipo '{1}' em '{3}' devido às diferenças na anulabilidade de tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <target state="translated">O argumento de tipo '{0}' não pode ser usado como uma saída de tipo '{1}' para o parâmetro '{2}' em '{3}' devido às diferenças na anulabilidade de tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
+        <target state="translated">O argumento não pode ser usado como uma saída para parâmetro devido às diferenças na anulabilidade de tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="needs-review-translation">A anulabilidade de tipos de referência no argumento não corresponde ao tipo de destino.</target>
+        <target state="translated">O argumento não pode ser usado para parâmetro devido às diferenças na anulabilidade de tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1505,6 +1500,16 @@
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
         <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
         <target state="translated">A anulabilidade em restrições para parâmetro de tipo não corresponde às restrições para parâmetro de tipo em método de interface implicitamente implementado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1637,16 +1642,6 @@
         <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro implicitamente implementado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro substituído.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro substituído.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">O tipo '{3}' não pode ser usado como parâmetro de tipo '{2}' no tipo ou método genérico '{0}'. A anulabilidade do argumento de tipo '{3}' não corresponde ao tipo de restrição '{1}'.</target>
@@ -1684,12 +1679,12 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive).</target>
+        <target state="translated">A expressão switch não manipula algumas entradas nulas (ela não é finita).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
-        <target state="new">The switch expression does not handle some null inputs.</target>
+        <target state="translated">A expressão switch não manipula algumas entradas nulas.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
@@ -1735,6 +1730,26 @@
       <trans-unit id="WRN_UnboxPossibleNull_Title">
         <source>Unboxing a possibly null value.</source>
         <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
+        <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="new">The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
+        <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
+        <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
+        <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -2064,7 +2079,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
         <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="needs-review-translation">'"{0}": evento na interface não pode ter inicializador</target>
+        <target state="translated">'{0}': o evento de instância na interface não pode ter inicializador</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2804,7 +2819,7 @@
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
         <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="needs-review-translation">'"{0}" não tem um tamanho pré-definido; portanto, sizeof só pode ser usado em um contexto desprotegido (considere o uso de System.Runtime.InteropServices.Marshal.SizeOf)</target>
+        <target state="translated">'{0}' não tem um tamanho pré-definido, portanto, o sizeof só pode ser usado em um contexto não seguro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -3648,12 +3663,12 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
         <source>Interfaces cannot contain instance fields</source>
-        <target state="needs-review-translation">Interfaces não podem conter campos</target>
+        <target state="translated">Interfaces não podem conter campos de instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
         <source>Interfaces cannot contain instance constructors</source>
-        <target state="needs-review-translation">Interfaces não podem conter construtores</target>
+        <target state="translated">Interfaces não podem conter construtores de instância</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3703,7 +3718,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
         <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
-        <target state="needs-review-translation">'"{0}" na declaração de interface explícita não é um membro de interface</target>
+        <target state="translated">'{0}' na declaração de interface explícita não é encontrado entre membros da interface que podem ser implementados</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3713,7 +3728,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
         <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="needs-review-translation">'"{0}": declaração de interface explícita pode somente ser declarada em uma classe ou estrutura</target>
+        <target state="translated">'{0}': a declaração de interface explícita só pode ser declarada em uma classe, struct ou interface</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4613,7 +4628,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
         <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="needs-review-translation">Um método parcial deve ser declarado em uma classe parcial ou estrutura parcial</target>
+        <target state="translated">Um método parcial deve ser declarado em uma classe parcial, struct parcial ou interface parcial</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -4657,8 +4672,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">As declarações de método parcial "{0}" têm restrições de parâmetro de tipo inconsistentes</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5367,7 +5382,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
         <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="needs-review-translation">'"{0}" especificado para método Main deve ser uma classe ou estrutura não-genérica válida</target>
+        <target state="translated">'{0}' especificado para método Main deve ser uma interface, struct ou classe não genérica</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -5766,13 +5781,13 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore, enable or safeonly</source>
-        <target state="translated">Esperado disable, restore, enable ou safeonly</target>
+        <source>Expected disable, restore or enable</source>
+        <target state="needs-review-translation">Esperado disable, restore, enable ou safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="translated">Esperado disable, restore, enable ou safeonly após #pragma warning</target>
+        <source>Expected disable, restore or enable after #pragma warning</source>
+        <target state="needs-review-translation">Esperado disable, restore, enable ou safeonly após #pragma warning</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -8643,11 +8658,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Propriedades autoimplementadas devem substituir todos os acessadores de propriedade substituída.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="needs-review-translation">Propriedades autoimplementadas em interfaces não podem ter inicializadores.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">Estruturas sem construtores explícitos não podem conter membros com inicializadores.</target>
@@ -9045,7 +9055,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
         <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="needs-review-translation">Branches de um operador ternário de referência não podem se referir a variáveis com escopos de declaração incompatível</target>
+        <target state="translated">Branches de um operador condicional de referência não podem se referir a variáveis com escopos de declaração incompatível</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -9520,7 +9530,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="needs-review-translation">O primeiro parâmetro de um método de extensão "in" "{0}" deve ser um tipo de valor.</target>
+        <target state="translated">O primeiro parâmetro do método de extensão 'in' '{0}' precisa ser um tipo de valor concreto (não genérico).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -9640,42 +9650,42 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="new">Interfaces cannot contain conversion, equality, or inequality operators</target>
+        <target state="translated">As interfaces não podem conter operadores de conversão, igualdade ou desigualdade</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">implementação de interface padrão</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">O tempo de execução de destino não é compatível com a implementação de interface padrão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</target>
+        <target state="translated">'{0}' não pode implementar um membro de interface '{1}' no tipo '{2}' porque o tempo de execução de destino não é compatível com a implementação de interface padrão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <target state="translated">O modificador '{0}' não é válido para este item em in C# {1}. Use a versão de linguagem '{2}' ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</target>
+        <target state="translated">'{0}' não implementa o membro de interface '{1}'. '{2}' não pode implementar implicitamente um membro não público.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="new">Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</target>
+        <target state="translated">O membro de interface '{0}' não tem uma implementação mais específica. Nem '{1}' ou '{2}' são mais específicos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <target state="translated">'{0}' não pode implementar um membro de interface '{1}' no tipo '{2}', porque o recurso '{3}' não está disponível em C# {4}. Use a versão de linguagem '{5}' ou superior.</target>
         <note />
       </trans-unit>
     </body>

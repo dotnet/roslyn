@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
             )
         {
-            Debug.Assert(type.SpecialType != SpecialType.System_Void);
+            Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
 

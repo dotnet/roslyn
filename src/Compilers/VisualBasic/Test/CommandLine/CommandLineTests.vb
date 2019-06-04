@@ -36,9 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
-        Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+        Private Shared ReadOnly s_compilerVersion As String = CommonCompiler.GetProductVersion(GetType(CommandLineTests))
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -55,6 +53,164 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
             Return VisualBasicCommandLineParser.Script.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
+
+        <Fact>
+        Public Sub SimpleAnalyzerConfig()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = suppress")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Assert.Null(cmd.AnalyzerOptions)
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigWithOptions()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim additionalFile = dir.CreateFile("file.txt")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = suppress
+dotnet_diagnostic.warning01.severity = suppress
+dotnet_diagnostic.Warning03.severity = suppress
+my_option = my_val
+
+[*.txt]
+dotnet_diagnostic.bc42024.severity = suppress
+my_option2 = my_val2")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                "/analyzer:" + Assembly.GetExecutingAssembly().Location,
+                "/nowarn:42376",
+                "/additionalfile:" + additionalFile.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Dim comp = cmd.Compilation
+            Dim tree = comp.SyntaxTrees.Single()
+            AssertEx.SetEqual({
+                KeyValuePairUtil.Create("bc42024", ReportDiagnostic.Suppress),
+                KeyValuePairUtil.Create("warning01", ReportDiagnostic.Suppress),
+                KeyValuePairUtil.Create("warning03", ReportDiagnostic.Suppress)
+                }, tree.DiagnosticOptions)
+
+            Dim provider = cmd.AnalyzerOptions.AnalyzerConfigOptionsProvider
+            Dim options = provider.GetOptions(tree)
+            Assert.NotNull(options)
+            Dim val As String = Nothing
+            Assert.True(options.TryGetValue("my_option", val))
+            Assert.Equal("my_val", val)
+            Assert.False(options.TryGetValue("my_option2", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
+
+            options = provider.GetOptions(cmd.AnalyzerOptions.AdditionalFiles.Single())
+            Assert.NotNull(options)
+            Assert.True(options.TryGetValue("my_option2", val))
+            Assert.Equal("my_val2", val)
+            Assert.False(options.TryGetValue("my_option", Nothing))
+            Assert.False(options.TryGetValue("dotnet_diagnostic.bc42024.severity", Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigBadSeverity()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42024.severity = garbage")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal(
+$"vbc : warning InvalidSeverityInAnalyzerConfig: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+{src.Path}(4) : warning BC42024: Unused local variable: 'x'.
+
+        Dim x As Integer
+            ~           
+", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigsInSameDir()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.cs").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim configText = "
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress"
+
+            Dim analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText)
+            Dim analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                src.Path
+            })
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Equal(
+                $"vbc : error BC42500: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                outWriter.ToString().TrimEnd())
+        End Sub
 
         <Fact>
         <WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")>
@@ -187,7 +343,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
         End Sub
@@ -206,7 +362,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keycontainer:aaa"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -225,7 +381,7 @@ End Class"
             file.WriteAllText(source)
 
             Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
-            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
@@ -356,28 +512,26 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
 
         <Theory,
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (abcdef90)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (12345678)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)")>
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (<developer build>)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (ABCDEF01)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (abcdef90)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (12345678)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)")>
         Public Sub TestReplaceCommitHash(orig As String, expected As String)
             Assert.Equal(expected, ReplaceCommitHash(orig))
         End Sub
@@ -399,15 +553,13 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -5898,7 +6050,7 @@ PATH(6) : error BC30203: Identifier expected.
         End Sub
 
         Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
-            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION (HASH)", s_compilerVersion).Replace(vbLf, vbCrLf)
         End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
@@ -7372,6 +7524,61 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
             Assert.Equal(0, args.AdditionalFiles.Length)
         End Sub
 
+        <Fact>
+        Public Sub ParseEditorConfig()
+            Dim args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths.Single())
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb", "/analyzerconfig:subdir\.editorconfig"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig", "a.vb", "/analyzerconfig:.editorconfig"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:..\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(Path.Combine(_baseDirectory, "..\.editorconfig"), args.AnalyzerConfigPaths.Single())
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig;subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig,subdir\.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths(0))
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\.editorconfig"), args.AnalyzerConfigPaths(1))
+
+            args = DefaultParse({"/analyzerconfig:.editorconfig:.editorconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertNoErrors()
+            Assert.Equal(1, args.AnalyzerConfigPaths.Length)
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig:.editorconfig"), args.AnalyzerConfigPaths(0))
+
+            args = DefaultParse({"/analyzerconfig", "a.vb"}, _baseDirectory)
+            args.Errors.AssertTheseDiagnostics(
+                <errors><![CDATA[
+                    BC2006: option 'analyzerconfig' requires ':<file_list>'
+                    ]]>
+                </errors>)
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length)
+
+            args = DefaultParse({"/analyzerconfig:", "a.vb"}, _baseDirectory)
+            args.Errors.AssertTheseDiagnostics(
+                <errors><![CDATA[
+BC2006: option 'analyzerconfig' requires ':<file_list>']]>
+                </errors>)
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length)
+        End Sub
+
         Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
             actual.Verify(expected)
         End Sub
@@ -8701,7 +8908,6 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = $"{s_compilerVersion} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -8711,7 +8917,7 @@ End Class
 
             For Each args In argss
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
-                Assert.Equal(expected, output.Trim())
+                Assert.Equal(s_compilerVersion, output.Trim())
             Next
         End Sub
 
@@ -9102,7 +9308,7 @@ End Module
 
             Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
-            Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
+            Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
             Assert.False(comp.SignUsingBuilder)
         End Sub
 

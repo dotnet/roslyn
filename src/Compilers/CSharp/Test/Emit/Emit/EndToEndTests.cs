@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 510,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1350,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310,
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 225,
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 620,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -24,15 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             return new SymbolCompletionProvider();
         }
 
-        protected override Task VerifyWorkerAsync(
+        private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription, List<CompletionItemFilter> matchingFilters)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                inlineDescription, matchingFilters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

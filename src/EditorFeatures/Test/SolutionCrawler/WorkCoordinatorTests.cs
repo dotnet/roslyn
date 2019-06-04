@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
     [UseExportProvider]
-    public class WorkCoordinatorTests
+    public class WorkCoordinatorTests : TestBase
     {
         private const string SolutionCrawler = nameof(SolutionCrawler);
 
@@ -485,6 +485,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             }
         }
 
+        [Fact]
+        public async Task Document_AnalyzerConfigFileChange()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var project = solution.Projects[0];
+                var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+                var analyzerConfigFile = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), ".editorconfig", filePath: analyzerConfigDocFilePath);
+
+                var worker = await ExecuteOperation(workspace, w => w.OnAnalyzerConfigDocumentAdded(analyzerConfigFile));
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+
+                worker = await ExecuteOperation(workspace, w => w.ChangeAnalyzerConfigDocument(analyzerConfigFile.Id, SourceText.From("//")));
+
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+
+                worker = await ExecuteOperation(workspace, w => w.OnAnalyzerConfigDocumentRemoved(analyzerConfigFile.Id));
+
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+            }
+        }
+
         [Fact, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         public async Task Document_Cancellation()
         {
@@ -867,11 +896,11 @@ End Class";
 
                 reporter.ProgressChanged += (o, s) =>
                 {
-                    if (s)
+                    if (s.Status == ProgressStatus.Started)
                     {
                         started = true;
                     }
-                    else
+                    else if (s.Status == ProgressStatus.Stoped)
                     {
                         stopped = true;
                     }

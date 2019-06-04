@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <TargetFramework>net46</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
 
     <!-- https://github.com/dotnet/roslyn/issues/31412 -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>

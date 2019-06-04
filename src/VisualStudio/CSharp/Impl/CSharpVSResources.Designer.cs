@@ -268,6 +268,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        internal static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Event Subscription.
         /// </summary>
         internal static string Generate_Event_Subscription {
@@ -655,6 +664,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inside namespace.
+        /// </summary>
+        internal static string Inside_namespace {
+            get {
+                return ResourceManager.GetString("Inside_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Label Indentation.
         /// </summary>
         internal static string Label_Indentation {
@@ -777,6 +795,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outside namespace.
+        /// </summary>
+        internal static string Outside_namespace {
+            get {
+                return ResourceManager.GetString("Outside_namespace", resourceCulture);
             }
         }
         
@@ -1051,6 +1078,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer switch expression.
+        /// </summary>
+        internal static string Prefer_switch_expression {
+            get {
+                return ResourceManager.GetString("Prefer_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {
@@ -1074,6 +1110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_var {
             get {
                 return ResourceManager.GetString("Prefer_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preferred &apos;using&apos; directive placement.
+        /// </summary>
+        internal static string Preferred_using_directive_placement {
+            get {
+                return ResourceManager.GetString("Preferred_using_directive_placement", resourceCulture);
             }
         }
         
@@ -1389,6 +1434,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Using_Directives {
             get {
                 return ResourceManager.GetString("Using_Directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; preferences:.
+        /// </summary>
+        internal static string using_preferences_colon {
+            get {
+                return ResourceManager.GetString("using_preferences_colon", resourceCulture);
             }
         }
         

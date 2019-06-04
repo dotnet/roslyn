@@ -160,6 +160,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: abstract event cannot use event accessor syntax.
+        /// </summary>
+        internal static string ERR_AbstractEventHasAccessors {
+            get {
+                return ResourceManager.GetString("ERR_AbstractEventHasAccessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: abstract event cannot have initializer.
         /// </summary>
         internal static string ERR_AbstractEventInitializer {
@@ -831,15 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AutoPropertyCannotBeRefReturning {
             get {
                 return ResourceManager.GetString("ERR_AutoPropertyCannotBeRefReturning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Instance auto-implemented properties inside interfaces cannot have initializers..
-        /// </summary>
-        internal static string ERR_AutoPropertyInitializerInInterface {
-            get {
-                return ResourceManager.GetString("ERR_AutoPropertyInitializerInInterface", resourceCulture);
             }
         }
         
@@ -1879,11 +1879,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /nullable; must be &apos;disable&apos;, &apos;enable&apos;, &apos;safeonly&apos;, &apos;warnings&apos; or &apos;safeonlywarnings&apos;.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /nullable; must be &apos;disable&apos;, &apos;enable&apos; or &apos;warnings&apos;.
         /// </summary>
         internal static string ERR_BadNullableContextOption {
             get {
                 return ResourceManager.GetString("ERR_BadNullableContextOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The typeof operator cannot be used on a nullable reference type.
+        /// </summary>
+        internal static string ERR_BadNullableTypeof {
+            get {
+                return ResourceManager.GetString("ERR_BadNullableTypeof", resourceCulture);
             }
         }
         
@@ -6964,11 +6973,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        /// </summary>
+        internal static string ERR_MultipleAnalyzerConfigsInSameDir {
+            get {
+                return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point..
         /// </summary>
         internal static string ERR_MultipleEntryPoints {
             get {
                 return ResourceManager.GetString("ERR_MultipleEntryPoints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The attribute [EnumeratorCancellation] cannot be used on multiple parameters.
+        /// </summary>
+        internal static string ERR_MultipleEnumeratorCancellationAttributes {
+            get {
+                return ResourceManager.GetString("ERR_MultipleEnumeratorCancellationAttributes", resourceCulture);
             }
         }
         
@@ -7684,38 +7711,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not base type or interface of {1}..
-        /// </summary>
-        internal static string ERR_NotBaseOrImplementedInterface {
-            get {
-                return ResourceManager.GetString("ERR_NotBaseOrImplementedInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The expression being assigned to &apos;{0}&apos; must be constant.
         /// </summary>
         internal static string ERR_NotConstantExpression {
             get {
                 return ResourceManager.GetString("ERR_NotConstantExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not an immediate member of {1}..
-        /// </summary>
-        internal static string ERR_NotDeclaredInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotDeclaredInBase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not implemented in base interface {1}..
-        /// </summary>
-        internal static string ERR_NotImplementedInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotImplementedInBase", resourceCulture);
             }
         }
         
@@ -7783,7 +7783,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected &apos;enable&apos;, &apos;safeonly&apos;, &apos;disable&apos;, or &apos;restore&apos;.
+        ///   Looks up a localized string similar to Expected &apos;enable&apos;, &apos;disable&apos;, or &apos;restore&apos;.
         /// </summary>
         internal static string ERR_NullableDirectiveQualifierExpected {
             get {
@@ -8179,7 +8179,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent type parameter constraints.
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent constraints for type parameter &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_PartialMethodInconsistentConstraints {
             get {
@@ -10960,15 +10960,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to specifying base type in base expression.
-        /// </summary>
-        internal static string IDS_BaseTypeInBaseExpression {
-            get {
-                return ResourceManager.GetString("IDS_BaseTypeInBaseExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to collection.
         /// </summary>
         internal static string IDS_Collection {
@@ -11465,6 +11456,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to stackalloc in nested expressions.
+        /// </summary>
+        internal static string IDS_FeatureNestedStackalloc {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNestedStackalloc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to nullable types.
         /// </summary>
         internal static string IDS_FeatureNullable {
@@ -11573,11 +11573,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to warning action enable or safeonly.
+        ///   Looks up a localized string similar to warning action enable.
         /// </summary>
-        internal static string IDS_FeaturePragmaWarningEnableOrSafeOnly {
+        internal static string IDS_FeaturePragmaWarningEnable {
             get {
-                return ResourceManager.GetString("IDS_FeaturePragmaWarningEnableOrSafeOnly", resourceCulture);
+                return ResourceManager.GetString("IDS_FeaturePragmaWarningEnable", resourceCulture);
             }
         }
         
@@ -14518,7 +14518,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly.
+        ///   Looks up a localized string similar to Expected disable, restore or enable.
         /// </summary>
         internal static string WRN_IllegalPPWarning {
             get {
@@ -14527,29 +14527,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected disable, restore, enable or safeonly after #pragma warning.
+        ///   Looks up a localized string similar to Expected disable, restore or enable after #pragma warning.
         /// </summary>
         internal static string WRN_IllegalPPWarning_Title {
             get {
                 return ResourceManager.GetString("WRN_IllegalPPWarning_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected nullable.
-        /// </summary>
-        internal static string WRN_IllegalPPWarningSafeOnly {
-            get {
-                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected nullable after #pragma warning safeonly.
-        /// </summary>
-        internal static string WRN_IllegalPPWarningSafeOnly_Title {
-            get {
-                return ResourceManager.GetString("WRN_IllegalPPWarningSafeOnly_Title", resourceCulture);
             }
         }
         
@@ -15323,6 +15305,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent nullability in constraints for type parameter &apos;{1}&apos;.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations have inconsistent nullability in constraints for type parameter.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nullability of reference types in explicit interface specifier doesn&apos;t match interface implemented by the type..
         /// </summary>
         internal static string WRN_NullabilityMismatchInExplicitlyImplementedInterface {
@@ -15553,24 +15553,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title {
             get {
                 return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride_Title", resourceCulture);
             }
         }
         
@@ -16212,6 +16194,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnboxPossibleNull_Title {
             get {
                 return ResourceManager.GetString("WRN_UnboxPossibleNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute applied to parameter &apos;{0}&apos; will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
+        /// </summary>
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
+        /// </summary>
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async-iterator &apos;{0}&apos; has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async-iterator member has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter_Title {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter_Title", resourceCulture);
             }
         }
         

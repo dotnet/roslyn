@@ -6040,11 +6040,7 @@ public interface I1
                             N(SyntaxKind.DotToken);
                         }
                         N(SyntaxKind.IdentifierToken, "P10");
-                        M(SyntaxKind.AccessorList);
-                        {
-                            M(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6104,11 +6100,7 @@ P10;
                             N(SyntaxKind.DotToken);
                         }
                         N(SyntaxKind.IdentifierToken, "P10");
-                        M(SyntaxKind.AccessorList);
-                        {
-                            M(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }

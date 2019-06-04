@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     [Export(typeof(IActiveStatementProvider)), Shared]
     internal sealed partial class VisualStudioActiveStatementProvider : IActiveStatementProvider
     {
+        [ImportingConstructor]
+        public VisualStudioActiveStatementProvider()
+        {
+        }
+
         /// <summary>
         /// Retrieves active statements from the debuggee process.
         /// Shall only be called while in debug mode.

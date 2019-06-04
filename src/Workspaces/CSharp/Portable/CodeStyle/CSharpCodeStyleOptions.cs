@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -45,14 +46,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_conditional_delegate_call"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferConditionalDelegateCall")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferSwitchExpression = CreateOption(
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferSwitchExpression),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_switch_expression"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSwitchExpression)}")});
+
         public static readonly Option<CodeStyleOption<bool>> PreferPatternMatchingOverAsWithNullCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverAsWithNullCheck), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverAsWithNullCheck),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_as_with_null_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverAsWithNullCheck)}")});
 
         public static readonly Option<CodeStyleOption<bool>> PreferPatternMatchingOverIsWithCastCheck = CreateOption(
-            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverIsWithCastCheck), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferPatternMatchingOverIsWithCastCheck),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
@@ -227,6 +237,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        public static readonly CodeStyleOption<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =
+           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.Silent);
+
+        public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateOption(
+            CSharpCodeStyleOptionGroups.UsingDirectivePreferences, nameof(PreferredUsingDirectivePlacement),
+            defaultValue: PreferOutsidePlacementWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new EditorConfigStorageLocation<CodeStyleOption<AddImportPlacement>>(
+                    "csharp_using_directive_placement",
+                    s => ParseUsingDirectivesPlacement(s, PreferOutsidePlacementWithSilentEnforcement),
+                    GetUsingDirectivesPlacementEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivePlacement)}") });
+
         internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
@@ -258,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return VarWhenTypeIsApparent;
             yield return VarElsewhere;
             yield return PreferConditionalDelegateCall;
+            yield return PreferSwitchExpression;
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferSimpleDefaultExpression;
@@ -287,5 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
         public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpWorkspaceResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 7);
+        public static readonly OptionGroup UsingDirectivePreferences = new OptionGroup(CSharpWorkspaceResources.using_directive_preferences, priority: 8);
     }
 }

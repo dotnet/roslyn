@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 

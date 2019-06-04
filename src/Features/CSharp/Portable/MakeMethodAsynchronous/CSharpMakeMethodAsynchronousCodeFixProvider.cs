@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
 
+        [ImportingConstructor]
+        public CSharpMakeMethodAsynchronousCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS4032, CS4033, CS4034);
 
@@ -38,6 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
+
+        protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
+        {
+            return IsIAsyncEnumerableOrEnumerator(type, knownTypes)
+                || IsTaskLike(type, knownTypes);
+        }
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
