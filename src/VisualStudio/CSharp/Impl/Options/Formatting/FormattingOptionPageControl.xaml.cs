@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using System.Runtime.CompilerServices;
 
 [assembly: TypeForwardedTo(typeof(CodeStyleNoticeTextBlock))]
-
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     /// <summary>
