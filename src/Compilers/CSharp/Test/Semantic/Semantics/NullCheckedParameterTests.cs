@@ -61,13 +61,8 @@ interface C
 interface C
 {
     public void M(int x!) { }
-}
-
-class C
-{
-    static void Main() { }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
                                                          parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics();
         }
