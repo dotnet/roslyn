@@ -50402,7 +50402,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(11, 13));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35157")]
+        [Fact]
+        [WorkItem(35157, "https://github.com/dotnet/roslyn/issues/35157")]
         public void TupleTypeInference_08()
         {
             var source =
@@ -50412,11 +50413,23 @@ class C
     void M()
     {
         _ = (null, 2);
+        _ = (null, (2, 3));
+        _ = (null, (null, (2, 3)));
     }
 }";
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = (null, 2);
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9),
+                // (7,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = (null, (2, 3));
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 9),
+                // (8,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = (null, (null, (2, 3)));
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(8, 9)
+                );
         }
 
         [Fact]

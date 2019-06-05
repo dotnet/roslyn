@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
             await TestMissingAsync(@"class C { void M((int arg1, int arg2) x) => M(([||]arg1: 1, 2)); }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35157")]
+        [Fact]
+        [WorkItem(35157, "https://github.com/dotnet/roslyn/issues/35157")]
         public async Task TestUntypedTuple()
         {
             await TestMissingAsync(
