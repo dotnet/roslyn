@@ -25,6 +25,10 @@ These two blogs posts on contributing code to open source projects are good too:
     - Specify any relevant exception messages and stack traces.
 - **DO** subscribe to notifications for the created issue in case there are any follow up questions.
 
+## Triaging Issues [![Open Source Helpers](https://www.codetriage.com/dotnet/roslyn/badges/users.svg)](https://www.codetriage.com/dotnet/roslyn)
+
+You can triage issues which may include reproducing bug reports or asking for vital information, such as version numbers or reproduction instructions. If you would like to start triaging issues, one easy way to get started is to [subscribe to roslyn on CodeTriage](https://www.codetriage.com/dotnet/roslyn).
+
 ## Coding Style
 
 The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md).  The repo also includes [.editorconfig](http://editorconfig.org) files to help enforce this convention.  Contributors should ensure they follow these guidelines when making submissions.  
