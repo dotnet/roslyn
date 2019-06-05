@@ -53417,6 +53417,27 @@ class Program
             comp.VerifyTypes();
         }
 
+        [Fact, WorkItem(33344, "https://github.com/dotnet/roslyn/issues/33344")]
+        public void Tuple_Default_07()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    void M()
+    {
+        (object?, string?) tuple = default/*T:(object?, string?)*/;
+        tuple.Item1.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (8,9): warning CS8602: Dereference of a possibly null reference.
+                    //         tuple.Item1.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1").WithLocation(8, 9));
+            comp.VerifyTypes();
+        }
+
         [Fact]
         public void Tuple_Default_NoType()
         {
