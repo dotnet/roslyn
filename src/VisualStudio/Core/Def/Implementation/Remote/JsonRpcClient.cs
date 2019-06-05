@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void ThrowSoftCrashException(Exception ex, CancellationToken token)
         {
-            RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
+            RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);

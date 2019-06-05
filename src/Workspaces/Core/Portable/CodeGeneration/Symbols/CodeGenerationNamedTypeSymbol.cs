@@ -122,6 +122,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public override ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations
+        {
+            get
+            {
+                // TODO: what should this be?
+                return this.TypeParameters.SelectAsArray(t => NullableAnnotation.NotAnnotated);
+            }
+        }
+
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters
         {
             get

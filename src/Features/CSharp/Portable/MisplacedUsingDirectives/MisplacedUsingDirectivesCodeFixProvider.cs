@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
 
             // A blanket warning that this codefix may change code so that it does not compile.
-            var warningAnnotation = WarningAnnotation.Create(CSharpEditorResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
+            var warningAnnotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
 
             var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
                 ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader, warningAnnotation)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private class MoveMisplacedUsingsCodeAction : DocumentChangeAction
         {
             public MoveMisplacedUsingsCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpEditorResources.Move_misplaced_using_directives, createChangedDocument)
+                : base(CSharpFeaturesResources.Move_misplaced_using_directives, createChangedDocument)
             {
             }
         }
