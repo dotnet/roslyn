@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal override bool IsNullChecked
+        {
+            get { return false; }
+        }
+
         internal override bool IsMetadataOptional
         {
             get { return false; }
