@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,7 +98,7 @@ w.Content = g;");
         }
 
         [WpfTheory]
-        [IterationData(30)]
+        [IterationData(100)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void TypingHelpDirectiveWorks(int iteration)
         {
@@ -110,6 +111,12 @@ w.Content = g;");
             VisualStudio.SendKeys.Send("#help");
 
             Assert.EndsWith("#help", VisualStudio.InteractiveWindow.GetReplText());
+
+            if (!LegacyCompletionCondition.Instance.ShouldSkip)
+            {
+                // Legacy completion is known to interfere with this test, so dismiss it
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            }
 
             VisualStudio.SendKeys.Send("\n");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("REPL commands");
