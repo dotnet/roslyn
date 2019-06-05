@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
+                    private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
                         if (this.CancellationToken.IsCancellationRequested)
                         {
@@ -332,9 +332,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var solution = this.Processor.CurrentSolution;
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
                             {
-                                var cancellationToken = source.Token;
                                 var document = solution.GetDocument(documentId);
 
                                 if (document != null)
@@ -542,11 +541,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                     {
-                        CancellationTokenSource source = new CancellationTokenSource();
-
                         foreach (var item in items)
                         {
-                            ProcessDocumentAsync(analyzers, item, source).Wait();
+                            ProcessDocumentAsync(analyzers, item, CancellationToken.None).Wait();
                         }
                     }
 

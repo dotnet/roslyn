@@ -222,13 +222,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Create a transaction and perform all writes within it.
-                connection.RunInTransaction(() =>
-                {
-                    foreach (var action in writesToProcess)
+                connection.RunInTransaction(
+                    state =>
                     {
-                        action(connection);
-                    }
-                });
+                        foreach (var action in state.writesToProcess)
+                        {
+                            action(state.connection);
+                        }
+                    },
+                    (writesToProcess, connection));
             }
             catch (Exception ex)
             {
