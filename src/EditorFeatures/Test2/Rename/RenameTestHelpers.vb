@@ -105,14 +105,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Function
 
-        Public Sub VerifyFileRename(workspace As TestWorkspace, newIdentifierName As String)
-            Dim renamedDocuments = workspace.Documents.Select(Function(d) d.Id)
+        Public Sub VerifyFileName(document As Document, newIdentifierName As String)
+            Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
+            Assert.Equal(expectedName, document.Name)
+        End Sub
 
-            For Each documentId In renamedDocuments
-                Dim document = workspace.CurrentSolution.GetDocument(documentId)
-                Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
-                Assert.Equal(expectedName, document.Name)
-            Next
+        Public Sub VerifyFileName(workspace As TestWorkspace, newIdentifierName As String)
+            Dim documentId = workspace.Documents.Single().Id
+            VerifyFileName(workspace.CurrentSolution.GetDocument(documentId), newIdentifierName)
         End Sub
 
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace

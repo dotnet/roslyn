@@ -44,10 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor
         NotAllowed,
 
         /// <summary>
-        /// The operation is potentially allowed, but 
-        /// currently disabled
+        /// The type being renamed has multiple definition
+        /// locations which is not supported.
         /// </summary>
-        Disabled,
+        TypeWithMultipleLocations,
+
+        /// <summary>
+        /// The type being renamed doesn't match the file
+        /// name prior to renaming
+        /// </summary>
+        TypeDoesntMatchFileName,
 
         /// <summary>
         /// File rename is allowed

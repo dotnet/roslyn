@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -244,20 +245,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
                 var kindSupportsFileRename = RenameSymbol.Kind == SymbolKind.NamedType;
-                var allowRename = kindSupportsFileRename
-                    && (RenameSymbol.Locations.Length == 1)
-                    && (OriginalNameMatches(_document, RenameSymbol.Name));
+                var typeHasMultipleLocations = RenameSymbol.Locations.Length > 1;
+                var typeMatchesFileName = OriginalNameMatches(_document, RenameSymbol.Name);
+                var allowRename = typeMatchesFileName && !typeHasMultipleLocations;
 
                 return kindSupportsFileRename
                     ? allowRename
                         ? InlineRenameFileRenameInfo.Allowed
-                        : InlineRenameFileRenameInfo.Disabled
+                        : typeHasMultipleLocations
+                            ? InlineRenameFileRenameInfo.TypeWithMultipleLocations
+                            : InlineRenameFileRenameInfo.TypeDoesntMatchFileName
                     : InlineRenameFileRenameInfo.NotAllowed;
 
                 // Local Functions
 
                 static bool OriginalNameMatches(Document document, string name)
-                    =>  Path.GetFileNameWithoutExtension(document.Name)
+                    => Path.GetFileNameWithoutExtension(document.Name)
                         .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }

@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 session.Commit()
 
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -81,6 +82,7 @@ class Deconstructable
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -109,6 +111,7 @@ class Deconstructable
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -146,7 +149,7 @@ class Deconstructable
                 session.Commit()
 
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -180,7 +183,7 @@ class Deconstructable
             Await VerifyTagsAreCorrect(workspace, replacementText)
 
             If renameFile Then
-                VerifyFileRename(workspace, replacementText)
+                VerifyFileName(workspace, replacementText)
             End If
         End Function
 
@@ -214,6 +217,7 @@ class Program
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -255,6 +259,7 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -279,6 +284,8 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "args", "bar", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "Test1.vb"))
             End Using
         End Function
 
@@ -297,6 +304,8 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
 
                 ' https://github.com/dotnet/roslyn/issues/36075
                 ' VerifyFileRename(workspace, "ABC")
@@ -325,6 +334,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -355,6 +366,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -385,6 +398,8 @@ public partial class C { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -405,6 +420,8 @@ public class [|$$C|] { }
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+
+                Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
         End Function
 
@@ -440,6 +457,7 @@ class Program
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -470,6 +488,7 @@ class Program
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -500,6 +519,7 @@ class Program
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -533,6 +553,7 @@ End Class
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -561,6 +582,7 @@ End Class
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -589,6 +611,7 @@ End Class
                 </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -782,7 +805,7 @@ End Class
 
                 session.Commit()
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -816,7 +839,7 @@ End Class
 
                 session.Commit()
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -854,7 +877,7 @@ End Class
                 session.Commit()
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
@@ -927,7 +950,7 @@ End Class
                 session.Commit()
                 Await VerifyTagsAreCorrect(workspace, "BarTest1")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
-                VerifyFileRename(workspace, "BarTest1")
+                VerifyFileName(workspace, "BarTest1")
 
                 textBuffer.Insert(caretPosition, "Baz")
                 Await VerifyRenameTrackingTags(renameTrackingTagger, workspace, document, expectedTagCount:=1)
@@ -1343,6 +1366,7 @@ class C
                     </Workspace>)
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
 
@@ -1609,7 +1633,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.Equal(InlineRenameFileRenameInfo.Disabled, session.FileRenameInfo)
+                Assert.Equal(InlineRenameFileRenameInfo.TypeWithMultipleLocations, session.FileRenameInfo)
             End Using
         End Sub
 
@@ -1686,7 +1710,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.Equal(InlineRenameFileRenameInfo.Disabled, session.FileRenameInfo)
+                Assert.Equal(InlineRenameFileRenameInfo.TypeDoesntMatchFileName, session.FileRenameInfo)
             End Using
         End Sub
 
