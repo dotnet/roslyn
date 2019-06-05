@@ -183,22 +183,19 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // passed in, we need to validate that the checksums match.  This is
                     // only safe if we are in a transaction and no-one else can race with
                     // us.
-                    Stream stream = null;
-                    connection.RunInTransaction(() =>
+                    return connection.RunInTransaction((tuple) =>
                     {
                         // If we were passed a checksum, make sure it matches what we have
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
-                        if (checksumOpt != null &&
-                            !ChecksumsMatch_MustRunInTransaction(connection, rowId, checksumOpt, cancellationToken))
+                        if (tuple.checksumOpt != null &&
+                            !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.rowId, tuple.checksumOpt, cancellationToken))
                         {
-                            return;
+                            return null;
                         }
 
-                        stream = connection.ReadBlob_MustRunInTransaction(DataTableName, columnName, rowId);
-                    });
-
-                    return stream;
+                        return connection.ReadBlob_MustRunInTransaction(tuple.self.DataTableName, tuple.columnName, tuple.rowId);
+                    }, (self: this, connection, columnName, checksumOpt, rowId));
                 }
 
                 return null;

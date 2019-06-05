@@ -262,9 +262,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8035: Auto-implemented properties inside interfaces cannot have initializers.
+                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]

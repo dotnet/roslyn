@@ -130,7 +130,18 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction(Action action)
+        public void RunInTransaction<TState>(Action<TState> action, TState state)
+        {
+            RunInTransaction(
+                state =>
+                {
+                    state.action(state.state);
+                    return (object)null;
+                },
+                (action, state));
+        }
+
+        public TResult RunInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
         {
             try
             {
@@ -142,8 +153,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 IsInTransaction = true;
 
                 ExecuteCommand("begin transaction");
-                action();
+                var result = action(state);
                 ExecuteCommand("commit transaction");
+                return result;
             }
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
@@ -186,6 +198,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Stream ReadBlob_MustRunInTransaction(string tableName, string columnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the

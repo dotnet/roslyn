@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -11,11 +12,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal interface ISymbolSearchProgressService : IWorkspaceService
     {
-        Task OnDownloadFullDatabaseStartedAsync(string title);
+        Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken);
 
-        Task OnDownloadFullDatabaseSucceededAsync();
-        Task OnDownloadFullDatabaseCanceledAsync();
-        Task OnDownloadFullDatabaseFailedAsync(string message);
+        Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken);
+        Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken);
+        Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(ISymbolSearchProgressService)), Shared]
@@ -26,9 +27,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
         }
 
-        public Task OnDownloadFullDatabaseStartedAsync(string title) => Task.CompletedTask;
-        public Task OnDownloadFullDatabaseSucceededAsync() => Task.CompletedTask;
-        public Task OnDownloadFullDatabaseCanceledAsync() => Task.CompletedTask;
-        public Task OnDownloadFullDatabaseFailedAsync(string message) => Task.CompletedTask;
+        public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

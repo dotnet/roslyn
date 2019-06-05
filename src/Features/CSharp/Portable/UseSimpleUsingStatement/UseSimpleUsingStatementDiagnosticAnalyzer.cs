@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
@@ -96,6 +99,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
 
             var cancellationToken = context.CancellationToken;
+
+            // Converting a using-statement to a using-variable-declaration will cause the using's
+            // variables to now be pushed up to the parent block's scope. This is also true for any
+            // local variables in the innermost using's block. These may then collide with other
+            // variables in the block, causing an error.  Check for that and bail if this happens.
+            if (CausesVariableCollision(
+                    context.SemanticModel, parentBlock,
+                    outermostUsing, innermostUsing, cancellationToken))
+            {
+                return;
+            }
+
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -117,6 +132,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 properties: null));
         }
 
+        private bool CausesVariableCollision(
+            SemanticModel semanticModel, BlockSyntax parentBlock,
+            UsingStatementSyntax outermostUsing, UsingStatementSyntax innermostUsing,
+            CancellationToken cancellationToken)
+        {
+            var symbolNameToExistingSymbol = semanticModel.GetExistingSymbols(parentBlock, cancellationToken).ToLookup(s => s.Name);
+
+            for (var current = outermostUsing; current != null; current = current.Statement as UsingStatementSyntax)
+            {
+                // Check if the using statement itself contains variables that will collide
+                // with other variables in the block.
+                var usingOperation = (IUsingOperation)semanticModel.GetOperation(current, cancellationToken);
+                if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
+                {
+                    return true;
+                }
+            }
+
+            var innerUsingOperation = (IUsingOperation)semanticModel.GetOperation(innermostUsing, cancellationToken);
+            if (innerUsingOperation.Body is IBlockOperation innerUsingBlock)
+            {
+                return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
+            }
+
+            return false;
+        }
+
+        private static bool DeclaredLocalCausesCollision(ILookup<string, ISymbol> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
+            => locals.Any(local => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)));
+
         private static bool PreservesSemantics(
             BlockSyntax parentBlock,
             UsingStatementSyntax outermostUsing,
@@ -132,7 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private static bool UsingStatementDoesNotInvolveJumps(
             SyntaxList<StatementSyntax> parentStatements, int index, UsingStatementSyntax innermostUsing)
         {
-
             // Jumps are not allowed to cross a using declaration in the forward direction, 
             // and can't go back unless there is a curly brace between the using and the label.
             // 

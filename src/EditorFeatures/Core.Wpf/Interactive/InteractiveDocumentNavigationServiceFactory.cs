@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly IDocumentNavigationService _singleton;
 
         [ImportingConstructor]
-        private InteractiveDocumentNavigationServiceFactory()
+        public InteractiveDocumentNavigationServiceFactory()
         {
             _singleton = new InteractiveDocumentNavigationService();
         }

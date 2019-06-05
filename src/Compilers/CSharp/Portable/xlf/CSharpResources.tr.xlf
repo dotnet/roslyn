@@ -12,6 +12,11 @@
         <target state="translated">Oluşturulmuş genel tür, genel olmayan türden oluşturulamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak istiyorsanız lütfen '{0}' veya üzeri bir dil sürümü kullanın.</target>
@@ -275,6 +280,11 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
+        <source>The 'notnull' constraint must come before any other constraints</source>
+        <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -886,6 +896,11 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_NotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1648,6 +1663,16 @@
         <target state="translated">Tür, genel tür veya metot için tür parametresi olarak kullanılamıyor. Tür bağımsız değişkeninin boş değer atanabilirliği, kısıtlama türüyle eşleşmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
+        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
         <target state="translated">'{2}' türü '{0}' genel türü veya metodu için '{1}' tür parametresi olarak kullanılamıyor. '{2}' tür bağımsız değişkeninin boş değer atanabilirliği, 'class' kısıtlamasıyla eşleşmiyor.</target>
@@ -1666,6 +1691,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Boş değer atanabilir değer türü null olabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound">
+        <source>Constraint cannot be special class '{0}'</source>
+        <target state="new">Constraint cannot be special class '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound_Title">
+        <source>Constraint cannot be special class</source>
+        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8652,11 +8687,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">Otomatik uygulanan özellikler geçersiz kılınan özelliğin tüm erişicilerini geçersiz kılmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Örnek tarafından arabirimlerin içine otomatik olarak uygulanan özelliklerin başlatıcıları olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">

@@ -375,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                        mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
                                       ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
+                                      projId, New DiagnosticDataLocation(docId, Nothing,
                                         originalFile, originalLine, originalColumn, originalLine, originalColumn,
                                         mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
                                       Nothing, Nothing, Nothing)

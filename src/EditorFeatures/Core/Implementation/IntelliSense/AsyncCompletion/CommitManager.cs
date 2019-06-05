@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.ProviderName == "TypeImportCompletionProvider")
+                if (roslynItem.IsCached)
                 {
-                    AsyncCompletionLogger.LogCommitTypeImportCompletionItem();
+                    AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
             }
-            
+
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
