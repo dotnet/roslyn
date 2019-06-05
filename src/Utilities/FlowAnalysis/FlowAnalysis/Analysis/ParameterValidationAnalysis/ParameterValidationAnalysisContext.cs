@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> getOrComputeAnalysisResult,
+            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralParameterValidationAnalysisData interproceduralAnalysisDataOpt,
             bool trackHazardousParameterUsages)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
                   pessimisticAnalysis, predicateAnalysis: false, exceptionPathsAnalysis: false,
                   copyAnalysisResultOpt: null, pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null,
-                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt,
+                  tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt,
                   interproceduralAnalysisPredicateOpt: null)
         {
             TrackHazardousParameterUsages = trackHazardousParameterUsages;
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> getOrComputeAnalysisResult)
+            Func<ParameterValidationAnalysisContext, ParameterValidationAnalysisResult> tryGetOrComputeAnalysisResult)
         {
             return new ParameterValidationAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
-                pessimisticAnalysis, pointsToAnalysisResultOpt, getOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
+                pessimisticAnalysis, pointsToAnalysisResultOpt, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null, trackHazardousParameterUsages: false);
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             // We only care about analyzing validation methods.
             return new ParameterValidationAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
+                PessimisticAnalysis, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData, TrackHazardousParameterUsages);
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             => new ParameterValidationAnalysisContext(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
                 OwningSymbol, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
-                PointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
+                PointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ParentControlFlowGraphOpt,
                 InterproceduralAnalysisDataOpt, trackHazardousParameterUsages: true);
 
         public bool TrackHazardousParameterUsages { get; }

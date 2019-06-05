@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected AbstractAnalysisDomain<TAnalysisData> AnalysisDomain { get; }
         protected DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue> OperationVisitor { get; }
 
-        protected TAnalysisResult GetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
+        protected TAnalysisResult TryGetOrComputeResultCore(TAnalysisContext analysisContext, bool cacheResult)
         {
             if (analysisContext == null)
             {
@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private TAnalysisResult Run(TAnalysisContext analysisContext)
         {
             var cfg = analysisContext.ControlFlowGraph;
+            if (!cfg.SupportsFlowAnalysis())
+            {
+                return default;
+            }
+
             var resultBuilder = new DataFlowAnalysisResultBuilder<TAnalysisData>();
             var uniqueSuccessors = PooledHashSet<BasicBlock>.GetInstance();
             var finallyBlockSuccessorsMap = PooledDictionary<int, List<BranchWithInfo>>.GetInstance();
