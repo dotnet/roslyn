@@ -486,13 +486,13 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
-                ReportDiagnostic(diag);
+                reportDiagnostic(diag);
             }
 
             return hasErrors;
 
             // Local functions
-            void ReportDiagnostic(Diagnostic diag)
+            void reportDiagnostic(Diagnostic diag)
             {
                 if (_reportedDiagnostics.Contains(diag))
                 {
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis
             => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
 
         /// <summary>
-        /// Returns true if there are any diagnostics in the bag which have error severity and are
+        /// Returns true if there are any diagnostics in the bag which have default severity error and are
         /// not marked "suppressed". Note: does NOT do filtering, so it may return false if a
         /// non-error diagnostic were later elevated to an error through filtering (e.g., through
         /// warn-as-error). This is meant to be a check if there are any "real" errors, in the bag
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var diag in diagnostics.AsEnumerable())
             {
-                if (IsReportedError(diag))
+                if (diag.DefaultSeverity == DiagnosticSeverity.Error && !diag.IsSuppressed)
                 {
                     return true;
                 }
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static bool IsReportedError(Diagnostic diagnostic)
         {
-            return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
+            return diagnostic.Severity == DiagnosticSeverity.Error && !diagnostic.IsSuppressed;
         }
 
         protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
@@ -856,16 +856,8 @@ namespace Microsoft.CodeAnalysis
             reportAnalyzer = false;
             analyzerDriver = null;
 
-            // Flag indicating if the compilation phases should apply diagnostic filtering
-            // based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
-            // If we have any diagnostic suppressors which can suppress diagnostics,
-            // then we postpone diagnostic filtering until all diagnostics are computed because
-            // compiler warnings promoted to errors by /warnaserror might be suppressed by diagnostic suppressors, which run later.
-            // Not doing so will cause compilation phases to incorrectly bail out on compiler warnings promoted to errors.
-            bool filterDiagnosticsWhileCompiling = !analyzers.Any(a => a is DiagnosticSuppressor);
-
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
-            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, filterDiagnosticsWhileCompiling, cancellationToken);
+            compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
             if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
@@ -913,7 +905,7 @@ namespace Microsoft.CodeAnalysis
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
             }
 
-            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, filterDiagnosticsWhileCompiling, cancellationToken);
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
             if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
@@ -970,8 +962,7 @@ namespace Microsoft.CodeAnalysis
                     sourceLinkStream: sourceLinkStreamDisposerOpt?.Stream,
                     embeddedTexts: embeddedTexts,
                     testData: null,
-                    cancellationToken,
-                    filterDiagnosticsWhileCompiling);
+                    cancellationToken: cancellationToken);
 
                 if (moduleBeingBuilt != null)
                 {
@@ -986,8 +977,7 @@ namespace Microsoft.CodeAnalysis
                             emitOptions.EmitTestCoverageData,
                             diagnostics,
                             filterOpt: null,
-                            cancellationToken,
-                            filterDiagnosticsWhileCompiling);
+                            cancellationToken: cancellationToken);
 
                         if (success)
                         {
@@ -1059,17 +1049,6 @@ namespace Microsoft.CodeAnalysis
 
                         if (analyzerDriver != null)
                         {
-                            // If we skipped filtering diagnostics while compiling, apply the filtering now.
-                            if (!filterDiagnosticsWhileCompiling &&
-                                !diagnostics.IsEmptyWithoutResolution)
-                            {
-                                var newDiagnostics = DiagnosticBag.GetInstance();
-                                compilation.FilterAndAppendDiagnostics(newDiagnostics,
-                                    diagnostics.AsEnumerableWithoutResolution(), filterDiagnostics: true, exclude: null);
-                                diagnostics.Clear();
-                                diagnostics.AddRange(newDiagnostics);
-                            }
-
                             // GetDiagnosticsAsync is called after ReportUnusedImports
                             // since that method calls EventQueue.TryComplete. Without
                             // TryComplete, we may miss diagnostics.
@@ -1118,8 +1097,8 @@ namespace Microsoft.CodeAnalysis
                             includePrivateMembers: emitOptions.IncludePrivateMembers,
                             emitTestCoverageData: emitOptions.EmitTestCoverageData,
                             pePdbFilePath: emitOptions.PdbFilePath,
-                            privateKeyOpt,
-                            cancellationToken);
+                            privateKeyOpt: privateKeyOpt,
+                            cancellationToken: cancellationToken);
 
                         peStreamProvider.Close(diagnostics);
                         refPeStreamProviderOpt?.Close(diagnostics);

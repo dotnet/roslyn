@@ -1314,7 +1314,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
-        internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, bool filterDiagnostics = true, CancellationToken cancellationToken = default);
+        internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
 
         internal void EnsureCompilationEventQueueCompleted()
         {
@@ -1347,14 +1347,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
-        /// <param name="filterDiagnostics">
-        /// Flag indicating if diagnostics should be filtered or not.
-        /// This flag should always be true, except when this method is invoked in a 
-        /// command line compilation scenario.</param>
-        /// <returns>True if there were no errors or warnings-as-errors.</returns>
-        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming, bool filterDiagnostics)
+        /// <returns>True if there were no errors.</returns>
+        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming)
         {
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), filterDiagnostics, exclude: null);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
             incoming.Free();
             incoming = null;
             return result;
@@ -1364,7 +1360,7 @@ namespace Microsoft.CodeAnalysis
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, bool filterDiagnostics, HashSet<int> exclude)
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
         {
             bool hasError = false;
             bool reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics;
@@ -1376,18 +1372,13 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                Diagnostic filtered = d;
-                if (filterDiagnostics)
+                var filtered = Options.FilterDiagnostic(d);
+                if (filtered == null ||
+                    (!reportSuppressedDiagnostics && filtered.IsSuppressed))
                 {
-                    filtered = Options.FilterDiagnostic(d);
-                    if (filtered == null ||
-                        (!reportSuppressedDiagnostics && filtered.IsSuppressed))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
-
-                if (filtered.Severity == DiagnosticSeverity.Error &&
+                else if (filtered.DefaultSeverity == DiagnosticSeverity.Error &&
                     !filtered.IsSuppressed)
                 {
                     hasError = true;
@@ -1962,8 +1953,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
-            CancellationToken cancellationToken,
-            bool filterDiagnostics = true);
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Report declaration diagnostics and compile and synthesize method bodies.
@@ -1976,8 +1966,7 @@ namespace Microsoft.CodeAnalysis
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
-            CancellationToken cancellationToken,
-            bool filterDiagnostics = true);
+            CancellationToken cancellationToken);
 
         internal bool CreateDebugDocuments(DebugDocumentsBuilder documentsBuilder, IEnumerable<EmbeddedText> embeddedTexts, DiagnosticBag diagnostics)
         {
@@ -2068,8 +2057,7 @@ namespace Microsoft.CodeAnalysis
             Stream win32ResourcesStream,
             string outputNameOverride,
             DiagnosticBag diagnostics,
-            CancellationToken cancellationToken,
-            bool filterDiagnostics = true);
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Reports all unused imports/usings so far (and thus it must be called as a last step of Emit)
@@ -2572,8 +2560,7 @@ namespace Microsoft.CodeAnalysis
             Stream sourceLinkStream,
             IEnumerable<EmbeddedText> embeddedTexts,
             CompilationTestData testData,
-            CancellationToken cancellationToken,
-            bool filterDiagnostics = true)
+            CancellationToken cancellationToken)
         {
             options.ValidateOptions(diagnostics, MessageProvider, Options.Deterministic);
 
@@ -2616,8 +2603,7 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 testData,
                 diagnostics,
-                cancellationToken,
-                filterDiagnostics);
+                cancellationToken);
         }
 
         internal abstract void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics);
@@ -2744,7 +2730,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // translate metadata errors.
-                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics, filterDiagnostics: true))
+                if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref metadataDiagnostics))
                 {
                     return false;
                 }

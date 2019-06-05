@@ -1965,14 +1965,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </returns>
         Friend Overloads Function GetDiagnostics(stage As CompilationStage, Optional includeEarlierStages As Boolean = True, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             Dim diagnostics = DiagnosticBag.GetInstance()
-            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken:=cancellationToken)
+            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken)
             Return diagnostics.ToReadOnlyAndFree()
         End Function
 
         Friend Overrides Sub GetDiagnostics(stage As CompilationStage,
                                              includeEarlierStages As Boolean,
                                              diagnostics As DiagnosticBag,
-                                             Optional filterDiagnostics As Boolean = True,
                                              Optional cancellationToken As CancellationToken = Nothing)
 
             Dim builder = DiagnosticBag.GetInstance()
@@ -2033,7 +2032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Before returning diagnostics, we filter some of them
             ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-            FilterAndAppendAndFreeDiagnostics(diagnostics, builder, filterDiagnostics)
+            FilterAndAppendAndFreeDiagnostics(diagnostics, builder)
         End Sub
 
         Private Function GetClsComplianceDiagnostics(cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
@@ -2106,7 +2105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result = DiagnosticBag.GetInstance()
-            FilterAndAppendAndFreeDiagnostics(result, builder, filterDiagnostics:=True)
+            FilterAndAppendAndFreeDiagnostics(result, builder)
             Return result.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
 
@@ -2196,8 +2195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             manifestResources As IEnumerable(Of ResourceDescription),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
-            cancellationToken As CancellationToken,
-            Optional filterDiagnostics As Boolean = True) As CommonPEModuleBuilder
+            cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Return CreateModuleBuilder(
                 emitOptions,
@@ -2278,15 +2276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
-            cancellationToken As CancellationToken,
-            Optional filterDiagnostics As Boolean = True) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
-            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics,
-                                                                      GetDiagnostics(CompilationStage.Declare, True, cancellationToken),
-                                                                      filterDiagnostics,
-                                                                      exclude:=Nothing)
+            Dim hasDeclarationErrors = Not FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, True, cancellationToken), exclude:=Nothing)
 
             Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
 
@@ -2334,7 +2328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag, filterDiagnostics)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2352,8 +2346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             win32Resources As Stream,
             outputNameOverride As String,
             diagnostics As DiagnosticBag,
-            cancellationToken As CancellationToken,
-            Optional filterDiagnostics As Boolean = True) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
@@ -2367,7 +2360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, filterDiagnostics) Then
+            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics) Then
                 Return False
             End If
 
@@ -2379,7 +2372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension:=Nothing)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken)
 
-            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics, filterDiagnostics)
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics)
         End Function
 
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
