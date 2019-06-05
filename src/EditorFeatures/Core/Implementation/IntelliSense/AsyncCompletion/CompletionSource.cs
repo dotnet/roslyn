@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -219,6 +220,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
+            Debug.Assert((object)expander == Expander);
+
             if (!session.Properties.TryGetProperty(TriggerLocation, out SnapshotPoint triggerLocation))
             {
                 return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var options = _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options;
             options = options.WithChangedOption(CompletionServiceOptions.IncludeExpandedItemsOnly, isExpanded);
 
-            var completionList = await completionService.GetCompletionsAsync(
+            var (completionList, shouldShowExpander) = await completionService.GetCompletionsInternalAsync(
                 document,
                 triggerLocation,
                 roslynTrigger,
@@ -258,9 +261,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 options,
                 cancellationToken).ConfigureAwait(false);
 
+            // TODO: ensure that if we have multiple extended item providers, they'd behave consistently
+            // in terms of whether extended items should be returned.
+            var expanders = shouldShowExpander
+                    ? ImmutableArray.Create(Expander)
+                    : ImmutableArray<AsyncCompletionData.CompletionExpander>.Empty;
+
             if (completionList == null)
             {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
+                return new AsyncCompletionData.CompletionContext(
+                    items: ImmutableArray<VSCompletionItem>.Empty,
+                    suggestionItemOptions: null,
+                    selectionHint: AsyncCompletionData.InitialSelectionHint.RegularSelection,
+                    expanders: expanders);
             }
 
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
@@ -309,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 suggestionItemOptions == null
                     ? AsyncCompletionData.InitialSelectionHint.RegularSelection
                     : AsyncCompletionData.InitialSelectionHint.SoftSelection,
-                CompletionExpanders);
+                expanders);
         }
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
@@ -384,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             VSCompletionItemData itemData;
 
-            if (roslynItem.IsCached && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
+            if (roslynItem.Flags.IsCached() && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
             {
                 itemData = boxedItemData.Value;
             }
@@ -413,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // It doesn't make sense to cache VS item data for those Roslyn items created from scratch for each session,
                 // since CWT uses object identity for comparison.
-                if (roslynItem.IsCached)
+                if (roslynItem.Flags.IsCached())
                 {
                     s_roslynItemToVsItemData.Add(roslynItem, new StrongBox<VSCompletionItemData>(itemData));
                 }
@@ -477,32 +490,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            if (item.IsExpandedItem)
+            if (item.Flags.IsExpanded())
             {
-                listBuilder.Add(GetCompletionExpander());
+                listBuilder.Add(Expander);
             }
 
             return listBuilder.ToImmutableAndFree();
         }
 
-        private static AsyncCompletionData.CompletionExpander GetCompletionExpander()
+        private static AsyncCompletionData.CompletionExpander _expander = null;
+        private AsyncCompletionData.CompletionExpander Expander
         {
-            var expanderKey = "CompletionExpander";
-            if (!s_filterCache.TryGetValue(expanderKey, out var expander))
+            get
             {
-                var AddImageId = Shared.Extensions.GlyphExtensions.GetKnownImageId(KnownImageIds.Add);
-                expander = new AsyncCompletionData.CompletionExpander(
-                    EditorFeaturesResources.Expander_display_text,
-                    accessKey: "x",
-                    new ImageElement(AddImageId, EditorFeaturesResources.Expander_image_element));
-                s_filterCache[expanderKey] = expander;
+                if (_expander == null)
+                {
+                    var addImageId = Shared.Extensions.GlyphExtensions.GetKnownImageId(KnownImageIds.ExpandScope);
+                    _expander = new AsyncCompletionData.CompletionExpander(
+                        EditorFeaturesResources.Expander_display_text,
+                        accessKey: "x",
+                        new ImageElement(addImageId, EditorFeaturesResources.Expander_image_element));
+                }
+
+                return _expander;
             }
-
-            return (AsyncCompletionData.CompletionExpander)expander;
         }
-
-        private static ImmutableArray<AsyncCompletionData.CompletionExpander> CompletionExpanders
-            => ImmutableArray.Create(GetCompletionExpander());
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
             SourceText text, int questionPosition, ISyntaxFactsService syntaxFacts)

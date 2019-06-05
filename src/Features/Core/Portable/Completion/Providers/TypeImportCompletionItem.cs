@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
             // 2. Sort the import items to be after in-scope symbols in a less hacky way.
             // 3. Editor support for resolving item text conflicts?
-            return CompletionItem.Create(
+            var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
@@ -47,8 +47,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : "<>",
-                 inlineDescription: containingNamespace,
-                 isExpandedItem: true);
+                 inlineDescription: containingNamespace);
+
+            item.Flags = CompletionItemFlags.CachedAndExpanded;
+            return item;
         }
 
         public static string GetContainingNamespace(CompletionItem item)

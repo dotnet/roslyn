@@ -245,7 +245,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         {
                             var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace);
                             var isPublic = overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public;
-                            item.IsCached = true;
                             builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
                         }
 
@@ -257,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             // If any of the generic overloads is public, then the completion item is considered public.
                             var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace);
                             var isPublic = overloadInfo.ContainsPublicGenericOverload;
-                            item.IsCached = true;
                             builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
                         }
                     }

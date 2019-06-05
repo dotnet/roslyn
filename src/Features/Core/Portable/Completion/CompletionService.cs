@@ -91,6 +91,18 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options = null,
             CancellationToken cancellationToken = default);
 
+        internal virtual async Task<(CompletionList completionList, bool canProvideExtendedItems)> GetCompletionsInternalAsync(
+             Document document,
+             int caretPosition,
+             CompletionTrigger trigger = default,
+             ImmutableHashSet<string> roles = null,
+             OptionSet options = null,
+             CancellationToken cancellationToken = default)
+        {
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            return (completionList, false);
+        }
+
         /// <summary>
         /// Gets the description of the item.
         /// </summary>

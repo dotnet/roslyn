@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
 
+            // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
+            // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
+            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+            if (!syntaxContext.IsTypeContext)
+            {
+                return;
+            }
+
+            completionContext.CanProvideExtendedItems = true;
+
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via extended filter in completion list)
             if (!completionContext.Options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
             {
@@ -53,12 +63,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     return;
                 }
-            }
-
-            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
-            if (!syntaxContext.IsTypeContext)
-            {
-                return;
             }
 
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
