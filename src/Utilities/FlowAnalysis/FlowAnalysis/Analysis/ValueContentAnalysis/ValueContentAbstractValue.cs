@@ -221,9 +221,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             }
 
             object o = LiteralValues.First();
-            if (o is T)
+            if (o is T v)
             {
-                literalValue = (T)o;
+                literalValue = v;
                 return true;
             }
             else
