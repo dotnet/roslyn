@@ -12,6 +12,11 @@
         <target state="translated">非ジェネリック型から、構築済みジェネリック型を作成できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">挿入される verbatim 文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
@@ -275,6 +280,11 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' に変換可能であるか、適切な 'Dispose' メソッドを実装する必要があります。'using' ではなく 'await using' ですか?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
+        <source>The 'notnull' constraint must come before any other constraints</source>
+        <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -885,6 +895,11 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_NotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1652,6 +1667,16 @@
         <target state="translated">この型を、ジェネリック型またはメソッド内で型パラメーターとして使用することはできません。型引数の Null 許容性が制約型と一致しません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
+        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
         <target state="translated">型 '{2}' を、ジェネリック型またはメソッド '{0}' 内で型パラメーター '{1}' として使用することはできません。型引数 '{2}' の Null 許容性が 'class' 制約と一致しません。</target>
@@ -1670,6 +1695,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Null 許容値型は Null になる場合があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound">
+        <source>Constraint cannot be special class '{0}'</source>
+        <target state="new">Constraint cannot be special class '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound_Title">
+        <source>Constraint cannot be special class</source>
+        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8656,11 +8691,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">自動実装プロパティは、オーバーライドされたプロパティのすべてのアクセサーをオーバーライドする必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">インターフェイス内のインスタンス自動実装プロパティは初期化子を持つことができません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">

@@ -2526,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLabel(LabelSymbol label, BoundStatement node)
+        protected void VisitLabel(LabelSymbol label, BoundStatement node)
         {
             node.AssertIsLabeledStatementWithLabel(label);
             ResolveBranches(label, node);

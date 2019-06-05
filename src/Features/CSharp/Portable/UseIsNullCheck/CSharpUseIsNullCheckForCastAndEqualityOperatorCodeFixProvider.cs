@@ -74,10 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return isPattern;
             }
 
-            // convert:  (object)expr != null   to    !(expr is null)
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
+            // convert:  (object)expr != null   to    expr is object
+            return SyntaxFactory
+                .BinaryExpression(
+                    SyntaxKind.IsExpression,
+                    isPattern.Expression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                .WithTriviaFrom(isPattern);
         }
 
         private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)

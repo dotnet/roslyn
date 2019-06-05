@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // event Action P { add [|{|] ... } remove { ... } }
                     // event Action P { [|add;|] [|remove;|] }
                     var @event = (EventDeclarationSyntax)node;
-                    return CreateSpanForAccessors(@event.AccessorList.Accessors, position);
+                    return @event.AccessorList != null ? CreateSpanForAccessors(@event.AccessorList.Accessors, position) : null;
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:

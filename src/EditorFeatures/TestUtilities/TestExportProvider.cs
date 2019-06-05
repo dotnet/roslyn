@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
                 typeof(CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
                 typeof(VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
-                typeof(VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
-                typeof(CSharp.Formatting.Indentation.CSharpIndentationService),
+                typeof(CodeAnalysis.VisualBasic.Indentation.VisualBasicIndentationService),
+                typeof(CodeAnalysis.CSharp.Indentation.CSharpIndentationService),
                 typeof(CodeAnalysis.CSharp.CSharpCompilationFactoryService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicCompilationFactoryService),
                 typeof(CodeAnalysis.CSharp.CSharpSyntaxTreeFactoryServiceFactory), // CSharpServicesCore

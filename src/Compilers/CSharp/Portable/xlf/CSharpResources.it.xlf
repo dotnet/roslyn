@@ -12,6 +12,11 @@
         <target state="translated">Non è possibile creare un tipo generico costruito a partire da un tipo non generico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractEventHasAccessors">
+        <source>'{0}': abstract event cannot use event accessor syntax</source>
+        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">Per usare '@$' invece di '$@' per una stringa verbatim interpolata, usare la versione '{0}' o versioni successive del linguaggio.</target>
@@ -275,6 +280,11 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">'{0}': il tipo usato in un'istruzione using deve essere convertibile in modo implicito in 'System.IDisposable' o implementare un metodo 'Dispose' adatto. Si intendeva 'await using' invece di 'using'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotNullConstraintMustBeFirst">
+        <source>The 'notnull' constraint must come before any other constraints</source>
+        <target state="new">The 'notnull' constraint must come before any other constraints</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -885,6 +895,11 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;Null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_NotNullGenericTypeConstraint">
+        <source>notnull generic type constraint</source>
+        <target state="new">notnull generic type constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
@@ -1652,6 +1667,16 @@
         <target state="translated">Non è possibile usare il tipo come parametro di tipo nel tipo generico o nel metodo. Il supporto dei valori Null dell'argomento tipo non corrisponde al tipo di vincolo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
+        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
         <target state="translated">Non è possibile usare il tipo '{2}' come parametro di tipo '{1}' nel tipo generico o nel metodo '{0}'. Il supporto dei valori Null dell'argomento tipo '{2}' non corrisponde al vincolo 'class'.</target>
@@ -1670,6 +1695,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Il tipo valore nullable non può essere Null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound">
+        <source>Constraint cannot be special class '{0}'</source>
+        <target state="new">Constraint cannot be special class '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SpecialTypeAsBound_Title">
+        <source>Constraint cannot be special class</source>
+        <target state="new">Constraint cannot be special class</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -8656,11 +8691,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_AutoPropertyMustOverrideSet">
         <source>Auto-implemented properties must override all accessors of the overridden property.</source>
         <target state="translated">Le proprietà implementate automaticamente devono sostituire tutte le funzioni di accesso della proprietà sostituita.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Le proprietà implementate automaticamente di istanza all'interno di interfacce non possono avere inizializzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
         private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, TextDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
+        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
         private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
@@ -264,6 +264,11 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
+        internal AnalyzerConfigDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        {
+            return _projectState.GetAnalyzerConfigDocumentState(documentId);
+        }
+
         internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return this.SupportsCompilation &&
@@ -287,10 +292,10 @@ namespace Microsoft.CodeAnalysis
             return new Document(project, project._projectState.GetDocumentState(documentId));
         }
 
-        private static readonly Func<DocumentId, Project, TextDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
-        private static TextDocument CreateAdditionalDocument(DocumentId documentId, Project project)
+        private static readonly Func<DocumentId, Project, AdditionalDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
+        private static AdditionalDocument CreateAdditionalDocument(DocumentId documentId, Project project)
         {
-            return new TextDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
+            return new AdditionalDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
         }
 
         private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction = CreateAnalyzerConfigDocument;
@@ -566,6 +571,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new analyzer config document in a new instance of this project.
+        /// </summary>
+        public TextDocument AddAnalyzerConfigDocument(string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        {
+            var id = DocumentId.CreateNewId(this.Id);
+            return this.Solution.AddAnalyzerConfigDocument(id, name, text, folders, filePath).GetAnalyzerConfigDocument(id);
+        }
+
+        /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified document.
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
@@ -579,6 +593,14 @@ namespace Microsoft.CodeAnalysis
         public Project RemoveAdditionalDocument(DocumentId documentId)
         {
             return this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified analyzer config document.
+        /// </summary>
+        public Project RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id);
         }
 
         private string GetDebuggerDisplay()

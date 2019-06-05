@@ -210,7 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return _right.WithText(UpdateBufferText());
         }
 
-        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document);
+        // Note that either _left or _right *must* be non-null (we are either adding, removing or changing a file).
+        public TextDocumentKind ChangedDocumentKind => (_left ?? _right).Kind;
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
         {

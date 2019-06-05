@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public partial class AdhocWorkspaceTests
+    public partial class AdhocWorkspaceTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()
@@ -288,6 +289,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ws.CloseAdditionalDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
+            }
+        }
+
+        [Fact]
+        public void TestOpenCloseAnnalyzerConfigDocument()
+        {
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+            var docInfo = DocumentInfo.Create(
+                    DocumentId.CreateNewId(pid),
+                    name: ".editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(text, version, analyzerConfigDocFilePath)),
+                    filePath: analyzerConfigDocFilePath);
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp)
+                .WithAnalyzerConfigDocuments(new[] { docInfo });
+
+            using (var ws = new AdhocWorkspace())
+            {
+                ws.AddProject(projInfo);
+                var doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out var currentText));
+
+                ws.OpenAnalyzerConfigDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+                Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
+                Assert.Same(text, currentText);
+                Assert.Equal(version, currentVersion);
+
+                ws.CloseAnalyzerConfigDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
                 Assert.Equal(false, doc.TryGetText(out currentText));
             }
         }

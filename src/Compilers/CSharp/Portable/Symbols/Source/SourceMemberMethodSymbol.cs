@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int MethodKindMask = 0x1F;
             private const int DeclarationModifiersMask = 0x7FFFFF;
 
-            private const int ReturnsVoidBit = 1 << 27;
             private const int IsExtensionMethodBit = 1 << 28;
             private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
             private const int IsMetadataVirtualBit = 1 << 30;
@@ -85,15 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumUtilities.GetValues<MethodKind>();
-                var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
-                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+                Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
 
                 // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
                 // the declaration modifier mask.
-                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
-                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
+                Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationModifiers>(DeclarationModifiersMask));
             }
 #endif
 
@@ -362,6 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.flags.ReturnsVoid;
             }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes =>
+            DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public sealed override MethodKind MethodKind
         {
@@ -945,7 +942,7 @@ done:
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
+        internal ReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
         {
             var attributesBag = _lazyReturnTypeCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -953,7 +950,7 @@ done:
                 attributesBag = this.GetReturnTypeAttributesBag();
             }
 
-            return (CommonReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1318,7 +1315,7 @@ done:
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
                 // MarshalAs applied to the return value:
-                MarshalAsAttributeDecoder<CommonReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1348,6 +1345,14 @@ done:
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            {
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasNotNullAttribute = true;
             }
         }
 
@@ -1504,6 +1509,23 @@ done:
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        private static FlowAnalysisAnnotations DecodeReturnTypeAnnotationAttributes(ReturnTypeWellKnownAttributeData attributeData)
+        {
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (attributeData != null)
+            {
+                if (attributeData.HasMaybeNullAttribute)
+                {
+                    annotations |= FlowAnalysisAnnotations.MaybeNull;
+                }
+                if (attributeData.HasNotNullAttribute)
+                {
+                    annotations |= FlowAnalysisAnnotations.NotNull;
+                }
+            }
+            return annotations;
         }
 
         public sealed override bool HidesBaseMethodsByName
@@ -1719,7 +1741,7 @@ done:
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
 
-                if ((hasBody || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                if ((hasBody || IsExplicitInterfaceImplementation || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }

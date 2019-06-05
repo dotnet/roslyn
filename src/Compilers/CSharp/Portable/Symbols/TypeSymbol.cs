@@ -1059,7 +1059,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                  ref useSiteDiagnostics,
                                                                  out var _, out var _);
                 case 1:
-                    return implementingMember.Single();
+                    {
+                        Symbol result = implementingMember.Single();
+
+                        if (result.IsAbstract)
+                        {
+                            return null;
+                        }
+
+                        return result;
+                    }
                 default:
                     return null;
             }
@@ -1164,6 +1173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case 1:
                             result = methodSet.Single();
+                            if (result.IsAbstract)
+                            {
+                                result = null;
+                            }
                             break;
                         default:
                             result = null;
