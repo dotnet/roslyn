@@ -254,49 +254,49 @@ namespace Microsoft.CodeAnalysis.Storage
                 _storage.Dispose();
             }
 
-            public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken = default)
+            public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadChecksumAsync(name, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken = default)
+            public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadChecksumAsync(project, name, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default)
+            public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(name, stream, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(project, name, stream, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(project, name, stream, checksum, cancellationToken);
 
-            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default)
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
         }
     }
