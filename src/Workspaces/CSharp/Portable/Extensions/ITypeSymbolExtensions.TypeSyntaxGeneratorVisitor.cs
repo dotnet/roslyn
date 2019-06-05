@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -121,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var typeArguments = symbol.IsUnboundGenericType
-                    ? Enumerable.Repeat(SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
-                    : symbol.TypeArguments.Select(t => t.GenerateTypeSyntax());
+                    ? Enumerable.Repeat((TypeSyntax)SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
+                    : symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n).GenerateTypeSyntax());
 
                 return SyntaxFactory.GenericName(
                     symbol.Name.ToIdentifierToken(),
@@ -193,22 +194,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
                 {
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
-                    {
-                        return typeSyntax;
-                    }
-                    else
+                    if (symbol.ContainingType.TypeKind != TypeKind.Submission)
                     {
                         var containingTypeSyntax = symbol.ContainingType.Accept(this);
                         if (containingTypeSyntax is NameSyntax name)
                         {
-                            return AddInformationTo(
+                            typeSyntax = AddInformationTo(
                                 SyntaxFactory.QualifiedName(name, simpleNameSyntax),
                                 symbol);
                         }
                         else
                         {
-                            return AddInformationTo(simpleNameSyntax, symbol);
+                            typeSyntax = AddInformationTo(simpleNameSyntax, symbol);
                         }
                     }
                 }
@@ -218,19 +215,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     {
                         if (symbol.TypeKind != TypeKind.Error)
                         {
-                            return AddGlobalAlias(symbol, simpleNameSyntax);
+                            typeSyntax = AddGlobalAlias(symbol, simpleNameSyntax);
                         }
                     }
                     else
                     {
                         var container = symbol.ContainingNamespace.Accept(this);
-                        return AddInformationTo(SyntaxFactory.QualifiedName(
+                        typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
                             (NameSyntax)container,
                             simpleNameSyntax), symbol);
                     }
                 }
 
-                return simpleNameSyntax;
+                if (symbol.GetNullability() == NullableAnnotation.Annotated)
+                {
+                    typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                }
+
+                return typeSyntax;
             }
 
             public override TypeSyntax VisitNamespace(INamespaceSymbol symbol)

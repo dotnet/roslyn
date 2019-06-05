@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
-           nameof(CSharpEditorResources.Misplaced_using_directive), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
+           nameof(CSharpFeaturesResources.Misplaced_using_directive), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
-            nameof(CSharpEditorResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
+            nameof(CSharpFeaturesResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly DiagnosticDescriptor s_outsideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableOutsideMessage);
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
-            nameof(CSharpEditorResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
+            nameof(CSharpFeaturesResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableInsideMessage);

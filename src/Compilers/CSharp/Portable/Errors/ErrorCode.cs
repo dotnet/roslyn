@@ -1719,8 +1719,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
         ERR_AbstractEventHasAccessors = 8712,
-        ERR_NeedSpaceBetweenExclamationAndEquals = 8713,
-        ERR_MustNullCheckInImplementation = 8714,
+        ERR_NotNullConstraintMustBeFirst = 8713,
+        WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
+        WRN_SpecialTypeAsBound = 8715,
+
+        ERR_NeedSpaceBetweenExclamationAndEquals = 8716,
+        ERR_MustNullCheckInImplementation = 8717,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
