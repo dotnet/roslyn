@@ -4086,8 +4086,9 @@ namespace Microsoft.CodeAnalysis.CSharp
       var modifiers = this.VisitList(node.Modifiers);
       var type = (TypeSyntax)this.Visit(node.Type);
       var identifier = this.VisitToken(node.Identifier);
+      var exclamationToken = this.VisitToken(node.ExclamationToken);
       var @default = (EqualsValueClauseSyntax)this.Visit(node.Default);
-      return node.Update(attributeLists, modifiers, type, identifier, @default);
+      return node.Update(attributeLists, modifiers, type, identifier, exclamationToken, @default);
     }
 
     public override SyntaxNode VisitIncompleteMember(IncompleteMemberSyntax node)
@@ -10029,7 +10030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ParameterSyntax instance.</summary>
-    public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+    public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, SyntaxToken exclamationToken, EqualsValueClauseSyntax @default)
     {
       switch (identifier.Kind())
       {
@@ -10039,14 +10040,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(identifier));
       }
-      return (ParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node, @default == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
+      switch (exclamationToken.Kind())
+      {
+        case SyntaxKind.ExclamationToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException(nameof(exclamationToken));
+      }
+      return (ParameterSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node, (Syntax.InternalSyntax.SyntaxToken)exclamationToken.Node, @default == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new ParameterSyntax instance.</summary>
+    public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+    {
+      return SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, default(SyntaxToken), @default);
+    }
+
+    /// <summary>Creates a new ParameterSyntax instance.</summary>
     public static ParameterSyntax Parameter(SyntaxToken identifier)
     {
-      return SyntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), default(TypeSyntax), identifier, default(EqualsValueClauseSyntax));
+      return SyntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), default(TypeSyntax), identifier, default(SyntaxToken), default(EqualsValueClauseSyntax));
     }
 
     /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>

@@ -79,6 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
                 }
 
+                if (parameterSyntax.ExclamationToken.Kind() == SyntaxKind.ExclamationToken)
+                {
+                    if (owner.IsAbstract || owner.IsPartialDefinition() || owner.IsExtern)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
+                    }
+                }
+
                 var parameter = SourceParameterSymbol.Create(
                     binder,
                     owner,
