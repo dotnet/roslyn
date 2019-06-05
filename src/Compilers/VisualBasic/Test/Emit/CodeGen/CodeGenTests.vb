@@ -14003,6 +14003,178 @@ End Module
 ]]>)
         End Sub
 
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub ConditionalAccessUnconstrainedTField()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Foo(Of T)
+    Private field As T
+
+    Public Sub Print()
+        Console.WriteLine(field?.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.VerifyIL("Foo(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "Foo(Of T).field As T"
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  initobj    "T"
+  IL_000e:  ldloc.0
+  IL_000f:  box        "T"
+  IL_0014:  brtrue.s   IL_002a
+  IL_0016:  ldobj      "T"
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.0
+  IL_001f:  box        "T"
+  IL_0024:  brtrue.s   IL_002a
+  IL_0026:  pop
+  IL_0027:  ldnull
+  IL_0028:  br.s       IL_0035
+  IL_002a:  constrained. "T"
+  IL_0030:  callvirt   "Function Object.ToString() As String"
+  IL_0035:  call       "Sub System.Console.WriteLine(String)"
+  IL_003a:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub ConditionalAccessReadonlyUnconstrainedTField()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Foo(Of T)
+    Private ReadOnly field As T
+
+    Public Sub Print()
+        Console.WriteLine(field?.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.VerifyIL("Foo(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Foo(Of T).field As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function Object.ToString() As String"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub ConditionalAccessUnconstrainedTLocal()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Foo(Of T)
+    Private ReadOnly field As T
+
+    Public Sub Print()
+        Dim temp = field
+        Console.WriteLine(temp?.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.VerifyIL("Foo(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (T V_0) //temp
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Foo(Of T).field As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  box        "T"
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldnull
+  IL_0010:  br.s       IL_001f
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Function Object.ToString() As String"
+  IL_001f:  call       "Sub System.Console.WriteLine(String)"
+  IL_0024:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")>
+        Public Sub ConditionalAccessUnconstrainedTTemp()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Foo(Of T)
+    Private Function M() As T
+        Return Nothing
+    End Function
+
+    Public Sub Print()
+        Console.WriteLine(M()?.ToString())
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            c.VerifyIL("Foo(Of T).Print()",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Foo(Of T).M() As T"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        "T"
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function Object.ToString() As String"
+  IL_0020:  call       "Sub System.Console.WriteLine(String)"
+  IL_0025:  ret
+}
+]]>)
+        End Sub
+
         <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
         Public Sub TestExplicitDoubleConversionEmitted()
             CompileAndVerify(
