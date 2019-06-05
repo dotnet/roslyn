@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             var expectedMap = new Dictionary<string, string>();
             for (int i = 0; i < expectedLines.Length; i += 2)
             {
-                expectedMap.Add(expectedLines[i], expectedLines[i + 1]);
+                expectedMap.Add(expectedLines[i].Trim(), expectedLines[i + 1].Trim());
             }
 
             return expectedMap;
@@ -334,6 +334,9 @@ csharp_prefer_simple_using_statement = true:suggestion
 
 # IDE0064
 dotnet_diagnostic.IDE0064.severity = %value%
+
+# IDE0065
+csharp_using_directive_placement = outside_namespace:silent
 
 # IDE0066
 csharp_style_prefer_switch_expression = true:suggestion
@@ -801,6 +804,9 @@ csharp_prefer_simple_using_statement = true:suggestion
 
 # IDE0064
 No editorconfig based code style option
+
+# IDE0065, PreferredUsingDirectivePlacement
+csharp_using_directive_placement = outside_namespace:silent
 
 # IDE0066, PreferSwitchExpression
 csharp_style_prefer_switch_expression = true:suggestion
