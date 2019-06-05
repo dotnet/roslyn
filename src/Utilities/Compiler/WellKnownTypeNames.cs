@@ -312,5 +312,10 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyDSA = "System.Security.Cryptography.DSA";
         public const string SystemSecurityCryptographyAsymmetricAlgorithm = "System.Security.Cryptography.AsymmetricAlgorithm";
         public const string SystemSecurityCryptographyCryptoConfig = "System.Security.Cryptography.CryptoConfig";
+        public const string SystemIOCompressionZipArchiveEntry = "System.IO.Compression.ZipArchiveEntry";
+        public const string SystemIOCompressionZipFileExtensions = "System.IO.Compression.ZipFileExtensions";
+        public const string SystemIOFileStream = "System.IO.FileStream";
+        public const string SystemIOPath = "System.IO.Path";
+        public const string SystemString = "System.String";
     }
 }
