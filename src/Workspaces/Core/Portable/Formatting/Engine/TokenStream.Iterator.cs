@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        private struct Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
+        private sealed class Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
         {
             private readonly ImmutableArray<SyntaxToken> _tokensIncludingZeroWidth;
 

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private interface ITriviaDataGetter
         {
-            TriviaData GetTriviaData(TokenData token1, TokenData token2);
+            TriviaData GetTriviaData(in TokenData token1, in TokenData token2);
         }
     }
 }

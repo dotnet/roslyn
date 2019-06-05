@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _tokenStream = tokenStream;
             }
 
-            public TriviaData GetTriviaData(TokenData token1, TokenData token2)
-                => _tokenStream.GetOriginalTriviaData(token1, token2);
+            public TriviaData GetTriviaData(in TokenData token1, in TokenData token2)
+                => _tokenStream.GetOriginalTriviaData(in token1, in token2);
         }
     }
 }

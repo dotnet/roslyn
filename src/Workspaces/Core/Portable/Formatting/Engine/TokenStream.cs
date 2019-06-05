@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetTriviaData(token1.IndexInStream);
         }
 
-        private TriviaData GetOriginalTriviaData(TokenData token1, TokenData token2)
+        private TriviaData GetOriginalTriviaData(in TokenData token1, in TokenData token2)
         {
             // special cases (beginning of a file, end of a file)
             if (_treeData.IsFirstToken(token2.Token))
@@ -519,23 +519,23 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// Gets approximated index bounds for a token with specified position, which will definitely contain
         /// the token, if it is present in the stream.
         /// </summary>
-        private void GetTokenIndexBounds(int position, out int lowerBound, out int upperBound)
+        private void GetTokenIndexBounds(int tokenFullSpanStart, out int lowerBound, out int upperBound)
         {
             Debug.Assert(_averageTokenLength > 0);
             // make an initial guess about the token position
-            lowerBound = upperBound = Bounded((int)((position - _tokens[0].FullSpan.Start) / _averageTokenLength), min: 0, max: _tokens.Length - 1);
+            lowerBound = upperBound = Bounded((int)((tokenFullSpanStart - _tokens[0].FullSpan.Start) / _averageTokenLength), min: 0, max: _tokens.Length - 1);
 
             // decrease lower bound until the desired position is strictly after it
-            while (_tokens[lowerBound].FullSpan.Start >= position && lowerBound > 0)
+            while (_tokens[lowerBound].FullSpan.Start >= tokenFullSpanStart && lowerBound > 0)
             {
-                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - position) / _averageTokenLength);
+                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - tokenFullSpanStart) / _averageTokenLength);
                 lowerBound = Math.Max(0, lowerBound - Math.Max(1, estimatedError));
             }
 
             // increase upper bound until the desired position is strictly before it
-            while (_tokens[upperBound].FullSpan.Start <= position && upperBound < _tokens.Length - 1)
+            while (_tokens[upperBound].FullSpan.Start <= tokenFullSpanStart && upperBound < _tokens.Length - 1)
             {
-                int estimatedError = (int)((position - _tokens[upperBound].FullSpan.Start) / _averageTokenLength);
+                int estimatedError = (int)((tokenFullSpanStart - _tokens[upperBound].FullSpan.Start) / _averageTokenLength);
                 upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, estimatedError));
             }
         }
@@ -607,6 +607,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {
             public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
+
+            private TokenOrderComparer() { }
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
