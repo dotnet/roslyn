@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal partial class TokenStream
     {
         /// <summary>
-        /// Retrieves original <see cref="TriviaData"/> via <see cref="TokenStream.GetOriginalTriviaData(TokenData, TokenData)"/>
+        /// Retrieves original <see cref="TriviaData"/> via <see cref="TokenStream.GetOriginalTriviaData(in TokenData, in TokenData)"/>
         /// </summary>
         private struct OriginalTriviaDataGetter : ITriviaDataGetter
         {
