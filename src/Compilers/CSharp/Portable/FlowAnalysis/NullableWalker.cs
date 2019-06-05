@@ -1414,24 +1414,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations type = local.TypeWithAnnotations;
             TypeWithState valueType;
+            bool inferredType = node.InferredType;
             if (local.IsRef)
             {
                 valueType = VisitRefExpression(initializer, type);
             }
             else
             {
-                bool inferredType = node.InferredType;
-                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
-                if (inferredType)
-                {
-                    if (valueType.HasNullType)
-                    {
-                        Debug.Assert(type.Type.IsErrorType());
-                        valueType = type.ToTypeWithState();
-                    }
+                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);         
+            }
 
-                    type = valueType.ToTypeWithAnnotations();
-                    _variableTypes[local] = type;
+            if (inferredType)
+            {
+                if (valueType.HasNullType)
+                {
+                    Debug.Assert(type.Type.IsErrorType());
+                    valueType = type.ToTypeWithState();
+                }
+
+                type = valueType.ToTypeWithAnnotations();
+                _variableTypes[local] = type;
+
+                if (node.DeclaredTypeOpt != null)
+                {
+                    SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(valueType, type), true);
                 }
             }
 
@@ -5964,9 +5970,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
-
                 // Visit the assignment as a deconstruction with an explicit type
                 VisitDeconstructionAssignmentOperator(assignment, sourceState);
+
+                // https://github.com/dotnet/roslyn/issues/35010: if the iteration variable is a tuple deconstruction, we need to put something in the tree
+                Visit(node.IterationVariableType);
             }
             else
             {
@@ -5976,7 +5984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!sourceState.HasNullType)
                     {
                         TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
-
+                        TypeWithState result = sourceState;
                         if (iterationVariable.IsRef)
                         {
                             // foreach (ref DestinationType variable in collection)
@@ -5985,7 +5993,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
                             }
-                            state = sourceState.State;
                         }
                         else
                         {
@@ -5996,7 +6003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
                                 ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
                                 : node.ElementConversion;
-                            TypeWithState result = VisitConversion(
+                            result = VisitConversion(
                                 conversionOpt: null,
                                 conversionOperand: node.IterationVariableType,
                                 conversion,
@@ -6009,8 +6016,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
                                 diagnosticLocationOpt: variableLocation);
-                            state = result.State;
                         }
+
+                        // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
+                        SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
+                        state = result.State;
                     }
 
                     int slot = GetOrCreateSlot(iterationVariable);
@@ -6019,10 +6029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.State[slot] = state;
                     }
                 }
-            }
 
-            // https://github.com/dotnet/roslyn/issues/35010: if the iteration variable is a tuple deconstruction, we need to put something in the tree
-            Visit(node.IterationVariableType);
+            }
         }
 
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
