@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports EnvDTE
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Debugging
@@ -13,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Shared.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -645,6 +643,9 @@ End Class
 
                 ' Assert the file is what it started as
                 Assert.Equal(workspace.Documents.Single().InitialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
+
+                ' Assert the file name didn't change
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -710,6 +711,9 @@ End Class
                 Assert.True(buffer.IsReadOnly(buffer.CurrentSnapshot.Length))
 
                 session.Cancel()
+
+                ' Assert the file name didn't change
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -735,6 +739,8 @@ End Class
                 Assert.False(buffer.IsReadOnly(New Span(workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value, length:=1)))
 
                 session.Cancel()
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Sub
 
@@ -914,6 +920,8 @@ End Class
 
                 session.Cancel()
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
@@ -1039,6 +1047,8 @@ End Class
                 session.Commit(previewChanges:=True)
                 Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
                 Assert.True(previewService.Called)
+
+                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
