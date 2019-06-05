@@ -24,7 +24,7 @@ namespace Analyzer.Utilities
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
         }
 
-        protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxNode catchNode);
+        protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
 
         public override void Initialize(AnalysisContext analysisContext)
         {
@@ -62,7 +62,7 @@ namespace Analyzer.Utilities
 
                         foreach (var catchClause in walker.CatchClausesForDisallowedTypesWithoutRethrow)
                         {
-                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax));
+                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
                         }
                     }
                 });
@@ -142,12 +142,7 @@ namespace Analyzer.Utilities
 
             private bool IsCatchTooGeneral(ICatchClauseOperation operation)
             {
-                return IsGenericCatch(operation) || _disallowedCatchTypes.Any(type => operation.ExceptionType.Equals(type));
-            }
-
-            private static bool IsGenericCatch(ICatchClauseOperation operation)
-            {
-                return operation.ExceptionDeclarationOrExpression == null;
+                return _disallowedCatchTypes.Any(type => operation.ExceptionType.Equals(type));
             }
 
             private static bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)
