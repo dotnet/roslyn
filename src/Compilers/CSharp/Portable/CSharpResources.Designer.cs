@@ -12131,6 +12131,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;switch expression&gt;.
+        /// </summary>
+        internal static string IDS_SwitchExpression {
+            get {
+                return ResourceManager.GetString("IDS_SwitchExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;text&gt;.
         /// </summary>
         internal static string IDS_Text {

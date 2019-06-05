@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConditionalGoto,
         SwitchExpression,
         SwitchExpressionArm,
+        ConvertedSwitchExpression,
         DecisionDag,
         EvaluationDecisionDagNode,
         TestDecisionDagNode,
@@ -4262,8 +4263,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSwitchExpression : BoundExpression
+    internal partial class BoundSwitchExpression : BoundExpression
     {
+        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
+        {
+
+            Debug.Assert((object)expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)decisionDag != null, "Field 'decisionDag' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
+            this.SwitchArms = switchArms;
+            this.DecisionDag = decisionDag;
+            this.DefaultLabel = defaultLabel;
+            this.ReportedNotExhaustive = reportedNotExhaustive;
+        }
+
         public BoundSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.SwitchExpression, syntax, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
         {
@@ -4349,6 +4365,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
             return this;
+        }
+    }
+
+    internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
+    {
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || decisionDag.HasErrors())
+        {
+
+            Debug.Assert((object)expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)decisionDag != null, "Field 'decisionDag' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.NaturalTypeOpt = naturalTypeOpt;
+        }
+
+
+        public TypeSymbol NaturalTypeOpt { get; }
+        public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedSwitchExpression(this);
+
+        public BoundConvertedSwitchExpression Update(TypeSymbol naturalTypeOpt, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag decisionDag, LabelSymbol defaultLabel, bool reportedNotExhaustive, TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || expression != this.Expression || switchArms != this.SwitchArms || decisionDag != this.DecisionDag || defaultLabel != this.DefaultLabel || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, expression, switchArms, decisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new BoundConvertedSwitchExpression(this.Syntax, this.NaturalTypeOpt, this.Expression, this.SwitchArms, this.DecisionDag, this.DefaultLabel, this.ReportedNotExhaustive, this.Type, this.HasErrors);
+            result.CopyAttributes(this);
+            return result;
         }
     }
 
@@ -5649,42 +5702,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
-        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
-        }
-
-
-        public ImmutableArray<BoundExpression> Arguments { get; }
-    }
-
-    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
-    {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
-        {
-
-            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.InferredNamesOpt = inferredNamesOpt;
         }
 
 
+        public ImmutableArray<BoundExpression> Arguments { get; }
+
         public ImmutableArray<string> ArgumentNamesOpt { get; }
 
         public ImmutableArray<bool> InferredNamesOpt { get; }
+    }
+
+    internal sealed partial class BoundTupleLiteral : BoundTupleExpression
+    {
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
+        {
+
+            Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
-        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundTupleLiteral Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, inferredNamesOpt, arguments, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5693,7 +5746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundTupleLiteral(this.Syntax, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Arguments, this.Type, this.HasErrors);
+            var result = new BoundTupleLiteral(this.Syntax, this.Arguments, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -5701,12 +5754,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.NaturalTypeOpt = naturalTypeOpt;
         }
@@ -5715,11 +5767,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeSymbol NaturalTypeOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedTupleLiteral(this);
 
-        public BoundConvertedTupleLiteral Update(TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundConvertedTupleLiteral Update(TypeSymbol naturalTypeOpt, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, naturalTypeOpt, arguments, type, this.HasErrors);
+                var result = new BoundConvertedTupleLiteral(this.Syntax, naturalTypeOpt, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5728,7 +5780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.Type, this.HasErrors);
+            var result = new BoundConvertedTupleLiteral(this.Syntax, this.NaturalTypeOpt, this.Arguments, this.ArgumentNamesOpt, this.InferredNamesOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -7832,6 +7884,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitSwitchExpression(node as BoundSwitchExpression, arg);
                 case BoundKind.SwitchExpressionArm: 
                     return VisitSwitchExpressionArm(node as BoundSwitchExpressionArm, arg);
+                case BoundKind.ConvertedSwitchExpression: 
+                    return VisitConvertedSwitchExpression(node as BoundConvertedSwitchExpression, arg);
                 case BoundKind.DecisionDag: 
                     return VisitDecisionDag(node as BoundDecisionDag, arg);
                 case BoundKind.EvaluationDecisionDagNode: 
@@ -8103,6 +8157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitConditionalGoto(BoundConditionalGoto node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchExpression(BoundSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchExpressionArm(BoundSwitchExpressionArm node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDecisionDag(BoundDecisionDag node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTestDecisionDagNode(BoundTestDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
@@ -8290,6 +8345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode VisitConditionalGoto(BoundConditionalGoto node) => this.DefaultVisit(node);
         public virtual BoundNode VisitSwitchExpression(BoundSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node) => this.DefaultVisit(node);
+        public virtual BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode VisitDecisionDag(BoundDecisionDag node) => this.DefaultVisit(node);
         public virtual BoundNode VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node) => this.DefaultVisit(node);
         public virtual BoundNode VisitTestDecisionDagNode(BoundTestDecisionDagNode node) => this.DefaultVisit(node);
@@ -8808,6 +8864,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Pattern);
             this.Visit(node.WhenClause);
             this.Visit(node.Value);
+            return null;
+        }
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            this.Visit(node.Expression);
+            this.VisitList(node.SwitchArms);
             return null;
         }
         public override BoundNode VisitDecisionDag(BoundDecisionDag node) => null;
@@ -9790,6 +9852,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             return node.Update(node.Locals, pattern, whenClause, value, node.Label);
         }
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            TypeSymbol naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(naturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+        }
         public override BoundNode VisitDecisionDag(BoundDecisionDag node) => node;
         public override BoundNode VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
         {
@@ -9981,14 +10052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(naturalTypeOpt, arguments, type);
+            return node.Update(naturalTypeOpt, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, type);
         }
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
@@ -11187,6 +11258,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            ImmutableArray<BoundSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundDecisionDag decisionDag = node.DecisionDag;
+            BoundConvertedSwitchExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.NaturalTypeOpt, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
+            }
+            return updatedNode;
+        }
+
         public override BoundNode VisitSequencePointExpression(BoundSequencePointExpression node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
@@ -11455,12 +11545,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, infoAndType.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, node.Type);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -11472,12 +11562,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, arguments, infoAndType.Type);
+                updatedNode = node.Update(node.NaturalTypeOpt, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.NaturalTypeOpt, arguments, node.Type);
+                updatedNode = node.Update(node.NaturalTypeOpt, arguments, node.ArgumentNamesOpt, node.InferredNamesOpt, node.Type);
             }
             return updatedNode;
         }
@@ -12894,6 +12984,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("label", node.Label, null)
         }
         );
+        public override TreeDumperNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, object arg) => new TreeDumperNode("convertedSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
+            new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
+            new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+            new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+        }
+        );
         public override TreeDumperNode VisitDecisionDag(BoundDecisionDag node, object arg) => new TreeDumperNode("decisionDag", null, new TreeDumperNode[]
         {
             new TreeDumperNode("rootNode", node.RootNode, null)
@@ -13162,9 +13264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitTupleLiteral(BoundTupleLiteral node, object arg) => new TreeDumperNode("tupleLiteral", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
             new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
-            new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }
@@ -13173,6 +13275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, null),
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+            new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+            new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }

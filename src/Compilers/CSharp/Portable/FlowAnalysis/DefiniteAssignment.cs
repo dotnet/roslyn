@@ -1216,6 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 

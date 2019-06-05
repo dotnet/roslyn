@@ -96,7 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var deconstructionDiagnostics = new DiagnosticBag();
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
+
             boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
+            boundRight = BindToNaturalType(boundRight, diagnostics);
 
             bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
             var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
@@ -218,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
                 }
             }
+
             else if ((object)boundRHS.Type == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, boundRHS.Syntax);
@@ -528,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: syntax);
         }
 
-        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+        private BoundTupleExpression DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
             DiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
@@ -573,9 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 errorPositions: disallowInferredNames ? inferredPositions : default,
                 syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
-            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
-            // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments, type);
+            return (BoundTupleExpression)BindToNaturalType(new BoundTupleLiteral(syntax, arguments, tupleNames, inferredPositions, type), diagnostics);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>
@@ -613,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(receiverSyntax, receiver);
             }
 
+            receiver = BindToNaturalType(receiver, diagnostics);
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
 

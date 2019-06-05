@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.SwitchExpression:
+                case BoundKind.ConvertedSwitchExpression:
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);

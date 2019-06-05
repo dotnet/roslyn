@@ -5,14 +5,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
             // The switch expression is lowered to an expression that involves the use of side-effects
             // such as jumps and labels, therefore it is represented by a BoundSpillSequence and
@@ -22,14 +24,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            throw ExceptionUtilities.UnexpectedValue(node.Kind);
+        }
+
         private class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
-            private SwitchExpressionLocalRewriter(BoundSwitchExpression node, LocalRewriter localRewriter)
+            private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax), isSwitchStatement: false)
             {
             }
 
-            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
+            public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
                 var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
                 BoundExpression result = rewriter.LowerSwitchExpression(node);
@@ -37,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private BoundExpression LowerSwitchExpression(BoundSwitchExpression node)
+            private BoundExpression LowerSwitchExpression(BoundConvertedSwitchExpression node)
             {
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();

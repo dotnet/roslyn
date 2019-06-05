@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Transactions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -358,6 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindThrownExpression(ExpressionSyntax exprSyntax, DiagnosticBag diagnostics, ref bool hasErrors)
         {
+            // PROTOTYPE(ngafter): Per spec this should be *converted* to `Exception`.  But that is a (planned)
+            // language change from 7.3 to 8.0.  We should do so now, at the same time that we introduce the
+            // switch expression conversion, so that `throw b switch { true => x1, false => x2 )` works when x1 and x2 are
+            // of unrelated exception types.
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
 
             // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
@@ -490,7 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (node.Expression != null)
                         {
                             var dummyDiagnostics = DiagnosticBag.GetInstance();
-                            childNodes = ImmutableArray.Create<BoundNode>(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue));
+                            var value = BindToNaturalType(BindValue(node.Expression, dummyDiagnostics, BindValueKind.RValue), dummyDiagnostics);
+                            childNodes = ImmutableArray.Create<BoundNode>(value);
                             dummyDiagnostics.Free();
                         }
                         else
@@ -585,6 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpressionStatement expressionStatement;
 
+            // PROTOTYPE(ngafter): This should bind a switch expression as a statement expression, to `void`.
+            // That requires some not-yet-present target typing.
             var expression = BindValue(syntax, diagnostics, BindValueKind.RValue);
             ReportSuppressionIfNeeded(expression, diagnostics);
             if (!allowsAnyExpression && !IsValidStatementExpression(syntax, expression))
@@ -823,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CheckValue(result, valueKind, diagnostics);
             }
 
-            BoundExpression expression = BindValue(initializer, diagnostics, valueKind);
+            BoundExpression expression = BindToNaturalType(BindValue(initializer, diagnostics, valueKind), diagnostics);
 
             if (expression is BoundStackAllocArrayCreation boundStackAlloc &&
                 initializer.IsLocalVariableDeclarationInitializationForPointerStackalloc() &&
@@ -832,6 +840,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
                 expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
             }
+
+            expression = BindToNaturalType(expression, diagnostics);
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -842,6 +852,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expression;
+        }
+
+        internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics)
+        {
+            switch (expression)
+            {
+                case BoundConvertedSwitchExpression _:
+                case BoundConvertedTupleLiteral _:
+                    return expression;
+                case BoundSwitchExpression expr:
+                    var commonType = expr.Type;
+                    var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
+                    bool hasErrors = expression.HasErrors;
+                    if (commonType is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                        commonType = CreateErrorType();
+                        hasErrors = true;
+                    }
+                    return ConvertSwitchExpression(expr, commonType, diagnostics, hasErrors);
+                case BoundTupleLiteral { Type: { } t } sourceTuple:
+                    return new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        t,
+                        sourceTuple.Arguments.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
+                        sourceTuple.ArgumentNamesOpt,
+                        sourceTuple.InferredNamesOpt,
+                        sourceTuple.Type, // same type to keep original element names
+                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                default:
+                    return expression;
+            }
         }
 
         private static bool IsInitializerRefKindValid(
@@ -1372,6 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (op1.Kind == BoundKind.DiscardExpression)
             {
+                op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
@@ -2119,6 +2162,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
                         return;
                     }
+                case BoundKind.SwitchExpression:
+                    {
+                        var switchExpression = (BoundSwitchExpression)operand;
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        bool reportedError = false;
+                        foreach (var arm in switchExpression.SwitchArms)
+                        {
+                            var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteDiagnostics);
+                            if (!armConversion.IsImplicit)
+                            {
+                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, conversion, arm.Value, targetType);
+                                reportedError = true;
+                            }
+                        }
+
+                        Debug.Assert(reportedError);
+                        if (!reportedError)
+                        {
+                            var switchSyntax = (SwitchExpressionSyntax)operand.Syntax;
+                            // PROTOTYPE(ngafter): Need a test for this error if it is possible.
+                            Error(diagnostics, ErrorCode.ERR_SwitchExpressionNoBestType, switchSyntax.SwitchKeyword);
+                        }
+
+                        return;
+                    }
             }
 
             var sourceType = operand.Type;
@@ -2255,21 +2323,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.WRN_IncorrectBooleanAssg, assignment.Syntax);
                         }
                     }
+                }
 
-                    return expr;
-                }
-                else
-                {
-                    return CreateConversion(
-                        syntax: expr.Syntax,
-                        source: expr,
-                        conversion: conversion,
-                        isCast: false,
-                        conversionGroupOpt: null,
-                        wasCompilerGenerated: true,
-                        destination: boolean,
-                        diagnostics: diagnostics);
-                }
+                return CreateConversion(
+                    syntax: expr.Syntax,
+                    source: expr,
+                    conversion: conversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    wasCompilerGenerated: true,
+                    destination: boolean,
+                    diagnostics: diagnostics);
             }
 
             // It was not. Does it implement operator true?
@@ -3044,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, refKind, BindToNaturalType(expression, diagnostics)) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.

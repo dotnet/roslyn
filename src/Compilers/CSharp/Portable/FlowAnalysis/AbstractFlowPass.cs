@@ -543,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 

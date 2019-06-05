@@ -894,6 +894,11 @@
         <target state="new">constraints for override and explicit interface implementation methods</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="new">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
         <source>&lt;throw expression&gt;</source>
         <target state="translated">&lt;expresión throw&gt;</target>

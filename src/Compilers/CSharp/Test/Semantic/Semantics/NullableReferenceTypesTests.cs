@@ -46867,23 +46867,22 @@ static class E
     static void F4B(this (IOut<object?>, IOut<object?>) t) { }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29966: Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
+                // (11,9): warning CS8620: Argument of type '(string x, string? y)' cannot be used for parameter 't' of type '(object, object)' in 'void E.F1A((object, object) t)' due to differences in the nullability of reference types.
                 //         (x, y).F1A(); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(object x, object? y)", "(object, object)", "t", "void E.F1A((object, object) t)").WithLocation(11, 9),
-                // (18,13): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(string x, string? y)", "(object, object)", "t", "void E.F1A((object, object) t)").WithLocation(11, 9),
+                // (18,9): warning CS8620: Argument of type '(A<object> x, A<object?> y)' cannot be used for parameter 't' of type '(I<object>, I<object>)' in 'void E.F2A((I<object>, I<object>) t)' due to differences in the nullability of reference types.
                 //         (x, y).F2A(); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("A<object?>", "I<object>").WithLocation(18, 13),
-                // (19,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(I<object>, I<object>)", "t", "void E.F2A((I<object>, I<object>) t)").WithLocation(18, 9),
+                // (19,9): warning CS8620: Argument of type '(A<object> x, A<object?> y)' cannot be used for parameter 't' of type '(I<object?>, I<object?>)' in 'void E.F2B((I<object?>, I<object?>) t)' due to differences in the nullability of reference types.
                 //         (x, y).F2B(); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(19, 10),
-                // (26,10): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'IIn<object?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(I<object?>, I<object?>)", "t", "void E.F2B((I<object?>, I<object?>) t)").WithLocation(19, 9),
+                // (26,9): warning CS8620: Argument of type '(B<object> x, B<object?> y)' cannot be used for parameter 't' of type '(IIn<object?>, IIn<object?>)' in 'void E.F3B((IIn<object?>, IIn<object?>) t)' due to differences in the nullability of reference types.
                 //         (x, y).F3B(); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object>", "IIn<object?>").WithLocation(26, 10),
-                // (32,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(B<object> x, B<object?> y)", "(IIn<object?>, IIn<object?>)", "t", "void E.F3B((IIn<object?>, IIn<object?>) t)").WithLocation(26, 9),
+                // (32,9): warning CS8620: Argument of type '(C<object> x, C<object?> y)' cannot be used for parameter 't' of type '(IOut<object>, IOut<object>)' in 'void E.F4A((IOut<object>, IOut<object>) t)' due to differences in the nullability of reference types.
                 //         (x, y).F4A(); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(32, 13));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(C<object> x, C<object?> y)", "(IOut<object>, IOut<object>)", "t", "void E.F4A((IOut<object>, IOut<object>) t)").WithLocation(32, 9));
         }
 
         [Fact]

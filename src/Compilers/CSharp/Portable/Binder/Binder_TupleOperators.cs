@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (convertedType is null)
             {
-                if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr.Kind == BoundKind.TupleLiteral)
+                if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleExpression tuple)
                 {
                     // Although the tuple will remain typeless, we'll give elements converted types as possible
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expr;
                     }
 
-                    var tuple = (BoundTupleLiteral)expr;
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
                     int length = arguments.Length;
                     Debug.Assert(length == multiple.Operators.Length);
@@ -60,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.Add(ApplyConvertedTypes(arguments[i], multiple.Operators[i], isRight, diagnostics));
                     }
 
-                    return tuple.Update(argumentNamesOpt: default, inferredNamesOpt: default, builder.ToImmutableAndFree(), tuple.Type);
+                    return new BoundConvertedTupleLiteral(
+                        tuple.Syntax, tuple.Type, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type
@@ -266,8 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right,
             ImmutableArray<string> leftNames, ImmutableArray<string> rightNames, DiagnosticBag diagnostics)
         {
-            bool leftIsTupleLiteral = left.Kind == BoundKind.TupleLiteral;
-            bool rightIsTupleLiteral = right.Kind == BoundKind.TupleLiteral;
+            bool leftIsTupleLiteral = left is BoundTupleExpression;
+            bool rightIsTupleLiteral = right is BoundTupleExpression;
 
             if (!leftIsTupleLiteral && !rightIsTupleLiteral)
             {
@@ -284,10 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(leftNoNames || rightNoNames || leftNames.Length == rightNames.Length);
 
-            ImmutableArray<bool> leftInferred = leftIsTupleLiteral ? ((BoundTupleLiteral)left).InferredNamesOpt : default;
+            ImmutableArray<bool> leftInferred = leftIsTupleLiteral ? ((BoundTupleExpression)left).InferredNamesOpt : default;
             bool leftNoInferredNames = leftInferred.IsDefault;
 
-            ImmutableArray<bool> rightInferred = rightIsTupleLiteral ? ((BoundTupleLiteral)right).InferredNamesOpt : default;
+            ImmutableArray<bool> rightInferred = rightIsTupleLiteral ? ((BoundTupleExpression)right).InferredNamesOpt : default;
             bool rightNoInferredNames = rightInferred.IsDefault;
 
             int length = leftNoNames ? rightNames.Length : leftNames.Length;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // When in doubt, we'll complain on the right side if it's a literal
                 bool useRight = (leftComplaint && rightComplaint) ? rightIsTupleLiteral : rightComplaint;
-                Location location = ((BoundTupleLiteral)(useRight ? right : left)).Arguments[i].Syntax.Parent.Location;
+                Location location = ((BoundTupleExpression)(useRight ? right : left)).Arguments[i].Syntax.Parent.Location;
                 string complaintName = useRight ? rightName : leftName;
 
                 diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location, complaintName);
@@ -377,9 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static (ImmutableArray<BoundExpression> Elements, ImmutableArray<string> Names) GetTupleArgumentsOrPlaceholders(BoundExpression expr)
         {
-            if (expr.Kind == BoundKind.TupleLiteral)
+            if (expr is BoundTupleExpression tuple)
             {
-                var tuple = (BoundTupleLiteral)expr;
                 return (tuple.Arguments, tuple.ArgumentNamesOpt);
             }
 

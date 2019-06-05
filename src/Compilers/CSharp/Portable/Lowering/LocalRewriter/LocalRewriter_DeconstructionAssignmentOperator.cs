@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementLocations: default, elementNames: default,
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
-                return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
-                    arguments: builder.ToImmutableAndFree(), type: tupleType);
+                return new BoundConvertedTupleLiteral(
+                    right.Syntax, tupleType, arguments: builder.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {
@@ -331,12 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.TupleLiteral:
+                    case BoundKind.ConvertedTupleLiteral:
                         var tuple = (BoundTupleExpression)variable;
                         assignmentTargets.Add(new Binder.DeconstructionVariable(GetAssignmentTargetsAndSideEffects(tuple, temps, effects), tuple.Syntax));
                         break;
-
-                    case BoundKind.ConvertedTupleLiteral:
-                        throw ExceptionUtilities.UnexpectedValue(variable.Kind);
 
                     default:
                         var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());

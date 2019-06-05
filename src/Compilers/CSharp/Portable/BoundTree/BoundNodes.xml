@@ -1199,6 +1199,20 @@
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
+  <!-- 
+  Switch expressions can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted switch expression is one which has been already converted to a target type.
+  Converted switch expressions always has a type.
+  -->
+  <Node Name="BoundConvertedSwitchExpression" Base="BoundSwitchExpression">
+    <!-- Converted switch expression must have a type, even if that's `void` for a statement. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be `null`. -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
+  </Node>
+
+
   <Node Name="BoundDecisionDag" Base="BoundNode">
     <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
   </Node>
@@ -1498,6 +1512,11 @@
   -->
   <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+
+    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
+    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </AbstractNode>
 
   <!-- 
@@ -1512,10 +1531,6 @@
      (a:=1, b:= (c:=1, d:=Nothing))  does not have a natural type, because "Nothing" does not have one
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
-
-    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
-    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1525,12 +1540,12 @@
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
-    <!-- Converted tuple must have a type -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- It is possible for a converted tuple not to have a type in a tuple equality. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <!-- Natural type is preserved for the purpose of semantic model. Can be null -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
-  
+
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

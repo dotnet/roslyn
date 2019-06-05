@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.ConversionKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,7 +13,60 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static bool IsDynamic(this ConversionKind conversionKind)
         {
-            return conversionKind == ConversionKind.ImplicitDynamic || conversionKind == ConversionKind.ExplicitDynamic;
+            return conversionKind == ImplicitDynamic || conversionKind == ExplicitDynamic;
+        }
+
+        public static bool IsConversionFromExpression(this ConversionKind conversionKind)
+        {
+            switch (conversionKind)
+            {
+                case ImplicitEnumeration:
+                case ImplicitThrow:
+                case ImplicitTupleLiteral:
+                case ExplicitTupleLiteral:
+                case DefaultOrNullLiteral:
+                case NullToPointer:
+                case ImplicitDynamic:
+                case ExplicitDynamic:
+                case ImplicitConstant:
+                case AnonymousFunction:
+                case ConversionKind.MethodGroup:
+                case InterpolatedString:
+                case SwitchExpression:
+                case StackAllocToPointerType:
+                case StackAllocToSpanType:
+                    // these are conversions from expression
+                    return true;
+
+                case Identity:
+                case ImplicitNumeric:
+                case ImplicitTuple:
+                case ExplicitTuple:
+                case ImplicitNullable:
+                case ImplicitReference:
+                case Boxing:
+                case PointerToVoid:
+                case ImplicitUserDefined:
+                case ExplicitNumeric:
+                case ExplicitEnumeration:
+                case ExplicitNullable:
+                case ExplicitReference:
+                case Unboxing:
+                case ExplicitUserDefined:
+                case PointerToPointer:
+                case IntegerToPointer:
+                case PointerToInteger:
+                case IntPtr:
+                    // these are conversions from type
+                    return false;
+
+                case NoConversion:
+                case Deconstruction:
+                case PinnedObjectToPointer:
+                default:
+                    // these are not really part of the language.
+                    throw ExceptionUtilities.UnexpectedValue(conversionKind);
+            }
         }
 
         // Is the particular conversion an implicit conversion?
@@ -20,45 +74,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (conversionKind)
             {
-                case ConversionKind.NoConversion:
+                case NoConversion:
                     return false;
 
-                case ConversionKind.Identity:
-                case ConversionKind.ImplicitNumeric:
-                case ConversionKind.ImplicitTupleLiteral:
-                case ConversionKind.ImplicitTuple:
-                case ConversionKind.ImplicitEnumeration:
-                case ConversionKind.ImplicitThrow:
-                case ConversionKind.ImplicitNullable:
-                case ConversionKind.DefaultOrNullLiteral:
-                case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
-                case ConversionKind.ImplicitDynamic:
-                case ConversionKind.ImplicitConstant:
-                case ConversionKind.ImplicitUserDefined:
-                case ConversionKind.AnonymousFunction:
+                case Identity:
+                case ImplicitNumeric:
+                case ImplicitTupleLiteral:
+                case ImplicitTuple:
+                case ImplicitEnumeration:
+                case ImplicitThrow:
+                case ImplicitNullable:
+                case DefaultOrNullLiteral:
+                case ImplicitReference:
+                case Boxing:
+                case ImplicitDynamic:
+                case ImplicitConstant:
+                case ImplicitUserDefined:
+                case AnonymousFunction:
                 case ConversionKind.MethodGroup:
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.NullToPointer:
-                case ConversionKind.InterpolatedString:
-                case ConversionKind.Deconstruction:
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
+                case PointerToVoid:
+                case NullToPointer:
+                case InterpolatedString:
+                case SwitchExpression:
+                case Deconstruction:
+                case StackAllocToPointerType:
+                case StackAllocToSpanType:
                     return true;
 
-                case ConversionKind.ExplicitNumeric:
-                case ConversionKind.ExplicitTuple:
-                case ConversionKind.ExplicitTupleLiteral:
-                case ConversionKind.ExplicitEnumeration:
-                case ConversionKind.ExplicitNullable:
-                case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
-                case ConversionKind.ExplicitDynamic:
-                case ConversionKind.ExplicitUserDefined:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.IntPtr:
+                case ExplicitNumeric:
+                case ExplicitTuple:
+                case ExplicitTupleLiteral:
+                case ExplicitEnumeration:
+                case ExplicitNullable:
+                case ExplicitReference:
+                case Unboxing:
+                case ExplicitDynamic:
+                case ExplicitUserDefined:
+                case PointerToPointer:
+                case PointerToInteger:
+                case IntegerToPointer:
+                case IntPtr:
                     return false;
 
                 default:
@@ -71,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (conversionKind)
             {
-                case ConversionKind.ImplicitUserDefined:
-                case ConversionKind.ExplicitUserDefined:
+                case ImplicitUserDefined:
+                case ExplicitUserDefined:
                     return true;
 
                 default:
@@ -84,11 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.NullToPointer:
+                case PointerToVoid:
+                case PointerToPointer:
+                case PointerToInteger:
+                case IntegerToPointer:
+                case NullToPointer:
                     return true;
                 default:
                     return false;

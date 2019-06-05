@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindMethodGroup(ExpressionSyntax node, bool invoked, bool indexed, DiagnosticBag diagnostics)
         {
+            // PROTOTYPE(ngafter): have each of the receivers been self-typed?
             switch (node.Kind())
             {
                 case SyntaxKind.IdentifierName:
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver != null);
 
+            receiver = BindToNaturalType(receiver, diagnostics);
             var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
@@ -389,38 +391,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
-            for (int i = 0; i < arguments.Arguments.Count; i++)
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
+            builder.AddRange(arguments.Arguments);
+            for (int i = 0, n = builder.Count; i < n; i++)
             {
-                Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
-
-                if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference ||
-                    arguments.Arguments[i].Kind == BoundKind.DiscardExpression && !arguments.Arguments[i].HasExpressionType())
+                builder[i] = builder[i] switch
                 {
-                    var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
-                    builder.AddRange(arguments.Arguments);
-
-                    do
-                    {
-                        BoundExpression argument = builder[i];
-
-                        if (argument.Kind == BoundKind.OutVariablePendingInference)
-                        {
-                            builder[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
-                        }
-                        else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
-                        {
-                            builder[i] = ((BoundDiscardExpression)argument).FailInference(this, diagnostics);
-                        }
-
-                        i++;
-                    }
-                    while (i < builder.Count);
-
-                    return builder.ToImmutableAndFree();
-                }
+                    OutVariablePendingInference ovpi => ovpi.FailInference(this, diagnostics),
+                    BoundDiscardExpression bde when !bde.HasExpressionType() => bde.FailInference(this, diagnostics),
+                    var arg => BindToNaturalType(arg, diagnostics)
+                };
             }
 
-            return arguments.Arguments.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         // Returns true if there were errors.
@@ -957,15 +940,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (analyzedArguments.HasErrors)
                 {
-                    // Errors for arguments have already been reported, except for unbound lambdas.
+                    // Errors for arguments have already been reported, except for unbound lambdas and switch expressions.
                     // We report those now.
                     foreach (var argument in analyzedArguments.Arguments)
                     {
-                        var unboundLambda = argument as UnboundLambda;
-                        if (unboundLambda != null)
+                        switch (argument)
                         {
-                            var boundWithErrors = unboundLambda.BindForErrorRecovery();
-                            diagnostics.AddRange(boundWithErrors.Diagnostics);
+                            case UnboundLambda unboundLambda:
+                                var boundWithErrors = unboundLambda.BindForErrorRecovery();
+                                diagnostics.AddRange(boundWithErrors.Diagnostics);
+                                break;
+                            case BoundConvertedSwitchExpression _:
+                                break;
+                            case BoundSwitchExpression { Type: { } naturalType } switchExpr:
+                                ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), diagnostics);
+                                break;
                         }
                     }
                 }
@@ -1212,6 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (value == replaced) ? q : q.Update(replaced, q.DefinedSymbol, q.Operation, q.Cast, q.Binder, q.UnoptimizedForm, q.Type);
             }
 
+            // PROTOTYPE(ngafter): has the receiver had the BindToNaturalType treatment?
             return receiver;
         }
 

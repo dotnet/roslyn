@@ -606,5 +606,355 @@ class Program
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
         }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2 };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool?[] { false, true })
+        {
+            Target t = b switch { false => s1, true => s2, null => (Target)null };
+            Console.Write(t);
+            t = b switch { false => s1, true => s2, null => (Target)null };
+            Console.Write(t);
+        }
+    }
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 Source2 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Overload()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(b switch { false => s1, true => s2 });
+        }
+    }
+    static void M(Source1 s) => throw null;
+    static void M(Source2 s) => throw null;
+    static void M(Target t) => Console.Write(t);
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Lambda_01()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(() => b switch { false => s1, true => s2 });
+        }
+    }
+    static void M(Func<Source1> s) => throw null;
+    static void M(Func<Source2> s) => throw null;
+    static void M(Func<Target> t) => Console.Write(t());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source2 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Lambda_02()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s1 = new Source1();
+        var s2 = new Source2();
+        foreach (var b in new bool[] { false, true })
+        {
+            M(() => b switch { false => s1, true => s1 });
+        }
+    }
+    static void M(Func<Source2> s) => throw null;
+    static void M(Func<Target> t) => Console.Write(t());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var expectedOutput = "Source1 Source1 ";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversionViaNaturalType_01()
+        {
+            // Switch conversion is not a standard conversion, so not applicable as input to
+            // a user-defined conversion.
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = false;
+        Source1 s1 = new Source1();
+        Ultimate u = b switch { false => s1, true => s1 };
+        Console.Write(u);
+        u = b switch { false => s1, true => s1 };
+        Console.Write(u);
+    }
+}
+class Ultimate
+{
+    private readonly string Value;
+    public Ultimate(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Ultimate(Target t) => new Ultimate(t.ToString());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (10,42): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(10, 42),
+                // (10,54): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(10, 54),
+                // (12,33): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(12, 33),
+                // (12,45): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(12, 45));
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversionViaNaturalType_02()
+        {
+            // Switch conversion is not a standard conversion, so not applicable as input to
+            // a user-defined conversion.
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b = false;
+        Source1 s1 = new Source1();
+        Source2 s2 = new Source2();
+        Ultimate u = b switch { false => s1, true => s2 };
+        Console.Write(u);
+        u = b switch { false => s1, true => s2 };
+        Console.Write(u);
+    }
+}
+class Ultimate
+{
+    private readonly string Value;
+    public Ultimate(string value) => Value = value;
+    public override string ToString() => Value;
+    public static implicit operator Ultimate(Target t) => new Ultimate(t.ToString());
+}
+class Target
+{
+    private readonly string Value;
+    public Target(string value) => Value = value;
+    public override string ToString() => Value;
+}
+class Source1
+{
+    public static implicit operator Target(Source1 self) => new Target(""Source1 "");
+}
+class Source2
+{
+    public static implicit operator Target(Source2 self) => new Target(""Source2 "");
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (11,42): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(11, 42),
+                // (11,54): error CS0029: Cannot implicitly convert type 'Source2' to 'Ultimate'
+                //         Ultimate u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("Source2", "Ultimate").WithLocation(11, 54),
+                // (13,33): error CS0029: Cannot implicitly convert type 'Source1' to 'Ultimate'
+                //         u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("Source1", "Ultimate").WithLocation(13, 33),
+                // (13,45): error CS0029: Cannot implicitly convert type 'Source2' to 'Ultimate'
+                //         u = b switch { false => s1, true => s2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("Source2", "Ultimate").WithLocation(13, 45));
+        }
+
+        [Fact]
+        public void SwitchExpressionDiscardedWithNoNaturalType()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        _ = true switch { true => 1, false => string.Empty };
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8506: No best type was found for the switch expression.
+                //         _ = true switch { true => 1, false => string.Empty };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 18));
+        }
     }
 }

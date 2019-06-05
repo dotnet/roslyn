@@ -153,6 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (Type is null) ? FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString()) : base.Display;
     }
 
+    internal partial class BoundSwitchExpression
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_SwitchExpression.Localize() : base.Display;
+    }
+
     internal partial class BoundPassByCopy
     {
         public override object Display => Expression.Display;

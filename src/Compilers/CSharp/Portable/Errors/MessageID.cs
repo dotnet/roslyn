@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_DefaultInterfaceImplementation = MessageBase + 12760,
         IDS_OverrideWithConstraints = MessageBase + 12761,
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
+        IDS_SwitchExpression = MessageBase + 12763,
     }
 
     // Message IDs may refer to strings that need to be localized.

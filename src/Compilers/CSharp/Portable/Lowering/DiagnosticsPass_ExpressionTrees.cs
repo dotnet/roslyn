@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            return VisitSwitchExpression(node);
+        }
+
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
             if (_inExpressionLambda)
@@ -178,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!node.HasAnyErrors)
             {
-                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+                CheckForDeconstructionAssignmentToSelf((BoundTupleExpression)node.Left, node.Right);
             }
 
             return base.VisitDeconstructionAssignmentOperator(node);

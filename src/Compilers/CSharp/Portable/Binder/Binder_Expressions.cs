@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindValue(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
         {
+            // PROTOTYPE(ngafter): Should we have a version of this that does the BindToNaturalType treatment?
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
             return CheckValue(result, valueKind, diagnostics);
         }
@@ -739,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundTupleLiteral(syntax, argumentNamesOpt: default, inferredPositions, subExpressions, tupleType);
+                        return new BoundConvertedTupleLiteral(syntax, tupleType, subExpressions, tupleNames, inferredPositions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -824,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(node, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+            return new BoundTupleLiteral(node, boundArguments.ToImmutableAndFree(), elementNames, inferredPositions, tupleTypeOpt, hasErrors);
         }
 
         private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
@@ -2729,7 +2730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral)
+                if (!kind.IsIdentity || argument.Kind == BoundKind.TupleLiteral || argument.Kind == BoundKind.SwitchExpression)
                 {
                     TypeWithAnnotations typeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
 
@@ -2885,8 +2886,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
                     {
-                        var size = BindValue(arg, diagnostics, BindValueKind.RValue);
-                        Error(diagnostics, ErrorCode.ERR_InvalidArray, dimension[0]);
+                        var size = BindToNaturalType(BindValue(arg, diagnostics, BindValueKind.RValue), diagnostics);
+                        Error(diagnostics, ErrorCode.ERR_InvalidArray, arg);
                         hasErrors = true;
                         // Capture the invalid sizes for `SemanticModel` and `IOperation`
                         sizes.Add(size);
@@ -5631,6 +5632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If Goo itself is a dynamic thing (e.g. in `x.Goo.Bar`, `x` is dynamic, and we're
                 // currently checking Bar), then CheckValue will do nothing.
                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+                boundLeft = BindToNaturalType(boundLeft, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
             }
 
@@ -5803,6 +5805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // passing the receiver implicitly by ref (e.g. in a struct instance method invocation).
                                 // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+                                boundLeft = BindToNaturalType(boundLeft, diagnostics);
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             break;
@@ -6824,6 +6827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
+                receiver = BindToNaturalType(receiver, diagnostics);
 
                 return BindElementOrIndexerAccess(node, receiver, analyzedArguments, diagnostics);
             }
@@ -8073,7 +8077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindConditionalAccessReceiver(ConditionalAccessExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var receiverSyntax = node.Expression;
-            var receiver = BindValue(receiverSyntax, diagnostics, BindValueKind.RValue);
+            var receiver = BindToNaturalType(BindValue(receiverSyntax, diagnostics, BindValueKind.RValue), diagnostics);
             receiver = MakeMemberAccessValue(receiver, diagnostics);
 
             if (receiver.HasAnyErrors)

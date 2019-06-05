@@ -52,23 +52,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression ReplaceTerminalElementsWithTemps(BoundExpression expr, TupleBinaryOperatorInfo operators, ArrayBuilder<BoundExpression> initEffects, ArrayBuilder<LocalSymbol> temps)
         {
-            if (operators.InfoKind == TupleBinaryOperatorInfoKind.Multiple)
+            if (operators.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr is BoundTupleExpression tuple)
             {
                 // Example:
                 // in `(expr1, expr2) == (..., ...)` we need to save `expr1` and `expr2`
-                if (expr.Kind == BoundKind.TupleLiteral)
+                var multiple = (TupleBinaryOperatorInfo.Multiple)operators;
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Arguments.Length);
+                for (int i = 0; i < tuple.Arguments.Length; i++)
                 {
-                    var tuple = (BoundTupleLiteral)expr;
-                    var multiple = (TupleBinaryOperatorInfo.Multiple)operators;
-                    var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Arguments.Length);
-                    for (int i = 0; i < tuple.Arguments.Length; i++)
-                    {
-                        var argument = tuple.Arguments[i];
-                        var newArgument = ReplaceTerminalElementsWithTemps(argument, multiple.Operators[i], initEffects, temps);
-                        builder.Add(newArgument);
-                    }
-                    return new BoundTupleLiteral(tuple.Syntax, tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, builder.ToImmutableAndFree(), tuple.Type, tuple.HasErrors);
+                    var argument = tuple.Arguments[i];
+                    var newArgument = ReplaceTerminalElementsWithTemps(argument, multiple.Operators[i], initEffects, temps);
+                    builder.Add(newArgument);
                 }
+
+                // PROTOTYPE(ngafter): what about when the type is null?  Have nested elements been converted to their natural type?
+                // Even when there is a type, have the elements been converted?
+                var newArguments = builder.ToImmutableAndFree();
+                return new BoundConvertedTupleLiteral(tuple.Syntax, tuple.Type, newArguments, ImmutableArray<string>.Empty, ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
             }
 
             // Examples:
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MakeNullableParts(BoundExpression expr, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> innerEffects,
             ArrayBuilder<BoundExpression> outerEffects, bool saveHasValue, out BoundExpression hasValue, out BoundExpression value, out bool isNullable)
         {
-            isNullable = expr.Kind != BoundKind.TupleLiteral && expr.Type.IsNullableType();
+            isNullable = !(expr is BoundTupleExpression) && expr.Type.IsNullableType();
             if (!isNullable)
             {
                 hasValue = MakeBooleanConstant(expr.Syntax, true);
@@ -309,9 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Example:
             // (1, 2) == (1, 2);
-            if (tuple.Kind == BoundKind.TupleLiteral)
+            if (tuple is BoundTupleExpression tupleExpression)
             {
-                return ((BoundTupleLiteral)tuple).Arguments[i];
+                return tupleExpression.Arguments[i];
             }
 
             Debug.Assert(tuple.Type.IsTupleType);

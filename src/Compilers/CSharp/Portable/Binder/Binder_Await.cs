@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindAwait(AwaitExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindToNaturalType(BindValue(node.Expression, diagnostics, BindValueKind.RValue), diagnostics);
 
             return BindAwait(expression, node, diagnostics);
         }

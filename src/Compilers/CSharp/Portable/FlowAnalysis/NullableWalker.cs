@@ -4290,6 +4290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.SwitchExpression:
+                    // The switch expression conversion is not represented as a separate conversion in the bound tree.
+                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
                     return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, diagnosticLocationOpt);

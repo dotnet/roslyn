@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int compoundStringLength = 0;
 
             BoundExpression result = BindExpression(current, diagnostics);
+            result = BindToNaturalType(result, diagnostics);
 
             if (node.IsKind(SyntaxKind.SubtractExpression)
                 && current.IsKind(SyntaxKind.ParenthesizedExpression))
@@ -454,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
+                right = BindToNaturalType(right, diagnostics);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
                 result = boundOp;
             }
@@ -719,12 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = childAsBinary;
             }
 
-            BoundExpression left = BindValue(child, diagnostics, BindValueKind.RValue);
+            BoundExpression left = BindToNaturalType(BindValue(child, diagnostics, BindValueKind.RValue), diagnostics);
 
             do
             {
                 binary = (BinaryExpressionSyntax)child.Parent;
-                BoundExpression right = BindValue(binary.Right, diagnostics, BindValueKind.RValue);
+                BoundExpression right = BindToNaturalType(BindValue(binary.Right, diagnostics, BindValueKind.RValue), diagnostics);
 
                 left = BindConditionalLogicalOperator(binary, left, right, diagnostics);
                 child = binary;
@@ -1964,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression operand = BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement);
+            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement), diagnostics);
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
@@ -2080,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Based on ExpressionBinder::bindPtrIndirection.
         private BoundExpression BindPointerIndirectionExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
+            BoundExpression operand = BindToNaturalType(BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind())), diagnostics);
 
             TypeSymbol pointedAtType;
             bool hasErrors;
@@ -2127,7 +2129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Based on ExpressionBinder::bindPtrAddr.
         private BoundExpression BindAddressOfExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = BindValue(node.Operand, diagnostics, BindValueKind.AddressOf);
+            BoundExpression operand = BindToNaturalType(BindValue(node.Operand, diagnostics, BindValueKind.AddressOf), diagnostics);
             ReportSuppressionIfNeeded(operand, diagnostics);
 
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
@@ -2302,7 +2304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindUnaryOperator(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
+            BoundExpression operand = BindToNaturalType(BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind())), diagnostics);
             BoundLiteral constant = BindIntegralMinValConstants(node, operand, diagnostics);
             return constant ?? BindUnaryOperatorCore(node, node.OperatorToken.Text, operand, diagnostics);
         }
@@ -2760,7 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
+            var operand = BindToNaturalType(BindValue(node.Left, diagnostics, BindValueKind.RValue), diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
@@ -3169,7 +3171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindAsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
+            var operand = BindToNaturalType(BindValue(node.Left, diagnostics, BindValueKind.RValue), diagnostics);
             AliasSymbol alias;
             TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, diagnostics, out alias);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
@@ -3303,6 +3305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
             bool hasErrors = ReportAsOperatorConversionDiagnostics(node, diagnostics, this.Compilation, operandType, targetType, conversion.Kind, operand.ConstantValue);
 
+            // PROTOTYPE(ngafter): should bind to natural type here?
             return new BoundAsOperator(node, operand, typeExpression, conversion, resultType, hasErrors);
         }
 
@@ -3744,6 +3747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // <expr> ? T : T
                     type = trueType;
+                    trueExpr = BindToNaturalType(trueExpr, diagnostics);
+                    falseExpr = BindToNaturalType(falseExpr, diagnostics);
                 }
             }
             else

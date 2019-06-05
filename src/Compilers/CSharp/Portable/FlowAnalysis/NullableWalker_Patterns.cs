@@ -459,7 +459,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            bool inferType = node.NaturalTypeOpt is object && node.NaturalTypeOpt.Equals(node.Type, TypeCompareKind.ConsiderEverything);
+            VisitSwitchExpressionCore(node, inferType);
+            return null;
+        }
+
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        {
+            VisitSwitchExpressionCore(node, true);
+            return null;
+        }
+
+        private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
             int slot = MakeSlot(node.Expression);
@@ -506,9 +519,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // PROTOTYPE(ngafter): when `!inferType`, we need to target-type the switch expression
             TypeSymbol inferredType =
-                BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
-                node.Type.SetUnknownNullabilityForReferenceTypes();
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
+                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
+                    ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
+
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
@@ -538,7 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             labelStateMap.Free();
             SetState(endState);
             SetResult(node, resultType, inferredTypeWithAnnotations);
-            return null;
         }
 
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
