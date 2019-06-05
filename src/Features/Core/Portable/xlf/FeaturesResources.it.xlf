@@ -82,6 +82,11 @@
         <target state="translated">Qualità del codice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
         <target state="new">Configure {0} severity</target>

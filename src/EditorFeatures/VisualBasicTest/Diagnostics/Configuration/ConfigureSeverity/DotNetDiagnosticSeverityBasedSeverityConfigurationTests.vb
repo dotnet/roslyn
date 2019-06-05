@@ -1,13 +1,14 @@
-﻿Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.CodeActions
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.Configuration
+Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppression
-    Partial Public MustInherit Class SeverityBasedConfigurationTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
+    Partial Public MustInherit Class DotNetDiagnosticSeverityBasedSeverityConfigurationTests
         Inherits AbstractSuppressionDiagnosticTest
 
         Private NotInheritable Class CustomDiagnosticAnalyzer
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         End Function
 
         Public Class NoneConfigurationTests
-            Inherits SeverityBasedConfigurationTests
+            Inherits DotNetDiagnosticSeverityBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get

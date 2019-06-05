@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
-                   option: null,    // No unique option for diagnosticId, we have different options for member and declaration context
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

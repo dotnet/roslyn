@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Configuration;
+using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConfigureSeverityLevel
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
 {
-    public abstract partial class CodeStyleOptionBasedConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
     {
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConfigureSe
                         new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
-        public class NoneConfigurationTests : CodeStyleOptionBasedConfigurationTests
+        public class NoneConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 0;
 
@@ -402,7 +402,7 @@ dotnet_style_object_initializer = true:none
             }
         }
 
-        public class SilentConfigurationTests : CodeStyleOptionBasedConfigurationTests
+        public class SilentConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 1;
 
@@ -775,7 +775,7 @@ dotnet_style_object_initializer = true:silent
             }
         }
 
-        public class SuggestionConfigurationTests : CodeStyleOptionBasedConfigurationTests
+        public class SuggestionConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 2;
 
@@ -1148,7 +1148,7 @@ dotnet_style_object_initializer = true:suggestion
             }
         }
 
-        public class WarningConfigurationTests : CodeStyleOptionBasedConfigurationTests
+        public class WarningConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 3;
 
@@ -1521,7 +1521,7 @@ dotnet_style_object_initializer = true:warning
             }
         }
 
-        public class ErrorConfigurationTests : CodeStyleOptionBasedConfigurationTests
+        public class ErrorConfigurationTests : CodeStyleOptionBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 4;
 

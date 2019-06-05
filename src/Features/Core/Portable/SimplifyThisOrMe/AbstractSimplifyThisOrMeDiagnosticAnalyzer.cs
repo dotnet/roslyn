@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer(
             ImmutableArray<TLanguageKindEnum> kindsOfInterest)
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                   option: null,    // No unique option for diagnostic ID, we have different options per symbol kind.
+                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {

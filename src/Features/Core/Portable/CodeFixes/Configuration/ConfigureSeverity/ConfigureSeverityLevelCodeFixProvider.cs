@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
+namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
     [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 foreach (var (name, value) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureEditorConfig(value, diagnostic, project, cancellationToken)));
+                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken)));
                 }
 
                 var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());

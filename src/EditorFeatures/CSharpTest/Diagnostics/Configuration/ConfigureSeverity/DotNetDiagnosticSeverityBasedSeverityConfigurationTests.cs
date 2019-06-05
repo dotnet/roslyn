@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Configuration;
+using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -12,9 +13,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConfigureSeverityLevel
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
 {
-    public abstract partial class SeverityBasedConfigurationTests : AbstractSuppressionDiagnosticTest
+    public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest
     {
         private sealed class CustomDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConfigureSe
                         new CustomDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
         }
 
-        public class NoneConfigurationTests : SeverityBasedConfigurationTests
+        public class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests
         {
             protected override int CodeActionIndex => 0;
 

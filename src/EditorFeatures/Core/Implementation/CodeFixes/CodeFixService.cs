@@ -684,7 +684,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(List<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
                 var builder = ArrayBuilder<IConfigurationFixProvider>.GetInstance();
-                foreach (var languageKindAndFixersValue in languageKindAndFixers)
+                var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
+                foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
                 {
                     builder.Add(languageKindAndFixersValue.Value);
                 }

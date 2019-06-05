@@ -87,21 +87,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
             Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
             string language)
-            : base(GetSupportedDescriptorsWithOptions(unusedValueExpressionStatementOption, unusedValueAssignmentOption), language)
+            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                        .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                   language)
         {
             UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
             UnusedValueAssignmentOption = unusedValueAssignmentOption;
-        }
-
-        private static ImmutableDictionary<DiagnosticDescriptor, IOption> GetSupportedDescriptorsWithOptions(
-            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption>();
-            builder.Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption);
-            builder.Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption);
-            builder.Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters);
-            return builder.ToImmutable();
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);

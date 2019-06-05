@@ -18,9 +18,11 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected AbstractOrderModifiersDiagnosticAnalyzer(
             ISyntaxFactsService syntaxFacts,
             Option<CodeStyleOption<string>> option,
-            AbstractOrderModifiersHelpers helpers)
+            AbstractOrderModifiersHelpers helpers,
+            string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
-                   option: null,    // Our code style option cannot be used to configure diagnostic severity.
+                   option,
+                   language,
                    new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

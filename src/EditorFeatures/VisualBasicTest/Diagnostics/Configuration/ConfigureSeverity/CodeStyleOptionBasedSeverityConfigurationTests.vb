@@ -1,14 +1,14 @@
-﻿Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.CodeActions
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.Configuration
+Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppression
-    Partial Public MustInherit Class CodeStyleOptionBasedConfigurationTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
+    Partial Public MustInherit Class CodeStyleOptionBasedSeverityConfigurationTests
         Inherits AbstractSuppressionDiagnosticTest
 
         Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         End Function
 
         Public Class NoneConfigurationTests
-            Inherits CodeStyleOptionBasedConfigurationTests
+            Inherits CodeStyleOptionBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
@@ -354,7 +354,7 @@ dotnet_style_object_initializer = true:none
         End Class
 
         Public Class SilentConfigurationTests
-            Inherits CodeStyleOptionBasedConfigurationTests
+            Inherits CodeStyleOptionBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
@@ -677,7 +677,7 @@ dotnet_style_object_initializer = true:silent
         End Class
 
         Public Class SuggestionConfigurationTests
-            Inherits CodeStyleOptionBasedConfigurationTests
+            Inherits CodeStyleOptionBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
@@ -1000,7 +1000,7 @@ dotnet_style_object_initializer = true:suggestion
         End Class
 
         Public Class WarningConfigurationTests
-            Inherits CodeStyleOptionBasedConfigurationTests
+            Inherits CodeStyleOptionBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get
@@ -1323,7 +1323,7 @@ dotnet_style_object_initializer = true:warning
         End Class
 
         Public Class ErrorConfigurationTests
-            Inherits CodeStyleOptionBasedConfigurationTests
+            Inherits CodeStyleOptionBasedSeverityConfigurationTests
 
             Protected Overrides ReadOnly Property CodeActionIndex As Integer
                 Get

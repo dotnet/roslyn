@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
+namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {

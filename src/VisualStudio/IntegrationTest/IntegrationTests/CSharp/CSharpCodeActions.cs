@@ -643,5 +643,57 @@ public class Program
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
 
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        public void ConfigureCodeStyleOptionValueAndSeverity()
+        {
+            SetUpEditor(@"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var $$x = new Program();
+    }
+}");
+            VisualStudio.Editor.InvokeCodeActionList();
+            var expectedItems = new[]
+            {
+                "Use discard '__'",  // IDE0059
+                "Use explicit type instead of 'var'",   // IDE0008
+                "Configure or Suppress issues",
+                    "Configure IDE0008 code style",
+                        "csharp__style__var__elsewhere",
+                            "true",
+                            "false",
+                        "csharp__style__var__for__built__in__types",
+                            "true",
+                            "false",
+                        "csharp__style__var__when__type__is__apparent",
+                            "true",
+                            "false",
+                    "Configure IDE0008 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Configure IDE0059 code style",
+                        "unused__local__variable",
+                        "discard__variable",
+                    "Configure IDE0059 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Suppress IDE0059",
+                        "in Source",
+                        "in Suppression File",
+                        "in Source (attribute)",
+            };
+
+            VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);
+        }
     }
 }

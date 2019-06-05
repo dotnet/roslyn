@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
+                   LanguageNames.CSharp,
                    UseExpressionBodyTitle)
         {
         }
