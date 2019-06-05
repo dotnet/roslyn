@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -49,9 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
             {
-                if (CheckPreconditions(docCookie))
+                _foregroundAffinitization.AssertIsForeground();
+                if (_runningDocumentTable.IsDocumentInitialized(docCookie))
                 {
-                    _listener.OnCloseDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _listener.OnCloseDocument(_runningDocumentTable.GetDocumentMoniker(docCookie));
                 }
             }
 
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         {
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew)
@@ -73,34 +75,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Did we rename?
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
             {
-                if (CheckPreconditions(docCookie))
+                _foregroundAffinitization.AssertIsForeground();
+                if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetBuffer(docCookie, out var buffer))
                 {
-                    _listener.OnRenameDocument(docCookie, pszMkDocumentNew, pszMkDocumentOld);
+                    _listener.OnRenameDocument(pszMkDocumentNew, pszMkDocumentOld, buffer);
                 }
             }
 
-            if ((grfAttribs & (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized) != 0)
-            {
-                if (TryGetBuffer(docCookie, out var buffer))
-                {
-                    _listener.OnInitializedDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
-                }
-            }
-
-            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call
-            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to
-            // add misc files, so we'll do the same.
+            // Doc data reloaded is the most reliable way to know when a document has been loaded and may have a text buffer we can get.
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
             {
-                if (CheckPreconditions(docCookie))
+                _foregroundAffinitization.AssertIsForeground();
+                if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBuffer(docCookie, out var buffer))
                 {
-                    _listener.OnReloadDocumentData(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                    _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                    _listener.OnOpenDocument(moniker, buffer, hierarchy);
                 }
             }
 
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
             {
-                _listener.OnRefreshDocumentContext(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie));
+                _foregroundAffinitization.AssertIsForeground();
+                if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
+                {
+                    _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
+                    _listener.OnRefreshDocumentContext(moniker, hierarchy);
+                }
             }
 
             return VSConstants.S_OK;
@@ -108,15 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
         {
-            if (fFirstShow != 0)
-            {
-                if (TryGetBuffer(docCookie, out var buffer))
-                {
-                    _listener.OnBeforeOpenDocument(docCookie, _runningDocumentTable.GetDocumentMoniker(docCookie), buffer);
-                }
-            }
-
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
@@ -129,42 +121,114 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.E_NOTIMPL;
         }
 
-        /// <summary>
-        /// Gets the text buffer for a document cookie.
-        /// Also checks to make sure the document is initialized before returning.
-        /// </summary>
-        public bool TryGetBuffer(uint docCookie, out ITextBuffer textBuffer)
-        {
-            textBuffer = null;
-            if (!CheckPreconditions(docCookie))
-            {
-                return false;
-            }
-
-            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
-            {
-                textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-                return true;
-            }
-
-            return false;
-        }
+        public bool IsMonikerValid(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
 
         /// <summary>
-        /// Checks that we're on the UI thread and that the document has already been initialized.
+        /// Attempts to get a text buffer from the specified moniker.
         /// </summary>
-        private bool CheckPreconditions(uint docCookie)
+        /// <param name="moniker">the moniker to retrieve the text buffer for.</param>
+        /// <param name="textBuffer">the output text buffer or null if the moniker is invalid / document is not initialized.</param>
+        /// <returns>true if the buffer was found with a non null value.</returns>
+        public bool TryGetBufferFromMoniker(string moniker, out ITextBuffer textBuffer)
         {
             _foregroundAffinitization.AssertIsForeground();
 
-            if (!_runningDocumentTable.IsDocumentInitialized(docCookie))
+            textBuffer = null;
+            if (!IsMonikerValid(moniker))
             {
-                // We never want to touch documents that haven't been initialized yet, so immediately bail. Any further
-                // calls to the RDT might accidentally initialize it.
                 return false;
             }
 
-            return true;
+            var cookie = _runningDocumentTable.GetDocumentCookie(moniker);
+            if (!_runningDocumentTable.IsDocumentInitialized(cookie))
+            {
+                return false;
+            }
+
+            return TryGetBuffer(cookie, out textBuffer);
+        }
+
+        /// <summary>
+        /// Applies an action to all initialized files in the RDT.
+        /// </summary>
+        /// <param name="enumerateAction">the action to apply.</param>
+        public void EnumerateDocumentSet(Action<string, ITextBuffer, IVsHierarchy> enumerateAction)
+        {
+            _foregroundAffinitization.AssertIsForeground();
+            foreach (var cookie in GetInitializedRunningDocumentTableCookies())
+            {
+                if (TryGetMoniker(cookie, out var moniker) && TryGetBuffer(cookie, out var buffer))
+                {
+                    _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+                    enumerateAction(moniker, buffer, hierarchy);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies an action to all initialized files in the input set.
+        /// </summary>
+        /// <param name="enumerateAction">the action to apply.</param>
+        /// <param name="fileSet">the file set to apply the action to.</param>
+        public void EnumerateSpecifiedDocumentSet(Action<string, ITextBuffer, IVsHierarchy> enumerateAction, IEnumerable<string> fileSet)
+        {
+            _foregroundAffinitization.AssertIsForeground();
+            foreach (var filename in fileSet)
+            {
+                if (_runningDocumentTable.IsMonikerValid(filename))
+                {
+                    var cookie = _runningDocumentTable.GetDocumentCookie(filename);
+                    if (_runningDocumentTable.IsDocumentInitialized(cookie) && TryGetMoniker(cookie, out var moniker) && TryGetBuffer(cookie, out var buffer))
+                    {
+                        _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+                        enumerateAction(moniker, buffer, hierarchy);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
+        {
+            // Some methods we need here only exist in IVsRunningDocumentTable and not the IVsRunningDocumentTable4 that we
+            // hold onto as a field
+            var runningDocumentTable = (IVsRunningDocumentTable)_runningDocumentTable;
+            ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
+            uint[] cookies = new uint[16];
+
+            while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
+                   && cookiesFetched > 0)
+            {
+                for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                {
+                    var cookie = cookies[cookieIndex];
+
+                    if (_runningDocumentTable.IsDocumentInitialized(cookie))
+                    {
+                        yield return cookie;
+                    }
+                }
+            }
+        }
+
+        private bool TryGetMoniker(uint docCookie, out string moniker)
+        {
+            moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+            return !string.IsNullOrEmpty(moniker);
+        }
+
+        private bool TryGetBuffer(uint docCookie, out ITextBuffer textBuffer)
+        {
+            textBuffer = null;
+
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
+            {
+                textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+                return textBuffer != null;
+            }
+
+            return false;
         }
 
         #region IDisposable Support
