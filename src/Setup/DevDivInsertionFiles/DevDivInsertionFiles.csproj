@@ -196,7 +196,7 @@
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
           BeforeTargets="AfterBuild"
-          DependsOnTargets="_CalculateDependenciesToInsert"
+          DependsOnTargets="_CalculateDependenciesToInsert;GetAssemblyVersion"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
