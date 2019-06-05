@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.IsCached)
+                if (roslynItem.Flags.IsCached())
                 {
                     AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
