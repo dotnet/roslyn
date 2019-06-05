@@ -170,5 +170,269 @@ class C
                     //     public static extern int M(int x!);
                     Diagnostic(ErrorCode.ERR_MustNullCheckInImplementation, "x").WithArguments("x").WithLocation(6, 36));
         }
+
+        [Fact]
+        public void NullCheckedMethodDeclaration()
+        {
+            var source = @"
+class C
+{
+    void M(string name!) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedArgList()
+        {
+            var source = @"
+class C
+{
+    void M(__arglist!) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalParameter()
+        {
+            var source = @"
+class C
+{
+    void M(string name! = null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalParameterNoSpaces()
+        {
+            var source = @"
+class C
+{
+    void M(string name!=null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,23): error CS8713: Space required between '!' and '=' here.
+                    //     void M(string name!=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalParameterLeadingSpace()
+        {
+            var source = @"
+class C
+{
+    void M(string name !=null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,24): error CS8713: Space required between '!' and '=' here.
+                    //     void M(string name !=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalParameterTrailingSpace()
+        {
+            var source = @"
+class C
+{
+    void M(string name!= null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,23): error CS8713: Space required between '!' and '=' here.
+                    //     void M(string name!=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalParameterSplitBySpace()
+        {
+            var source = @"
+class C
+{
+    void M(string name! =null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedParameterWithLeadingNewLine()
+        {
+            var source = @"
+class C
+{
+    void M(string name
+!=null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (5,1): error CS8713: Space required between '!' and '=' here.
+                    // !=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(5, 1));
+        }
+
+        [Fact]
+        public void NullCheckedParameterWithTrailingNewLine()
+        {
+            var source = @"
+class C
+{
+    void M(string name!=
+null) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (4,23): error CS8713: Space required between '!' and '=' here.
+                    //     void M(string name!=
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void NullCheckedConstructor()
+        {
+            var source = @"
+class C
+{
+    public C(string name!) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedOperator()
+        {
+            var source = @"
+class Box 
+{ 
+    public static int operator+ (Box b!, Box c)  
+    { 
+        return 2;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<string, string> func1 = x => x + ""1"";
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaWithMultipleParameters()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int, bool> func1 = (x!, y) => x == y;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaSingleParameterInParentheses()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = (x!) => x;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaSingleParameterNoSpaces()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = x!=> x;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (7,33): error CS8713: Space required between '!' and '=' here.
+                    //         Func<int, int> func1 = x!=> x;
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(7, 33));
+        }
+
+        [Fact]
+        public void NullCheckedLambdaSingleTypedParameterInParentheses()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = (int x!) => x;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedLambdaManyTypedParametersInParentheses()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int, int> func1 = (int x!, int y) => x;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaManyNullCheckedParametersInParentheses()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int, int> func1 = (int x!, int y!) => x;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCheckedDiscard()
+        {
+            var source = @"
+using System;
+class C
+{
+    public void M()
+    {
+        Func<int, int> func1 = (_!) => 42;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }
