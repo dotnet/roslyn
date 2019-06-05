@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// An approximation for the length of a token in this stream
         /// </summary>
-        float AverageTokenLength { get; }
+        float _averageTokenLength;
 
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArrayOrEmpty();
                 // estimate average token length to speed up searches for token index in the stream
-                int approximateStreamLength = _tokens[_tokens.Length - 1].FullSpan.Start - _tokens[0].FullSpan.Start;
-                float averageTokenLength = (float)approximateStreamLength / _tokens.Length;
-                this.AverageTokenLength = Math.Max(0.1f, averageTokenLength);
+                var approximateStreamLength = _tokens[_tokens.Length - 1].FullSpan.End - _tokens[0].FullSpan.Start;
+                var averageTokenLength = (float)approximateStreamLength / _tokens.Length;
+                _averageTokenLength = Math.Max(0.1f, averageTokenLength);
 
                 Debug.Assert(this.TokenCount > 0);
 
@@ -521,22 +521,21 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private void GetTokenIndexBounds(int position, out int lowerBound, out int upperBound)
         {
-            float avgLength = this.AverageTokenLength;
-            Debug.Assert(avgLength > 0);
+            Debug.Assert(_averageTokenLength > 0);
             // make an initial guess about the token position
-            lowerBound = upperBound = Bounded((int)((position - _tokens[0].FullSpan.Start) / avgLength), min: 0, max: _tokens.Length - 1);
+            lowerBound = upperBound = Bounded((int)((position - _tokens[0].FullSpan.Start) / _averageTokenLength), min: 0, max: _tokens.Length - 1);
 
             // decrease lower bound until the desired position is strictly after it
             while (_tokens[lowerBound].FullSpan.Start >= position && lowerBound > 0)
             {
-                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - position) / avgLength);
+                int estimatedError = (int)((_tokens[lowerBound].FullSpan.Start - position) / _averageTokenLength);
                 lowerBound = Math.Max(0, lowerBound - Math.Max(1, estimatedError));
             }
 
             // increase upper bound until the desired position is strictly before it
             while (_tokens[upperBound].FullSpan.Start <= position && upperBound < _tokens.Length - 1)
             {
-                int estimatedError = (int)((position - _tokens[upperBound].FullSpan.Start) / avgLength);
+                int estimatedError = (int)((position - _tokens[upperBound].FullSpan.Start) / _averageTokenLength);
                 upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, estimatedError));
             }
         }

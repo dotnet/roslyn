@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private struct OriginalTriviaDataGetter : ITriviaDataGetter
         {
             private readonly TokenStream _tokenStream;
+
             public OriginalTriviaDataGetter(TokenStream tokenStream)
             {
                 _tokenStream = tokenStream;
