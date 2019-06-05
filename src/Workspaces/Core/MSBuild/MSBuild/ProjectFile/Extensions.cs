@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<MSB.Framework.ITaskItem> GetDocuments(this MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.Compile);
 
+        public static IEnumerable<MSB.Framework.ITaskItem> GetEditorConfigFiles(this MSB.Execution.ProjectInstance executedProject)
+            => executedProject.GetItems(ItemNames.EditorConfigFiles);
+
         public static IEnumerable<MSB.Framework.ITaskItem> GetMetadataReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject.GetItems(ItemNames.ReferencePath);
 
