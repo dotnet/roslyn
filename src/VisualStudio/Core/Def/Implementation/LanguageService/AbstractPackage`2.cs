@@ -4,11 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -71,6 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
+            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
+            {
+                // start remote host
+                EnableRemoteHostClientService();
+            }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
@@ -122,6 +130,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
+                if (ThreadHelper.JoinableTaskFactory.Run(() => IsInIdeModeAsync(this.Workspace, CancellationToken.None)))
+                {
+                    DisableRemoteHostClientService();
+                }
+
                 // If we've created the language service then tell it it's time to clean itself up now.
                 if (_languageService != null)
                 {
@@ -134,5 +147,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
+        }
+
+        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
+            {
+                return (bool)result;
+            }
+
+            return false;
+        }
+
+        private void EnableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+        }
+
+        private void DisableRemoteHostClientService()
+        {
+            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
+        }
     }
 }
