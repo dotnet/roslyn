@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if the parameter is marked by <see cref="System.Runtime.InteropServices.OptionalAttribute"/>.
         /// </summary>
         internal abstract bool HasOptionalAttribute { get; }
+        internal abstract bool IsNullChecked { get; }
 
         /// <summary>
         /// True if the parameter has default argument syntax.
