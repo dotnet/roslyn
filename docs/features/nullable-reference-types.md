@@ -61,10 +61,11 @@ Trivial/optimized cases:
     For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
     but compiler will never emit an attribute like this. 
 
+NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
 NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
 NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
-NullableAttribute(2) should be placed on a type parameter definition that has no type constraints, `class`, `struct` and `unmanaged` constraints and
-is declared in a context where nullable type annotations are allowed, that is eqivalent to having an `object?` constraint.
+NullableAttribute(2) should be placed on a type parameter definition that has no `notnull`, `class`, `struct`, `unmanaged` and type constraints and
+is declared in a context where nullable type annotations are allowed, that is equivalent to having an `object?` constraint.
 Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
 
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
@@ -286,7 +287,7 @@ A `class?` constraint is allowed, which, like class, requires the type argument 
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 
-An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable when it is a reference type.
+An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable (value or reference type).
 However, an explicit `object?` constraint is not allowed.
 An unconstrained (here it means - no type constraints, and no `class`, `struct`, or `unmanaged` constraints) type parameter is essentially
 equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
@@ -295,6 +296,10 @@ parameter within a type parameter list.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
 
+An explicit `notnull` constraint is allowed, which requires the type to be non-nullable (value or reference type).
+[5/15/19](https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md)
+The rules to determine when it is a named type constraint or a special `notnull` constraint are similar to rules for `unmanaged`. Similarly, it is valid only
+at the first position in constraints list.
 
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)

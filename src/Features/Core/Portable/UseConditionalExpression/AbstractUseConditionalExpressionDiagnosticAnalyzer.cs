@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var ifOperation = (IConditionalOperation)context.Operation;
-            var ifStatement = ifOperation.Syntax as TIfStatementSyntax;
-            if (ifStatement == null)
+            if (!(ifOperation.Syntax is TIfStatementSyntax ifStatement))
             {
                 return;
             }
