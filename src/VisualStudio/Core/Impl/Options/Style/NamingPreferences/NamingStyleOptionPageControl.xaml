@@ -44,15 +44,14 @@
         </Grid.InputBindings>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="5" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Margin="5 0 5 0 " TextWrapping="Wrap" Text="{x:Static style:NamingStyleOptionPageControl.ExplanatoryText}" />
-        <options:CodeStyleNoticeTextBlock Grid.Row="2" Margin="5 0 5 0" />
+        <options:CodeStyleNoticeTextBlock Grid.Row="1" Margin="5 5 5 0" />
         <DataGrid
-            Grid.Row="3"
+            Grid.Row="2"
             x:Uid="CodeStyleContent"
             x:Name="CodeStyleMembers"
             Margin="0,5,0,0"
@@ -259,7 +258,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Border Grid.Row="4">
+        <Border Grid.Row="3">
             <StackPanel Orientation="Horizontal"
                         Margin="7">
                 <Button Name="AddButton" 
