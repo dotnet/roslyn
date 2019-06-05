@@ -52,6 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
 
+        public void ApplyWorkspaceOptions(Action<TestWorkspace> optionsApplier)
+        {
+            optionsApplier(_workspace);
+
+            if (_currentDocument is null)
+            {
+                return;
+            }
+
+            _currentDocument = _workspace.Documents.Single(d => d.Id == _currentDocument.Id);
+        }
+
         public void Dispose()
         {
             if (_workspace != null)

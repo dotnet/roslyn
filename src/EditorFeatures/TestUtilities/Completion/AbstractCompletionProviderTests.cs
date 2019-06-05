@@ -193,9 +193,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string inlineDescription, List<CompletionItemFilter> matchingFilters)
         {
             var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
+            WorkspaceFixture.ApplyWorkspaceOptions(SetWorkspaceOptions);
+
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -207,9 +208,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<RoslynCompletion.CompletionList> GetCompletionListAsync(string markup)
         {
             var workspace = WorkspaceFixture.GetWorkspace(markup);
+            WorkspaceFixture.ApplyWorkspaceOptions(SetWorkspaceOptions);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
 
             return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
@@ -399,7 +400,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            SetWorkspaceOptions(workspace);
+            WorkspaceFixture.ApplyWorkspaceOptions(SetWorkspaceOptions);
+
+            // Applying workspace options will create a new solution snapshot meaning
+            // we need to pull the current version of the document to work against.
+            document = workspace.CurrentSolution.GetDocument(document.Id);
+
             var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
 
             var service = GetCompletionService(workspace);
