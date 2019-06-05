@@ -56,9 +56,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _treeData = treeData;
                 _optionSet = optionSet;
 
-                _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArrayOrEmpty();
+                _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArray();
                 // estimate average token length to speed up searches for token index in the stream
-                var approximateStreamLength = _tokens[_tokens.Length - 1].FullSpan.End - _tokens[0].FullSpan.Start;
+                var approximateStreamLength = !_tokens.IsEmpty
+                    ? _tokens[_tokens.Length - 1].FullSpan.End - _tokens[0].FullSpan.Start
+                    : 0;
                 var averageTokenLength = (float)approximateStreamLength / _tokens.Length;
                 _averageTokenLength = Math.Max(0.1f, averageTokenLength);
 
@@ -612,8 +614,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
-                int dpos = x.FullSpan.Start.CompareTo(y.FullSpan.Start);
-                return dpos != 0 ? dpos : x.FullSpan.End.CompareTo(y.FullSpan.End);
+                return x.FullSpan.CompareTo(y.FullSpan);
             }
         }
     }
