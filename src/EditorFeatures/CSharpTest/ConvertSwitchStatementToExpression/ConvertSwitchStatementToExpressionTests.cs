@@ -1,12 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
@@ -623,6 +628,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         };
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
+        public async Task TestSeverity()
+        {
+            var source =
+@"class Program
+{
+    int M(int i)
+    {
+        [||]switch (i)
+        {
+            case 1:
+                return 4;
+            case 2:
+                return 5;
+            case 3:
+                return 6;
+            default:
+                return 7;
+        }
+    }
+}";
+            var warningOption = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+            var options = Option(CSharpCodeStyleOptions.PreferSwitchExpression, warningOption);
+            var testParameters = new TestParameters(options: options, parseOptions: TestOptions.Regular8);
+
+            using var workspace = CreateWorkspaceFromOptions(source, testParameters);
+            var diag = (await GetDiagnosticsAsync(workspace, testParameters)).Single();
+            Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
+            Assert.Equal(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId, diag.Id);
         }
     }
 }
