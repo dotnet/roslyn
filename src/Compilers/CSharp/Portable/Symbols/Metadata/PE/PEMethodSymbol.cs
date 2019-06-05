@@ -526,6 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => Signature.ReturnParam.TypeWithAnnotations;
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => Signature.ReturnParam.FlowAnalysisAnnotations;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers => Signature.ReturnParam.RefCustomModifiers;
 
         /// <summary>

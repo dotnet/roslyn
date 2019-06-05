@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            WatsonReporter.Report(message, exception, ReportDetailServiceHubLogs);
+            WatsonReporter.Report(message, exception, ReportDetailServiceHubLogs, WatsonSeverity.Critical);
         }
 
         private static int ReportDetailServiceHubLogs(IFaultUtility faultUtility)
