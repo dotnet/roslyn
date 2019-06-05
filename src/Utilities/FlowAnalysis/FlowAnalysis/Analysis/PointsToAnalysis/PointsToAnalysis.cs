@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public static PointsToAnalysisResult GetOrComputeResult(
+        public static PointsToAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             bool performCopyAnalysis = true,
             bool exceptionPathsAnalysis = false)
         {
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+            return TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 out var _, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
-        public static PointsToAnalysisResult GetOrComputeResult(
+        public static PointsToAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -52,16 +52,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             bool exceptionPathsAnalysis = false)
         {
             copyAnalysisResultOpt = performCopyAnalysis ?
-                CopyAnalysis.CopyAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                CopyAnalysis.CopyAnalysis.TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performPointsToAnalysis: true, exceptionPathsAnalysis) :
                 null;
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
                 owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
-                GetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
-            return GetOrComputeResultForAnalysisContext(analysisContext);
+                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static PointsToAnalysisResult GetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
+        private static PointsToAnalysisResult TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
             using (var trackedEntitiesBuilder = new TrackedEntitiesBuilder())
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
                 var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
                 var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
-                return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+                return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
             }
         }
 

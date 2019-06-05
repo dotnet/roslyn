@@ -78,7 +78,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ValueContentAnalysisResult valueContentAnalysisResultOpt;
             if (!constructorMapper.RequiresValueContentAnalysis && !propertyMappers.RequiresValueContentAnalysis)
             {
-                pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
+                pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
                     wellKnownTypeProvider,
@@ -86,11 +86,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     interproceduralAnalysisPredicateOpt: null,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
+                if (pointsToAnalysisResult == null)
+                {
+                    return null;
+                }
+
                 valueContentAnalysisResultOpt = null;
             }
             else
             {
-                valueContentAnalysisResultOpt = ValueContentAnalysis.GetOrComputeResult(
+                valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
                     wellKnownTypeProvider,
@@ -99,6 +104,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     out pointsToAnalysisResult,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
+                if (valueContentAnalysisResultOpt == null)
+                {
+                    return null;
+                }
             }
 
             var analysisContext = PropertySetAnalysisContext.Create(
@@ -110,13 +119,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
                 valueContentAnalysisResultOpt,
-                GetOrComputeResultForAnalysisContext,
+                TryGetOrComputeResultForAnalysisContext,
                 typeToTrackMetadataName,
                 constructorMapper,
                 propertyMappers,
                 hazardousUsageEvaluators);
-            var result = GetOrComputeResultForAnalysisContext(analysisContext);
-            return result.HazardousUsages;
+            var result = TryGetOrComputeResultForAnalysisContext(analysisContext);
+            return result?.HazardousUsages ?? ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Empty;
         }
 
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
@@ -274,11 +283,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
         }
 
-        private static PropertySetAnalysisResult GetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)
+        private static PropertySetAnalysisResult TryGetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)
         {
             var operationVisitor = new PropertySetDataFlowOperationVisitor(analysisContext);
             var analysis = new PropertySetAnalysis(PropertySetAnalysisDomainInstance, operationVisitor);
-            return analysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+            return analysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
         }
 
         protected override PropertySetAnalysisResult ToResult(

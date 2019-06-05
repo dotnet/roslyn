@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <Target Name="Metrics">
-    <Exec Command='$(MetricsExeFolder)\$(MetricsExeName).exe /project:$(MSBuildProjectFullPath) /out:$(MetricsOutputFile)'
+    <Exec Command='&quot;$(MetricsExeFolder)\$(MetricsExeName).exe&quot; /project:$(MSBuildProjectFullPath) /out:$(MetricsOutputFile)'
           WorkingDirectory="$(MSBuildProjectDirectory)">
     </Exec>
   </Target>

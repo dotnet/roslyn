@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Test.Utilities
 {
@@ -44,6 +45,18 @@ namespace Test.Utilities
 
         protected const TestValidationMode DefaultTestValidationMode = TestValidationMode.AllowCompileWarnings;
 
+        public DiagnosticAnalyzerTestBase(ITestOutputHelper output)
+        {
+            this.Output = output;
+        }
+
+        public DiagnosticAnalyzerTestBase()
+            : this(null)
+        {
+        }
+
+        protected ITestOutputHelper Output { get; }
+
         /// <summary>
         /// Return the C# diagnostic analyzer to get analyzer diagnostics.
         /// This may return null when used in context of verifying a code fix for compiler diagnostics.
@@ -60,8 +73,6 @@ namespace Test.Utilities
 
         private const string EditorConfigEnableCopyAnalysis = "dotnet_code_quality.copy_analysis = true";
         protected FileAndSource GetEditorConfigToEnableCopyAnalysis() => GetEditorConfigAdditionalFile(EditorConfigEnableCopyAnalysis);
-
-        protected bool PrintActualDiagnosticsOnFailure { get; set; }
 
         // It is assumed to be of the format, Get<RuleId>CSharpResultAt(line: {0}, column: {1}, message: {2})
         private string ExpectedDiagnosticsAssertionTemplate { get; set; }
@@ -279,19 +290,19 @@ namespace Test.Utilities
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, IEnumerable<TestAdditionalDocument> additionalFiles, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, additionalFiles: additionalFiles);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
 
         private void Verify(string source, string language, DiagnosticAnalyzer analyzer, ReferenceFlags referenceFlags, TestValidationMode validationMode, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, referenceFlags: referenceFlags, validationMode: validationMode);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
 
         private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, bool allowUnsafeCode, ReferenceFlags referenceFlags, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, parseOptions, validationMode, referenceFlags: referenceFlags, allowUnsafeCode: allowUnsafeCode);
-            diagnostics.Verify(analyzer, PrintActualDiagnosticsOnFailure, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
         }
 
         protected static string GetDefaultPath(string language) =>
@@ -340,9 +351,9 @@ namespace Test.Utilities
             return CreateProject(sources.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
         }
 
-        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null)
+        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null, string projectName = TestProjectName)
         {
-            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, addToSolution);
+            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, addToSolution, projectName);
         }
 
         private static Project CreateProject(
