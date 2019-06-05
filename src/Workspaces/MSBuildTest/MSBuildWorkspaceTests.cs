@@ -3628,7 +3628,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/core-eng/issues/6424"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestEditorConfigDiscovery()
         {
             var files = GetSimpleCSharpSolutionFiles()
