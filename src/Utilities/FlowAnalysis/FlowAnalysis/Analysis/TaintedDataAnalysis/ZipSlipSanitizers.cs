@@ -28,7 +28,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new[] {
-                    "StartsWith",
                     "Substring",
                 });
 
