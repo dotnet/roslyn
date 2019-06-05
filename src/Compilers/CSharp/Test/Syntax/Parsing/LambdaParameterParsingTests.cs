@@ -1085,7 +1085,7 @@ class C {
         [Fact]
         public void TestNullCheckedDiscard()
         {
-            UsingDeclaration("Func<int> func1 = (_!) => 42;");
+            UsingDeclaration("Func<int, int> func1 = (_!) => 42;");
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1095,6 +1095,11 @@ class C {
                     N(SyntaxKind.TypeArgumentList);
                     {
                         N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
