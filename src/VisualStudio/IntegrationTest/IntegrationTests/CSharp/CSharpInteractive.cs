@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -95,9 +96,13 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [WpfFact]
-        public void TypingHelpDirectiveWorks()
+        [WpfTheory]
+        [IterationData(30)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void TypingHelpDirectiveWorks(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test
