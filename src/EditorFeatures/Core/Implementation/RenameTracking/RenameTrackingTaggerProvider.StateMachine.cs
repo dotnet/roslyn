@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+            internal async Task<ImmutableArray<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     if (Buffer.AsTextContainer().CurrentText != await tree.GetTextAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                        return ImmutableArray<Diagnostic>.Empty;
                     }
 
                     if (CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
@@ -298,20 +298,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         var textSpan = snapshotSpan.Span.ToTextSpan();
 
                         var builder = ImmutableDictionary.CreateBuilder<string, string>();
-#pragma warning disable CS0618 // Type or member is obsolete
                         builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
                         builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
-#pragma warning restore CS0618 // Type or member is obsolete
                         var properties = builder.ToImmutable();
 
                         var diagnostic = Diagnostic.Create(diagnosticDescriptor,
                             tree.GetLocation(textSpan),
                             properties);
 
-                        return SpecializedCollections.SingletonEnumerable(diagnostic);
+                        return ImmutableArray.Create(diagnostic);
                     }
 
-                    return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

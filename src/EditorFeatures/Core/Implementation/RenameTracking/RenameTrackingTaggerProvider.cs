@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        internal static async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+        internal static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
         {
             try
             {
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+                return ImmutableArray<Diagnostic>.Empty;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -144,10 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             var message = string.Format(
                 EditorFeaturesResources.Rename_0_to_1,
-#pragma warning disable CS0618 // Type or member is obsolete
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
-#pragma warning restore CS0618 // Type or member is obsolete
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
         }
