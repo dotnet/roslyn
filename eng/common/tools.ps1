@@ -107,11 +107,11 @@ function Write-PipelineTaskError {
 
     if(!$ci) {
       if($Type -eq 'error') {
-        Write-Error $Message
+        Write-Host $Message -ForegroundColor Red
         return
       }
       elseif ($Type -eq 'warning') {
-        Write-Warning $Message
+        Write-Host $Message -ForegroundColor Yellow
         return
       }
     }
