@@ -10742,6 +10742,54 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36215")]
+        public void TestSuppression_CompilerParserWarningAsError()
+        {
+            string source = @"
+class C
+{
+    long M(int i)
+    {
+        // warning CS0078 : The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+        return 0l;
+    }
+}
+";
+            var srcDirectory = Temp.CreateDirectory();
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            // Verify that parser warning CS0078 is reported.
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("warning CS0078", output, StringComparison.Ordinal);
+
+            // Verify that parser warning CS0078 is reported as error for /warnaserror.
+            output = VerifyOutput(srcDirectory, srcFile, expectedErrorCount: 1,
+                additionalFlags: new[] { "/warnAsError" }, includeCurrentAssemblyAsAnalyzerReference: false);
+            Assert.Contains("error CS0078", output, StringComparison.Ordinal);
+
+            // Verify that parser warning CS0078 is suppressed with diagnostic suppressor even with /warnaserror
+            // and info diagnostic is logged with programmatic suppression information.
+            var suppressor = new DiagnosticSuppressorForId("CS0078");
+            output = VerifyOutput(srcDirectory, srcFile, expectedInfoCount: 1, expectedWarningCount: 0, expectedErrorCount: 0,
+                additionalFlags: new[] { "/warnAsError", "/features:DiagnosticSuppressor" },
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                analyzers: suppressor);
+            Assert.DoesNotContain($"error CS0078", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
+
+            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestSuppression_CompilerSyntaxWarning()
         {

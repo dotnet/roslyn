@@ -9382,6 +9382,32 @@ End Class"
             Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+        <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36215")>
+        Public Sub TestSuppression_CompilerWarningAsError()
+            ' warning BC40008 : 'C' is obsolete
+            Dim source = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            ' Verify that compiler warning BC40008 is reported.
+            Dim output = VerifyOutput(dir, file, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False)
+            Assert.Contains("warning BC40008", output, StringComparison.Ordinal)
+
             ' Verify that compiler warning BC40008 is reported as error for /warnaserror.
             output = VerifyOutput(dir, file, expectedErrorCount:=1, additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False)
@@ -9389,11 +9415,21 @@ End Class"
 
             ' Verify that compiler warning BC40008 is suppressed with diagnostic suppressor even with /warnaserror
             ' and info diagnostic is logged with programmatic suppression information.
+            Dim suppressor = New DiagnosticSuppressorForId("BC40008")
+
+            Dim suppressors = ImmutableArray.Create(Of DiagnosticAnalyzer)(suppressor)
             output = VerifyOutput(dir, file, expectedInfoCount:=1, expectedWarningCount:=0, expectedErrorCount:=0,
                                   additionalFlags:={"/warnaserror+", "/features:DiagnosticSuppressor"},
                                   includeCurrentAssemblyAsAnalyzerReference:=False,
                                   analyzers:=suppressors)
             Assert.DoesNotContain($"warning BC40008", output, StringComparison.Ordinal)
+            Assert.DoesNotContain($"error BC40008", output, StringComparison.Ordinal)
+
+            ' Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                suppressor.SuppressionDescriptor.Id,
+                suppressor.SuppressionDescriptor.Justification)
             Assert.Contains("info SP0001", output, StringComparison.Ordinal)
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal)
 
