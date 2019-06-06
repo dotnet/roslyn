@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
+        Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
 
         ' Do not call directly. Use TestStateFactory
         Friend Sub New(workspaceElement As XElement,
@@ -35,6 +36,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
 
+            Me.CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
+                Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
         End Sub
@@ -308,11 +311,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overrides Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)
-            Throw ExceptionUtilities.Unreachable
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim newArray = args.FilterState.Select(Function(f) New Data.CompletionFilterWithState(New Data.CompletionFilter(f.Key.DisplayText, f.Key.AccessKey, image:=Nothing), isAvailable:=True, isSelected:=f.Value)).ToImmutableArrayOrEmpty()
+            Dim newArgs = New Data.CompletionFilterChangedEventArgs(newArray)
+            presenter.TriggerFiltersChanged(Me, newArgs)
         End Sub
 
         Public Overrides Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
-            Throw ExceptionUtilities.Unreachable
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Return presenter.GetFilters().Select(Function(f) New CompletionItemFilter(f.Filter.DisplayText, "", f.Filter.AccessKey(0))).ToImmutableArray()
         End Function
 
         Public Overrides Function HasSuggestedItem() As Boolean

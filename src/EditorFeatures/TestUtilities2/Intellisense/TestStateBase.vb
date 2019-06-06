@@ -35,7 +35,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                WithParts({
                                                          GetType(TestCompletionPresenter),
                                                          GetType(TestSignatureHelpPresenter),
-                                                         GetType(IntelliSenseTestState)})
+                                                         GetType(IntelliSenseTestState),
+                                                         GetType(MockCompletionPresenterProvider)
+                                                         })
                                            End Function)
 
         Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
@@ -331,7 +333,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim result = New List(Of Type) From {
                 GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState)
+                GetType(IntelliSenseTestState),
+                GetType(MockCompletionPresenterProvider)
             }
 
             If extraExportedTypes IsNot Nothing Then
