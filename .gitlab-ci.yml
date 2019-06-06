@@ -19,7 +19,6 @@ runall-and-report-to-github-pending:
 # Build
 build_win:
   stage: build
-  when: manual
   tags:
   - windows
   script:
@@ -34,7 +33,6 @@ build_win:
 
 set_exe_bit_linux:
   stage: set_exe_bit
-  when: manual
   tags:
   - linux
   dependencies:
@@ -53,7 +51,6 @@ set_exe_bit_linux:
     
 set_exe_bit_osx:
   stage: set_exe_bit
-  when: manual
   tags:
   - darwin
   dependencies:
@@ -73,7 +70,6 @@ set_exe_bit_osx:
 collate_builds:
   image: ubuntu:latest
   stage: collate
-  when: manual
   dependencies:
   - build_win
   - set_exe_bit_linux

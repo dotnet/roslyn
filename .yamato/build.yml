@@ -1,0 +1,17 @@
+name: build
+
+agent:
+  type: Unity::VM
+  image: xboxone/xboxone-build:latest
+  flavor: b1.xlarge
+
+interpreter: powershell
+
+commands:
+  - git submodule update --init --recursive
+  - external\unity\build-roslyn.bat
+
+artifacts: 
+  build.zip:
+    paths:
+      - Artifacts/Builds/**

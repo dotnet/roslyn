@@ -1,0 +1,17 @@
+name: set_exe_bit_osx
+
+agent:
+  type: Unity::VM::osx
+  image: buildfarm/mac:latest
+  flavor: m1.mac
+
+dependencies:
+  - .yamato/build.yml
+
+commands:
+  - .yamato/set_exe_bit_osx.sh
+
+artifacts: 
+  build-osx.zip:
+    paths:
+      - Artifacts/Builds/Binaries/Mac/**
