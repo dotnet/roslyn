@@ -1,4 +1,7 @@
 {
+  "sdk": {
+    "version": "3.0.100-preview"
+  },
   "tools": {
     "dotnet": "3.0.100-preview6-012105",
     "vs": {
