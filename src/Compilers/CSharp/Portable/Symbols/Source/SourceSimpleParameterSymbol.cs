@@ -29,7 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullChecked
         {
-            get { return false; }
+            get
+            {
+                var node = this.GetNonNullSyntaxNode();
+                if (node is ParameterSyntax)
+                {
+                    return ((ParameterSyntax)node).ExclamationToken.Kind() == SyntaxKind.ExclamationToken;
+                }
+                return false;
+            }
         }
 
         internal override bool IsMetadataOptional
