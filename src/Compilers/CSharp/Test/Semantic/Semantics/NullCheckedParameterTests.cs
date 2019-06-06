@@ -183,12 +183,38 @@ class C
         }
 
         [Fact]
+        public void FailingNullCheckedArgList()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        M2(__arglist(1, 'M'));
+    }
+    void M2(__arglist!)
+    {
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics( 
+                    // (8,22): error CS1003: Syntax error, ',' expected
+                    //     void M2(__arglist!)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(8, 22));
+        }
+
+        [Fact]
         public void NullCheckedArgList()
         {
             var source = @"
 class C
 {
-    void M(__arglist!) { }
+    void M()
+    {
+        M2(__arglist(1!, 'M'));
+    }
+    void M2(__arglist)
+    {
+    }
 }";
             CreateCompilation(source).VerifyDiagnostics();
         }
@@ -321,7 +347,7 @@ class C
 {
     public void M()
     {
-        Func<string, string> func1 = x => x + ""1"";
+        Func<string, string> func1 = x! => x + ""1"";
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
