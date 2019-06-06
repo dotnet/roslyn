@@ -1412,6 +1412,16 @@
         <target state="translated">無法將 Null 常值轉換成不可為 Null 的參考型別。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
         <target state="translated">當 '{0}' 是不可為 Null 的參考型別時，Null 常值會引入 Null 值。</target>

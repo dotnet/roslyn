@@ -15665,6 +15665,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        /// </summary>
+        internal static string WRN_NullDisallowedInAssignment {
+            get {
+                return ResourceManager.GetString("WRN_NullDisallowedInAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        /// </summary>
+        internal static string WRN_NullDisallowedInAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullDisallowedInAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A null literal introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
         /// </summary>
         internal static string WRN_NullLiteralMayIntroduceNullT {

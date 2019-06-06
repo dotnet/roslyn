@@ -1412,6 +1412,16 @@
         <target state="translated">Não é possível converter um literal nulo em um tipo de referência não anulável.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
         <target state="translated">Um literal nulo introduz um valor nulo quando '{0}' é um tipo de referência não anulável.</target>

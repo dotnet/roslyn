@@ -1412,6 +1412,16 @@
         <target state="translated">null 리터럴을 nullable이 아닌 참조 형식으로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullDisallowedInAssignment_Title">
+        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
+        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
         <target state="translated">'{0}'이(가) nullable이 아닌 참조 형식이면 null 리터럴이 null 값을 지정합니다.</target>
