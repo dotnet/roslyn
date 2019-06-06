@@ -845,6 +845,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Misplaced using directive.
+        /// </summary>
+        internal static string Misplaced_using_directive {
+            get {
+                return ResourceManager.GetString("Misplaced_using_directive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move misplaced using directives.
+        /// </summary>
+        internal static string Move_misplaced_using_directives {
+            get {
+                return ResourceManager.GetString("Move_misplaced_using_directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;Name&gt;.
         /// </summary>
         internal static string Name {
@@ -1405,6 +1423,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using directives must be placed inside of a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_inside_of_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_inside_of_a_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directives must be placed outside of a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_outside_of_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_outside_of_a_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to using namespace.
         /// </summary>
         internal static string using_namespace {
@@ -1428,6 +1464,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string v7_switch {
             get {
                 return ResourceManager.GetString("v7_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Moving using directives may change code meaning..
+        /// </summary>
+        internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_change_code_meaning", resourceCulture);
             }
         }
         

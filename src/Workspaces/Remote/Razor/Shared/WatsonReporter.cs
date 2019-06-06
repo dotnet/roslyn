@@ -19,14 +19,27 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     /// </summary>
     internal class WatsonReporter
     {
-        public static void Report(string description, Exception exception)
+        public static void Report(string description, Exception exception, WatsonSeverity severity = WatsonSeverity.Default)
         {
             // do nothing
         }
 
-        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
+        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback, WatsonSeverity severity = WatsonSeverity.Default)
         {
             // do nothing
         }
+    }
+
+    internal enum WatsonSeverity
+    {
+        /// <summary>
+        /// Indicate that this watson is informative and not urgent
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Indicate that this watson is critical and need to be addressed soon
+        /// </summary>
+        Critical,
     }
 }

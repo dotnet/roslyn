@@ -317,7 +317,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                var constructed = iequatableType.Construct(memberType);
+                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                var constructed = iequatableType.Construct(memberType.WithoutNullability());
                 return memberType.AllInterfaces.Contains(constructed);
             }
 

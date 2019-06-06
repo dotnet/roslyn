@@ -257,9 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool constraintsNeedNullableAttribute = typeParameters.Any(
-               typeParameter => (typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintIsNullable != null) ||
-                                typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
-                                    typeConstraint => typeConstraint.NeedsNullableAttribute()));
+               typeParameter => ((SourceTypeParameterSymbolBase)typeParameter).ConstraintsNeedNullableAttribute());
 
             bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnTypeWithAnnotations.NeedsNullableAttribute();
             bool parametersNeedNullableAttribute = node.Symbol.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
