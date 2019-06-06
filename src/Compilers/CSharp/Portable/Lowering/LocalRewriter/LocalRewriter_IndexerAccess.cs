@@ -351,19 +351,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression endExpr;
-                switch (rangeExpr.RightOperandOpt)
+                if (rangeExpr.RightOperandOpt is BoundExpression right)
                 {
-                    case null:
-                        usedLength = true;
-                        endExpr = lengthLocal;
-                        break;
-                    default:
-                        endExpr = MakePatternIndexOffsetExpression(
-                            rangeExpr.RightOperandOpt,
-                            lengthLocal,
-                            out bool usedLengthTemp);
-                        usedLength |= usedLengthTemp;
-                        break;
+                    endExpr = MakePatternIndexOffsetExpression(
+                        right,
+                        lengthLocal,
+                        out bool usedLengthTemp);
+                    usedLength |= usedLengthTemp;
+                }
+                else
+                {
+                    usedLength = true;
+                    endExpr = lengthLocal;
                 }
 
                 if (usedLength)
