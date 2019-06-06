@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfTrue(Project.SupportsCompilation);
 
+            var workspace = Project.Solution.Workspace;
+
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             {
                                 // non local diagnostics without location
                                 _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                                _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             }
 
                             break;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     case LocationKind.None:
                         {
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             break;
                         }
                     case LocationKind.SourceFile:
@@ -151,6 +153,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private void AddDiagnostics(
             ref Dictionary<DocumentId, List<DiagnosticData>> lazyLocals, SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         {
+            var workspace = Project.Solution.Workspace;
+
             foreach (var diagnostic in diagnostics)
             {
                 // REVIEW: what is our plan for additional locations? 
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     case LocationKind.None:
                         {
                             _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                            _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                            _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             break;
                         }
                     case LocationKind.SourceFile:
@@ -183,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                             {
                                 // non local diagnostics without location
                                 _lazyOthers = _lazyOthers ?? new List<DiagnosticData>();
-                                _lazyOthers.Add(DiagnosticData.Create(Project, diagnostic));
+                                _lazyOthers.Add(DiagnosticData.Create(workspace, diagnostic, Project.Id));
                             }
 
                             break;

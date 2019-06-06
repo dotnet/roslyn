@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 if (!_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
+                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
                 }
             }
         }
@@ -341,7 +341,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
-            return FatalError.ReportWithoutCrash(ex);
+            ex.ReportServiceHubNFW("JsonRpc invoke Failed");
+            return true;
         }
     }
 }
