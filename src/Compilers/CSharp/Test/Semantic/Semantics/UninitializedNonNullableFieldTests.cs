@@ -933,5 +933,50 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_05()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s1;
+    C(bool a)
+    {
+        if (a)
+            s1 = string.Empty;
+
+        if (s1?.Length == null)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (6,5): warning CS8618: Non-nullable field 's1' is uninitialized.
+                    //     C(bool a)
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "s1").WithLocation(6, 5));
+        }
+
+    [Fact, WorkItem(33391, "https://github.com/dotnet/roslyn/issues/33391")]
+        public void Constructor_CompareToDefault_06()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    string s1 { get; set; }
+    C(bool a)
+    {
+        if (a)
+            s1 = string.Empty;
+
+        if (s1 == null)
+            throw new System.InvalidOperationException();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }

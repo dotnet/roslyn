@@ -93,17 +93,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     break;
-                default:
-                    base.AfterLeftChildHasBeenVisited(binary);
-                    break;
             }
 
             static bool isComparisonToDefault(BoundExpression expr, BoundExpression possiblyDefault) =>
-                possiblyDefault.ConstantValue == expr.Type.GetDefaultValue() && expr.ConstantValue is null;
+                expr.ConstantValue is null && expr.Type.GetDefaultValue() == possiblyDefault.ConstantValue;
 
             void markAssigned(BoundExpression assigned, bool whenTrue)
             {
-                var fieldSlot = VariableSlot(assigned.ExpressionSymbol, thisSlot);
+                var symbol = assigned.ExpressionSymbol;
+                symbol = (symbol as SourcePropertySymbol)?.BackingField ?? symbol;
+                if (symbol == null || symbol.Kind != SymbolKind.Field)
+                {
+                    return;
+                }
+
+                var fieldSlot = VariableSlot(symbol, thisSlot);
                 if (fieldSlot != -1)
                 {
                     Split();
