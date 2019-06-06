@@ -183,15 +183,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var compilation = semanticModel.Compilation;
             field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
-            var solutionNeedingProperty = solution;
-
             // We couldn't resolve field after annotating its declaration. Bail
             if (field == null)
             {
                 return null;
             }
 
-            solutionNeedingProperty = await UpdateReferencesAsync(
+            var solutionNeedingProperty = await UpdateReferencesAsync(
                 updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
             document = solutionNeedingProperty.GetDocument(document.Id);
 
@@ -218,7 +216,19 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
-            var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
+            var fieldType = field.GetSymbolType();
+            var fieldNullability = fieldType.GetNullability();
+
+            var generatedProperty = GenerateProperty(
+                                        generatedPropertyName,
+                                        finalFieldName,
+                                        originalField.DeclaredAccessibility,
+                                        originalField,
+                                        fieldType.WithNullability(fieldNullability),
+                                        field.ContainingType,
+                                        new SyntaxAnnotation(),
+                                        document,
+                                        cancellationToken);
 
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
             var solutionWithProperty = await AddPropertyAsync(
@@ -295,6 +305,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             string propertyName, string fieldName,
             Accessibility accessibility,
             IFieldSymbol field,
+            ITypeSymbol typeWithNullable,
             INamedTypeSymbol containingSymbol,
             SyntaxAnnotation annotation,
             Document document,
@@ -306,7 +317,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
-                type: field.Type,
+                type: typeWithNullable,
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
