@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable</source>
-        <target state="translated">Тестовые экспорты не должны быть доступными для обнаружения</target>
+        <target state="translated">Тестовые экспорты MEF не должны быть доступными для обнаружения</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
