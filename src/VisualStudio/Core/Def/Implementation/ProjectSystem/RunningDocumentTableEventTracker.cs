@@ -33,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(runningDocumentTable);
             Contract.ThrowIfNull(listener);
 
-            _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
+            // Advise / Unadvise for the RDT is free threaded past 16.0
+            _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _runningDocumentTable = runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;

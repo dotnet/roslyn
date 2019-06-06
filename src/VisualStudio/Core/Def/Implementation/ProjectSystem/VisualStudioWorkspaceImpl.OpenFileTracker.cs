@@ -101,7 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             /// <summary>
             /// The VS open file tracker handles renames through <see cref="QueueCheckForFilesBeingOpen"/>
-            /// This event is unneeded.
             /// </summary>
             void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
             {

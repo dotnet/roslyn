@@ -77,9 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
 
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy _)
+        /// <summary>
+        /// File hierarchy events are not relevant to the misc workspace.
+        /// </summary>
+        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
-            // This event is not relevant to the misc workspace.
         }
 
         void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
