@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticData
+    internal sealed class DiagnosticData : IEquatable<DiagnosticData>
     {
         public readonly string Id;
         public readonly string Category;
@@ -97,37 +97,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TextSpan TextSpan { get { return (DataLocation?.SourceSpan).Value; } }
 
         public override bool Equals(object obj)
+            => obj is DiagnosticData data && Equals(data);
+
+        public bool Equals(DiagnosticData other)
         {
-            DiagnosticData other = obj as DiagnosticData;
-            if (other == null)
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is null)
             {
                 return false;
             }
 
-            return Id == other.Id &&
-                    Category == other.Category &&
-                    Message == other.Message &&
-                    Severity == other.Severity &&
-                    WarningLevel == other.WarningLevel &&
-                    IsSuppressed == other.IsSuppressed &&
-                    ProjectId == other.ProjectId &&
-                    DocumentId == other.DocumentId &&
-                    DataLocation?.OriginalStartLine == other?.DataLocation?.OriginalStartLine &&
-                    DataLocation?.OriginalStartColumn == other?.DataLocation?.OriginalStartColumn;
+            return
+               DataLocation?.OriginalStartLine == other.DataLocation?.OriginalStartLine &&
+               DataLocation?.OriginalStartColumn == other.DataLocation?.OriginalStartColumn &&
+               Id == other.Id &&
+               Category == other.Category &&
+               Severity == other.Severity &&
+               WarningLevel == other.WarningLevel &&
+               IsSuppressed == other.IsSuppressed &&
+               ProjectId == other.ProjectId &&
+               DocumentId == other.DocumentId &&
+               Message == other.Message;
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(Id,
-                   Hash.Combine(Category,
-                   Hash.Combine(Message,
-                   Hash.Combine(WarningLevel,
-                   Hash.Combine(IsSuppressed,
-                   Hash.Combine(ProjectId,
-                   Hash.Combine(DocumentId,
-                   Hash.Combine(DataLocation?.OriginalStartLine ?? 0,
-                   Hash.Combine(DataLocation?.OriginalStartColumn ?? 0, (int)Severity)))))))));
-        }
+            => Hash.Combine(Id,
+               Hash.Combine(Category,
+               Hash.Combine(Message,
+               Hash.Combine(WarningLevel,
+               Hash.Combine(IsSuppressed,
+               Hash.Combine(ProjectId,
+               Hash.Combine(DocumentId,
+               Hash.Combine(DataLocation?.OriginalStartLine ?? 0,
+               Hash.Combine(DataLocation?.OriginalStartColumn ?? 0, (int)Severity)))))))));
 
         public override string ToString()
         {

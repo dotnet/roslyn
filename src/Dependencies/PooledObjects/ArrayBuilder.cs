@@ -524,6 +524,23 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
         }
 
+        public void SortAndRemoveDuplicates(IComparer<T> comparer)
+        {
+            Sort(comparer);
+
+            int j = 0;
+            for (int i = 1; i < Count; i++)
+            {
+                if (comparer.Compare(this[j], this[i]) < 0)
+                {
+                    j++;
+                    this[j] = this[i];
+                }
+            }
+
+            Clip(j);
+        }
+
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)
         {
             var result = ArrayBuilder<S>.GetInstance(Count);

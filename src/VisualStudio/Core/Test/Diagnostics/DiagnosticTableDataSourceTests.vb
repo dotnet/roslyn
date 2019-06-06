@@ -671,8 +671,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim service = New DiagnosticService(listenerProvider)
                 Dim analyzerService = New MyDiagnosticAnalyzerService(ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty, service, listener)
 
-                Dim registration = New MockDiagnosticUpdateSourceRegistrationService()
-                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, registration, listener)
+                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
                 Dim table = New VisualStudioDiagnosticListTable(workspace, updateSource, tableManagerProvider)
@@ -749,7 +748,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         diagnostic2.HelpLink,
                         diagnostic2.IsSuppressed))
 
-                updateSource.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+                updateSource.OnSolutionBuildCompleted()
 
                 Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
 

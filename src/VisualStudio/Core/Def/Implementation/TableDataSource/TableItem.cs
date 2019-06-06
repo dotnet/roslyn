@@ -9,25 +9,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract class TableItem
     {
-        private int? _deduplicationKey;
-        private readonly SharedInfoCache _cache;
         public readonly Workspace Workspace;
 
-        public TableItem(Workspace workspace, SharedInfoCache cache)
+        private string _lazyProjectName;
+
+        // Guid.Empty if the item is aggregated, or the item doesn't have an associated project.
+        public readonly Guid ProjectGuid;
+
+        // Empty for non-aggregated items:
+        public readonly string[] ProjectNames;
+        public readonly Guid[] ProjectGuids;
+
+        public TableItem(Workspace workspace, string projectName, Guid projectGuid, string[] projectNames, Guid[] projectGuids)
         {
             Contract.ThrowIfNull(workspace);
+            Contract.ThrowIfNull(projectNames);
+            Contract.ThrowIfNull(projectGuids);
 
             Workspace = workspace;
-            _deduplicationKey = null;
-            _cache = cache;
+            _lazyProjectName = projectName;
+            ProjectGuid = projectGuid;
+            ProjectNames = projectNames;
+            ProjectGuids = projectGuids;
         }
 
-        public abstract TableItem WithCache(SharedInfoCache cache);
+        internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId projectId, out string projectName, out Guid projectGuid)
+        {
+            projectName = workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
+            projectGuid = (projectId != null && workspace is VisualStudioWorkspace vsWorkspace) ? vsWorkspace.GetProjectGuid(projectId) : Guid.Empty;
+        }
+
+        public abstract TableItem WithAggregatedData(string[] projectNames, Guid[] projectGuids);
 
         public abstract DocumentId DocumentId { get; }
         public abstract ProjectId ProjectId { get; }
-
-        public abstract int GetDeduplicationKey();
 
         public abstract LinePosition GetOriginalPosition();
         public abstract string GetOriginalFilePath();
@@ -37,84 +52,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
-                var projectId = ProjectId;
-                if (projectId == null)
+                if (_lazyProjectName != null)
                 {
-                    // this item doesn't have project at the first place
-                    return null;
+                    return _lazyProjectName;
                 }
 
-                var solution = Workspace.CurrentSolution;
-                if (_cache == null)
+                if (ProjectNames.Length > 0)
                 {
-                    // return single project name
-                    return solution.GetProjectName(projectId) ?? ServicesVSResources.Unknown2;
+                    return _lazyProjectName = string.Join(", ", ProjectNames);
                 }
 
-                // return joined project names
-                return _cache.GetProjectName(solution) ?? ServicesVSResources.Unknown2;
+                return null;
             }
         }
 
-        public string[] ProjectNames
-        {
-            get
-            {
-                if (_cache == null)
-                {
-                    // if this is not aggregated element, there are no project names.
-                    return Array.Empty<string>();
-                }
-
-                return _cache.GetProjectNames(Workspace.CurrentSolution);
-            }
-        }
-
-        public Guid ProjectGuid
-        {
-            get
-            {
-                var projectId = ProjectId;
-                if (projectId == null)
-                {
-                    return Guid.Empty;
-                }
-
-                if (_cache == null)
-                {
-                    return Workspace.GetProjectGuid(projectId);
-                }
-
-                // if this is aggregated element, there is no project GUID
-                return Guid.Empty;
-            }
-        }
-
-        public Guid[] ProjectGuids
-        {
-            get
-            {
-                if (_cache == null)
-                {
-                    // if it is not aggregated element, there is no projectguids
-                    return Array.Empty<Guid>();
-                }
-
-                return _cache.GetProjectGuids(Workspace);
-            }
-        }
-
-        public int DeduplicationKey
-        {
-            get
-            {
-                if (_deduplicationKey == null)
-                {
-                    _deduplicationKey = GetDeduplicationKey();
-                }
-
-                return _deduplicationKey.Value;
-            }
-        }
     }
 }

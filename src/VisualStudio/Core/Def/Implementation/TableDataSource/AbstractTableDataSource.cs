@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -102,8 +104,70 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public ImmutableArray<TItem> Deduplicate(IEnumerable<IList<TItem>> groupedItems)
-            => groupedItems.MergeDuplicatesOrderedBy(Order);
+        public ImmutableArray<TItem> AggregateItems<TData>(IEnumerable<IGrouping<TData, TItem>> groupedItems)
+        {
+            var aggregateItems = ArrayBuilder<TItem>.GetInstance();
+            var projectNames = ArrayBuilder<string>.GetInstance();
+            var projectGuids = ArrayBuilder<Guid>.GetInstance();
+
+            string[] stringArrayCache = null;
+            Guid[] guidArrayCache = null;
+
+            static T[] GetOrCreateArray<T>(ref T[] cache, ArrayBuilder<T> value)
+                => (cache != null && Enumerable.SequenceEqual(cache, value)) ? cache : (cache = value.ToArray());
+
+            foreach (var (_, items) in groupedItems)
+            {
+                TItem firstItem = null;
+                bool hasSingle = true;
+
+                foreach (var item in items)
+                {
+                    if (firstItem == null)
+                    {
+                        firstItem = item;
+                    }
+                    else
+                    {
+                        hasSingle = false;
+                    }
+
+                    if (item.ProjectName != null)
+                    {
+                        projectNames.Add(item.ProjectName);
+                    }
+
+                    if (item.ProjectGuid != Guid.Empty)
+                    {
+                        projectGuids.Add(item.ProjectGuid);
+                    }
+                }
+
+                if (hasSingle)
+                {
+                    aggregateItems.Add(firstItem);
+                }
+                else
+                {
+                    projectNames.SortAndRemoveDuplicates(StringComparer.CurrentCulture);
+                    projectGuids.SortAndRemoveDuplicates(Comparer<Guid>.Default);
+
+                    aggregateItems.Add((TItem)firstItem.WithAggregatedData(GetOrCreateArray(ref stringArrayCache, projectNames), GetOrCreateArray(ref guidArrayCache, projectGuids)));
+                }
+
+                projectNames.Clear();
+                projectGuids.Clear();
+            }
+
+            projectNames.Free();
+            projectGuids.Free();
+
+            var result = Order(aggregateItems).ToImmutableArray();
+            aggregateItems.Free();
+            return result;
+        }
+
+        public abstract IEqualityComparer<TItem> GroupingComparer { get; }
 
         public abstract IEnumerable<TItem> Order(IEnumerable<TItem> groupedItems);
 

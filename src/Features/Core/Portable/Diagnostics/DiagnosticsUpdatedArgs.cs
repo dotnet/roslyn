@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -22,14 +23,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdatedKind kind)
             : base(id, workspace, projectId, documentId)
         {
+            Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
+            Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
+
             Solution = solution;
             Diagnostics = diagnostics;
             Kind = kind;
-
-            if (kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
-            {
-                Debug.Assert(diagnostics.IsEmpty);
-            }
         }
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
