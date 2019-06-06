@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(triggerReason));
+                        throw ExceptionUtilities.UnexpectedValue(triggerReason);
                     }
             }
         }

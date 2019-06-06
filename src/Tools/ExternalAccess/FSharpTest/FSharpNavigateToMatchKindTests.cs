@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                     }
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(kind));
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                     }
             }
         }

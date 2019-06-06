@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
 {
     [Shared]
-    [ExportSignatureHelpProvider("FSharpSignatureHelpProvider", LanguageNames.FSharp)]
+    [ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]
     internal class FSharpSignatureHelpProvider : ISignatureHelpProvider
     {
         private readonly IFSharpSignatureHelpProvider _provider;

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(kind));
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                     }
             }
         }

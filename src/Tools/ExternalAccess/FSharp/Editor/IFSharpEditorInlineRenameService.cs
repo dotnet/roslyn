@@ -9,12 +9,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    internal struct FSharpInlineRenameLocation
+    internal readonly struct FSharpInlineRenameLocation
     {
         public Document Document { get; }
         public TextSpan TextSpan { get; }
 
-        public FSharpInlineRenameLocation(Document document, TextSpan textSpan) : this()
+        public FSharpInlineRenameLocation(Document document, TextSpan textSpan)
         {
             this.Document = document;
             this.TextSpan = textSpan;
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         Complexified,
     }
 
-    internal struct FSharpInlineRenameReplacement
+    internal readonly struct FSharpInlineRenameReplacement
     {
         public FSharpInlineRenameReplacementKind Kind { get; }
         public TextSpan OriginalSpan { get; }
         public TextSpan NewSpan { get; }
 
-        public FSharpInlineRenameReplacement(FSharpInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan) : this()
+        public FSharpInlineRenameReplacement(FSharpInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan)
         {
             this.Kind = kind;
             this.OriginalSpan = originalSpan;

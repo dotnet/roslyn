@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
                     }
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(kind));
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                     }
             }
         }

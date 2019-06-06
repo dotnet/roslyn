@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
 {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
 
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(triggerReason));
+                        throw ExceptionUtilities.UnexpectedValue(triggerReason);
                     }
             }
         }

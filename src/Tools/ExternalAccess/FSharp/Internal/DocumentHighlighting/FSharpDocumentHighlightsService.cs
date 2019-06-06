@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentHighlighting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighlighting
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighligh
 
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(kind));
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                     }
             }
         }
@@ -61,13 +62,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.DocumentHighligh
 
         private static ImmutableArray<HighlightSpan> MapHighlightSpans(ImmutableArray<FSharpHighlightSpan> highlightSpans)
         {
-            return highlightSpans.Select(x => new HighlightSpan(x.TextSpan, FSharpHighlightSpanKindHelpers.ConvertTo(x.Kind))).AsImmutable();
+            return highlightSpans.SelectAsArray(x => new HighlightSpan(x.TextSpan, FSharpHighlightSpanKindHelpers.ConvertTo(x.Kind)));
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var highlights = await _service.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-            return highlights.Select(x => new DocumentHighlights(x.Document, MapHighlightSpans(x.HighlightSpans))).AsImmutable();
+            return highlights.SelectAsArray(x => new DocumentHighlights(x.Document, MapHighlightSpans(x.HighlightSpans)));
         }
     }
 }

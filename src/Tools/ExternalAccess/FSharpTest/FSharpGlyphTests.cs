@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                     }
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(glyph));
+                        throw ExceptionUtilities.UnexpectedValue(glyph);
                     }
             }
         }
@@ -650,7 +651,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                     }
                 default:
                     {
-                        throw new ArgumentException("Enum case not handled.", nameof(glyph));
+                        throw ExceptionUtilities.UnexpectedValue(glyph);
                     }
             }
         }

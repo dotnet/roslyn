@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
         [Export]
         [Name(FSharpContentTypeNames.FSharpContentType)]
         [BaseDefinition(FSharpContentTypeNames.RoslynContentType)]
-        public static ContentTypeDefinition FSharpContentTypeDefinition => new ContentTypeDefinition();
+        public static readonly ContentTypeDefinition FSharpContentTypeDefinition;
 
         [Export]
         [Name(FSharpContentTypeNames.FSharpSignatureHelpContentType)]
         [BaseDefinition("sighelp")]
-        public static ContentTypeDefinition FSharpSignatureHelpContentTypeDefinition => new ContentTypeDefinition();
+        public static readonly ContentTypeDefinition FSharpSignatureHelpContentTypeDefinition;
     }
 }
