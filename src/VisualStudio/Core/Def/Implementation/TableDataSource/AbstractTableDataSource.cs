@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
                 else
                 {
-                    projectNames.SortAndRemoveDuplicates(StringComparer.CurrentCulture);
+                    projectNames.SortAndRemoveDuplicates(StringComparer.Ordinal);
                     projectGuids.SortAndRemoveDuplicates(Comparer<Guid>.Default);
 
                     aggregateItems.Add((TItem)firstItem.WithAggregatedData(GetOrCreateArray(ref stringArrayCache, projectNames), GetOrCreateArray(ref guidArrayCache, projectGuids)));
