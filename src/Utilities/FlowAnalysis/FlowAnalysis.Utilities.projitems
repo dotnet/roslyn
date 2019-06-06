@@ -18,9 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\SetCopyAbstractValuePredicateKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\TrackedEntitiesBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSanitizers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSinks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSources.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\DictionaryAnalysisData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AddressSharedEntitiesProvider.cs" />
@@ -137,6 +134,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XmlSanitizers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XmlSinks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\XPathSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSanitizers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSinks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\ZipSlipSources.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAbstractValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\TaintedDataAnalysis\TaintedDataAnalysis.CoreTaintedDataAnalysisDataDomain.cs" />
