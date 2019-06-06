@@ -3793,18 +3793,22 @@ tryAgain:
 
             TypeSyntax type;
             SyntaxToken name;
+            SyntaxToken exclamation = null;
+            SyntaxToken equals = null;
             if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
                 name = this.ParseIdentifierToken();
-
-                // When the user type "int goo[]", give them a useful error
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                 {
-                    var open = this.EatToken();
-                    var close = this.EatToken();
-                    open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
-                    name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
+                    exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                {
+                    var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
+                    equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
+                    equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
+                    exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
                 }
             }
             else
@@ -3814,19 +3818,15 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-            SyntaxToken exclamation = null;
-            SyntaxToken equals = null;
-            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+            // When the user type "int goo[]", give them a useful error
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
             {
-                exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                var open = this.EatToken();
+                var close = this.EatToken();
+                open = this.AddError(open, ErrorCode.ERR_BadArraySyntax);
+                name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
-            {
-                var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
-                equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
-                equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-                exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
-            }
+            
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
                 equals = this.EatToken(SyntaxKind.EqualsToken);
