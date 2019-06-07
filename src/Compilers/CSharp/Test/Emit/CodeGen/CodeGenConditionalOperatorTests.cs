@@ -2771,16 +2771,48 @@ class Program
             var source = @"using System;
 public class Foo<T>
 {
+    public Foo(T t) => this.t = t;
+    public Foo(){}
+
     private T t;
     
-    public void Print() => Console.WriteLine(t?.ToString());
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
     
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new Foo<S>().Print();
+        new Foo<S?>().Print();
+        new Foo<S?>(new S()).Print();
+        new Foo<string>(""hello"").Print();
+        new Foo<string>().Print();
+    }
 }";
-            var verify = CompileAndVerify(source);
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+0
+hello
+hello");
 
             verify.VerifyIL("Foo<T>.Print()", @"
 {
-  // Code size       59 (0x3b)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
@@ -2802,7 +2834,11 @@ public class Foo<T>
   IL_002a:  constrained. ""T""
   IL_0030:  callvirt   ""string object.ToString()""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""T Foo<T>.t""
+  IL_0040:  box        ""T""
+  IL_0045:  call       ""void System.Console.WriteLine(object)""
+  IL_004a:  ret
 }");
 
         }
@@ -2812,18 +2848,50 @@ public class Foo<T>
         public void ConditionalAccessReadonlyUnconstrainedTField()
         {
             var source = @"using System;
-public class Foo<T>
+public class Foo<T> 
 {
+    public Foo(T t) => this.t = t;
+    public Foo(){}
+
     readonly T t;
     
-    public void Print() => Console.WriteLine(t?.ToString());
+    public void Print()
+    {
+        Console.WriteLine(t?.ToString());
+        Console.WriteLine(t);
+    }
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new Foo<S>().Print();
+        new Foo<S?>().Print();
+        new Foo<S?>(new S()).Print();
+        new Foo<string>(""hello"").Print();
+        new Foo<string>().Print();
+    }
 }
 ";
-            var verify = CompileAndVerify(source);
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+0
+
+
+0
+0
+hello
+hello");
 
             verify.VerifyIL("Foo<T>.Print()", @"
 {
-  // Code size       38 (0x26)
+  // Code size       54 (0x36)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
@@ -2839,7 +2907,11 @@ public class Foo<T>
   IL_0015:  constrained. ""T""
   IL_001b:  callvirt   ""string object.ToString()""
   IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ret
+  IL_0025:  ldarg.0
+  IL_0026:  ldfld      ""T Foo<T>.t""
+  IL_002b:  box        ""T""
+  IL_0030:  call       ""void System.Console.WriteLine(object)""
+  IL_0035:  ret
 }");
 
         }
@@ -2851,20 +2923,49 @@ public class Foo<T>
             var source = @"using System;
 public class Foo<T>
 {
+    public Foo(T t) => this.t = t;
+    public Foo(){}
+
     private T t;
     
     public void Print() 
     {
         var temp = t;
         Console.WriteLine(temp?.ToString());
+        Console.WriteLine(temp);
     }
     
+}
+
+public struct S
+{
+    int a;
+    public override string ToString() => a++.ToString();
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new Foo<S>().Print();
+        new Foo<S?>().Print();
+        new Foo<S?>(new S()).Print();
+        new Foo<string>(""hello"").Print();
+        new Foo<string>().Print();
+    }
 }";
-            var verify = CompileAndVerify(source);
+            var verify = CompileAndVerify(source, expectedOutput: @"0
+1
+
+
+0
+1
+hello
+hello");
 
             verify.VerifyIL("Foo<T>.Print()", @"
 {
-  // Code size       37 (0x25)
+  // Code size       48 (0x30)
   .maxstack  1
   .locals init (T V_0) //temp
   IL_0000:  ldarg.0
@@ -2879,7 +2980,10 @@ public class Foo<T>
   IL_0014:  constrained. ""T""
   IL_001a:  callvirt   ""string object.ToString()""
   IL_001f:  call       ""void System.Console.WriteLine(string)""
-  IL_0024:  ret
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T""
+  IL_002a:  call       ""void System.Console.WriteLine(object)""
+  IL_002f:  ret
 }");
 
         }
@@ -2891,9 +2995,26 @@ public class Foo<T>
             var source = @"using System;
 public class Foo<T>
 {
-    T M() => default;
+    public Foo(T t) => this.t = t;
+    public Foo(){}
+
+    T t;
+
+    T M() => t;
     
     public void Print() => Console.WriteLine(M()?.ToString());
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        new Foo<int>().Print();
+        new Foo<int?>().Print();
+        new Foo<int?>(0).Print();
+        new Foo<string>(""hello"").Print();
+        new Foo<string>().Print();
+    }
 }
 ";
             var verify = CompileAndVerify(source);
