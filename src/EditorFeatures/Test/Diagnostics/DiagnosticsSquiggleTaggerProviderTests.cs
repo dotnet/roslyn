@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     this, _workspace, _workspace.CurrentSolution,
-                    GetProjectId(), GetDocumentId(), buildTools: null,
+                    GetProjectId(), GetDocumentId(), buildTool: null,
                     ImmutableArray.Create(_diagnostic)));
             }
 
