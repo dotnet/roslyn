@@ -221,7 +221,7 @@ function InitializeDotNetCli {
   export PATH="$dotnet_root:$PATH"
 
   if [[ $ci == true ]]; then
-    # Make Sure that our bootstrapped dotnet cli is avaliable in future steps of the Azure Pipelines build
+    # Make Sure that our bootstrapped dotnet cli is available in future steps of the Azure Pipelines build
     echo "##vso[task.prependpath]$dotnet_root"
     echo "##vso[task.setvariable variable=DOTNET_MULTILEVEL_LOOKUP]0"
     echo "##vso[task.setvariable variable=DOTNET_SKIP_FIRST_TIME_EXPERIENCE]1"
