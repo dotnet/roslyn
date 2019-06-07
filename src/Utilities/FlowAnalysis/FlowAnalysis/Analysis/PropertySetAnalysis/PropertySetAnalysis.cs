@@ -32,7 +32,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// Gets hazardous usages of an object based on a set of its properties.
+        /// Analyzers should use <see cref="BatchGetOrComputeHazardousUsages"/> instead.  Gets hazardous usages of an object based on a set of its properties.
         /// </summary>
         /// <param name="cfg">Control flow graph of the code.</param>
         /// <param name="compilation">Compilation containing the code.</param>
@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
-        public static ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
+        internal static ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -140,6 +140,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
+        /// <remarks>Unlike <see cref="GetOrComputeHazardousUsages"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
@@ -151,40 +152,58 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
-
+            List<ControlFlowGraph> cfgs = new List<ControlFlowGraph>();
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
-                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
-                    PropertySetAnalysis.GetOrComputeHazardousUsages(
-                        Operation.GetEnclosingControlFlowGraph(),
-                        compilation,
-                        ContainingSymbol,
-                        typeToTrackMetadataName,
-                        constructorMapper,
-                        propertyMappers,
-                        hazardousUsageEvaluators,
-                        interproceduralAnalysisConfig,
-                        pessimisticAnalysis);
-                if (dfaResult.IsEmpty)
+                cfgs.Clear();
+                ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
+                cfgs.Add(enclosingControlFlowGraph);
+                foreach (IMethodSymbol localFunctionSymbol in enclosingControlFlowGraph.LocalFunctions)
                 {
-                    continue;
+                    cfgs.Add(enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol));
                 }
 
-                if (allResults == null)
+                foreach (IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation in 
+                    enclosingControlFlowGraph.DescendantOperations<IFlowAnonymousFunctionOperation>(
+                        OperationKind.FlowAnonymousFunction))
                 {
-                    allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                    cfgs.Add(enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation));
                 }
 
-                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
-                    in dfaResult)
+                foreach (ControlFlowGraph cfg in cfgs)
                 {
-                    if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
+                        PropertySetAnalysis.GetOrComputeHazardousUsages(
+                            cfg,
+                            compilation,
+                            ContainingSymbol,
+                            typeToTrackMetadataName,
+                            constructorMapper,
+                            propertyMappers,
+                            hazardousUsageEvaluators,
+                            interproceduralAnalysisConfig,
+                            pessimisticAnalysis);
+                    if (dfaResult.IsEmpty)
                     {
-                        allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
+                        continue;
                     }
-                    else
+
+                    if (allResults == null)
                     {
-                        allResults.Add(kvp.Key, kvp.Value);
+                        allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                    }
+
+                    foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
+                        in dfaResult)
+                    {
+                        if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                        {
+                            allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
+                        }
+                        else
+                        {
+                            allResults.Add(kvp.Key, kvp.Value);
+                        }
                     }
                 }
             }
