@@ -158,7 +158,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
-        public string FileRenameString => AllowFileRename ? EditorFeaturesResources.Rename_file : EditorFeaturesResources.Rename_file_incompatible_type;
+        public string FileRenameString => _session.FileRenameInfo switch
+        {
+            InlineRenameFileRenameInfo.Allowed => EditorFeaturesResources.Rename_file,
+            InlineRenameFileRenameInfo.TypeDoesntMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
+            InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
+            _ => null
+        };
 
         public string HeaderText
         {

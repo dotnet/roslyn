@@ -898,8 +898,11 @@ Do you want to proceed?</value>
   <data name="Rename_file" xml:space="preserve">
     <value>_Rename file</value>
   </data>
-  <data name="Rename_file_incompatible_type" xml:space="preserve">
-    <value>_Rename file (incompatible type)</value>
+  <data name="Rename_file_partial_type" xml:space="preserve">
+    <value>_Rename file (not allowed on partial types)</value>
     <comment>Disabled text status for file rename</comment>
+  </data>
+  <data name="Rename_file_name_doesnt_match" xml:space="preserve">
+    <value>_Rename file (type does not match file name)</value>
   </data>
 </root>

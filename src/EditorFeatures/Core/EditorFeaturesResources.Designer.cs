@@ -1620,11 +1620,20 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Rename file (incompatible type).
+        ///   Looks up a localized string similar to _Rename file (type does not match file name).
         /// </summary>
-        internal static string Rename_file_incompatible_type {
+        internal static string Rename_file_name_doesnt_match {
             get {
-                return ResourceManager.GetString("Rename_file_incompatible_type", resourceCulture);
+                return ResourceManager.GetString("Rename_file_name_doesnt_match", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Rename file (not allowed on partial types).
+        /// </summary>
+        internal static string Rename_file_partial_type {
+            get {
+                return ResourceManager.GetString("Rename_file_partial_type", resourceCulture);
             }
         }
         
