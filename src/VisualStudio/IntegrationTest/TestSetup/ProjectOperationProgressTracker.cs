@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var operationProgressStatus = (IVsOperationProgressStatusService)await _serviceProvider.GetServiceAsync(typeof(SVsOperationProgress));
-            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.UpdatingProjects);
+            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
             stageStatus.InProgressChanged += (_, e) => HandleInProgressChanged(stageStatus, e);
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             }
 
             var listener = _asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
-            var token = listener.BeginAsyncOperation(nameof(CommonOperationProgressStageIds.UpdatingProjects));
+            var token = listener.BeginAsyncOperation(nameof(CommonOperationProgressStageIds.Intellisense));
 
             stageStatus.WaitForCompletionAsync().CompletesAsyncOperation(token);
         }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -112,7 +113,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        {
+            if (featureNames.Contains(FeatureAttribute.Workspace))
+            {
+                var operationProgressStatus = InvokeOnUIThread(_ => GetGlobalService<SVsOperationProgress, IVsOperationProgressStatusService>());
+                var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+                stageStatus.WaitForCompletionAsync().Wait(timeout);
+            }
+
+            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        }
 
         private static void LoadRoslynPackage()
         {
