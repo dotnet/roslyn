@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
 
-            _lazyVsSolution = new Lazy<IVsSolution>(() => exportProvider.GetExport<SVsServiceProvider>().Value.GetService<IVsSolution>());
+            _lazyVsSolution = new Lazy<IVsSolution>(() => (IVsSolution)exportProvider.GetExport<SVsServiceProvider>().Value.GetService<SVsSolution>());
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
