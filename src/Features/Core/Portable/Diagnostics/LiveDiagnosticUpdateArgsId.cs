@@ -6,23 +6,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class LiveDiagnosticUpdateArgsId : AnalyzerUpdateArgsId
     {
-        private readonly string _analyzerPackageName;
-
         public readonly object Key;
         public readonly int Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind)
             : base(analyzer)
         {
             Contract.ThrowIfNull(key);
 
             Key = key;
             Kind = kind;
-
-            _analyzerPackageName = analyzerPackageName;
         }
-
-        public override string BuildTool => _analyzerPackageName ?? base.BuildTool;
 
         public override bool Equals(object obj)
         {

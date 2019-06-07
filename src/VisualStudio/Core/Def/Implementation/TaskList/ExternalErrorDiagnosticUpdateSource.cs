@@ -341,13 +341,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                   CreateArgumentKey(id), _workspace, solution, projectId, documentId, items));
+                   CreateArgumentKey(id), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build, items));
         }
 
         private void RaiseDiagnosticsRemoved(object id, Solution solution, ProjectId projectId, DocumentId documentId)
         {
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                   CreateArgumentKey(id), _workspace, solution, projectId, documentId));
+                   CreateArgumentKey(id), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build));
         }
 
         private static ArgumentKey CreateArgumentKey(object id) => new ArgumentKey(id);
@@ -652,11 +652,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             public ArgumentKey(object key) : base(key)
             {
-            }
-
-            public override string BuildTool
-            {
-                get { return PredefinedBuildTools.Build; }
             }
 
             public override bool Equals(object obj)

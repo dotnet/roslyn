@@ -15,18 +15,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : base(analyzer)
         {
         }
-
-        public override string BuildTool
-        {
-            get
-            {
-                if (Analyzer == null)
-                {
-                    return string.Empty;
-                }
-
-                return Analyzer.GetAnalyzerAssemblyName();
-            }
-        }
     }
 }

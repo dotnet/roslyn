@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 _service.RaiseDiagnosticsUpdated(
                     DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, PredefinedBuildTools.Live, diagnosticData.ToImmutableArrayOrEmpty()));
 
                 IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
                 {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
                 _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId));
+                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, solution: null, documentId.ProjectId, documentId, PredefinedBuildTools.Live));
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -201,8 +201,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _workspaceKind = workspaceKind;
                 }
-
-                public override string BuildTool => PredefinedBuildTools.Live;
 
                 public override bool Equals(object obj)
                 {

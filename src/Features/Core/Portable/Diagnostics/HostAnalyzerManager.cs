@@ -518,6 +518,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     solution: null,
                     projectId: null,
                     documentId: null,
+                    buildTool: null,
                     diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
 
                 // this can be null in test. but in product code, this should never be null.

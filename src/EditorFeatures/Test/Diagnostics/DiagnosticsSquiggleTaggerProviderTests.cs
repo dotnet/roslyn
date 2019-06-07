@@ -176,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private class MockDiagnosticService : IDiagnosticService
         {
             public const string DiagnosticId = "MockId";
+            private readonly object _id = new object();
 
             private readonly Workspace _workspace;
             private DiagnosticData _diagnostic;
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
                 else
                 {
-                    yield return new UpdatedEventArgs(this, workspace, GetProjectId(), GetDocumentId());
+                    yield return new UpdatedEventArgs(_id, workspace, GetProjectId(), GetDocumentId(), buildTool: null);
                 }
             }
 
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     this, _workspace, _workspace.CurrentSolution,
-                    GetProjectId(), GetDocumentId(),
+                    GetProjectId(), GetDocumentId(), buildTools: null,
                     ImmutableArray.Create(_diagnostic)));
             }
 

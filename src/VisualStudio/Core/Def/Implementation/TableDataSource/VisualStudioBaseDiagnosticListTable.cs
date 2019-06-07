@@ -89,7 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>
         {
             public abstract string BuildTool { get; }
-            public abstract bool SupportSpanTracking { get; }
             public abstract DocumentId TrackingDocumentId { get; }
         }
 

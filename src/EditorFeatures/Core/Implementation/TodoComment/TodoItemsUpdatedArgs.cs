@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -17,10 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public ImmutableArray<TodoItem> TodoItems { get; }
 
-        public TodoItemsUpdatedArgs(
-            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
-            : base(id, workspace, projectId, documentId)
+        public TodoItemsUpdatedArgs(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems)
+            : base(id, workspace, projectId, documentId, buildTool: null)
         {
+            Debug.Assert(solution != null);
+            Debug.Assert(!todoItems.IsDefault);
+
             Solution = solution;
             TodoItems = todoItems;
         }

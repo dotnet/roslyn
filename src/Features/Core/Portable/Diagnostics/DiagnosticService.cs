@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var (id, data) in map)
                     {
-                        removed.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, data.Workspace, solution: null, data.ProjectId, data.DocumentId));
+                        removed.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, data.Workspace, solution: null, data.ProjectId, data.DocumentId, data.BuildTool));
                     }
                 }
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 foreach (var data in list.Object)
                 {
-                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
+                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId, data.BuildTool);
                 }
             }
         }
@@ -392,6 +392,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly ProjectId ProjectId;
             public readonly DocumentId DocumentId;
             public readonly object Id;
+            public readonly string BuildTool;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
             public Data(UpdatedEventArgs args)
@@ -405,6 +406,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProjectId = args.ProjectId;
                 DocumentId = args.DocumentId;
                 Id = args.Id;
+                BuildTool = args.BuildTool;
                 Diagnostics = diagnostics;
             }
         }

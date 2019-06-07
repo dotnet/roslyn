@@ -234,9 +234,8 @@ class Program
 
             using var workspace = TestWorkspace.Create(workspaceXml);
             var document = workspace.Documents.First();
-
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id, buildTool: null,
                     ImmutableArray.Create(
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
@@ -267,7 +266,7 @@ class Program
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id, buildTool: null,
                     ImmutableArray.Create(
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));

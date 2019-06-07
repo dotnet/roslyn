@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             : base(session, errorId)
         {
         }
-
-        public override string BuildTool => PredefinedBuildTools.EnC;
     }
 
     [Export(typeof(EditAndContinueDiagnosticUpdateSource))]
@@ -66,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 solution.Workspace,
                 solution: solution,
                 projectId: projectId,
-                documentId: documentIdOpt));
+                documentId: documentIdOpt,
+                buildTool: PredefinedBuildTools.EnC));
         }
 
         /// <summary>
@@ -114,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     solution.Workspace,
                     solution,
                     projectId,
+                    buildTool: PredefinedBuildTools.EnC,
                     documentId: documentDiagnostics.Key,
                     diagnostics: documentDiagnostics.Value));
             }
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     solution,
                     projectId,
                     documentId: null,
+                    buildTool: PredefinedBuildTools.EnC,
                     diagnostics: projectDiagnosticData.ToImmutable()));
             }
 

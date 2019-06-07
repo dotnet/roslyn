@@ -207,8 +207,7 @@ class 123 { }
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, BuildToolId)
-                                                               buildTool = id.BuildTool
+                                                               buildTool = a.BuildTool
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -232,8 +231,7 @@ End Class
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, BuildToolId)
-                                                               buildTool = id.BuildTool
+                                                               buildTool = a.BuildTool
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)

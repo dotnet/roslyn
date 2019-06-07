@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
-                return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+                return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.BuildTool, item.Id);
             }
 
             private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
@@ -218,14 +218,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, string buildTool, object id)
                 {
                     _source = source;
                     _workspace = workspace;
                     _projectId = projectId;
                     _documentId = documentId;
                     _id = id;
-                    _buildTool = (id as BuildToolId)?.BuildTool ?? string.Empty;
+                    _buildTool = buildTool ?? string.Empty;
                 }
 
                 public override object Key => _id;

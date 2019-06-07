@@ -859,7 +859,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId, "BuildTool")
                                                 End Function).ToImmutableArrayOrEmpty()
                 ElseIf projectId IsNot Nothing Then
                     diagnosticsArgs = Items.Where(Function(t) t.ProjectId Is projectId) _
@@ -867,14 +867,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId, "BuildTool")
                                                 End Function).ToImmutableArrayOrEmpty()
                 Else
                     diagnosticsArgs = Items.Select(
                                                 Function(t)
                                                     Return New UpdatedEventArgs(
                                                         New ErrorId(Me, If(CObj(t.DocumentId), t.ProjectId)),
-                                                        workspace, t.ProjectId, t.DocumentId)
+                                                        workspace, t.ProjectId, t.DocumentId, "BuildTool")
                                                 End Function).ToImmutableArrayOrEmpty()
                 End If
 
@@ -886,7 +886,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
                 RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
+                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, buildTool:="BuildTool", items.ToImmutableArray()))
             End Sub
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
@@ -894,20 +894,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 For Each group In documentMap
                     RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, buildTool:="BuildTool", group.ToImmutableArrayOrEmpty()))
                 Next
 
                 Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).ToLookup(Function(t) t.ProjectId)
 
                 For Each group In projectMap
                     RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, documentId:=Nothing, buildTool:="BuildTool", group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
-            Public Sub RaiseClearDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId)
+            Public Sub RaiseClearDiagnosticsUpdated(workspace As Workspace, projectId As ProjectId, documentId As DocumentId)
                 RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId))
+                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, buildTool:="BuildTool"))
             End Sub
 
             Private Class ErrorId
@@ -916,12 +916,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Public Sub New(service As TestDiagnosticService, id As Object)
                     MyBase.New(service, id)
                 End Sub
-
-                Public Overrides ReadOnly Property BuildTool As String
-                    Get
-                        Return "BuildTool"
-                    End Get
-                End Property
             End Class
         End Class
     End Class

@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Solution solution,
             ProjectId projectId,
             DocumentId documentId,
+            string buildTool,
             ImmutableArray<DiagnosticData> diagnostics,
             DiagnosticsUpdatedKind kind)
-            : base(id, workspace, projectId, documentId)
+            : base(id, workspace, projectId, documentId, buildTool)
         {
             // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
             // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
@@ -38,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Solution solution,
             ProjectId projectId,
             DocumentId documentId,
+            string buildTool,
             ImmutableArray<DiagnosticData> diagnostics)
         {
-            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
+            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, buildTool, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
         }
 
         public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
@@ -48,9 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Workspace workspace,
             Solution solution,
             ProjectId projectId,
-            DocumentId documentId)
+            DocumentId documentId,
+            string buildTool)
         {
-            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
+            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, buildTool, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
         }
     }
 }

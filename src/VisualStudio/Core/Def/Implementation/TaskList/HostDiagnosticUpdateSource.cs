@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 solution: null,
                 projectId: projectId,
                 documentId: null,
+                buildTool: null,
                 diagnostics: items.AsImmutableOrEmpty());
 
             RaiseDiagnosticsUpdated(args);
@@ -57,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 Workspace,
                 solution: null,
                 projectId: projectId,
-                documentId: null);
+                documentId: null,
+                buildTool: null);
 
             RaiseDiagnosticsUpdated(args);
         }

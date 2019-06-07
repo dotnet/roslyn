@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             foreach (var documentId in _state.GetDocumentIds())
             {
-                yield return new UpdatedEventArgs(Tuple.Create(this, documentId), workspace, documentId.ProjectId, documentId);
+                yield return new UpdatedEventArgs(Tuple.Create(this, documentId), workspace, documentId.ProjectId, documentId, buildTool: null);
             }
         }
 

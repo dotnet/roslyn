@@ -132,14 +132,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
         {
+            var analyzerName = analyzer.GetAnalyzerAssemblyName();
+
             return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
+                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName, diagnostics: items.ToImmutableArray());
+
         }
 
         private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project project)
         {
+            var analyzerName = analyzer.GetAnalyzerAssemblyName();
+
             return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
+                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName);
         }
 
         private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project project) => new HostArgsId(this, analyzer, project?.Id);

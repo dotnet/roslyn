@@ -71,6 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return data;
                 }
 
+                public override object Key => _source._key;
+                public override string BuildTool => PredefinedBuildTools.Build;
+                public override DocumentId TrackingDocumentId => null;
+
                 public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
                 {
                     return new TableEntriesSource(this);

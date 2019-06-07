@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal abstract class BuildToolId
     {
-        public abstract string BuildTool { get; }
-
         internal abstract class Base<T> : BuildToolId
         {
             protected readonly T _Field1;

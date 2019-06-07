@@ -150,12 +150,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
                 project.Id,
                 documentId: null,
-                diagnostics: items));
+                diagnostics: items,
+                buildTool: stateSet.ErrorSourceName));
         }
 
         private void RaiseDiagnosticsRemoved(
@@ -164,11 +165,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
                 projectId,
-                documentId: null));
+                documentId: null,
+                buildTool: stateSet.ErrorSourceName));
         }
 
         private void RaiseDiagnosticsCreated(
@@ -177,11 +179,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, document.Id, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet.Analyzer, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
                 document.Id,
+                stateSet.ErrorSourceName,
                 items));
         }
 
@@ -191,26 +194,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName),
+                CreateId(stateSet.Analyzer, documentId, kind),
                 Workspace,
                 solution,
                 documentId.ProjectId,
-                documentId));
+                documentId,
+                stateSet.ErrorSourceName));
         }
 
-        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind, string errorSourceName)
+        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind)
         {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
+            return CreateIdInternal(analyzer, key, kind);
         }
 
-        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind, string errorSourceName)
+        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind)
         {
-            return CreateIdInternal(analyzer, key, kind, errorSourceName);
+            return CreateIdInternal(analyzer, key, kind);
         }
 
-        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind, string errorSourceName)
+        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind)
         {
-            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind, errorSourceName);
+            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind);
         }
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
