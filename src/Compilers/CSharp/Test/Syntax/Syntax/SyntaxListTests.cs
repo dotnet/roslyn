@@ -226,6 +226,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void AddNamespaceAttributeLists()
+        {
+            var declaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("M"));
+            declaration = declaration.AddAttributeLists(new[]
+            {
+                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
+            });
+
+            Assert.True(declaration.AttributeLists.Count == 1);
+        }
+
+        [Fact]
         public void Extensions()
         {
             var list = SyntaxFactory.List<SyntaxNode>(
