@@ -15,6 +15,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -2111,6 +2112,28 @@ namespace System
             }
         }
         #endregion
+
+        internal static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
+        {
+            var typeDef = reader.TypeDefinitions.SingleOrDefault(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name));
+            if (typeDef.IsNil)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine();
+                foreach (var typeHandle in reader.TypeDefinitions)
+                {
+                    builder.AppendLine(reader.GetString(reader.GetTypeDefinition(typeHandle).Name));
+                }
+                Assert.True(false, $"Could not find type '{name}'. Found types are: {builder.ToString()}");
+            }
+            return reader.GetTypeDefinition(typeDef);
+        }
+
+        protected static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
+        {
+            var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
+            AssertEx.SetEqual(actualNames, expectedNames);
+        }
 
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic

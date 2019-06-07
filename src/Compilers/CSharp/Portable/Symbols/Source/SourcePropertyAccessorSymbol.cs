@@ -368,6 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations
+            => _property.GetterValueFlowAnalysisAnnotations;
+
         private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)
@@ -647,10 +650,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType.Type);
                 }
 
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));
+                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count, _property.SetterValueFlowAnalysisAnnotations));
             }
 
             return parameters.ToImmutableAndFree();
+
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+
+            var compilation = this.DeclaringCompilation;
+            if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor));
+            }
+            if ((ReturnTypeFlowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) != 0)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor));
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

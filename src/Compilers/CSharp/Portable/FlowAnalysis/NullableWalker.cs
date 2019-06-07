@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);         
+                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
             }
 
             if (inferredType)
@@ -2053,7 +2053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return operatorKind.IsLifted() && !operatorKind.IsComparison()
                         ? LiftedReturnType(methodOpt.ReturnTypeWithAnnotations, leftType.State.Join(rightType.State))
-                        : methodOpt.ReturnTypeWithAnnotations.ToTypeWithState();
+                        : GetReturnTypeWithState(methodOpt);
                 }
             }
             else if (!operatorKind.IsDynamic() && !resultType.IsValueType)
@@ -2092,6 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (binary.OperatorKind.IsUserDefined() && binary.MethodOpt?.ParameterCount == 2)
             {
+                // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 var parameters = binary.MethodOpt.Parameters;
                 ReportArgumentWarnings(binary.Left, leftType, parameters[0]);
                 ReportArgumentWarnings(binary.Right, rightType, parameters[1]);
@@ -2777,7 +2778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            var result = GetReturnType(method);
+            var result = GetReturnResultType(method);
             SetResult(node, result.RValueType, result.LValueType);
         }
 
@@ -2820,31 +2821,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiverType;
         }
 
-        private VisitResult GetReturnType(MethodSymbol method)
+        private VisitResult GetReturnResultType(MethodSymbol method)
         {
-            var type = method.ReturnTypeWithAnnotations;
-            var rvalueType = TypeWithState.Create(type, GetAnnotations(method));
-            return new VisitResult(rvalueType, type);
+            return new VisitResult(GetReturnTypeWithState(method), method.ReturnTypeWithAnnotations);
         }
 
-        private FlowAnalysisAnnotations GetAnnotations(ParameterSymbol parameter)
+        private TypeWithState GetReturnTypeWithState(MethodSymbol method)
         {
-            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
-            // in attributes are error scenarios, so missing warnings should not be important.)
-            return IsAnalyzingAttribute ?
-                FlowAnalysisAnnotations.None :
-                parameter.FlowAnalysisAnnotations;
+            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(method));
         }
 
-        private FlowAnalysisAnnotations GetAnnotations(MethodSymbol method)
+        private FlowAnalysisAnnotations GetRValueAnnotations(Symbol symbol)
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
-            return IsAnalyzingAttribute ?
-                FlowAnalysisAnnotations.None :
-                method.ReturnTypeAnnotationAttributes;
+            if (IsAnalyzingAttribute)
+            {
+                return FlowAnalysisAnnotations.None;
+            }
+
+            var annotations = symbol switch
+            {
+                MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
+                PropertySymbol property => property.GetMethod?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
+            };
+
+            return annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull);
         }
 
+        private FlowAnalysisAnnotations GetParameterAnnotations(ParameterSymbol parameter)
+        {
+            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
+            // in attributes are error scenarios, so missing warnings should not be important.)
+            return IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : parameter.FlowAnalysisAnnotations;
+        }
+
+        /// <summary>
+        /// Fix a TypeWithAnnotations based on Maybe/NotNull annotations prior to a conversion or assignment.
+        /// Note this does not work for nullable value types, so an additional check with <see cref="CheckDisallowedNullAssignment"/> may be required.
+        /// </summary>
         private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
@@ -2859,18 +2876,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return declaredType;
         }
 
-        private static TypeWithAnnotations ApplyRValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
+        /// <summary>
+        /// Update the null-state based on MaybeNull/NotNull
+        /// </summary>
+        static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
-            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
             {
-                return declaredType.AsNotAnnotated();
-            }
-            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
-            {
-                return declaredType.AsAnnotated();
+                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
             }
 
-            return declaredType;
+            if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
+            {
+                return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+            }
+
+            return typeWithState;
         }
 
         // https://github.com/dotnet/roslyn/issues/29863 Record in the node whether type
@@ -3121,7 +3142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             target: parameter,
                             extensionMethodThisArgument: extensionMethodThisArgument,
                             stateForLambda: result.StateForLambda);
-                        CheckDisallowedNullAssignment(stateAfterConversion, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
+
+                        // If the parameter has annotations, we perform an additional check for nullable value types
+                        CheckDisallowedNullAssignment(stateAfterConversion, parameterAnnotations, argumentNoConversion.Syntax.Location);
                         SetResultType(argumentNoConversion, stateAfterConversion);
                     }
                     break;
@@ -3138,7 +3161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // types match, but state would let a null in
                             ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
-                            CheckDisallowedNullAssignment(resultType, parameterType, parameterAnnotations, argumentNoConversion.Syntax.Location);
+                            // If the parameter has annotations, we perform an additional check for nullable value types
+                            CheckDisallowedNullAssignment(resultType, parameterAnnotations, argumentNoConversion.Syntax.Location);
                         }
                     }
 
@@ -3152,9 +3176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
         }
 
-        private void CheckDisallowedNullAssignment(TypeWithState state, TypeWithAnnotations type, FlowAnalysisAnnotations annotations, Location location)
+        private void CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, Location location)
         {
-            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && type.Type.IsNullableTypeOrTypeParameter() && state.MayBeNull)
+            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && state.Type.IsNullableTypeOrTypeParameter() && state.MayBeNull)
             {
                 ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
             }
@@ -3202,8 +3226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.Out:
                     {
                         // compute the fictional parameter state
-                        var parameterWithAnnotations = ApplyRValueAnnotations(parameterType, parameterAnnotations);
-                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+                        var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
 
                         // Adjust parameter state if MaybeNull or MaybeNullWhen are present (for `var` type and for assignment warnings)
                         var worstCaseParameterWithState = applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations);
@@ -3470,7 +3493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (parameter, type, FlowAnalysisAnnotations.None);
             }
 
-            return (parameter, type, GetAnnotations(parameter));
+            return (parameter, type, GetParameterAnnotations(parameter));
         }
 
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
@@ -4734,6 +4757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Analyze operator call return value (honoring [Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 operandType = methodReturnType.ToTypeWithState();
             }
 
@@ -5108,6 +5132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var right = node.Right;
             Visit(left);
             TypeWithAnnotations leftLValueType = LvalueResultType;
+            FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
+            leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
 
             if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
             {
@@ -5119,21 +5145,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TypeWithState rightType;
+                TypeWithState rightState;
                 if (!node.IsRef)
                 {
-                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    rightState = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
                 }
                 else
                 {
-                    rightType = VisitRefExpression(right, leftLValueType);
+                    rightState = VisitRefExpression(right, leftLValueType);
                 }
 
-                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
-                SetResult(node, TypeWithState.Create(leftLValueType.Type, rightType.State), leftLValueType);
+                // If the LHS has annotations, we perform an additional check for nullable value types
+                CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
+
+                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
+                SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
             }
 
             return null;
+        }
+
+        private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
+        {
+            var symbol = expr switch
+            {
+                BoundPropertyAccess property => property.PropertySymbol,
+                BoundIndexerAccess indexer => indexer.Indexer,
+                _ => null
+            };
+
+            var annotations = symbol switch
+            {
+                PropertySymbol property => lastParameter(property.SetMethod)?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                _ => FlowAnalysisAnnotations.None
+            };
+
+            return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
+
+            static ParameterSymbol lastParameter(MethodSymbol method)
+                => method is null || method.Parameters.IsDefault ? null : method.Parameters.Last();
         }
 
         private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
@@ -5262,7 +5312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
-                                parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                                parameter, parameter.TypeWithAnnotations, GetParameterAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
                                 extensionMethodThisArgument: false);
                         }
                     }
@@ -5275,7 +5325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (nestedVariables == null)
                         {
                             VisitArgumentOutboundAssignmentsAndPostConditions(
-                                variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter),
+                                variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
                                 new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default));
                         }
                     }
@@ -5453,6 +5503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentKind assignmentKind = AssignmentKind.Assignment;
                 ParameterSymbol target = null;
 
+                // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
                 {
@@ -5574,11 +5625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
                 {
-                    ReportArgumentWarnings(node.Left, leftOnRightType, node.Operator.Method.Parameters[0]);
-                    ReportArgumentWarnings(node.Right, rightType, node.Operator.Method.Parameters[1]);
+                    MethodSymbol method = node.Operator.Method;
+                    VisitArguments(node, ImmutableArray.Create(node.Left, node.Right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default,
+                        expanded: true, invokedAsExtensionMethod: false, method);
                 }
 
                 resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
+
+                FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(node.Left);
+                leftLValueType = ApplyLValueAnnotations(leftLValueType, leftAnnotations);
+
                 resultType = VisitConversion(
                     conversionOpt: null,
                     node,
@@ -5589,6 +5645,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     fromExplicitCast: false,
                     useLegacyWarnings: false,
                     AssignmentKind.Assignment);
+
+                // If the LHS has annotations, we perform an additional check for nullable value types
+                CheckDisallowedNullAssignment(resultType, leftAnnotations, node.Syntax.Location);
             }
             else
             {
@@ -5709,7 +5768,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            SetLvalueResultType(node, indexer.TypeWithAnnotations);
+            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
+            SetResult(node, resultType, indexer.TypeWithAnnotations);
             return null;
         }
 
@@ -5776,6 +5836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            resultType = ApplyUnconditionalAnnotations(resultType, GetRValueAnnotations(member));
             SetResult(node, resultType, type);
         }
 
@@ -5962,11 +6023,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch
-                {
-                    ForEachStatementSyntax statement => statement.Identifier.GetLocation(),
-                    ForEachVariableStatementSyntax variableStatement => variableStatement.Variable.GetLocation(),
-                    _ => throw ExceptionUtilities.UnexpectedValue(node.Syntax)
-                };
+            {
+                ForEachStatementSyntax statement => statement.Identifier.GetLocation(),
+                ForEachVariableStatementSyntax variableStatement => variableStatement.Variable.GetLocation(),
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Syntax)
+            };
 #pragma warning restore IDE0055 // Fix formatting
 
             if (!(node.DeconstructionOpt is null))
@@ -6117,7 +6178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
             {
-                // Update method based on inferred operand type: see https://github.com/dotnet/roslyn/issues/29605.
+                // Update method based on inferred operand type: see https://github.com/dotnet/roslyn/issues/29605
+                // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 ReportArgumentWarnings(node.Operand, argumentResult, node.MethodOpt.Parameters[0]);
                 if (node.OperatorKind.IsLifted())
                 {
@@ -6185,9 +6247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
+            // Analyze operator result properly (honoring [Maybe|NotNull] and [Maybe|NotNullWhen] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
             if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
             {
-                return node.LogicalOperator.ReturnTypeWithAnnotations.ToTypeWithState();
+                return GetReturnTypeWithState(node.LogicalOperator);
             }
             else
             {
@@ -6229,6 +6292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(trueFalseOperator is null || ((object)logicalOperator != null && left != null));
 
+            // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
             if ((object)trueFalseOperator != null)
             {
                 ReportArgumentWarnings(left, leftType, trueFalseOperator.Parameters[0]);
@@ -6671,7 +6735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.RefKind,
                 parameter,
                 parameter.TypeWithAnnotations,
-                GetAnnotations(parameter),
+                GetParameterAnnotations(parameter),
                 new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations()),
                 stateForLambda: default),
                 extensionMethodThisArgument: true);

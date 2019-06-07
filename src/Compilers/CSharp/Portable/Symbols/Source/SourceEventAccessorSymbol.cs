@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
+                        // Account for nullable annotation attributes [Disallow/Allow/Maybe/NotNull] on events https://github.com/dotnet/roslyn/issues/29839
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0, FlowAnalysisAnnotations.None);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                     else
@@ -127,7 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0);
+                        // Account for nullable annotation attributes [Disallow/Allow/Maybe/NotNull] on events https://github.com/dotnet/roslyn/issues/29839
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0, FlowAnalysisAnnotations.None);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                 }
@@ -141,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 
-                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
+                    // Account for nullable annotation attributes [Disallow/Allow/Maybe/NotNull] on events https://github.com/dotnet/roslyn/issues/29839
+                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0, FlowAnalysisAnnotations.None);
                     _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }

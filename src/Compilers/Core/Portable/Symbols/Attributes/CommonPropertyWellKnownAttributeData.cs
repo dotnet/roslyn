@@ -47,5 +47,69 @@ namespace Microsoft.CodeAnalysis
         }
 
         #endregion
+
+        private bool _hasDisallowNullAttribute;
+        public bool HasDisallowNullAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasDisallowNullAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasDisallowNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasAllowNullAttribute;
+        public bool HasAllowNullAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasAllowNullAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasAllowNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasMaybeNullAttribute;
+        public bool HasMaybeNullAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasMaybeNullAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasMaybeNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasNotNullAttribute;
+        public bool HasNotNullAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasNotNullAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasNotNullAttribute = value;
+                SetDataStored();
+            }
+        }
     }
 }

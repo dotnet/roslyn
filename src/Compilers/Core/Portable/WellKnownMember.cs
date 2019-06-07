@@ -497,6 +497,11 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
 
+        System_Diagnostics_CodeAnalysis_DisallowNullAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_AllowNullAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_MaybeNullAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_NotNullAttribute__ctor,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

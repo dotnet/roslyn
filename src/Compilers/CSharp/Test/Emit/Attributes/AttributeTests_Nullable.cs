@@ -2400,17 +2400,6 @@ public class C
             return attributes.Single(a => a.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.NullableAttribute");
         }
 
-        private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
-        {
-            return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
-        }
-
-        private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
-        {
-            var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
-            AssertEx.SetEqual(actualNames, expectedNames);
-        }
-
         private void VerifyNullableAttributes(CSharpCompilation comp, string expected)
         {
             CompileAndVerify(comp, symbolValidator: module =>
