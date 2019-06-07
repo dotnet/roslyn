@@ -13,21 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
-        private class BuildTableDataSource : AbstractTableDataSource<DiagnosticData>
+        private class BuildTableDataSource : AbstractTableDataSource<DiagnosticTableItem>
         {
             private readonly object _key = new object();
 
-            private readonly Workspace _workspace;
             private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
-            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource) :
-                base(workspace)
+            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource)
+                : base(workspace)
             {
-                _workspace = workspace;
                 _buildErrorSource = errorSource;
 
                 ConnectToBuildUpdateSource(errorSource);
@@ -72,28 +68,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return data;
             }
 
-            public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
-                return new TableEntriesSource(this, _workspace);
+                return new TableEntriesSource(this);
             }
 
-            public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
-
-            public override ITrackingPoint CreateTrackingPoint(DiagnosticData data, ITextSnapshot snapshot)
-            {
-                return snapshot.CreateTrackingPoint(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
-            }
-
-            public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(AbstractTableEntriesSource<DiagnosticTableItem> source, int version, ImmutableArray<DiagnosticTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 // Build doesn't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
-            private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
+            public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
                 // errors are already given in order. use it as it is.
                 return groupedItems;
@@ -102,12 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private class TableEntriesSource : DiagnosticTableEntriesSource
             {
                 private readonly BuildTableDataSource _source;
-                private readonly Workspace _workspace;
 
-                public TableEntriesSource(BuildTableDataSource source, Workspace workspace)
+                public TableEntriesSource(BuildTableDataSource source)
                 {
                     _source = source;
-                    _workspace = workspace;
                 }
 
                 public override object Key => _source._key;
@@ -115,48 +99,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override bool SupportSpanTracking => false;
                 public override DocumentId TrackingDocumentId => Contract.FailWithReturn<DocumentId>("This should never be called");
 
-                public override ImmutableArray<TableItem<DiagnosticData>> GetItems()
+                public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var groupedItems = _source._buildErrorSource
                                                .GetBuildErrors()
-                                               .Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey))
+                                               .Select(data => new DiagnosticTableItem(_source.Workspace, cache: null, data))
                                                .GroupBy(d => d.DeduplicationKey)
-                                               .Select(g => (IList<TableItem<DiagnosticData>>)g)
+                                               .Select(g => (IList<DiagnosticTableItem>)g)
                                                .ToImmutableArray();
 
                     return _source.Deduplicate(groupedItems);
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<DiagnosticData>> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
                 {
                     return ImmutableArray<ITrackingPoint>.Empty;
                 }
-
-                private int GenerateDeduplicationKey(DiagnosticData diagnostic)
-                {
-                    if (diagnostic.DocumentId == null ||
-                        diagnostic.DataLocation == null ||
-                        diagnostic.DataLocation.OriginalFilePath == null)
-                    {
-                        return diagnostic.GetHashCode();
-                    }
-
-                    return Hash.Combine(diagnostic.DataLocation.OriginalStartColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalStartLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndColumn,
-                           Hash.Combine(diagnostic.DataLocation.OriginalEndLine,
-                           Hash.Combine(diagnostic.DataLocation.OriginalFilePath,
-                           Hash.Combine(diagnostic.IsSuppressed,
-                           Hash.Combine(diagnostic.Id.GetHashCode(), diagnostic.Message.GetHashCode())))))));
-                }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticData>
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>
             {
                 private readonly DiagnosticTableEntriesSource _source;
 
                 public TableEntriesSnapshot(
-                    DiagnosticTableEntriesSource source, int version, ImmutableArray<TableItem<DiagnosticData>> items) :
+                    DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items) :
                     base(version, items, ImmutableArray<ITrackingPoint>.Empty)
                 {
                     _source = source;
@@ -167,14 +133,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
-
-                    var data = item?.Primary;
-                    if (data == null)
+                    if (item == null)
                     {
                         content = null;
                         return false;
                     }
 
+                    var data = item.Data;
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
@@ -188,13 +153,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(data);
+                            content = GetHelpLinkToolTipText(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(data);
+                            content = GetHelpLink(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -242,43 +207,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
-                    var item = GetItem(index)?.Primary;
-                    if (item == null)
+                    var item = GetItem(index);
+                    if (item?.DocumentId == null)
                     {
                         return false;
                     }
 
-                    // this item is not navigatable
-                    if (item.DocumentId == null)
-                    {
-                        return false;
-                    }
+                    var documentId = GetProperDocumentId(item);
+                    var solution = item.Workspace.CurrentSolution;
 
-                    return TryNavigateTo(item.Workspace, GetProperDocumentId(item),
-                                         item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                    return solution.ContainsDocument(documentId) &&
+                        TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab);
                 }
 
-                private DocumentId GetProperDocumentId(DiagnosticData data)
+                private DocumentId GetProperDocumentId(DiagnosticTableItem item)
                 {
+                    var documentId = item.DocumentId;
+                    var projectId = item.ProjectId;
+
                     // check whether documentId still exist. it might have changed if project it belong to has reloaded.
-                    var solution = data.Workspace.CurrentSolution;
-                    if (solution.GetDocument(data.DocumentId) != null)
+                    var solution = item.Workspace.CurrentSolution;
+                    if (solution.GetDocument(documentId) != null)
                     {
-                        return data.DocumentId;
+                        return documentId;
                     }
 
                     // okay, documentId no longer exist in current solution, find it by file path.
-                    if (string.IsNullOrWhiteSpace(data.DataLocation?.OriginalFilePath))
+                    var filePath = item.GetOriginalFilePath();
+                    if (string.IsNullOrWhiteSpace(filePath))
                     {
-                        // we don't have filepath
                         return null;
                     }
 
-                    var documentIds = solution.GetDocumentIdsWithFilePath(data.DataLocation.OriginalFilePath);
+                    var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                     foreach (var id in documentIds)
                     {
-                        // found right documentId;
-                        if (id.ProjectId == data.ProjectId)
+                        // found right project
+                        if (id.ProjectId == projectId)
                         {
                             return id;
                         }
@@ -286,18 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     // okay, there is no right one, take the first one if there is any
                     return documentIds.FirstOrDefault();
-                }
-
-                protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
-                {
-                    // everything same except location
-                    return item1.Id == item2.Id &&
-                           item1.ProjectId == item2.ProjectId &&
-                           item1.DocumentId == item2.DocumentId &&
-                           item1.Category == item2.Category &&
-                           item1.Severity == item2.Severity &&
-                           item1.WarningLevel == item2.WarningLevel &&
-                           item1.Message == item2.Message;
                 }
             }
         }

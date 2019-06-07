@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             return;
 
             // Local functions
-            async Task<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
+            //[PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", OftenCompletesSynchronously = true)]
+            async ValueTask<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
             {
                 // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
                 // and 'keyToWriteTask' collections.
@@ -222,13 +223,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Create a transaction and perform all writes within it.
-                connection.RunInTransaction(() =>
-                {
-                    foreach (var action in writesToProcess)
+                connection.RunInTransaction(
+                    state =>
                     {
-                        action(connection);
-                    }
-                });
+                        foreach (var action in state.writesToProcess)
+                        {
+                            action(state.connection);
+                        }
+                    },
+                    (writesToProcess, connection));
             }
             catch (Exception ex)
             {
