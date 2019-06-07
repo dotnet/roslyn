@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public abstract DocumentId TrackingDocumentId { get; }
         }
 
-        protected class AggregatedKey
+        protected sealed class AggregatedKey
         {
             public readonly ImmutableArray<DocumentId> DocumentIds;
             public readonly DiagnosticAnalyzer Analyzer;

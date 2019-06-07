@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
-        protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
+        protected sealed class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
@@ -57,10 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var diagnosticSource = (DiagnosticTableEntriesSource)source;
                 var snapshot = new TableEntriesSnapshot(diagnosticSource, version, items, trackingPoints);
 
-                if (diagnosticSource.SupportSpanTracking && !trackingPoints.IsDefaultOrEmpty)
+                var trackingDocumentId = diagnosticSource.TrackingDocumentId;
+                if (trackingDocumentId != null && !trackingPoints.IsDefaultOrEmpty)
                 {
                     // track the open document so that we can throw away tracking points on document close properly
-                    _tracker.TrackOpenDocument(diagnosticSource.TrackingDocumentId, diagnosticSource.Key, snapshot);
+                    _tracker.TrackOpenDocument(trackingDocumentId, diagnosticSource.Key, snapshot);
                 }
 
                 return snapshot;
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                    .ThenBy(d => d.Data.DataLocation?.OriginalEndColumn ?? 0);
             }
 
-            private class TableEntriesSource : DiagnosticTableEntriesSource
+            private sealed class TableEntriesSource : DiagnosticTableEntriesSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
@@ -230,7 +230,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _id;
                 public override string BuildTool => _buildTool;
-                public override bool SupportSpanTracking => _documentId != null;
                 public override DocumentId TrackingDocumentId => _documentId;
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
@@ -249,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
+            private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
             {
                 private readonly DiagnosticTableEntriesSource _source;
                 private FrameworkElement[] _descriptions;

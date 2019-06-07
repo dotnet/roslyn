@@ -67,16 +67,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source.Shutdown();
         }
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
+        private sealed class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
         {
-            private readonly Workspace _workspace;
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
             public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
                 : base(workspace)
             {
-                _workspace = workspace;
                 _identifier = identifier;
 
                 _todoListProvider = todoListProvider;
@@ -162,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnTodoListUpdated(object sender, TodoItemsUpdatedArgs e)
             {
-                if (_workspace != e.Workspace)
+                if (Workspace != e.Workspace)
                 {
                     return;
                 }
@@ -201,9 +199,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<TodoTableItem> GetItems()
                 {
-                    return _source._todoListProvider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(data => TodoTableItem.Create(_workspace, data))
-                                   .ToImmutableArray();
+                    return _source._todoListProvider.
+                        GetTodoItems(_workspace, _documentId, CancellationToken.None).
+                        SelectAsArray(data => TodoTableItem.Create(_workspace, data));
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTableItem> items)

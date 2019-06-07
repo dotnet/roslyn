@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class TableEntriesFactory<TItem> : ITableEntriesSnapshotFactory
+    internal sealed class TableEntriesFactory<TItem> : ITableEntriesSnapshotFactory
         where TItem : TableItem
     {
         private readonly object _gate = new object();
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        protected void UpdateVersion_NoLock()
+        private void UpdateVersion_NoLock()
         {
             _lastVersion++;
         }
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot;
         }
 
-        private class AggregatedEntriesSource
+        private sealed class AggregatedEntriesSource
         {
             private readonly EntriesSourceCollections _sources;
             private readonly AbstractTableDataSource<TItem> _tableSource;
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return _tableSource.CreateSnapshot(source, version, items, trackingPoints);
             }
 
-            private class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
+            private sealed class EmptySnapshot : AbstractTableEntriesSnapshot<TItem>
             {
                 public EmptySnapshot(int version)
                     : base(version, ImmutableArray<TItem>.Empty, ImmutableArray<ITrackingPoint>.Empty)
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private class EntriesSourceCollections
+            private sealed class EntriesSourceCollections
             {
                 private AbstractTableEntriesSource<TItem> _primary;
                 private Dictionary<object, AbstractTableEntriesSource<TItem>> _sources;

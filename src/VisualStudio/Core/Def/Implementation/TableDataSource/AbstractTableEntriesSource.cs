@@ -2,12 +2,13 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     /// <summary>
-    /// Provide information to create a ITableEntriesSnapshot
+    /// Provide information to create a <see cref="ITableEntriesSnapshot"/>.
     /// 
     /// This works on data that belong to logically same source of items such as one particular analyzer or todo list analyzer.
     /// </summary>
