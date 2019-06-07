@@ -379,7 +379,7 @@ function TestUsingOptimizedRunner() {
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
     #$args += " -testVsi"
-    $args += " -trait:Feature=Interactive"
+    $args += " -trait:Feature=ErrorSquiggles"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
     $args += " -trait:Feature=NetCore"

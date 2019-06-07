@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public virtual void VerifySyntaxErrorSquiggles()
+        public virtual void VerifySyntaxErrorSquiggles(int iteration)
         {
             VisualStudio.Editor.SetText(@"using System;
 using System.Collections.Generic;
@@ -42,7 +42,7 @@ namespace ConsoleApplication1
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[347-348]");
         }
 
-        public virtual void VerifySemanticErrorSquiggles()
+        public virtual void VerifySemanticErrorSquiggles(int iteration)
         {
             VisualStudio.Editor.SetText(@"using System;
 

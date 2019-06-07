@@ -16,18 +16,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfTheory, IterationData(25), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override void VerifySyntaxErrorSquiggles()
+        public override void VerifySyntaxErrorSquiggles(int iteration)
         {
-            base.VerifySyntaxErrorSquiggles();
+            base.VerifySyntaxErrorSquiggles(iteration);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfTheory, IterationData(25), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public override void VerifySemanticErrorSquiggles()
+        public override void VerifySemanticErrorSquiggles(int iteration)
         {
-            base.VerifySemanticErrorSquiggles();
+            base.VerifySemanticErrorSquiggles(iteration);
         }
     }
 }

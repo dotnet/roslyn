@@ -16,16 +16,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public override void VerifySyntaxErrorSquiggles()
+        [WpfTheory, IterationData(25), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public override void VerifySyntaxErrorSquiggles(int iteration)
         {
-            base.VerifySyntaxErrorSquiggles();
+            base.VerifySyntaxErrorSquiggles(iteration);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public override void VerifySemanticErrorSquiggles()
+        [WpfTheory, IterationData(25), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public override void VerifySemanticErrorSquiggles(int iteration)
         {
-            base.VerifySemanticErrorSquiggles();
+            base.VerifySemanticErrorSquiggles(iteration);
         }
     }
 }
