@@ -1611,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Rename file.
+        ///   Looks up a localized string similar to Rename _file.
         /// </summary>
         internal static string Rename_file {
             get {
@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Rename file (type does not match file name).
+        ///   Looks up a localized string similar to Rename _file (type does not match file name).
         /// </summary>
         internal static string Rename_file_name_doesnt_match {
             get {
@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Rename file (not allowed on partial types).
+        ///   Looks up a localized string similar to Rename _file (not allowed on partial types).
         /// </summary>
         internal static string Rename_file_partial_type {
             get {

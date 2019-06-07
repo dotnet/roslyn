@@ -88,18 +88,18 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_file">
-        <source>_Rename file</source>
-        <target state="new">_Rename file</target>
+        <source>Rename _file</source>
+        <target state="new">Rename _file</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
-        <source>_Rename file (type does not match file name)</source>
-        <target state="new">_Rename file (type does not match file name)</target>
+        <source>Rename _file (type does not match file name)</source>
+        <target state="new">Rename _file (type does not match file name)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_partial_type">
-        <source>_Rename file (not allowed on partial types)</source>
-        <target state="new">_Rename file (not allowed on partial types)</target>
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="new">Rename _file (not allowed on partial types)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
