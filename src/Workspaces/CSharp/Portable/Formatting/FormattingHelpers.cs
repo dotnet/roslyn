@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return token.Parent is ExpressionSyntax;
+            return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
         }
 
         public static bool IsCloseBraceOfEmbeddedBlock(this SyntaxToken token)

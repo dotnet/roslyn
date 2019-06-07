@@ -3,14 +3,14 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
+Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
         Private Class Indenter
             Inherits AbstractIndenter

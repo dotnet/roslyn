@@ -305,7 +305,7 @@ class C
             var source = @"
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         local(new C());
@@ -329,7 +329,7 @@ class C
 interface I<T> { }
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         void local<T>(T t) where T : I<C?>
@@ -351,7 +351,7 @@ class C
             var source = @"
 class C
 {
-" + NonNullTypesOn() + @"
+#nullable enable
     void M1()
     {
         local(new C());
@@ -474,9 +474,9 @@ public class B2 : A<object?>
 public class A : I<object>
 {
 }
-" + NonNullTypesOff() + @"
+#nullable disable
 public class AOblivious : I<object> { }
-" + NonNullTypesOn() + @"
+#nullable enable
 public class B : I<object?>
 {
 }
@@ -496,9 +496,9 @@ public class B : I<object?>
 @"class C
 {
     static void F(I<object> x, I<object?> y) { }
-" + NonNullTypesOff() + @"
+#nullable disable
     static void FOblivious(I<object> x) { }
-" + NonNullTypesOn() + @"
+#nullable enable
     static void G(A x, B y, AOblivious z)
     {
         F(x, x);

@@ -142,21 +142,6 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(result == s_unset || result == parent);
         }
 
-        /// <summary>
-        /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
-        ///
-        /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
-        /// </summary>
-        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
-        {
-            return new LazyNoneOperation(getChildren, semanticModel, node, constantValue, isImplicit);
-        }
-
-        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, ImmutableArray<IOperation> children, bool isImplicit)
-        {
-            return new NoneOperation(children, semanticModel, node, constantValue, isImplicit);
-        }
-
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
         {
             // explicit cast is not allowed, so using "as" instead
@@ -210,48 +195,6 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifyParentOperation(parent, child);
             }
-        }
-
-        private abstract class BaseNoneOperation : Operation
-        {
-            protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-                base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
-            {
-            }
-
-            public override void Accept(OperationVisitor visitor)
-            {
-                visitor.VisitNoneOperation(this);
-            }
-
-            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                return visitor.VisitNoneOperation(this, argument);
-            }
-        }
-
-        private class NoneOperation : BaseNoneOperation
-        {
-            public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-                base(semanticModel, syntax, constantValue, isImplicit)
-            {
-                Children = SetParentOperation(children, this);
-            }
-
-            public override IEnumerable<IOperation> Children { get; }
-        }
-
-        private class LazyNoneOperation : BaseNoneOperation
-        {
-            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
-
-            public LazyNoneOperation(Func<ImmutableArray<IOperation>> getChildren, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-                base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
-            {
-                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
-            }
-
-            public override IEnumerable<IOperation> Children => SetParentOperation(_lazyChildren.Value, this);
         }
 
         private static readonly ObjectPool<Queue<IOperation>> s_queuePool =
