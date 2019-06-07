@@ -249,7 +249,7 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        public async Task LiveErrorZeroLengthSpan()
+        public async Task ZeroLengthSpan()
         {
             var workspaceXml =
 @"<Workspace>
@@ -266,7 +266,7 @@ class Program
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id, buildTool: null,
+                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id, buildTool: null,
                     ImmutableArray.Create(
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
@@ -279,13 +279,6 @@ class Program
 
             Assert.Equal(1, first.Span.Span.Length);
             Assert.Equal(1, second.Span.Span.Length);
-        }
-
-        private class LiveId : ISupportLiveUpdate
-        {
-            public LiveId()
-            {
-            }
         }
 
         private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)

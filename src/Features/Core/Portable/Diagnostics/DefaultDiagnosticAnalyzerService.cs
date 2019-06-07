@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
             }
 
-            private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
+            private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>
             {
                 private readonly string _workspaceKind;
 

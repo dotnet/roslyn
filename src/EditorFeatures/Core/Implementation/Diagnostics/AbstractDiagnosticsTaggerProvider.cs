@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal abstract bool IsEnabled { get; }
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
-        protected internal abstract ITagSpan<TTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+        protected internal abstract ITagSpan<TTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data);
 
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
@@ -160,8 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 var diagnostics = _diagnosticService.GetDiagnostics(
                     workspace, document.Project.Id, document.Id, id, false, cancellationToken);
 
-                var isLiveUpdate = id is ISupportLiveUpdate;
-
                 var requestedSpan = spanToTag.SnapshotSpan;
                 var editorSnapshot = requestedSpan.Snapshot;
 
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         if (diagnosticSpan.IntersectsWith(requestedSpan) &&
                             !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                         {
-                            var tagSpan = this.CreateTagSpan(isLiveUpdate, diagnosticSpan, diagnosticData);
+                            var tagSpan = this.CreateTagSpan(diagnosticSpan, diagnosticData);
                             if (tagSpan != null)
                             {
                                 context.AddTag(tagSpan);

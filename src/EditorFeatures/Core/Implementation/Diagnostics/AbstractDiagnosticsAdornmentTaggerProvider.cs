@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected sealed internal override bool IsEnabled => true;
 
-        protected sealed internal override ITagSpan<TTag> CreateTagSpan(
-            bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected sealed internal override ITagSpan<TTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(data);
             if (errorTag == null)
@@ -33,9 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            // Live update squiggles have to be at least 1 character long.
-            var minimumLength = isLiveUpdate ? 1 : 0;
-            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
+            // update squiggles to be at least 1 character long.
+            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength: 1);
             if (adjustedSpan.Length == 0)
             {
                 return null;

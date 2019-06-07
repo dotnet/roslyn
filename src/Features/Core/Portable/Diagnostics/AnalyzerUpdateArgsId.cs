@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Base type of a type that is used as <see cref="UpdatedEventArgs.Id"/> for live diagnostic
     /// </summary>
-    internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
+    internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>
     {
         public DiagnosticAnalyzer Analyzer => _Field1;
 

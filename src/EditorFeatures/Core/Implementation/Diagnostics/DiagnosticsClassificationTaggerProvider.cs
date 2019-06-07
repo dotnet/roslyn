@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
             data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data) =>
             new TagSpan<ClassificationTag>(span, _classificationTag);
     }
 }
