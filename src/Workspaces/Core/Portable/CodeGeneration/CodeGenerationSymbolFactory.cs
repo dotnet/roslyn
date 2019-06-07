@@ -461,7 +461,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 property.RefKind,
                 explicitInterfaceImplementations,
                 name ?? property.Name,
-                property.Parameters,
+                // There is no need for an override to have same parameters attributes as the original property.
+                // Just clear attributes when generating an override.
+                property.Parameters.SelectAsArray(p => p.WithAttributes(ImmutableArray<AttributeData>.Empty)),
                 getMethod,
                 setMethod,
                 isIndexer ?? property.IsIndexer);
