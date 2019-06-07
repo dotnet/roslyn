@@ -48,7 +48,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
-            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var unambiguousFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            if (unambiguousFixes.IsEmpty)
+            {
+                return document.Project;
+            }
+
+            // We do not want to add project or framework references without the user's input, so filter those out.
+            var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
             if (usableFixes.IsEmpty)
             {
                 return document.Project;
@@ -57,6 +64,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Apply those fixes to the document.
             var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
             return newDocument.Project;
+        }
+
+        private bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
+        {
+            return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
+                && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
+                && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
