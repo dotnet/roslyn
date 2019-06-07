@@ -26,11 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, ranges) = CreateTestSolution(markup);
             var codeActionLocation = ranges["caret"].First();
 
-            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(solution, CreateExecuteCommandParams(codeActionLocation));
+            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(solution, CreateExecuteCommandParams(codeActionLocation, "Use implicit type"));
             Assert.True((bool)results);
         }
 
-        private static LSP.ExecuteCommandParams CreateExecuteCommandParams(LSP.Location location)
+        private static LSP.ExecuteCommandParams CreateExecuteCommandParams(LSP.Location location, string title)
             => new LSP.ExecuteCommandParams()
             {
                 Command = "_liveshare.remotecommand.Roslyn",
@@ -41,8 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
                         CommandIdentifier = "Roslyn.RunCodeAction",
                         Arguments = new RunCodeActionParams[]
                         {
-                            CreateRunCodeActionParams("Use implicit type", location)
-                        }
+                            CreateRunCodeActionParams(title, location)
+                        },
+                        Title = title
                     })
                 }
             };
