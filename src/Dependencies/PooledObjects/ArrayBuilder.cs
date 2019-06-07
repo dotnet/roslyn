@@ -526,6 +526,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void SortAndRemoveDuplicates(IComparer<T> comparer)
         {
+            if (Count <= 1)
+            {
+                return;
+            }
+
             Sort(comparer);
 
             int j = 0;
@@ -538,7 +543,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 }
             }
 
-            Clip(j);
+            Clip(j + 1);
         }
 
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)

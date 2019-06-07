@@ -36,6 +36,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder.SortAndRemoveDuplicates(Comparer<int>.Default);
             AssertEx.Equal(new[] { 1 }, builder);
 
+            builder = new ArrayBuilder<int> { 1, 2 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2 }, builder);
+
+            builder = new ArrayBuilder<int> { 1, 2, 3 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2, 3 }, builder);
+
+            builder = new ArrayBuilder<int> { 1, 2, 2 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2 }, builder);
+
             builder = new ArrayBuilder<int>();
             builder.SortAndRemoveDuplicates(Comparer<int>.Default);
             AssertEx.Equal(new int[0], builder);
