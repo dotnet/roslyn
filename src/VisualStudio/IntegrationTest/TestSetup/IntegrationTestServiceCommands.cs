@@ -9,6 +9,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -112,8 +113,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 _serviceChannel.StartListening(null);
 
                 var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
+
                 var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
                 asyncCompletionTracker.StartListening();
+
+                var projectOperationProgressTracker = componentModel.GetService<ProjectOperationProgressTracker>();
+                ThreadHelper.JoinableTaskFactory.Run(() => projectOperationProgressTracker.StartListeningAsync(CancellationToken.None));
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
             }
