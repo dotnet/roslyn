@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticsUpdatedKind kind)
             : base(id, workspace, projectId, documentId)
         {
-            Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
+            // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
+            // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
+
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;

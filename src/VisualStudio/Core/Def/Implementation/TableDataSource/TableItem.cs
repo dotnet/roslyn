@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal static void GetProjectNameAndGuid(Workspace workspace, ProjectId projectId, out string projectName, out Guid projectGuid)
         {
-            projectName = workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
+            projectName = (projectId == null) ? null : workspace.CurrentSolution.GetProject(projectId)?.Name ?? ServicesVSResources.Unknown2;
             projectGuid = (projectId != null && workspace is VisualStudioWorkspace vsWorkspace) ? vsWorkspace.GetProjectGuid(projectId) : Guid.Empty;
         }
 

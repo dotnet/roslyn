@@ -30,18 +30,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
         {
-            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
-
+            Debug.Assert(projectId != null);
+            Debug.Assert(errorCodePrefix != null);
             Debug.Assert(workspace != null);
-
-            // TODO: re-enable this assert; right now it'll fail in unit tests
-            // Debug.Assert(diagnosticProvider != null);
+            Debug.Assert(diagnosticProvider != null);
 
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
             _diagnosticProvider = diagnosticProvider;
+
+            KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
+            {
+                KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
+                _diagnosticProvider.OnSolutionBuildStarted();
+            });
         }
 
         private void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
