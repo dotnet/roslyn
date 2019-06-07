@@ -597,7 +597,6 @@ try {
   if ($ci) {
     List-Processes
     Prepare-TempDir
-    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }
@@ -615,6 +614,7 @@ try {
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
+    EnablePreviewSdks
     BuildSolution
   }
 
