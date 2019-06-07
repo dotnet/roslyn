@@ -1241,7 +1241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public override IVsHierarchy GetHierarchy(ProjectId projectId)
         {
-            _foregroundObject.AssertIsForeground();
+            // TODO: XAML calls this on a background thread: https://github.com/dotnet/roslyn/issues/36223
+            // _foregroundObject.AssertIsForeground();
 
             // This doesn't take a lock since _projectToGuidMap is immutable
             return _projectToGuidMap.TryGetValue(projectId, out var projectGuid) &&
