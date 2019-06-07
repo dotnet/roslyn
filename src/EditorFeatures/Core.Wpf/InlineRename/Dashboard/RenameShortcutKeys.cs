@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             SearchInComments = ExtractAccessKey(EditorFeaturesResources.Include_comments, "C");
             PreviewChanges = ExtractAccessKey(EditorFeaturesResources.Preview_changes1, "P");
             Apply = ExtractAccessKey(EditorFeaturesResources.Apply1, "A");
-            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_file, "R");
+            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_file, "F");
         }
 
         /// <summary>
