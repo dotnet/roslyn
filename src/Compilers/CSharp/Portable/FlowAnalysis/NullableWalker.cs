@@ -3017,8 +3017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<VisitArgumentResult>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                (_, _, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-
+                FlowAnalysisAnnotations parameterAnnotations = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded).Annotations;
                 builder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
             }
 
@@ -3179,7 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // check whether parameter would unsafely let a null out in the worse case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), useLegacyWarnings: false);
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
                         }
                     }
                     break;
@@ -3201,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // check whether parameter would unsafely let a null out in the worse case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), useLegacyWarnings: UseLegacyWarnings(argument, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
