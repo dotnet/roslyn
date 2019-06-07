@@ -2,9 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,13 +95,10 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [WpfTheory]
-        [IterationData(100)]
-        [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void TypingHelpDirectiveWorks(int iteration)
+        // This test is flaky when legacy completion is enabled
+        [ConditionalWpfFact(typeof(AsyncCompletionCondition))]
+        public void TypingHelpDirectiveWorks()
         {
-            _ = iteration;
-
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test
@@ -111,12 +106,6 @@ w.Content = g;");
             VisualStudio.SendKeys.Send("#help");
 
             Assert.EndsWith("#help", VisualStudio.InteractiveWindow.GetReplText());
-
-            if (!LegacyCompletionCondition.Instance.ShouldSkip)
-            {
-                // Legacy completion is known to interfere with this test, so dismiss it
-                VisualStudio.SendKeys.Send(VirtualKey.Escape);
-            }
 
             VisualStudio.SendKeys.Send("\n");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("REPL commands");

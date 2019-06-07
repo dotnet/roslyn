@@ -378,6 +378,7 @@ function TestUsingOptimizedRunner() {
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
+    #$args += " -testVsi"
     $args += " -trait:Feature=Interactive"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
@@ -432,6 +433,22 @@ function TestUsingOptimizedRunner() {
       Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
+}
+
+function EnablePreviewSdks() {
+  $vsInfo = LocateVisualStudio
+  if ($vsInfo -eq $null) {
+    # Preview SDKs are allowed when no Visual Studio instance is installed
+    return
+  }
+
+  $vsId = $vsInfo.instanceId
+  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
+  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
+  Create-Directory $instanceDir
+  $sdkFile = Join-Path $instanceDir "sdk.txt"
+  'UsePreviews=True' | Set-Content $sdkFile
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
@@ -588,6 +605,7 @@ try {
   if ($ci) {
     List-Processes
     Prepare-TempDir
+    EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun 
     }

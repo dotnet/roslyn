@@ -103,16 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            if (!ErrorHandler.Succeeded(hierarchyOpt.GetGuidProperty(
-                (uint)VSConstants.VSITEMID.Root,
-                (int)__VSHPROPID.VSHPROPID_ProjectIDGuid,
-                out var projectId)))
+            if (!hierarchyOpt.TryGetProjectGuid(out var projectGuid))
             {
                 return null;
             }
 
             var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-            if (!ErrorHandler.Succeeded(solution.GetProjectOfGuid(projectId, out var projectHierarchy)))
+            if (!ErrorHandler.Succeeded(solution.GetProjectOfGuid(projectGuid, out var projectHierarchy)))
             {
                 return null;
             }

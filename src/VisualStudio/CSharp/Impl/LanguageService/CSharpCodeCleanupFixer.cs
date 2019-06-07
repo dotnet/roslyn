@@ -83,9 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 ProjectId projectId = null;
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
-                    && contextProjectNameObject is string contextProjectName)
+                    && contextProjectNameObject is string contextProjectName
+                    && hierarchy.TryGetProjectGuid(out var projectGuid))
                 {
-                    projectId = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName)?.Id;
+                    projectId = _workspace.GetProjectWithGuidAndName(projectGuid, contextProjectName)?.Id;
                 }
 
                 if (projectId is null)
