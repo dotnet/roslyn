@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         private static AssignmentExpressionSyntax GetGlobalStatementSyntaxChange(SyntaxTree newTree)
         {
             var statementType = newTree.GetCompilationUnitRoot().Members[0] as GlobalStatementSyntax;
+            Assert.Null(statementType.AttributeLists);
+            Assert.Null(statementType.Modifiers);
             var statement = statementType.Statement as ExpressionStatementSyntax;
             var expression = statement.Expression as AssignmentExpressionSyntax;
             return expression;
