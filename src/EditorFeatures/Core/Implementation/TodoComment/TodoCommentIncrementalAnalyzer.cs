@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return new TodoItem(
                 comment.Descriptor.Priority,
                 comment.Message,
-                document.Project.Solution.Workspace,
                 document.Id,
                 mappedLine: mappedLineInfo.StartLinePosition.Line,
                 originalLine: originalLineInfo.StartLinePosition.Line,
