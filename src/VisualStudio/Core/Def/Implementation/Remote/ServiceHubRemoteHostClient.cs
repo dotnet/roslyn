@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // after shutdown.
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments.AsArray(), _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex))
             {
