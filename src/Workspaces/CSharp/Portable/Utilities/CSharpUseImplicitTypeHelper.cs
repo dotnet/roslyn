@@ -198,17 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
 
-            if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
-            {
-                return false;
-            }
-
-            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
-            // speculative analyzers) here.  This is due to
-            // https://github.com/dotnet/roslyn/issues/20724. Specifically, all the speculative
-            // helpers do not deal with  changes to code that introduces a variable (in this case,
-            // the declaration expression).  The compiler sees this as an error because there are
-            // now two colliding variables, which causes all sorts of errors to be reported.
+            // Do the expensive check
             var tree = semanticModel.SyntaxTree;
             var root = tree.GetRoot(cancellationToken);
             var annotation = new SyntaxAnnotation();
@@ -220,10 +210,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationTypeNode,
                 SyntaxFactory.IdentifierName("var").WithTriviaFrom(declarationTypeNode).WithAdditionalAnnotations(annotation));
 
-            var newTree = tree.WithRootAndOptions(newRoot, tree.Options);
-            var newSemanticModel = semanticModel.Compilation.ReplaceSyntaxTree(tree, newTree).GetSemanticModel(newTree);
+            SemanticModel newSemanticModel;
+            if (semanticModel.IsSpeculativeSemanticModel)
+            {
+                var originalSemanticModel = semanticModel.GetOriginalSemanticModel();
+                var position = semanticModel.OriginalPositionForSpeculation;
+                switch (newRoot)
+                {
+                    case StatementSyntax statement:
+                        if (!originalSemanticModel.TryGetSpeculativeSemanticModel(position, statement, out newSemanticModel))
+                        {
+                            return false;
+                        }
 
-            var newDeclarationTypeNode = newTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
+                        break;
+
+                    default:
+                        return false;
+                }
+            }
+            else
+            {
+                var newTree = tree.WithRootAndOptions(newRoot, tree.Options);
+                newRoot = newTree.GetRoot(cancellationToken);
+                newSemanticModel = semanticModel.Compilation.ReplaceSyntaxTree(tree, newTree).GetSemanticModel(newTree);
+            }
+
+            var newDeclarationTypeNode = newRoot.GetAnnotatedNodes(annotation).Single();
             var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
 
             return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);

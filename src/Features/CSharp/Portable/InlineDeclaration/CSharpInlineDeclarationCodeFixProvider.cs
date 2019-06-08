@@ -215,61 +215,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 }
             }
 
-            // get the type that we want to put in the out-var-decl based on the user's options.
-            // i.e. prefer 'out var' if that is what the user wants.  Note: if we have:
-            //
-            //      Method(out var x)
-            //
-            // Then the type is not-apparent, and we should not use var if the user only wants
-            // it for apparent types
-
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            var newType = GenerateTypeSyntaxOrVar(local.Type, options);
+            var newType = local.Type.GenerateTypeSyntax();
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
-            // Check if using out-var changed problem semantics.
-            var semanticsChanged = SemanticsChanged(semanticModel, currentRoot, currentNode, identifier, declarationExpression);
-            if (semanticsChanged)
-            {
-                // Switching to 'var' changed semantics.  Just use the original type of the local.
-
-                // If the user originally wrote it something other than 'var', then use what they
-                // wrote.  Otherwise, synthesize the actual type of the local.
-                var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
-                declarationExpression = SyntaxFactory.DeclarationExpression(explicitType, declarationExpression.Designation);
-            }
-
             editor.ReplaceNode(identifier, declarationExpression);
 
             return editor.GetChangedRoot();
-        }
-
-        public static TypeSyntax GenerateTypeSyntaxOrVar(
-           ITypeSymbol symbol, OptionSet options)
-        {
-            var useVar = IsVarDesired(symbol, options);
-
-            // Note: we cannot use ".GenerateTypeSyntax()" only here.  that's because we're
-            // actually creating a DeclarationExpression and currently the Simplifier cannot
-            // analyze those due to limitations between how it uses Speculative SemanticModels
-            // and how those don't handle new declarations well.
-            return useVar
-                ? SyntaxFactory.IdentifierName("var")
-                : symbol.GenerateTypeSyntax();
-        }
-
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options)
-        {
-            // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type.IsSpecialType() == true)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
-            }
-
-            // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

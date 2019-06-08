@@ -213,6 +213,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariablePreferVar2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(string v)
+    {
+        [|Guid|] i;
+        if (Guid.TryParse(v, out i))
+        {
+        }
+    }
+}",
+@"using System;
+class C
+{
+    void M(string v)
+    {
+        if (Guid.TryParse(v, out var i))
+        {
+        }
+    }
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariablePreferVarExceptForPredefinedTypes1()
         {
             await TestInRegularAndScriptAsync(
