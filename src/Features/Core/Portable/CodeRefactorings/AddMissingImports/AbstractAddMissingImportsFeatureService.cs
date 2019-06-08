@@ -49,10 +49,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             // Find fixes for the diagnostic where there is only a single fix.
             var unambiguousFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
-            if (unambiguousFixes.IsEmpty)
-            {
-                return document.Project;
-            }
 
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
