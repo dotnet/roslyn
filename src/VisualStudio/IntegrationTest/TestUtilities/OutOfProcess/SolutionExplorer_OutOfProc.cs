@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -116,6 +117,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
             _inProc.OpenFile(project.Name, fileName);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            _instance.WaitForApplicationIdle(cancellationTokenSource.Token);
         }
 
         public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
