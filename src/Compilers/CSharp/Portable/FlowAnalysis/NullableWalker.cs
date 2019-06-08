@@ -3042,6 +3042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (annotations & (FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse))
                     {
                         case FlowAnalysisAnnotations.AssertsTrue:
+                        case FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse:
                             Visit(argument);
                             if (IsConditionalState)
                             {
