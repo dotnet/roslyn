@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal),
+                (stateSet.Analyzer, project.Id, AnalysisKind.NonLocal),
                 project.Solution.Workspace,
                 project.Solution,
                 project.Id,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal),
+                (stateSet.Analyzer, projectId, AnalysisKind.NonLocal),
                 Workspace,
                 solution,
                 projectId,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(stateSet.Analyzer, document.Id, kind),
+                (stateSet.Analyzer, document.Id, kind),
                 document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
@@ -194,27 +194,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(stateSet.Analyzer, documentId, kind),
+                (stateSet.Analyzer, documentId, kind),
                 Workspace,
                 solution,
                 documentId.ProjectId,
                 documentId,
                 stateSet.ErrorSourceName));
-        }
-
-        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind)
-        {
-            return CreateIdInternal(analyzer, key, kind);
-        }
-
-        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind)
-        {
-            return CreateIdInternal(analyzer, key, kind);
-        }
-
-        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind)
-        {
-            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind);
         }
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)

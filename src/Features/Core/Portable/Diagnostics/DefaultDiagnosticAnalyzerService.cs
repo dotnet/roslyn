@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
 
                 _service.RaiseDiagnosticsUpdated(
-                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
+                    DiagnosticsUpdatedArgs.DiagnosticsCreated((_workspace.Kind, kind, document.Id),
                     _workspace, document.Project.Solution, document.Project.Id, document.Id, PredefinedBuildTools.Live, diagnosticData.ToImmutableArrayOrEmpty()));
 
                 IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
                 _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, solution: null, documentId.ProjectId, documentId, PredefinedBuildTools.Live));
+                    (_workspace.Kind, kind, documentId), _workspace, solution: null, documentId.ProjectId, documentId, PredefinedBuildTools.Live));
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -191,31 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void RemoveProject(ProjectId projectId)
             {
-            }
-
-            private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>
-            {
-                private readonly string _workspaceKind;
-
-                public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
-                {
-                    _workspaceKind = workspaceKind;
-                }
-
-                public override bool Equals(object obj)
-                {
-                    if (!(obj is DefaultUpdateArgsId other))
-                    {
-                        return false;
-                    }
-
-                    return _workspaceKind == other._workspaceKind && base.Equals(obj);
-                }
-
-                public override int GetHashCode()
-                {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
-                }
             }
         }
     }

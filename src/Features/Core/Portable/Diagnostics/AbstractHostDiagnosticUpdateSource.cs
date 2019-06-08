@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.GetAnalyzerAssemblyName();
 
             return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName, diagnostics: items.ToImmutableArray());
-
+                (this, analyzer, project?.Id), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName, diagnostics: items.ToImmutableArray());
         }
 
         private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project project)
@@ -144,10 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.GetAnalyzerAssemblyName();
 
             return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName);
+                (this, analyzer, project?.Id), Workspace, project?.Solution, project?.Id, documentId: null, buildTool: analyzerName);
         }
-
-        private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project project) => new HostArgsId(this, analyzer, project?.Id);
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
@@ -174,33 +171,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return diagnostics;
-            }
-        }
-
-        private class HostArgsId : AnalyzerUpdateArgsId
-        {
-            private readonly AbstractHostDiagnosticUpdateSource _source;
-            private readonly ProjectId _projectIdOpt;
-
-            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt) : base(analyzer)
-            {
-                _source = source;
-                _projectIdOpt = projectIdOpt;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (!(obj is HostArgsId other))
-                {
-                    return false;
-                }
-
-                return _source == other._source && _projectIdOpt == other._projectIdOpt && base.Equals(obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectIdOpt == null ? 1 : _projectIdOpt.GetHashCode(), base.GetHashCode()));
             }
         }
     }

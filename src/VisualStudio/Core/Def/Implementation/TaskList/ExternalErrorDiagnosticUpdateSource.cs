@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly object _gate = new object();
         private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
+        private readonly object _id = new object();
 
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspace workspace,
@@ -226,19 +227,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (item is ProjectId projectId)
             {
-                RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
+                RaiseDiagnosticsCreated(solution, projectId, documentId: null, buildErrors);
                 return;
             }
 
             // must be not null
             var documentId = item as DocumentId;
-            RaiseDiagnosticsCreated(documentId, solution, documentId.ProjectId, documentId, buildErrors);
+            RaiseDiagnosticsCreated(solution, documentId.ProjectId, documentId, buildErrors);
         }
 
         private void ClearProjectErrors(Solution solution, ProjectId projectId)
         {
             // remove all project errors
-            RaiseDiagnosticsRemoved(projectId, solution, projectId, documentId: null);
+            RaiseDiagnosticsRemoved(solution, projectId, documentId: null);
 
             var project = solution.GetProject(projectId);
             if (project == null)
@@ -255,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ClearDocumentErrors(Solution solution, ProjectId projectId, DocumentId documentId)
         {
-            RaiseDiagnosticsRemoved(documentId, solution, projectId, documentId);
+            RaiseDiagnosticsRemoved(solution, projectId, documentId);
         }
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
@@ -338,19 +339,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
+        private void RaiseDiagnosticsCreated(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                   CreateArgumentKey(id), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build, items));
+                MakeDiagnosticId(projectId, documentId), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build, items));
         }
 
-        private void RaiseDiagnosticsRemoved(object id, Solution solution, ProjectId projectId, DocumentId documentId)
+        private void RaiseDiagnosticsRemoved(Solution solution, ProjectId projectId, DocumentId documentId)
         {
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                   CreateArgumentKey(id), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build));
+                MakeDiagnosticId(projectId, documentId), _workspace, solution, projectId, documentId, buildTool: PredefinedBuildTools.Build));
         }
 
-        private static ArgumentKey CreateArgumentKey(object id) => new ArgumentKey(id);
+        private object MakeDiagnosticId(ProjectId projectId, DocumentId documentId)
+            => (_id, documentId ?? (object)projectId);
 
         private void RaiseBuildProgressChanged(BuildProgress progress)
         {
@@ -645,22 +647,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             private Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)
             {
                 return map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
-            }
-        }
-
-        private sealed class ArgumentKey : BuildToolId.Base<object>
-        {
-            public ArgumentKey(object key) : base(key)
-            {
-            }
-
-            public override bool Equals(object obj)
-                => obj is ArgumentKey &&
-                   base.Equals(obj);
-
-            public override int GetHashCode()
-            {
-                return base.GetHashCode();
             }
         }
 
