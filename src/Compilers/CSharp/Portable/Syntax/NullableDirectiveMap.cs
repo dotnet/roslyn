@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 switch (nn.SettingToken.Kind())
                 {
                     case SyntaxKind.EnableKeyword:
-                    case SyntaxKind.SafeOnlyKeyword:
                         state = true;
                         break;
                     case SyntaxKind.RestoreKeyword:

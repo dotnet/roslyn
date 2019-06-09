@@ -14,17 +14,26 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
     internal sealed class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
-        public static bool ShouldUseNativeEditorConfigSupport = Environment.GetEnvironmentVariable("ROSLYN_EDITORCONFIG_SUPPORT") == "native";
+        [ImportingConstructor]
+        public EditorConfigDocumentOptionsProviderFactory()
+        {
+        }
 
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
-            if (!ShouldUseNativeEditorConfigSupport)
+            if (!ShouldUseNativeEditorConfigSupport(workspace))
             {
                 // Simply disable if the feature isn't on
                 return null;
             }
 
             return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
+        }
+
+        public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
+        {
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.NativeEditorConfigSupport);
         }
 
         private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider

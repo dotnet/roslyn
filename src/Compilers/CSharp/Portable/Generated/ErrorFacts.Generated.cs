@@ -189,7 +189,6 @@
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                 case ErrorCode.WRN_ThrowPossibleNull:
-                case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -228,6 +227,8 @@
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_SpecialTypeAsBound:
                     return true;
                 default:
                     return false;

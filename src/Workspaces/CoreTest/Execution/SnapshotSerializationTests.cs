@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
@@ -612,7 +611,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCompilationOptions_NullableAndImport()
         {
-            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.SafeOnly).WithMetadataImportOptions(MetadataImportOptions.All);
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.Warnings).WithMetadataImportOptions(MetadataImportOptions.All);
             var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
 
             var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
@@ -718,83 +717,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
+            var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(new AssetProvider(service), syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+
             var workspace = new AdhocWorkspace();
-
-            var solutionObject = await service.GetValueAsync<SolutionStateChecksums>(syncScope.SolutionChecksum);
-            var solutionInfo = await service.GetValueAsync<SolutionInfo.SolutionAttributes>(solutionObject.Info).ConfigureAwait(false);
-
-            var projects = new List<ProjectInfo>();
-            foreach (var projectObject in solutionObject.Projects.ToProjectObjects(service))
-            {
-                var projectInfo = await service.GetValueAsync<ProjectInfo.ProjectAttributes>(projectObject.Info).ConfigureAwait(false);
-                if (!workspace.Services.IsSupported(projectInfo.Language))
-                {
-                    continue;
-                }
-
-                async Task<List<DocumentInfo>> CreateDocumentInfosAsync(ChecksumObjectCollection<DocumentStateChecksums> checksums)
-                {
-                    List<DocumentInfo> infos = new List<DocumentInfo>();
-
-                    foreach (var documentStateChecksums in checksums)
-                    {
-                        var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentStateChecksums.Info).ConfigureAwait(false);
-                        var text = await service.GetValueAsync<SourceText>(documentStateChecksums.Text).ConfigureAwait(false);
-
-                        // TODO: do we need version?
-                        infos.Add(
-                            DocumentInfo.Create(
-                                documentInfo.Id,
-                                documentInfo.Name,
-                                documentInfo.Folders,
-                                documentInfo.SourceCodeKind,
-                                TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
-                                documentInfo.FilePath,
-                                documentInfo.IsGenerated));
-                    }
-
-                    return infos;
-                }
-
-                var documents = await CreateDocumentInfosAsync(projectObject.Documents.ToDocumentObjects(service));
-
-                var p2p = new List<ProjectReference>();
-                foreach (var checksum in projectObject.ProjectReferences)
-                {
-                    var reference = await service.GetValueAsync<ProjectReference>(checksum).ConfigureAwait(false);
-                    p2p.Add(reference);
-                }
-
-                var metadata = new List<MetadataReference>();
-                foreach (var checksum in projectObject.MetadataReferences)
-                {
-                    var reference = await service.GetValueAsync<MetadataReference>(checksum).ConfigureAwait(false);
-                    metadata.Add(reference);
-                }
-
-                var analyzers = new List<AnalyzerReference>();
-                foreach (var checksum in projectObject.AnalyzerReferences)
-                {
-                    var reference = await service.GetValueAsync<AnalyzerReference>(checksum).ConfigureAwait(false);
-                    analyzers.Add(reference);
-                }
-
-                var additionalDocuments = await CreateDocumentInfosAsync(projectObject.AdditionalDocuments.ToDocumentObjects(service));
-                var analyzerConfigDocuments = await CreateDocumentInfosAsync(projectObject.AnalyzerConfigDocuments.ToDocumentObjects(service));
-
-                var compilationOptions = await service.GetValueAsync<CompilationOptions>(projectObject.CompilationOptions).ConfigureAwait(false);
-                var parseOptions = await service.GetValueAsync<ParseOptions>(projectObject.ParseOptions).ConfigureAwait(false);
-
-                projects.Add(
-                    ProjectInfo.Create(
-                        projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
-                        projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
-                        compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionalDocuments, projectInfo.IsSubmission)
-                    .WithAnalyzerConfigDocuments(analyzerConfigDocuments));
-            }
-
-            return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
+            return workspace.AddSolution(solutionInfo);
         }
 
         private static async Task<RemotableData> CloneAssetAsync(ISerializerService serializer, RemotableData asset)
@@ -833,6 +759,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private class NullLanguageService : INullLanguageService
         {
             public const string TestLanguage = nameof(TestLanguage);
+
+            [ImportingConstructor]
+            public NullLanguageService()
+            {
+            }
 
             // do nothing
         }

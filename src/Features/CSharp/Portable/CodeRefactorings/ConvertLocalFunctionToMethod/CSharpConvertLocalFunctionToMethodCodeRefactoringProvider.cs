@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
+        [ImportingConstructor]
+        public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
                 // Using symbol to get type arguments, since it could be inferred and not present in the source
                 var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol;
-                if (symbol?.OriginalDefinition != declaredSymbol)
+                if (!Equals(symbol?.OriginalDefinition, declaredSymbol))
                 {
                     continue;
                 }

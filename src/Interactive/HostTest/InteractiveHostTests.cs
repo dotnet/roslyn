@@ -1159,7 +1159,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
-            Assert.True(error.StartsWith(new Exception().Message));
+            Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
@@ -1173,7 +1173,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             var error = ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
         }
 
         [Fact]

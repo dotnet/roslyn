@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(conversions != null);
-                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
                 // https://github.com/dotnet/roslyn/issues/31752: Can we avoid generating extra
                 // diagnostics? And is this exponential when there are nested lambdas?
+                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
@@ -122,9 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        (Conversions)conversions,
                                        diagnostics,
                                        delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
-                                       returnTypes: returnTypes,
                                        initialState: nullableState,
-                                       analyzedNullabilityMapOpt: null);
+                                       analyzedNullabilityMapOpt: null,
+                                       snapshotBuilderOpt: null,
+                                       returnTypes);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
                 returnTypes.Free();
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> names,
             bool isAsync,
             bool hasErrors = false)
-            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(SymbolKind.ErrorType))
+            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());

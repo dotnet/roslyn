@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisSafetyWarnings;
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisNonSafetyWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisWarnings;
 
         static ErrorFacts()
         {
@@ -36,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullableValueTypeMayBeNull));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint));
             builder.Add(getId(ErrorCode.WRN_ThrowPossibleNull));
             builder.Add(getId(ErrorCode.WRN_UnboxPossibleNull));
             builder.Add(getId(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT));
@@ -44,12 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
             builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
-            NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
-
-            builder.Clear();
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
 
-            NullableFlowAnalysisNonSafetyWarnings = builder.ToImmutable();
+            NullableFlowAnalysisWarnings = builder.ToImmutable();
 
             string getId(ErrorCode errorCode)
             {
@@ -365,7 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
-                case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -413,6 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                case ErrorCode.WRN_SpecialTypeAsBound:
                     return 1;
                 default:
                     return 0;

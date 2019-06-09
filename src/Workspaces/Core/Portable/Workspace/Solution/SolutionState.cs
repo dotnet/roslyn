@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.TryGetCompilation(state.Id, out var compilation))
                 {
                     // if the symbol is the compilation's assembly symbol, we are done
-                    if (compilation.Assembly == assemblySymbol)
+                    if (Equals(compilation.Assembly, assemblySymbol))
                     {
                         return state;
                     }
@@ -1457,6 +1457,29 @@ namespace Microsoft.CodeAnalysis
             var oldDocument = this.GetAdditionalDocumentState(documentId);
 
             return WithAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// and version specified.
+        /// </summary>
+        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (textAndVersion == null)
+            {
+                throw new ArgumentNullException(nameof(textAndVersion));
+            }
+
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            var oldDocument = this.GetAnalyzerConfigDocumentState(documentId);
+
+            return WithAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode), textChanged: true);
         }
 
         /// <summary>

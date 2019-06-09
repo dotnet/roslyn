@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Host.HostContext
         private const string CSharpProjectType = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
         private const string VisualBasicProjectType = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
 
+        [ImportingConstructor]
+        public ProjectTypeLookupService()
+        {
+        }
+
         public string GetProjectType(Workspace workspace, ProjectId projectId)
         {
             if (workspace == null || projectId == null)

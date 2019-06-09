@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         private readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers;
 
-        [ImportingConstructor]
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public CSharpSyntaxClassificationService(HostLanguageServices languageServices)
         {

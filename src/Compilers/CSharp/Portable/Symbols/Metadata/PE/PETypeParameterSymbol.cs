@@ -296,11 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
                 {
-                    switch ((NullableAnnotation)transformFlag)
+                    switch (transformFlag)
                     {
-                        case NullableAnnotation.Annotated:
+                        case NullableAnnotationExtensions.AnnotatedAttributeValue:
                             return true;
-                        case NullableAnnotation.NotAnnotated:
+                        case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
                             return false;
                     }
                 }
@@ -309,11 +309,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool HasNotNullConstraint
+        {
+            get
+            {
+                return (_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
+                       ((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _) &&
+                       transformFlag == NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+            }
+        }
+
         internal override bool? IsNotNullableIfReferenceType
         {
             get
             {
-                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0)
+                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0 &&
+                    !HasNotNullConstraint)
                 {
                     PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
                     GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(module);

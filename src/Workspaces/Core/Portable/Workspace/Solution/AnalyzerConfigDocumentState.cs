@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis
             return (AnalyzerConfigDocumentState)base.UpdateText(text, mode);
         }
 
+        public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
+        {
+            return (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
+        }
+
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(

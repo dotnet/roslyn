@@ -85,4 +85,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
             throw new NotImplementedException("should not be called");
         }
     }
+
+    internal sealed class AssetProvider : IAssetProvider
+    {
+        private readonly IRemotableDataService _service;
+
+        public AssetProvider(IRemotableDataService service)
+        {
+            _service = service;
+        }
+
+        public Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return _service.GetValueAsync<T>(checksum);
+        }
+    }
+
 }

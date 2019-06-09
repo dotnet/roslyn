@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     [ExportOptionProvider, Shared]
     internal class ExtensionManagerOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ExtensionManagerOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ExtensionManagerOptions.DisableCrashingExtensions);
     }

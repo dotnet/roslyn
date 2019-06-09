@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpInferredMemberNameReducer(),
                 new CSharpDefaultExpressionReducer());
 
+        [ImportingConstructor]
         public CSharpSimplificationService() : base(s_reducers)
         {
         }

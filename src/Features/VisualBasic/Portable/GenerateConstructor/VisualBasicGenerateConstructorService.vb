@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
@@ -211,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then

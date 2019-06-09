@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
 
         private static EditorDialogService s_singleton;
 
+        [ImportingConstructor]
+        public EditorNotificationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             lock (s_gate)

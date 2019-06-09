@@ -534,6 +534,9 @@
   <data name="ERR_EventNeedsBothAccessors" xml:space="preserve">
     <value>'{0}': event property must have both add and remove accessors</value>
   </data>
+  <data name="ERR_AbstractEventHasAccessors" xml:space="preserve">
+    <value>'{0}': abstract event cannot use event accessor syntax</value>
+  </data>
   <data name="ERR_EventNotDelegate" xml:space="preserve">
     <value>'{0}': event must be of a delegate type</value>
   </data>
@@ -2819,16 +2822,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable, restore, enable or safeonly</value>
+    <value>Expected disable, restore or enable</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable, restore, enable or safeonly after #pragma warning</value>
-  </data>
-  <data name="WRN_IllegalPPWarningSafeOnly" xml:space="preserve">
-    <value>Expected nullable</value>
-  </data>
-  <data name="WRN_IllegalPPWarningSafeOnly_Title" xml:space="preserve">
-    <value>Expected nullable after #pragma warning safeonly</value>
+    <value>Expected disable, restore or enable after #pragma warning</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -4621,8 +4618,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Specify nullable context option enable|disable|warnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -4738,9 +4735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AutoPropertyMustOverrideSet" xml:space="preserve">
     <value>Auto-implemented properties must override all accessors of the overridden property.</value>
-  </data>
-  <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
-    <value>Instance auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
     <value>Structs without explicit constructors cannot contain members with initializers.</value>
@@ -5283,8 +5277,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
     <value>nullable reference types</value>
   </data>
-  <data name="IDS_FeaturePragmaWarningEnableOrSafeOnly" xml:space="preserve">
-    <value>warning action enable or safeonly</value>
+  <data name="IDS_FeaturePragmaWarningEnable" xml:space="preserve">
+    <value>warning action enable</value>
   </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>
@@ -5740,7 +5734,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
+    <value>Expected 'enable', 'disable', or 'restore'</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5752,7 +5746,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
@@ -5903,5 +5897,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureNestedStackalloc" xml:space="preserve">
     <value>stackalloc in nested expressions</value>
+  </data>
+  <data name="ERR_NotNullConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'notnull' constraint must come before any other constraints</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint" xml:space="preserve">
+    <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="WRN_SpecialTypeAsBound" xml:space="preserve">
+    <value>Constraint cannot be special class '{0}'</value>
+  </data>
+  <data name="WRN_SpecialTypeAsBound_Title" xml:space="preserve">
+    <value>Constraint cannot be special class</value>
+  </data>
+  <data name="IDS_NotNullGenericTypeConstraint" xml:space="preserve">
+    <value>notnull generic type constraint</value>
   </data>
 </root>

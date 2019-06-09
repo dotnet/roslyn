@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
     internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
         : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpIntroduceUsingStatementCodeRefactoringProvider()
+        {
+        }
+
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)

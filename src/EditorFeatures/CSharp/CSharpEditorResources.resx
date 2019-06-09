@@ -132,24 +132,4 @@
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
   </data>
-  <data name="Misplaced_using_directive" xml:space="preserve">
-    <value>Misplaced using directive</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Move_misplaced_using_directives" xml:space="preserve">
-    <value>Move misplaced using directives</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Using_directives_must_be_placed_inside_of_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed inside of a namespace declaration</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Using_directives_must_be_placed_outside_of_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed outside of a namespace declaration</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Warning_colon_Moving_using_directives_may_change_code_meaning" xml:space="preserve">
-    <value>Warning: Moving using directives may change code meaning.</value>
-    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
-  </data>
 </root>

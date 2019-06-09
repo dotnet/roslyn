@@ -3714,5 +3714,75 @@ class Program
     }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    private string? s;
+
+    public C(string? s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        string? s = null;
+        new C(s);
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWitNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<string?> s;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    private IEnumerable<string?> s;
+
+    public C(IEnumerable<string?> s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        IEnumerable<string?> s;
+        new C(s);
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+        }
     }
 }

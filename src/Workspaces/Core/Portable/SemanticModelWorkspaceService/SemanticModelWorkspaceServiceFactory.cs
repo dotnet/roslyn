@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
     [ExportWorkspaceServiceFactory(typeof(ISemanticModelService), ServiceLayer.Default), Shared]
     internal class SemanticModelWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public SemanticModelWorkspaceServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new SemanticModelService();

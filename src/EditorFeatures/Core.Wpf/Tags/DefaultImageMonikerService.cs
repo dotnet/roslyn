@@ -1,17 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
-    [ExportImageMonikerService(Name = Name), Shared]
+    [ExportImageMonikerService(Name = Name)]
     internal class DefaultImageMonikerService : IImageMonikerService
     {
         public const string Name = nameof(DefaultImageMonikerService);
+
+        [ImportingConstructor]
+        public DefaultImageMonikerService()
+        {
+        }
 
         public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
         {

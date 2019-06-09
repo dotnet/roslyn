@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
+            IEnumerable<DocumentInfo> analyzerConfigDocuments,
             bool isSubmission,
             Type hostObjectType,
             bool hasAllInformation)
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                 metadataReferences,
                 analyzerReferences,
                 additionalDocuments,
-                analyzerConfigDocuments: null,
+                analyzerConfigDocuments,
                 hostObjectType);
         }
 
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 

@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     Friend Class VisualBasicCompletionServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
         End Function
