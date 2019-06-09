@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.InteropServices;
+
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.CommandLine;
+#endif
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -33,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             MemoryHelper status = new MemoryHelper();
             GlobalMemoryStatusEx(status);
-            ulong max = status.MaxVirtual;
             ulong free = status.AvailableVirtual;
 
+#if !WORKSPACE
             int shift = 20;
             string unit = "MB";
             if (free >> shift == 0)
@@ -44,9 +46,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 unit = "KB";
             }
 
+            ulong max = status.MaxVirtual;
             CompilerServerLogger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
+#endif
 
             return free >= 800 << 20; // Value (500MB) is arbitrary; feel free to improve.
+        }
+
+        public static ulong GetMaxPhysicalMemory()
+        {
+            var status = new MemoryHelper();
+            GlobalMemoryStatusEx(status);
+            return status.MaxPhysical;
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]

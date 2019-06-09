@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FixAllContextHelper.cs" Link="CodeFixes\FixAllOccurrences\FixAllContextHelper.cs" />
+    <Compile Include="..\..\..\Compilers\Server\VBCSCompiler\MemoryHelper.cs" Link="Utilities\CompilerUtilities\MemoryHelper.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>

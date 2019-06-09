@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CompilerServer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -185,6 +186,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
                         WellKnownExperimentNames.RoslynOOP64bit);
+                }
+
+                if (!x64)
+                {
+                    // Use 64-bit OOP for systems with 32GiB+ memory
+                    x64 = MemoryHelper.GetMaxPhysicalMemory() >= 32UL * 1024 * 1024 * 1024;
                 }
 
                 // log OOP bitness
