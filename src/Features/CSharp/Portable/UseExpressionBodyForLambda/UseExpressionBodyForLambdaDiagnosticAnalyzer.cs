@@ -14,14 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     using static UseExpressionBodyForLambdaHelpers;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string FixesError = nameof(FixesError);
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId, 
+            : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    UseExpressionBodyTitle)
         {
         }

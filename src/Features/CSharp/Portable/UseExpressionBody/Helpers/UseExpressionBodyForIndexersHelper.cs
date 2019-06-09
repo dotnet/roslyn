@@ -71,5 +71,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 declaration, options, conversionPreference,
                 out arrowExpression, out semicolonToken);
         }
+
+        protected override Location GetDiagnosticLocation(IndexerDeclarationSyntax declaration)
+        {
+            var body = GetBody(declaration);
+            if (body != null)
+            {
+                return base.GetDiagnosticLocation(declaration);
+            }
+
+            var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+            return getAccessor.ExpressionBody.GetLocation();
+        }
     }
 }

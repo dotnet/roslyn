@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal class UseExpressionBodyForMethodsHelper : 
+    internal class UseExpressionBodyForMethodsHelper :
         UseExpressionBodyHelper<MethodDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForMethodsHelper Instance = new UseExpressionBodyForMethodsHelper();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var method = semanticModel.GetDeclaredSymbol(declaration);
                 return method.ReturnType is INamedTypeSymbol namedType && namedType.Arity != 0;
             }
-            
+
             return !declaration.ReturnType.IsVoid();
         }
     }

@@ -254,7 +254,7 @@ public class Program
                     Signature("Derived", "Finalize", ".method family hidebysig virtual instance System.Void Finalize() cil managed")
                 });
 
-        compVerifier.VerifyIL("Base.Finalize", @"
+            compVerifier.VerifyIL("Base.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -273,7 +273,7 @@ public class Program
   IL_0013:  ret
 }
 ");
-        compVerifier.VerifyIL("Derived.Finalize", @"
+            compVerifier.VerifyIL("Derived.Finalize", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -292,10 +292,10 @@ public class Program
   IL_0013:  ret
 }
 ");
-        compVerifier.VerifyDiagnostics();
+            compVerifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void DestructorOverridesNonDestructor()
         {
             var text = @"
@@ -360,7 +360,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -416,7 +416,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -454,6 +454,7 @@ public class Program
     }
 }
 ";
+
             var validator = GetDestructorValidator("Derived");
             var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,

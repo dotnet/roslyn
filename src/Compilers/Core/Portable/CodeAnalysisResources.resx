@@ -449,6 +449,9 @@
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
+  <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
@@ -629,5 +632,17 @@
   </data>
   <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
     <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
+    <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
+    <value>Invalid severity in analyzer config file.</value>
   </data>
 </root>

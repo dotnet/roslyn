@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected abstract bool FadeOutOperatorToken { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,

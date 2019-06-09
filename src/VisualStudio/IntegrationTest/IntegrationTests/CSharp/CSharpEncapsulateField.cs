@@ -6,14 +6,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpEncapsulateField : AbstractEditorTest
     {
-        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpEncapsulateField))
+        public CSharpEncapsulateField(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpEncapsulateField))
         {
         }
 
@@ -32,7 +33,7 @@ namespace myNamespace
     }
 }";
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19816")]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35701")]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {

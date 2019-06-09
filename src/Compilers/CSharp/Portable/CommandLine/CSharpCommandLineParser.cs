@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
+            NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
@@ -95,12 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
+            var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
+            var checksumAlgorithm = SourceHashAlgorithm.Sha256;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -161,7 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string name, value;
                 if (optionsEnded || !TryParseOption(arg, out name, out value))
                 {
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics));
+                    foreach (var path in ParseFileArgument(arg, baseDirectory, diagnostics))
+                    {
+                        sourceFiles.Add(ToCommandLineSourceFile(path));
+                    }
+
                     if (sourceFiles.Count > 0)
                     {
                         sourceFilesSpecified = true;
@@ -320,6 +326,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                             checkOverflow = false;
                             continue;
 
+                        case "nullable":
+
+                            value = RemoveQuotesAndSlashes(value);
+                            if (value != null)
+                            {
+                                if (value.IsEmpty())
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), name);
+                                    continue;
+                                }
+
+                                string loweredValue = value.ToLower();
+                                switch (loweredValue)
+                                {
+                                    case "disable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Disable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Disable;
+                                        break;
+                                    case "enable":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Enable).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Enable;
+                                        break;
+                                    case "warnings":
+                                        Debug.Assert(loweredValue == nameof(NullableContextOptions.Warnings).ToLower());
+                                        nullableContextOptions = NullableContextOptions.Warnings;
+                                        break;
+                                    default:
+                                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadNullableContextOption, value);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                nullableContextOptions = NullableContextOptions.Enable;
+                            }
+                            continue;
+
+
+                        case "nullable+":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            nullableContextOptions = NullableContextOptions.Enable;
+                            continue;
+
+                        case "nullable-":
+                            if (value != null)
+                                break;
+
+                            nullableContextOptions = NullableContextOptions.Disable;
+                            continue;
+
                         case "instrument":
                             value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrEmpty(value))
@@ -372,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             try
                             {
                                 preferredUILang = new CultureInfo(value);
-                                if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
+                                if ((preferredUILang.CultureTypes & CultureTypes.UserCustomCulture) != 0)
                                 {
                                     // Do not use user custom cultures.
                                     preferredUILang = null;
@@ -386,6 +446,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
                             }
+
+                            continue;
+
+                        case "nosdkpath":
+                            sdkDirectory = null;
 
                             continue;
 
@@ -1157,7 +1222,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                additionalFiles.Add(ToCommandLineSourceFile(path));
+                            }
+                            continue;
+
+                        case "analyzerconfig":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
+                                continue;
+                            }
+
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
                         case "embed":
@@ -1166,8 +1244,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 embedAllSourceFiles = true;
                                 continue;
                             }
-                            
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                embeddedFiles.Add(ToCommandLineSourceFile(path));
+                            }
                             continue;
                     }
                 }
@@ -1247,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SourceLinkRequiresPdb);
             }
-            
+
             if (embedAllSourceFiles)
             {
                 embeddedFiles.AddRange(sourceFiles);
@@ -1285,6 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usings: usings,
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
+                nullableContextOptions: nullableContextOptions,
                 allowUnsafe: allowUnsafe,
                 deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
@@ -1325,6 +1407,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
+            if (nullableContextOptions != NullableContextOptions.Disable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+            }
+
             return new CSharpCommandLineArguments
             {
                 IsScriptRunner = IsScriptCommandLineParser,
@@ -1349,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ChecksumAlgorithm = checksumAlgorithm,
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
+                AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),

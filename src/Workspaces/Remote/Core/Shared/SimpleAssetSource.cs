@@ -32,10 +32,11 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 if (_map.TryGetValue(checksum, out var data))
                 {
                     list.Add(ValueTuple.Create(checksum, data));
-                    continue;
                 }
-
-                Debug.Fail("How?");
+                else
+                {
+                    Debug.Fail($"Unable to find asset for {checksum}");
+                }
             }
 
             return Task.FromResult<IList<(Checksum, object)>>(list);

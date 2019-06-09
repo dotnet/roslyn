@@ -224,7 +224,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             }
         }
 
-        private static StringTable GetStringTable(Project project) 
+        private static StringTable GetStringTable(Project project)
             => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)

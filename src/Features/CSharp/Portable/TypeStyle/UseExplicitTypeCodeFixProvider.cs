@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         }
 
         internal static async Task HandleDeclarationAsync(
-            Document document, SyntaxEditor editor, 
+            Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

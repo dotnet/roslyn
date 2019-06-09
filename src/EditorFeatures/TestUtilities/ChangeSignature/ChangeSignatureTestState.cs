@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.ChangeSignature;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -78,6 +80,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     this.ErrorSeverity = severity;
                 },
                 CancellationToken.None);
+        }
+
+        public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
+        {
+            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
+
+            var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
+            return context.ParameterConfiguration;
         }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =

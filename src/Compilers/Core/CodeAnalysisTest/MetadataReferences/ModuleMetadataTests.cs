@@ -83,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"c:\*"));
 
             char systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"http://goo.bar"));
-            Assert.Throws<ArgumentException>(() => ModuleMetadata.CreateFromFile(@"\\.\COM1"));
-
+            Assert.Throws<IOException>(() => ModuleMetadata.CreateFromFile(@"http://goo.bar"));
             Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\file_that_does_not_exists.dll"));
             Assert.Throws<FileNotFoundException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\directory_that_does_not_exists\file_that_does_not_exists.dll"));
             Assert.Throws<PathTooLongException>(() => ModuleMetadata.CreateFromFile(systemDrive + @":\" + new string('x', 1000)));

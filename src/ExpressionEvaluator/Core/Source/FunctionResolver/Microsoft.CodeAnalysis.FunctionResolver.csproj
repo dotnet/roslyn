@@ -2,13 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <!-- This component is deployed with remote debugger tools. It needs to work on .NET Framework 4.5 and Core CLR 1.0 (Windows OneCore) -->
+    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
@@ -35,22 +34,20 @@
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
-    <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
-    <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="CSharp\FunctionResolver.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="VisualBasic\FunctionResolver.vsdconfigxml" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataVersion)</Version>
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation">
+      <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
-  <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

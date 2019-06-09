@@ -1153,7 +1153,7 @@ class Program
   IL_0001:  throw
 }");
         }
-        
+
         [Fact]
         public void RefExtensionMethod_PassThrough_LocalNoCopying()
         {

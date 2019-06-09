@@ -20,38 +20,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly IForegroundNotificationService _notificationService;
+        private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
+            _projectCodeModelFactory = projectCodeModelFactory;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
+            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
             if (visualStudioWorkspace == null)
             {
                 return null;
             }
 
-            return new Analyzer(_notificationService, _listener, visualStudioWorkspace);
+            return new Analyzer(_notificationService, _listener, visualStudioWorkspace, _projectCodeModelFactory);
         }
 
         private class Analyzer : IIncrementalAnalyzer
         {
             private readonly IForegroundNotificationService _notificationService;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly VisualStudioWorkspace _workspace;
+            private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
-            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspaceImpl workspace)
+            public Analyzer(IForegroundNotificationService notificationService, IAsynchronousOperationListener listener, VisualStudioWorkspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
             {
                 _notificationService = notificationService;
                 _listener = listener;
                 _workspace = workspace;
+                _projectCodeModelFactory = projectCodeModelFactory;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -71,13 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 _notificationService.RegisterNotification(() =>
                 {
-                    var project = _workspace.DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-                    if (project == null)
-                    {
-                        return false;
-                    }
+                    var projectCodeModel = _projectCodeModelFactory.TryGetProjectCodeModel(documentId.ProjectId);
 
-                    var projectCodeModel = project.ProjectCodeModel as ProjectCodeModel;
                     if (projectCodeModel == null)
                     {
                         return false;

@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogReanalyze(
-            int correlationId, 
-            IIncrementalAnalyzer analyzer, 
+            int correlationId,
+            IIncrementalAnalyzer analyzer,
             int documentCount,
             string languages,
             bool highPriority)
@@ -247,9 +247,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     m[CreateProperty(key, Max)] = result.Maximum;
                     m[CreateProperty(key, Min)] = result.Minimum;
-                    m[CreateProperty(key, Median)] = result.Median;
+                    m[CreateProperty(key, Median)] = result.Median.Value;
                     m[CreateProperty(key, Mean)] = result.Mean;
-                    m[CreateProperty(key, Mode)] = result.Mode;
+                    m[CreateProperty(key, Mode)] = result.Mode.Value;
                     m[CreateProperty(key, Range)] = result.Range;
                     m[CreateProperty(key, Count)] = result.Count;
                 }

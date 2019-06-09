@@ -411,6 +411,15 @@ Dim Goo _
                 "As")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AsAfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>
+Dim Goo _ ' Test
+| </MethodBody>,
+                "As")
+        End Function
+
         <WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterPublicAsyncTest() As Task

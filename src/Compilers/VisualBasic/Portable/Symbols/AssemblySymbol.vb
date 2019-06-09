@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
                         Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
                         Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
-                        candidate <> result Then
+                        Not TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
 
                         If (result IsNot Nothing) Then
                             ' Ambiguity

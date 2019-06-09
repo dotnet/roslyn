@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
                     select SymbolCompletionItem.CreateWithSymbolId(
-                       displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
+                       displayText: p.Name.ToIdentifierToken().ToString(),
+                       displayTextSuffix: SpaceEqualsString,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -177,7 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
                    select SymbolCompletionItem.CreateWithSymbolId(
-                       displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
+                       displayText: p.Name.ToIdentifierToken().ToString(),
+                       displayTextSuffix: ColonString,
                        insertionText: null,
                        symbols: ImmutableArray.Create(p),
                        contextPosition: token.SpanStart,
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {
-            var displayText = selectedItem.DisplayText;
+            var displayText = selectedItem.DisplayText + selectedItem.DisplayTextSuffix;
 
             if (ch != null)
             {

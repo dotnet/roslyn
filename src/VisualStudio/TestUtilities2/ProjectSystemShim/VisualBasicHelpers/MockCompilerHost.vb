@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
 
         Public Shared ReadOnly Property FullFrameworkCompilerHost As MockCompilerHost
             Get
-                Return New MockCompilerHost(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1"))
+                Return New MockCompilerHost("Z:\FullFramework")
             End Get
         End Property
 

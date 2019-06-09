@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSuppressNullableWarningExpression
-    {
-        public override object Display => Expression.Display;
-    }
-
     internal sealed partial class BoundLambda
     {
         public override object Display
@@ -155,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundStackAllocArrayCreation
     {
         public override object Display
-            => FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString());
+            => (Type is null) ? FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString()) : base.Display;
     }
 
     internal partial class BoundPassByCopy

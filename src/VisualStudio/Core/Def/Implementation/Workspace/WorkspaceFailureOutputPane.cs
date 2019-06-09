@@ -28,19 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             InvokeBelowInputPriorityAsync(() =>
             {
-                var outputPane = this.OutputPane;
-                if (outputPane == null)
-                {
-                    return;
-                }
-
-                outputPane.OutputString(e.Diagnostic.ToString() + Environment.NewLine);
+                this.OutputPaneOpt?.OutputString(e.Diagnostic.ToString() + Environment.NewLine);
             });
         }
 
         private IVsOutputWindowPane _doNotAccessDirectlyOutputPane;
 
-        private IVsOutputWindowPane OutputPane
+        private IVsOutputWindowPane OutputPaneOpt
         {
             get
             {
@@ -49,6 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (_doNotAccessDirectlyOutputPane == null)
                 {
                     var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+
+                    // This may run during the shutdown of Visual Studio and so we must be ready for the service
+                    // not being available.
+                    if (outputWindow == null)
+                    {
+                        return null;
+                    }
 
                     // Output Window panes have two states; initialized and active. The former is used to indicate that the pane
                     // can be made active ("selected") by the user, the latter indicates that the pane is currently active.

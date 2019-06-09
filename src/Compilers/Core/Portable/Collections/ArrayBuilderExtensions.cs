@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
         }
 
-        public static void AddIfNotNull<T> (this ArrayBuilder<T> builder, T? value)
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
             where T : struct
         {
             if (value != null)
@@ -172,6 +172,15 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.Add(value);
             }
+        }
+
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        {
+            foreach (var item in builder)
+            {
+                getNested(item)?.FreeAll(getNested);
+            }
+            builder.Free();
         }
     }
 }

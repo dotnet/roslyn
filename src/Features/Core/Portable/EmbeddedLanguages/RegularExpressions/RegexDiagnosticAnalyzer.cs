@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
     /// </summary>
-    internal sealed class RegexDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class RegexDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string DiagnosticId = "RE0001";
 
@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(Analyze);
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private void AnalyzeToken(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector, 
+            SemanticModelAnalysisContext context, RegexPatternDetector detector,
             SyntaxToken token, CancellationToken cancellationToken)
         {
             if (token.RawKind == _info.StringLiteralTokenKind)

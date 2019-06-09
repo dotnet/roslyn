@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                 if (container != null)
                                 {
                                     CascadeBetweenAnonymousFunctionParameters(
-                                        document, semanticModel, container, parameterAndProjectId, 
+                                        document, semanticModel, container, parameterAndProjectId,
                                         convertedType, results, cancellationToken);
                                 }
                             }
@@ -287,8 +287,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static void AddParameterAtIndex(
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
-            ArrayBuilder<SymbolAndProjectId> results, 
-            int ordinal, 
+            ArrayBuilder<SymbolAndProjectId> results,
+            int ordinal,
             ImmutableArray<IParameterSymbol>? parameters)
         {
             if (parameters != null && ordinal < parameters.Value.Length)

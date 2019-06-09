@@ -71,5 +71,21 @@ $$");
             await VerifyKeywordAsync(
 @"#pragma warning $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNullable()
+        {
+            await VerifyKeywordAsync(
+@"#nullable $$");
+        }
+
+        [Fact]
+        public async Task TestNotAfterNullableAndNewline()
+        {
+            await VerifyAbsenceAsync(@"
+#nullable 
+$$
+");
+        }
     }
 }

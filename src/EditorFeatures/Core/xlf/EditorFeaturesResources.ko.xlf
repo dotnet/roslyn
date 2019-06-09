@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">구성 변경</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -24,12 +24,57 @@
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
-        <target state="translated">이 메시지를 다시 표시 안 함</target>
+        <target state="translated">이 메시지를 다시 표시하지 않음</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">메서드 추출에서 다음 문제가 발생했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">필터</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">추가 정리를 수행 하는 문서</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">잘못된 어셈블리 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">키워드 - 제어</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">연산자 - 오버로드됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">붙여넣기 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -44,7 +89,72 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">문자열 - 이스케이프 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">기호 - 정적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">사용자 멤버 - 상수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">사용자 멤버 - 열거형 멤버</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">사용자 멤버 - 이벤트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">사용자 멤버 - 확장 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">사용자 멤버 - 필드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">사용자 멤버 - 레이블</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">사용자 멤버 - 로컬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">사용자 멤버 - 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">사용자 멤버 - 네임스페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">사용자 멤버 - 매개 변수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">사용자 멤버 - 속성</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -81,6 +191,11 @@
         <source>String - Verbatim</source>
         <target state="translated">문자열 - 축자</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">경고</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -202,6 +317,11 @@
         <target state="translated">이름 바꾸기로 {1}개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">충돌 {0}개가 해결됩니다.</target>
@@ -274,7 +394,7 @@
       </trans-unit>
       <trans-unit id="Applying_Encapsulate_Field_refactoring">
         <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">"필드 캡슐화" 리팩터링 적용 중...</target>
+        <target state="translated">"필드 캡슐화" 리팩토링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
@@ -594,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Applying_Extract_Method_refactoring">
         <source>Applying "Extract Method" refactoring...</source>
-        <target state="translated">"메서드 추출" 리팩터링 적용 중...</target>
+        <target state="translated">"메서드 추출" 리팩토링 적용 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Document">
@@ -882,20 +1002,10 @@
         <target state="translated">자동 서식</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">메서드를 추출하지 못한 이유는 다음과 같습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다.
+        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다. 
 계속하시겠습니까?</target>
         <note />
       </trans-unit>
@@ -906,7 +1016,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' 이름을 '{1}'(으)로 바꾸기:</target>
+        <target state="translated">'{0}'에서 '{1}'(으)로 이름 바꾸기:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             get
             {
-                throw new NotImplementedException();
+                return Event.Name;
             }
         }
 

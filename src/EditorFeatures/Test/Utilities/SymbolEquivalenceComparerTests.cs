@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         public static readonly CS.CSharpCompilationOptions CSharpSignedDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-            WithStrongNameProvider(s_defaultDesktopProvider);
+            WithStrongNameProvider(DefaultDesktopStrongNameProvider);
 
         [Fact]
         public async Task TestArraysAreEquivalent()

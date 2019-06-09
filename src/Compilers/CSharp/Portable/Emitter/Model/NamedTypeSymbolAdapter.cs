@@ -318,11 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            if (this.IsInterface)
-            {
-                yield break;
-            }
-
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             foreach (var member in this.GetMembers())
@@ -339,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
+                    }
+
+                    if (this.IsInterface)
+                    {
+                        continue;
                     }
 
                     if (method.RequiresExplicitOverride())
@@ -368,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+
+            if (this.IsInterface)
+            {
+                yield break;
             }
 
             var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
@@ -464,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                var type = TypeSymbolWithAnnotations.Create(@interface);
+                var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
                     declaringSymbol: this,
@@ -504,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>();
+                    seen = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsCLRSignatureComparer);
                 }
                 if (seen.Add(@interface))
                 {
@@ -868,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
 
                 return this.ContainingNamespace.QualifiedName;
-           }
+            }
         }
 
         bool Cci.INamespaceTypeDefinition.IsPublic
@@ -923,11 +928,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            var arguments = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
@@ -949,8 +954,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, 
-                                              diagnostics: context.Diagnostics, needDeclaration:true); 
+            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              diagnostics: context.Diagnostics, needDeclaration: true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

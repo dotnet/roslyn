@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
         // Ideally we'd use properties with no aliases, but currently that's not possible since empty aliases mean {global}.
-        private static readonly MetadataReferenceProperties s_resolvedMissingAssemblyReferenceProperties = 
+        private static readonly MetadataReferenceProperties s_resolvedMissingAssemblyReferenceProperties =
             MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
 
         internal static string GetDesktopFrameworkDirectory() => GacFileResolver.IsAvailable ?
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // file name to path:
         private static ImmutableDictionary<string, string> _lazyTrustedPlatformAssemblies;
 
-        public static readonly RuntimeMetadataReferenceResolver Default = 
+        public static readonly RuntimeMetadataReferenceResolver Default =
             new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         internal readonly RelativePathResolver PathResolver;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         internal RuntimeMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             : this(pathResolver: new RelativePathResolver(searchPaths, baseDirectory),
-                   packageResolver: null, 
+                   packageResolver: null,
                    gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver() : null,
                    useCoreResolver: !GacFileResolver.IsAvailable,
                    fileReferenceProvider: null)
@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public override int GetHashCode()
         {
-            return Hash.Combine(PathResolver, 
-                   Hash.Combine(PackageResolver, 
+            return Hash.Combine(PathResolver,
+                   Hash.Combine(PackageResolver,
                    Hash.Combine(GacFileResolver,
                    Hash.Combine(_useCoreResolver, 0))));
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 other != null &&
                 Equals(PathResolver, other.PathResolver) &&
                 Equals(PackageResolver, other.PackageResolver) &&
-                Equals(GacFileResolver, other.GacFileResolver) && 
+                Equals(GacFileResolver, other.GacFileResolver) &&
                 _useCoreResolver == other._useCoreResolver;
         }
 

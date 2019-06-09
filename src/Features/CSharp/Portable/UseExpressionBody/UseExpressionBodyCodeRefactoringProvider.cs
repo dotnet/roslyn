@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+        [ImportingConstructor]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper, 
+                        document, root, declaration, optionSet, helper,
                         useExpressionBody: true, cancellationToken: c)));
                 succeeded = true;
             }
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper, 
+                        document, root, declaration, optionSet, helper,
                         useExpressionBody: false, cancellationToken: c)));
                 succeeded = true;
             }
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

@@ -13,12 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
             ' VB does not have ref returns.
             Return False
         End Function
 
-        Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
+        Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
         End Function
 

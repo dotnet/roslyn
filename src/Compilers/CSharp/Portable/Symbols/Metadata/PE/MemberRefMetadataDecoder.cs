@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 position -= peType.MetadataArity - peType.Arity;
                 Debug.Assert(position >= 0 && position < peType.Arity);
 
-                return peType.TypeArgumentsNoUseSiteDiagnostics[position].TypeSymbol; //NB: args, not params
+                return peType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[position].Type; //NB: args, not params
             }
 
             NamedTypeSymbol namedType = _containingType as NamedTypeSymbol;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert((object)typeArgument == null);
 
-                typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics[position - arityOffset].TypeSymbol;
+                typeArgument = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[position - arityOffset].Type;
             }
         }
 
@@ -177,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
                 var field = member as FieldSymbol;
-                TypeSymbolWithAnnotations fieldType;
+                TypeWithAnnotations fieldType;
 
                 if ((object)field != null &&
-                    (fieldType = field.Type).TypeSymbol == type &&
+                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.ConsiderEverything2) &&
                     CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // IndexedTypeParameterSymbol is not going to be exposed anywhere,
             // so we'll cheat and use it here for comparison purposes.
             TypeMap candidateMethodTypeMap = new TypeMap(
-                nonNullTypesContext: NonNullTypesFalseContext.Instance, // The NonNullType context doesn't really matter here, because nullability of reference types is not considered for the purpose of the method.
                 candidateMethod.TypeParameters,
                 IndexedTypeParameterSymbol.Take(candidateMethod.Arity), true);
 
@@ -256,8 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            var substituted = candidateParam.Type.SubstituteType(candidateMethodTypeMap);
-            if (substituted.TypeSymbol != targetParam.Type)
+            var substituted = candidateParam.TypeWithAnnotations.SubstituteType(candidateMethodTypeMap);
+            if (!TypeSymbol.Equals(substituted.Type, targetParam.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }
@@ -280,12 +279,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            TypeSymbolWithAnnotations candidateMethodType = candidateMethod.ReturnType;
+            TypeWithAnnotations candidateMethodType = candidateMethod.ReturnTypeWithAnnotations;
             TypeSymbol targetReturnType = targetReturnParam.Type;
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
             var substituted = candidateMethodType.SubstituteType(candidateMethodTypeMap);
-            if (substituted.TypeSymbol != targetReturnType)
+            if (!TypeSymbol.Equals(substituted.Type, targetReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

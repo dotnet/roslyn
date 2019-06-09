@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             public void Visit(RegexPosixPropertyNode node)
             {
-                // The .net parser just interprets the [ of the node, and skips the rest. So
+                // The .NET parser just interprets the [ of the node, and skips the rest. So
                 // classify the end part as a comment.
                 Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
                 Result.Add(new ClassifiedSpan(

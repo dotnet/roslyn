@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -251,12 +252,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
 
                 // this shouldn't throw exception
-                var solution = remoteWorkspace.AddSolution(solutionInfo);
+                remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, out var solution);
                 Assert.NotNull(solution);
             }
         }
 
-        private static async Task<Solution> VerifyIncrementalUpdatesAsync(InProcRemoteHostClient client, Solution solution, string csAddition, string vbAddition)
+        private async Task<Solution> VerifyIncrementalUpdatesAsync(InProcRemoteHostClient client, Solution solution, string csAddition, string vbAddition)
         {
             var remoteSolution = RemoteWorkspace.CurrentSolution;
             var projectIds = solution.ProjectIds;
@@ -331,10 +332,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var storage = client.AssetStorage;
 
-            foreach (var kv in map)
-            {
-                Assert.True(storage.TryGetAsset(kv.Key, out object data));
-            }
+            TestUtils.VerifyAssetStorage(map, storage);
         }
 
         private static Solution UpdateSolution(Solution solution, string projectName, string documentName, string csAddition, string vbAddition)
@@ -362,12 +360,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return (project, document);
         }
 
-        private static async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
+        // make sure we always move remote workspace forward
+        private int _solutionVersion = 0;
+
+        private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
             await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService, solution,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                CancellationToken.None);
         }
 
         private static Solution Populate(Solution solution)

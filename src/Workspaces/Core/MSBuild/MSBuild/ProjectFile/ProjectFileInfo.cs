@@ -36,6 +36,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string OutputRefFilePath { get; }
 
         /// <summary>
+        /// The default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. 
+        /// </summary>
+        /// <remarks>
+        /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+        /// by assigning the value of the project's root namespace to it. So various feature can choose to 
+        /// use it for their own purpose.
+        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// (e.g. through a "defaultnamespace" msbuild property)
+        /// </remarks>
+        public string DefaultNamespace { get; }
+
+        /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
@@ -55,6 +68,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The additional documents.
         /// </summary>
         public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; }
+
+        /// <summary>
+        /// The analyzer config documents.
+        /// </summary>
+        public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; }
 
         /// <summary>
         /// References to other projects.
@@ -78,10 +96,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string filePath,
             string outputFilePath,
             string outputRefFilePath,
+            string defaultNamespace,
             string targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
@@ -92,10 +112,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
+            this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
+            this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
             this.Log = log;
         }
@@ -105,10 +127,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string filePath,
             string outputFilePath,
             string outputRefFilePath,
+            string defaultNamespace,
             string targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
+            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
             => new ProjectFileInfo(
@@ -117,10 +141,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath,
                 outputRefFilePath,
+                defaultNamespace,
                 targetFramework,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
+                analyzerConfigDocuments,
                 projectReferences,
                 log);
 
@@ -131,10 +157,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath: null,
                 outputRefFilePath: null,
+                defaultNamespace: null,
                 targetFramework: null,
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
+                analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
                 projectReferences: ImmutableArray<ProjectFileReference>.Empty,
                 log);
     }

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     {
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
         {
-            return ProjectCodeModel.GetOrCreateRootCodeModel(parent);
+            return _projectCodeModel.GetOrCreateRootCodeModel(parent);
         }
 
         public EnvDTE.FileCodeModel GetFileCodeModel(EnvDTE.ProjectItem item)
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return null;
             }
 
-            return ProjectCodeModel.GetOrCreateFileCodeModel(filePath, item);
+            return _projectCodeModel.GetOrCreateFileCodeModel(filePath, item);
         }
 
         private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
@@ -41,12 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     return null;
                 }
 
-                return _project.ProjectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem);
+                return _project._projectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem);
             }
 
             private EnvDTE.ProjectItem GetProjectItem(string filePath)
             {
-                var dteProject = ((VisualStudioWorkspaceImpl)_project.Workspace).TryGetDTEProject(_project.Id);
+                var dteProject = _project._visualStudioWorkspace.TryGetDTEProject(_project._visualStudioProject.Id);
                 if (dteProject == null)
                 {
                     return null;

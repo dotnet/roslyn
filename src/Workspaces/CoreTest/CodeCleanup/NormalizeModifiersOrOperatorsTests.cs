@@ -1069,7 +1069,7 @@ End Module";
 
         private async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker, 
+            MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
 
-            typeMap = new TypeMap(nonNullTypesContext: NonNullTypesFalseContext.Instance, this.SourceTypeParameters, _typeParameters);
+            typeMap = new TypeMap(this.SourceTypeParameters, _typeParameters);
 
             VerifyTypeParameters(this, _typeParameters);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _baseType;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _baseType; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -305,12 +305,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get { return false; }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get { return false; }
         }

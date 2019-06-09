@@ -11,13 +11,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider 
+    internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<
-            ExpressionSyntax, 
+            ExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
             AnonymousObjectMemberDeclaratorSyntax>
     {
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+
+        [ImportingConstructor]
+        public CSharpAddAnonymousTypeMemberNameCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS0746);

@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     {
         public static PerLanguageOption<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
             new PerLanguageOption<bool>(
-                nameof(ValidateFormatStringOption), 
-                nameof(ReportInvalidPlaceholdersInStringDotFormatCalls), 
+                nameof(ValidateFormatStringOption),
+                nameof(ReportInvalidPlaceholdersInStringDotFormatCalls),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
     }
@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     [ExportOptionProvider, Shared]
     internal class ValidateFormatStringOptionProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ValidateFormatStringOptionProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls);
     }

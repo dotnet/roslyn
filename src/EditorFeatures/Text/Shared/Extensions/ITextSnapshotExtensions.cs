@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan());
         }
 
-        public static void GetLineAndColumn(this ITextSnapshot snapshot, int position, out int lineNumber, out int columnIndex)
+        public static void GetLineAndCharacter(this ITextSnapshot snapshot, int position, out int lineNumber, out int characterIndex)
         {
             var line = snapshot.GetLineFromPosition(position);
 
             lineNumber = line.LineNumber;
-            columnIndex = position - line.Start.Position;
+            characterIndex = position - line.Start.Position;
         }
 
         /// <summary>

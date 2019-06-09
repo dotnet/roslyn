@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _dataFlowsIn;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LocalState ResetState(LocalState state)
         {
             bool unreachable = !state.Reachable;
-            state = ReachableState();
+            state = TopState();
             if (unreachable)
             {
                 state.Assign(0);

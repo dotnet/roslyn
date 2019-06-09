@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
     internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiagnosticAnalyzerService
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         [ImportingConstructor]
-        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspaceImpl workspace, IDiagnosticAnalyzerService diagnosticService)
+        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspace workspace, IDiagnosticAnalyzerService diagnosticService)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -28,28 +28,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         // *DO NOT DELETE*
         // This is used by Ruleset Editor from ManagedSourceCodeAnalysis.dll.
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy hierarchyOpt)
+            => GetAllDiagnosticDescriptors(hierarchyOpt != null && hierarchyOpt.TryGetProjectGuid(out var guid) ? guid : Guid.Empty);
+
+        private IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(Guid projectGuid)
         {
-            if (hierarchyOpt == null)
+            if (projectGuid == Guid.Empty)
             {
                 return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt: null));
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = (_workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
+            var projects = _workspace.CurrentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                .Where(p => p.Hierarchy == hierarchyOpt)
-                .Select(p => _workspace.CurrentSolution.GetProject(p.Id));
+                .Where(p => _workspace.GetProjectGuid(p.Id) == projectGuid);
 
-            if (projectsWithHierarchy.Count() <= 1)
+            if (projects.Count() <= 1)
             {
-                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projectsWithHierarchy.FirstOrDefault()));
+                return Transform(_diagnosticService.CreateDiagnosticDescriptorsPerReference(projects.FirstOrDefault()));
             }
             else
             {
-                // Multiple workspace projects map to the same hierarchy, return a union of descriptors for all projects.
+                // Multiple workspace projects map to the same project guid, return a union of descriptors for all projects.
                 // For example, this can happen for web projects where we create on the fly projects for aspx files.
                 var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
-                foreach (var project in projectsWithHierarchy)
+                foreach (var project in projects)
                 {
                     var newDescriptorTuples = _diagnosticService.CreateDiagnosticDescriptorsPerReference(project);
                     foreach (var kvp in newDescriptorTuples)

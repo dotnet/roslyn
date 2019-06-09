@@ -2,10 +2,60 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CodeStyleResources.resx">
     <body>
-      <trans-unit id="EmptyResource">
-        <source>Remove this value when another is added.</source>
-        <target state="translated">다른 값을 추가할 때 이 값을 제거하세요.</target>
-        <note>https://github.com/Microsoft/msbuild/issues/1661</note>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="translated">오류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">서식 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">들여쓰기 및 간격</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">새 줄 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="translated">None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">리팩터링만</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="translated">스타일</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="translated">제안</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">경고</target>
+        <note />
       </trans-unit>
     </body>
   </file>

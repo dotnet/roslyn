@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
         private ImmutableDictionary<string, string> _properties;
 
-        internal readonly ProjectBuildManager BuildManager;
-
         internal MSBuildProjectLoader(
             Workspace workspace,
             DiagnosticReporter diagnosticReporter,
@@ -46,8 +44,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 _properties = _properties.AddRange(properties);
             }
-
-            BuildManager = new ProjectBuildManager();
         }
 
         /// <summary>
@@ -183,12 +179,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
+            var buildManager = new ProjectBuildManager(_properties);
+
             var worker = new Worker(
                 _workspace,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
-                BuildManager,
+                buildManager,
                 projectPaths.ToImmutable(),
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
                 _properties,
@@ -237,12 +235,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
+            var buildManager = new ProjectBuildManager(_properties);
+
             var worker = new Worker(
                 _workspace,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
-                BuildManager,
+                buildManager,
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: _properties,

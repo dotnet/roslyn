@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="new">A language name cannot be specified for this option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="new">A language name must be specified for this option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -16,12 +26,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Параметр "{0}" должен представлять собой "INamedTypeSymbol" или "IAssemblySymbol".</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">Параметр "{0}" должен быть символом из этой компиляции или из другой сборки, на которую она ссылается.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +46,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">Указанная операция не может быть частью графа потока управления.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -57,6 +67,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Копию модуля нельзя использовать для создания метаданных сборки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Анализатор "{0}" содержит дескриптор null в разделе "SupportedDiagnostics".</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -96,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">поле</target>
+        <target state="translated">Поле</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
@@ -464,6 +479,16 @@
         <target state="translated">Недопустимое название языка и региональных параметров: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">Идентификатор WindowsRuntime не может быть перенацеливаемым</target>
@@ -528,7 +553,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Изменения не должны перекрываться.</target>
+        <target state="translated">Изменения должны идти в строгом порядке и не накладываться.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

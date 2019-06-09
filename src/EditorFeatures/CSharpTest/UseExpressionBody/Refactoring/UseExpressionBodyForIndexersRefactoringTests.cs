@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
         }
 
-[Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
         {
             await TestInRegularAndScript1Async(

@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public Glyph TopLevelGlyph;
         public bool ShowCheckBoxes;
 
+        [ImportingConstructor]
+        public MockPreviewDialogService()
+        {
+        }
+
         public Solution PreviewChanges(string title, string helpString, string description, string topLevelName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
         {
             Called = true;

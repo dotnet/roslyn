@@ -40,10 +40,16 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch
             {
-                // make sure disposable objects are disposed when
-                // exceptions are thrown
-                connection.Dispose();
-                scope?.Dispose();
+                // Make sure disposable objects are disposed when exceptions are thrown. The try/finally is used to
+                // ensure 'scope' is disposed even if an exception is thrown while disposing 'connection'.
+                try
+                {
+                    connection.Dispose();
+                }
+                finally
+                {
+                    scope?.Dispose();
+                }
 
                 // we only expect this to happen on cancellation. otherwise, rethrow
                 cancellationToken.ThrowIfCancellationRequested();

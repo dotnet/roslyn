@@ -1230,6 +1230,29 @@ class C
             End Using
         End Function
 
+        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
+            Dim code =
+<code>
+class C
+{
+}
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeElement = DirectCast(fileCodeModel.CodeElements(0), EnvDTE80.CodeElement2)
+                    Assert.Equal("C", codeElement.Name)
+
+                    codeElement.RenameSymbol("D")
+
+                    ' This not only asserts that the rename happened successfully, but that the element was correctly updated
+                    ' so the underlying node key is still valid.
+                    Assert.Equal("D", codeElement.Name)
+                End Sub)
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

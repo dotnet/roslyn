@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                TypeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, nonNullTypesContext: containingMethod, out _typeParameters, out _constructedFromTypeParameters);
+                TypeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters, out _constructedFromTypeParameters);
             }
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAbstract => (object)Constructor == null && this.TypeKind != TypeKind.Struct;
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -162,19 +162,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        internal sealed override bool IsByRefLikeType => false;
+        public sealed override bool IsRefLikeType => false;
 
-        internal sealed override bool IsReadOnly => false;
+        public sealed override bool IsReadOnly => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => CalculateInterfacesToEmit();
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => ContainingAssembly.GetSpecialType(this.TypeKind == TypeKind.Struct ? SpecialType.System_ValueType : SpecialType.System_Object);
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => BaseTypeNoUseSiteDiagnostics;
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved) => InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => InterfacesNoUseSiteDiagnostics(basesBeingResolved);
 
         public override bool MightContainExtensionMethods => false;
 

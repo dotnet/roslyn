@@ -118,8 +118,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected string GetAbsolutePath(string path)
         {
-            var directoryPath = PathUtilities.GetDirectoryName(Project.FullPath);
-            return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, directoryPath) ?? path);
+            var baseDirectory = PathUtilities.GetDirectoryName(Project.FullPath);
+            var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path;
+            return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
         }
 
         protected void ReadAdditionalFiles()
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 foreach (var reference in references)
                 {
-                    if (!reference.HasReferenceOutputAssemblyMetadataEqualToTrue())
+                    if (reference.ReferenceOutputAssemblyIsTrue())
                     {
                         var filePath = GetDocumentFilePath(reference);
 

@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string ElementName = nameof(ElementName);
 
-        public UseExplicitTupleNameDiagnosticAnalyzer() 
+        public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)

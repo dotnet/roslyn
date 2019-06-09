@@ -23,6 +23,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
                 project.UseReference(p => p.Disconnect());
                 project.AssertReleased();
+
+                Assert.Empty(environment.Workspace.CurrentSolution.Projects);
             }
         }
     }

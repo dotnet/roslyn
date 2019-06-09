@@ -66,7 +66,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new []{ piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

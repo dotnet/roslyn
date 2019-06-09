@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -44,46 +43,70 @@ namespace System.Runtime.CompilerServices
                    AllowMultiple = false)]
     public class NullableAttribute : Attribute
     {
-        public NullableAttribute() { }
-        public NullableAttribute(bool[] transformFlags)
+        public NullableAttribute(byte transformFlag) { }
+        public NullableAttribute(byte[] transformFlags)
         {
         }
     }
 }
 ";
 
-        protected const string NotNullWhenTrueAttributeDefinition = @"
+        protected const string AllowNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenTrueAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
+    public sealed class AllowNullAttribute : Attribute
     {
-        public NotNullWhenTrueAttribute() { }
+    }
+}";
+
+        protected const string DisallowNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
+    public sealed class DisallowNullAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string MaybeNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
+    public sealed class MaybeNullAttribute : Attribute
+    {
     }
 }
 ";
 
-        protected const string NotNullWhenFalseAttributeDefinition = @"
+        protected const string MaybeNullWhenAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class MaybeNullWhenAttribute : Attribute
     {
-        public NotNullWhenFalseAttribute() { }
+        public MaybeNullWhenAttribute(bool when) { }
     }
 }
 ";
 
-        protected const string EnsuresNotNullAttributeDefinition = @"
+        protected const string NotNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class EnsuresNotNullAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
+    public sealed class NotNullAttribute : Attribute
     {
-        public EnsuresNotNullAttribute() { }
+    }
+}
+";
+
+        protected const string NotNullWhenAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class NotNullWhenAttribute : Attribute
+    {
+        public NotNullWhenAttribute(bool when) { }
     }
 }
 ";
@@ -109,8 +132,336 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-        protected const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
-        protected const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
+        protected const string AsyncStreamsTypes = @"
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
+    {
+        public AsyncIteratorStateMachineAttribute(Type stateMachineType) : base(stateMachineType)
+        {
+        }
+    }
+}
+
+#nullable disable
+
+namespace System.Threading.Tasks.Sources
+{
+    using System.Diagnostics;
+    using System.Runtime.ExceptionServices;
+    using System.Runtime.InteropServices;
+
+    [StructLayout(LayoutKind.Auto)]
+    public struct ManualResetValueTaskSourceCore<TResult>
+    {
+        private Action<object> _continuation;
+        private object _continuationState;
+        private ExecutionContext _executionContext;
+        private object _capturedContext;
+        private bool _completed;
+        private TResult _result;
+        private ExceptionDispatchInfo _error;
+        private short _version;
+
+        /// <summary>Gets or sets whether to force continuations to run asynchronously.</summary>
+        /// <remarks>Continuations may run asynchronously if this is false, but they'll never run synchronously if this is true.</remarks>
+        public bool RunContinuationsAsynchronously { get; set; }
+
+        /// <summary>Resets to prepare for the next operation.</summary>
+        public void Reset()
+        {
+            // Reset/update state for the next use/await of this instance.
+            _version++;
+            _completed = false;
+            _result = default;
+            _error = null;
+            _executionContext = null;
+            _capturedContext = null;
+            _continuation = null;
+            _continuationState = null;
+        }
+
+        public void SetResult(TResult result)
+        {
+            _result = result;
+            SignalCompletion();
+        }
+
+        public void SetException(Exception error)
+        {
+            _error = ExceptionDispatchInfo.Capture(error);
+            SignalCompletion();
+        }
+
+        public short Version => _version;
+
+        public ValueTaskSourceStatus GetStatus(short token)
+        {
+            ValidateToken(token);
+            return
+                !_completed ? ValueTaskSourceStatus.Pending :
+                _error == null ? ValueTaskSourceStatus.Succeeded :
+                _error.SourceException is OperationCanceledException ? ValueTaskSourceStatus.Canceled :
+                ValueTaskSourceStatus.Faulted;
+        }
+
+        public TResult GetResult(short token)
+        {
+            ValidateToken(token);
+            if (!_completed)
+            {
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+            }
+
+            _error?.Throw();
+            return _result;
+        }
+
+        public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
+        {
+            if (continuation == null)
+            {
+                throw new ArgumentNullException(nameof(continuation));
+            }
+            ValidateToken(token);
+
+            if ((flags & ValueTaskSourceOnCompletedFlags.FlowExecutionContext) != 0)
+            {
+                _executionContext = ExecutionContext.Capture();
+            }
+
+            if ((flags & ValueTaskSourceOnCompletedFlags.UseSchedulingContext) != 0)
+            {
+                SynchronizationContext sc = SynchronizationContext.Current;
+                if (sc != null && sc.GetType() != typeof(SynchronizationContext))
+                {
+                    _capturedContext = sc;
+                }
+                else
+                {
+                    TaskScheduler ts = TaskScheduler.Current;
+                    if (ts != TaskScheduler.Default)
+                    {
+                        _capturedContext = ts;
+                    }
+                }
+            }
+
+            // We need to set the continuation state before we swap in the delegate, so that
+            // if there's a race between this and SetResult/Exception and SetResult/Exception
+            // sees the _continuation as non-null, it'll be able to invoke it with the state
+            // stored here.  However, this also means that if this is used incorrectly (e.g.
+            // awaited twice concurrently), _continuationState might get erroneously overwritten.
+            // To minimize the chances of that, we check preemptively whether _continuation
+            // is already set to something other than the completion sentinel.
+
+            object oldContinuation = _continuation;
+            if (oldContinuation == null)
+            {
+                _continuationState = state;
+                oldContinuation = Interlocked.CompareExchange(ref _continuation, continuation, null);
+            }
+
+            if (oldContinuation != null)
+            {
+                // Operation already completed, so we need to queue the supplied callback.
+                if (!ReferenceEquals(oldContinuation, ManualResetValueTaskSourceCoreShared.s_sentinel))
+                {
+                    ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+                }
+
+                switch (_capturedContext)
+                {
+                    case null:
+                        Task.Factory.StartNew(continuation, state, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+                        break;
+
+                    case SynchronizationContext sc:
+                        sc.Post(s =>
+                        {
+                            var tuple = (Tuple<Action<object>, object>)s;
+                            tuple.Item1(tuple.Item2);
+                        }, Tuple.Create(continuation, state));
+                        break;
+
+                    case TaskScheduler ts:
+                        Task.Factory.StartNew(continuation, state, CancellationToken.None, TaskCreationOptions.DenyChildAttach, ts);
+                        break;
+                }
+            }
+        }
+
+        private void ValidateToken(short token)
+        {
+            if (token != _version)
+            {
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+            }
+        }
+
+        private void SignalCompletion()
+        {
+            if (_completed)
+            {
+                ManualResetValueTaskSourceCoreShared.ThrowInvalidOperationException();
+            }
+            _completed = true;
+
+            if (_continuation != null || Interlocked.CompareExchange(ref _continuation, ManualResetValueTaskSourceCoreShared.s_sentinel, null) != null)
+            {
+                if (_executionContext != null)
+                {
+                    ExecutionContext.Run(
+                        _executionContext,
+                        s => ((ManualResetValueTaskSourceCore<TResult>)s).InvokeContinuation(),
+                        this);
+                }
+                else
+                {
+                    InvokeContinuation();
+                }
+            }
+        }
+
+        private void InvokeContinuation()
+        {
+            switch (_capturedContext)
+            {
+                case null:
+                    if (RunContinuationsAsynchronously)
+                    {
+                        Task.Factory.StartNew(_continuation, _continuationState, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+                    }
+                    else
+                    {
+                        _continuation(_continuationState);
+                    }
+                    break;
+
+                case SynchronizationContext sc:
+                    sc.Post(s =>
+                    {
+                        var state = (Tuple<Action<object>, object>)s;
+                        state.Item1(state.Item2);
+                    }, Tuple.Create(_continuation, _continuationState));
+                    break;
+
+                case TaskScheduler ts:
+                    Task.Factory.StartNew(_continuation, _continuationState, CancellationToken.None, TaskCreationOptions.DenyChildAttach, ts);
+                    break;
+            }
+        }
+    }
+
+    internal static class ManualResetValueTaskSourceCoreShared // separated out of generic to avoid unnecessary duplication
+    {
+        internal static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+
+        internal static readonly Action<object> s_sentinel = CompletionSentinel;
+        private static void CompletionSentinel(object _) // named method to aid debugging
+        {
+            Debug.Fail(""The sentinel delegate should never be invoked."");
+            ThrowInvalidOperationException();
+        }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Runtime.InteropServices;
+
+    /// <summary>Represents a builder for asynchronous iterators.</summary>
+    [StructLayout(LayoutKind.Auto)]
+    public struct AsyncIteratorMethodBuilder
+    {
+        // AsyncIteratorMethodBuilder is used by the language compiler as part of generating
+        // async iterators. For now, the implementation just wraps AsyncTaskMethodBuilder, as
+        // most of the logic is shared.  However, in the future this could be changed and
+        // optimized.  For example, we do need to allocate an object (once) to flow state like
+        // ExecutionContext, which AsyncTaskMethodBuilder handles, but it handles it by
+        // allocating a Task-derived object.  We could optimize this further by removing
+        // the Task from the hierarchy, but in doing so we'd also lose a variety of optimizations
+        // related to it, so we'd need to replicate all of those optimizations (e.g. storing
+        // that box object directly into a Task's continuation field).
+
+        private AsyncTaskMethodBuilder _methodBuilder; // mutable struct; do not make it readonly
+
+        public static AsyncIteratorMethodBuilder Create() =>
+            new AsyncIteratorMethodBuilder() { _methodBuilder = AsyncTaskMethodBuilder.Create() };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void MoveNext<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.Start(ref stateMachine);
+
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitOnCompleted(ref awaiter, ref stateMachine);
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine =>
+            _methodBuilder.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+
+        /// <summary>Marks iteration as being completed, whether successfully or otherwise.</summary>
+        public void Complete() => _methodBuilder.SetResult();
+    }
+}
+";
+
+        protected const string EnumeratorCancellationAttributeType = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class EnumeratorCancellationAttribute : Attribute
+    {
+        public EnumeratorCancellationAttribute() { }
+    }
+}
+";
+
+        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        {
+            return WithNonNullTypes(options, NullableContextOptions.Enable);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        {
+            return WithNonNullTypes(options, NullableContextOptions.Disable);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        {
+            return WithNonNullTypes(null, nullableContextOptions);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
+        }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,
@@ -127,7 +478,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -161,7 +512,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -235,7 +586,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -269,7 +620,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) => 
+            Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source,
                 references,
@@ -556,6 +907,28 @@ namespace System.Runtime.CompilerServices
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
 
+        public static CSharpCompilation CreateCompilationWithTasksExtensions(
+                CSharpTestSource source,
+                IEnumerable<MetadataReference> references = null,
+                CSharpCompilationOptions options = null,
+                CSharpParseOptions parseOptions = null,
+                string assemblyName = "",
+                string sourceFileName = "")
+        {
+            IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
+                ? TargetFrameworkUtil.NetStandard20References
+                : TargetFrameworkUtil.Mscorlib461ExtendedReferences;
+
+            allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
+
+            if (references != null)
+            {
+                allReferences = allReferences.Concat(references);
+            }
+
+            return CreateCompilation(source, allReferences, options, parseOptions, TargetFramework.Empty, assemblyName, sourceFileName);
+        }
+
         public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -626,7 +999,7 @@ namespace System.Runtime.CompilerServices
                 return false;
             }
             var options = (CSharpParseOptions)trees[0].Options;
-            return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+            return options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
         }
 
         internal static void VerifyUsesOfNullability(Symbol symbol, ImmutableArray<string> expectedUsesOfNullable)
@@ -848,9 +1221,9 @@ namespace System.Runtime.CompilerServices
             return null;
         }
 
-#endregion
+        #endregion
 
-#region Semantic Model Helpers
+        #region Semantic Model Helpers
 
         public Tuple<TNode, SemanticModel> GetBindingNodeAndModel<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
@@ -975,9 +1348,9 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(bindText, node.ToString());
             return ((TNode)node);
         }
-#endregion
+        #endregion
 
-#region Attributes
+        #region Attributes
 
         internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
@@ -994,9 +1367,9 @@ namespace System.Runtime.CompilerServices
             return attributes.Select(a => a.ToString());
         }
 
-#endregion
+        #endregion
 
-#region Documentation Comments
+        #region Documentation Comments
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -1058,9 +1431,9 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-#endregion
+        #endregion
 
-#region IL Validation
+        #region IL Validation
 
         internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
         {
@@ -1192,9 +1565,9 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-#endregion
+        #endregion
 
-#region IOperation tree validation
+        #region IOperation tree validation
 
         protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
@@ -1239,13 +1612,15 @@ namespace System.Runtime.CompilerServices
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+        protected static IOperation VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+
+            return actualOperation;
         }
 
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
@@ -1337,6 +1712,24 @@ namespace System.Runtime.CompilerServices
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            SyntaxTree[] testSyntaxes,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            MetadataReference[] references = null,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var compilation = CreateCompilation(
+                testSyntaxes,
+                references,
+                options: compilationOptions ?? TestOptions.ReleaseDll,
+                targetFramework: useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
+        }
+
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
             string testSrc,
             string expectedFlowGraph,
@@ -1391,9 +1784,25 @@ namespace System.Runtime.CompilerServices
             return ilReference;
         }
 
-#endregion
+        #endregion
 
-#region Span
+        #region Span
+
+        protected static CSharpCompilation CreateCompilationWithSpan(SyntaxTree tree, CSharpCompilationOptions options = null)
+        {
+            var reference = CreateCompilation(
+                SpanSource,
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                tree,
+                references: new[] { reference.EmitToImageReference() },
+                options: options);
+
+            return comp;
+        }
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -1628,6 +2037,91 @@ namespace System
             }
         }
     }";
-#endregion
+        #endregion
+
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+        #endregion
+
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseDebugDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                };
+            }
+        }
+
+        public static IEnumerable<object[]> NonNullTypesTrueAndFalseReleaseDll
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
+                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
+                };
+            }
+        }
+        #endregion
+
+        protected static readonly string s_IAsyncEnumerable = @"
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
     }
 }

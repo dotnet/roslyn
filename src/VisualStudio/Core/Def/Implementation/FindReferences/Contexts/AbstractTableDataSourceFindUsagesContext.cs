@@ -8,16 +8,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -312,17 +312,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                var hostProject = workspace?.GetHostProject(document.Project.Id);
+                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-                var projectName = hostProject?.DisplayName ?? document.Project.Name;
-                var guid = hostProject?.Guid ?? Guid.Empty;
+                var projectName = document.Project.Name;
+                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> CreateDocumentSpanEntryAsync(
+            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
@@ -330,13 +329,43 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
-                var classifiedSpansAndHighlightSpan =
-                    await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                if (mappedDocumentSpan == null)
+                {
+                    // this will be removed from the result
+                    return null;
+                }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, spanKind,
-                    projectName, guid, sourceText, classifiedSpansAndHighlightSpan, GetAggregatedCustomColumnsData(customColumnsDataOpt));
+                    this, definitionBucket, spanKind, projectName,
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText, GetAggregatedCustomColumnsData(customColumnsDataOpt));
+            }
+
+            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
+            {
+                var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
+                if (excerptService != null)
+                {
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
+                    if (result != null)
+                    {
+                        return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
+                    }
+                }
+
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+
+                // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
+                var excerptResult = new ExcerptResult(
+                    sourceText,
+                    classificationResult.HighlightSpan,
+                    classificationResult.ClassifiedSpans,
+                    documentSpan.Document,
+                    documentSpan.SourceSpan);
+
+                return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
             private ImmutableDictionary<string, string> GetAggregatedCustomColumnsData(ImmutableDictionary<string, ImmutableArray<string>> customColumnsDataOpt)
@@ -385,7 +414,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void UpdateCustomColumnsVisibility(ImmutableDictionary<string, ImmutableArray<string>> customData)
             {
                 // Check if we have any custom reference data to display.
-                if (customData.Count == 0)
+                // columnDefinitionManager will be null under unit test
+                var columnDefinitionManager = TableControl.ColumnDefinitionManager;
+                if (customData.Count == 0 || columnDefinitionManager == null)
                 {
                     return;
                 }
@@ -400,7 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         foreach (var customColumnName in customData.Keys)
                         {
                             // Get the matching custom column.
-                            var customColumnDefinition = TableControl.ColumnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
+                            var customColumnDefinition = columnDefinitionManager.GetColumnDefinition(customColumnName) as AbstractFindUsagesCustomColumnDefinition;
                             if (customColumnDefinition == null)
                             {
                                 Debug.Fail($"{nameof(SourceReferenceItem.ReferenceInfo)} has a key '{customColumnName}', but there is no exported '{nameof(AbstractFindUsagesCustomColumnDefinition)}' with this name.");
@@ -510,7 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         // If we've been cleared, then just return an empty list of entries.
                         // Otherwise return the appropriate list based on how we're currently
                         // grouping.
-                        var entries = _cleared 
+                        var entries = _cleared
                             ? ImmutableList<Entry>.Empty
                             : _currentlyGroupingByDefinition
                                 ? EntriesWhenGroupingByDefinition

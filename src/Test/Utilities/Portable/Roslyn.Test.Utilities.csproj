@@ -2,18 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);net46</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);DNX</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <RootNamespace></RootNamespace>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -24,33 +18,25 @@
       Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
       GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
     -->
-    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" 
-       ReferenceOutputAssembly="false"
-       SkipGetTargetFrameworkProperties="true"
-       GlobalPropertiesToRemove="TargetFramework" 
-       Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
 
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.CoreClr" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.Desktop" />
+    <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.PerformanceTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Test.Utilities" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.Test.Utilities.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.PerformanceTests" />
     <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />
@@ -77,44 +63,39 @@
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" Link="CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
-      <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
+    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs" />
+    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
     <Compile Update="TestResource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TestResource.resx</DependentUpon>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="TestResource.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+      <LogicalName>TestResource.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourceVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+    <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
+    <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" />
   </ItemGroup>
 </Project>

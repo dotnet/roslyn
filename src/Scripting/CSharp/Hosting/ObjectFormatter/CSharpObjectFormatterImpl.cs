@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using MemberFilter = Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {

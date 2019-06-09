@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("control_blocks", NewLineOption.ControlBlocks),
         InlineData("anonymous_types", NewLineOption.AnonymousTypes),
         InlineData("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
+        InlineData("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
         InlineData("lambdas", NewLineOption.Lambdas),
         InlineData("local_functions", NewLineOption.LocalFunction)]
         static void TestParseNewLineOptionTrue(string value, NewLineOption option)

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly ImmutableArray<AbstractCodeStyleDiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> _analyzers;
         private readonly DiagnosticAnalyzerCategory _category;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
-            var analyzers = ArrayBuilder<AbstractCodeStyleDiagnosticAnalyzer>.GetInstance();
+            var analyzers = ArrayBuilder<AbstractBuiltInCodeStyleDiagnosticAnalyzer>.GetInstance();
 
             var category = default(DiagnosticAnalyzerCategory?);
             Debug.Assert(languagesProvider.Languages.Length > 0);
@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             foreach (var analyzer in _analyzers)
             {
                 analyzer.Initialize(context);

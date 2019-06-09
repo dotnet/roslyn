@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected abstract CSharpTypeStyleHelper Helper { get; }
 
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override bool OpenFileOnly(Workspace workspace)
         {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
+            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
+            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
             => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

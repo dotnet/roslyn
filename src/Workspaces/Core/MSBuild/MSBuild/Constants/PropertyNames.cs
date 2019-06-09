@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string RemoveIntegerChecks = nameof(RemoveIntegerChecks);
         public const string ResolvedCodeAnalysisRuleSet = nameof(ResolvedCodeAnalysisRuleSet);
         public const string RootNamespace = nameof(RootNamespace);
+        public const string ShouldUnsetParentConfigurationAndPlatform = nameof(ShouldUnsetParentConfigurationAndPlatform);
         public const string SignAssembly = nameof(SignAssembly);
         public const string SkipCompilerExecution = nameof(SkipCompilerExecution);
         public const string StartupObject = nameof(StartupObject);

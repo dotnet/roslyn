@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
                     var setAccessor = _isReadonly || _refKind != RefKind.None
-                        ? null 
+                        ? null
                         : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(

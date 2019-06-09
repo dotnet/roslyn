@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
-        <target state="translated">Aplicación de cambios</target>
+        <target state="translated">Aplicando cambios</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
-        <target state="new">Change configuration</target>
+        <target state="translated">Configuración de cambio</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
@@ -27,9 +27,54 @@
         <target state="translated">No volver a mostrar este mensaje</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">¿Desea continuar? Esto puede producir código roto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">El método de extracción detectó los siguientes problemas:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Filtrar</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
-        <target state="new">Format Document performed additional cleanup</target>
+        <target state="translated">El formateo del documento realizó una limpieza adicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">Nombre de ensamblado no válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Caracteres no válidos en el nombre de ensamblado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">Palabras clave: control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">Operador: sobrecargado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">Seguimiento de pegado</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -44,7 +89,72 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="new">String - Escape Character</target>
+        <target state="translated">String - carácter de Escape</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">Símbolo: estático</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">Usuarios miembros: constantes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">Usuarios miembros: miembros de enumeración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">Usuarios miembros: eventos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">Usuarios miembros: métodos de extensión</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">Usuarios miembros: campos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">Usuarios miembros: etiquetas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">Usuarios miembros: locales</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">Usuarios miembros: métodos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">Usuarios miembros: espacios de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">Usuarios miembros: parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">Usuarios miembros: propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -81,6 +191,11 @@
         <source>String - Verbatim</source>
         <target state="translated">Cadena: textual</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Advertencia</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -200,6 +315,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">Al cambiar el nombre se actualizarán {0} referencias en {1} archivos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -629,7 +749,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Ir a la definición</target>
+        <target state="translated">Ir a definición</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigating_to_definition">
@@ -849,7 +969,7 @@
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
-        <target state="translated">Obtener una vista previa de los cambios: {0}</target>
+        <target state="translated">Vista previa de los cambios: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Code_Changes_colon">
@@ -859,7 +979,7 @@
       </trans-unit>
       <trans-unit id="Preview_Changes">
         <source>Preview Changes</source>
-        <target state="translated">Obtener vista previa de cambios</target>
+        <target state="translated">Vista previa de los cambios</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">
@@ -882,21 +1002,11 @@
         <target state="translated">Formato automático</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">Extraer método ha fallado por los siguientes motivos:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">¿Todavía quiere continuar? Se generará código roto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos corregir el error si no creamos parámetros de estructura "out/ref".
-¿Desea continuar?</target>
+        <target state="translated">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref". 
+¿Quiere continuar?</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_Signature_colon">

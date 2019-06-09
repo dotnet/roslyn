@@ -1,58 +1,66 @@
+[CmdletBinding(PositionalBinding=$false)]
+param (
+    [string][Alias("hive")]$rootSuffix = ""
+)
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
 try {
   . (Join-Path $PSScriptRoot "utils.ps1")
 
-  if (Test-Process "devenv") {
-      Write-Host "Please shut down all instances of Visual Studio before running" -ForegroundColor Red
-      exit 1
-  }
-
   # Welcome Message
-  Write-Host "Installing Roslyn Insiders Build" -ForegroundColor Green
+  Write-Host "Installing Roslyn Preview Build" -ForegroundColor Green
 
   # Find VS Instance
-  $vsInstalls = Get-VisualStudioDirAndId
-  $vsDir = $vsInstalls[0].Trim("\")
-  $vsId = $vsInstalls[1]
+  $vsInstances = Get-VisualStudioInstances
+
   # We are given two strings per VS instance (vsdir and vsid)
   # Check to see if more than one instance meets our reqs
-  if ($vsInstalls.Count -gt 2) {
+  if ($vsInstances.Count -gt 1) {
     while ($true) {
-      Write-Host "Multiple Visual Studio Installs Detected" -ForegroundColor White
-      Write-Host "Please Select an Instance to Install Into:" -ForegroundColor White
-      $number=1
-      For($i=0; $i -lt $vsInstalls.Count; $i+=2){
-        $tempVsDir = $vsInstalls[$i].Trim("\")
-        $tempVsExe = Join-Path $tempVsDir "Common7\IDE\devenv.exe"
-        Write-Host "[$number]:  $tempVsExe" -ForegroundColor White
-        $number++
+      Write-Host "Multiple Visual Studio instances detected" -ForegroundColor White
+      Write-Host "Please select an instance to install into:" -ForegroundColor White
+
+      for ($i=0; $i -lt $vsInstances.Length; $i++) {
+        $devenvPath = Join-Path $vsInstances[$i].installationPath "Common7\IDE\devenv.exe"
+        Write-Host "[$($i + 1)]:  $devenvPath" -ForegroundColor White
       }
 
       $input = Read-Host
       $vsInstallNumber = $input -as [int]
-      if ($vsInstallNumber -is [int] -and $vsInstallNumber -le ($number-1)) {
-        $index = ($vsInstallNumber -1) * 2
-        $vsDir = $vsInstalls[$index].Trim("\")
-        $vsId = $vsInstalls[$index+1]
+      if (($vsInstallNumber -is [int]) -and ($vsInstallNumber -gt 0) -and ($vsInstallNumber -le $vsInstances.Length)) {
+        $vsInstance = $vsInstances[$vsInstallNumber - 1]
         break
       }
 
       Write-Host ""
     }
+  } else {
+    $vsInstance = $vsInstances[0]
   }
+
+  $vsDir = $vsInstance.installationPath.Trim("\")
+  $vsId = $vsInstance.instanceId
+  $vsMajorVersion = $vsInstance.installationVersion.Split(".")[0]
+  $vsLocalDir = Get-VisualStudioLocalDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
+
+  Stop-Processes $vsDir $vsLocalDir
 
   # Install VSIX
   $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
-  Write-Host "Installing Preview Into $vsExe" -ForegroundColor Gray
-  Uninstall-VsixViaTool -vsDir $vsDir -vsId $vsId -hive ""
-  Install-VsixViaTool -vsDir $vsDir -vsId $vsId -hive ""
+
+  Write-Host "Installing Preview into $vsExe" -ForegroundColor Gray
+  Uninstall-VsixViaTool -vsDir $vsDir -vsId $vsId -rootSuffix $rootSuffix
+  Install-VsixViaTool -vsDir $vsDir -vsId $vsId -rootSuffix $rootSuffix
 
   # Clear MEF Cache
   Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
-  $mefCacheFolder = Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\15.0_$vsId\ComponentModelCache"
-  Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_}
+  $mefCacheFolder = Get-MefCacheDir $vsLocalDir
+  if (Test-Path $mefCacheFolder) {
+    Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_ }
+  }
+
   $args = "/updateconfiguration"
   Exec-Console $vsExe $args
 

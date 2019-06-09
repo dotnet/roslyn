@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         internal static BinaryOperatorSpacingOptions ParseEditorConfigSpacingAroundBinaryOperator(string binaryOperatorSpacingValue)
-            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue, out var value) ? value : BinaryOperatorSpacingOptions.Single;
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
 
         private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
             => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
 
         internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
-            => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue, out var value) ? value : LabelPositionOptions.NoIndent;
+            => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptions.NoIndent;
 
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
             => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out string key) ? key : null;
@@ -80,9 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static NewLineOption? ConvertToNewLineOption(string value)
-            => s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option)
-               ? option
-               : (NewLineOption?)null;
+        {
+            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option))
+            {
+                return option;
+            }
+            if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
+            {
+                return legacyOption;
+            }
+            return null;
+        }
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
         {

@@ -75,8 +75,53 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="needs-review-translation">Wyróżnij odwołania do symbolu pod kursorem;Wyróżnij pokrewne słowa kluczowe pod kursorem;Przejdź do trybu konspektu po otwarciu plików;Pokaż separatory wierszy procedury;Generuj komentarze dokumentacji XML;Pokaż diagnostykę zamkniętych plików;Pokaż podglad śledzenia zmian nazw;Umieść na początku dyrektywy System podczas sortowania użyć;Nie umieszczaj klauzul ref lub out w niestandardowych strukturach</target>
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Pokaż diagnostykę dla zamkniętych plików;
+Koloruj wyrażenie regularne; 
+Wyróżnij powiązane składniki pod kursorem; 
+Zgłoś nieprawidłowe wyrażenia regularne;
+Włącz pełną analizę rozwiązania;
+Wykonaj analizę funkcji edytora w procesie zewnętrznym;
+Włącz nawigację do dekompilowanych źródeł;
+Dyrektywy using;
+Umieść dyrektywy systemowe na początku podczas sortowania dyrektyw using;
+Oddziel grupy dyrektyw using;
+Proponuj dyrektywy using dla typów w zestawach odwołań;
+Proponuj dyrektywy using dla typów w pakietach NuGet;
+Wyróżnianie;
+Wyróżnij odwołania do symbolu pod kursorem;
+Wyróżnij powiązane słowa kluczowe pod kursorem;
+Zwijanie;
+Włącz tryb zwijania, gdy pliki są otwarte;
+Pokaż separatory wierszy procedury;
+Pokaż zwijanie dla konstrukcji na poziomie deklaracji;
+Pokaż zwijanie dla konstrukcji na poziomie kodu;
+Pokaż zwijanie dla komentarzy i regionów preprocesora;
+Zwiń regiony podczas zwijania do definicji;
+Zanikanie;
+Zanikanie nieużywanych dyrektyw using;
+Zanikanie nieosiągalnego kodu;
+Prowadnice struktury blokowej;
+Pokaż prowadnice dla konstrukcji na poziomie deklaracji;
+Pokaż prowadnice dla konstrukcji na poziomie kodu;
+Pomoc edytora;
+Generuj komentarze dokumentacji XML dla ciągu ///;
+Wstaw znak * na początku nowych wierszy podczas pisania komentarzy /* */;
+Pokaż podgląd na potrzeby śledzenia zmian nazw;
+Dziel literały ciągu po naciśnięciu klawisza Enter;
+Zgłaszaj nieprawidłowe symbole zastępcze w wywołaniach string.Format;
+Wyodrębnij metodę;
+Nie umieszczaj słów kluczowych ref ani out w strukturach niestandardowych;
+Implementuj interfejs lub klasę abstrakcyjną;
+Podczas wstawiania właściwości, zdarzeń i metod umieszczaj je;
+z innymi składowymi tego samego rodzaju;
+na końcu;
+Podczas generowania właściwości;
+preferuj właściwości przerzucane;
+preferuj właściwości automatyczne;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -84,25 +129,12 @@ prefer auto properties;</source>
 Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
-Automatically format on paste;
-Format Document Settings;
-Apply all C# formatting rules indentation, wrapping, spacing;
-Perform additional code cleanup during formatting;
-Remove unnecessary usings;
-Sort usings;
-Add remove braces for single-line control statements;
-Add accessibility modifiers;
-Sort accessibility modifiers;
-Apply expression block/body preferences;
-Apply implicit/explicit type preferences;
-Apply inline out variables preferences;
-Apply language/framework type preferences;
-Apply object/collection initialization preferences;
-Apply this qualification preferences;
-Make private fields readonly when possible;
-Remove unnecessary casts;
-Remove unused variables;</source>
-        <target state="needs-review-translation">Automatycznie sformatuj instrukcję w pozycji średnika;Automatycznie sformatuj blok w pozycji nawiasu klamrowego;Automatycznie sformatuj przy wklejeniu;czyszczenie kodu;</target>
+Automatically format on paste;</source>
+        <target state="translated">Automatycznie formatuj podczas wpisywania;
+Automatycznie formatuj instrukcję w pozycji średnika;
+Automatycznie formatuj blok w pozycji zamykającego nawiasu klamrowego;
+Automatycznie formatuj przy zwróceniu;
+Automatycznie formatuj przy wklejeniu;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -115,7 +147,15 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Wcięcie zawartości bloku;Wcięcie otwierających i zamykających nawiasów klamrowych, wcięcie zawartości elementu case;wcięcie etykiet elementu case;wcięcia etykiet</target>
+        <target state="translated">Wcięcie zawartości bloku; 
+wcięcie otwierających i zamykających nawiasów klamrowych; 
+wcięcie zawartości instrukcji case; 
+wcięcie zawartości instrukcji case (w przypadku bloku); 
+wcięcie etykiet instrukcji case; 
+wcięcie etykiet; 
+umieść etykiety goto w pierwszej kolumnie od lewej; 
+normalne wcięcie etykiet; 
+wcięcie etykiet goto o jeden mniejsze niż bieżące;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -136,7 +176,23 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">Opcja formatowania nowego wiersza dla nawiasów;Opcje formatowania nowego wiersza dla słów kluczowych</target>
+        <target state="translated">Opcja formatowania nowego wiersza dla nawiasów klamrowych;Opcje formatowania nowych wierszy dla słów kluczowych;Opcje nowych wierszy dla nawiasów klamrowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla typów;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod i funkcji lokalnych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla właściwości, indeksatorów i zdarzeń;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod dostępu do właściwości, indeksatorów i zdarzeń;
+Umieść otwierający nawias klamrowy w nowym wierszu dla metod anonimowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla bloków kontrolnych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla typów anonimowych;
+Umieść otwierający nawias klamrowy w nowym wierszu dla inicjatorów obiektów, kolekcji i tablic;
+Opcje nowego wiersza dla słów kluczowych;
+Umieść słowo kluczowe else w nowym wierszu;
+Umieść słowo kluczowe catch w nowym wierszu;
+Umieść słowo kluczowe finally w nowym wierszu;
+Opcje nowego wiersza dla wyrażenia;
+Umieść składowe w inicjatorach obiektów w nowym wierszu;
+Umieść składowe w typach anonimowych w nowym wierszu;
+Umieść klauzule wyrażeń zapytań w nowym wierszu;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -171,7 +227,37 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">Ustaw odstępy dla deklaracji metod;ustaw odstępy dla wywołań metod;ustaw inne opcje ostępów;ustaw odstępy dla nawiasów klamrowych;ustaw odstępy dla ograniczników;ustaw odstępy dla operatorów</target>
+        <target state="translated">Ustaw odstępy dla deklaracji metod;
+Wstawiaj odstęp między nazwą metody i nawiasem otwierającym;
+Wstawiaj odstęp w nawiasach list parametrów;
+Wstawiaj odstęp w pustych nawiasach list parametrów;
+Ustaw odstępy dla wywołań metod;
+Wstawiaj odstęp w nawiasach list argumentów;
+Wstawiaj odstęp w pustych nawiasach list argumentów;
+Ustaw inne opcje odstępów;
+Wstawiaj odstęp po słowach kluczowych w instrukcjach przepływu sterowania;
+Wstawiaj odstęp w nawiasach wyrażeń;
+Wstawiaj odstęp w nawiasach rzutowań typów;
+Wstawiaj odstęp w nawiasach instrukcji przepływu sterowania;
+Wstawiaj odstęp po rzutowaniu;
+Ignoruj odstęp w instrukcjach deklaracji;
+Ustaw odstępy dla nawiasów kwadratowych;
+Wstawiaj odstęp przed otwierającym nawiasem kwadratowym;
+Wstawiaj odstęp w pustych nawiasach kwadratowych;
+Wstawiaj odstęp w nawiasach kwadratowych;
+Ustaw odstępy dla ograniczników;
+Wstawiaj odstęp po dwukropku dla podstawy lub interfejsu w deklaracji typu;
+Wstawiaj odstęp po przecinku;
+Wstawiaj odstęp po kropce;
+Wstawiaj odstęp po średniku w instrukcji for;
+Wstawiaj odstęp przed dwukropkiem dla podstawy lub interfejsu w deklaracji typu;
+Wstawiaj odstęp przed przecinkiem;
+Wstawiaj odstęp przed kropką;
+Wstawiaj odstęp przed średnikiem w instrukcji for;
+Ustaw odstępy dla operatorów;
+Ignoruj odstęp wokół operatorów binarnych;
+Usuwaj odstęp przed operatorami binarnymi i po nich;
+Wstawiaj odstęp przed operatorami binarnymi i po nich;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -194,7 +280,20 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową</target>
+        <target state="translated">Zmień ustawienia listy uzupełniania;Wybierz wstępnie ostatnio używaną składową; Listy uzupełniania;
+Pokaż listę uzupełniania po wpisaniu znaku;
+Pokaż listę uzupełniania po usunięciu znaku;
+Wyróżnij zgodne fragmenty pozycji listy uzupełniania;
+Pokaż filtry pozycji uzupełniania;
+Zachowanie fragmentów kodu;
+Nigdy nie dołączaj fragmentów kodu;
+Zawsze dołączaj fragmenty kodu;
+Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab;
+Zachowanie klawisza Enter;
+Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter;
+Dodaj nowy wiersz po naciśnięciu klawisza Enter na końcu wpisanego całego słowa;
+Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter;
+Pokaż sugestie dotyczące nazw;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -271,6 +370,16 @@ Show name suggestions;</source>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Składniki języka C# używane w środowisku IDE. Zależnie od typu projektu i jego ustawień może być używana inna wersja kompilatora.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

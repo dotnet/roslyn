@@ -4,8 +4,8 @@ Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestInt32Literals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestInt32Literals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -39,11 +39,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCharLiterals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCharLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -74,11 +74,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestDoubleLiterals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDoubleLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -114,11 +114,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestFloatLiterals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFloatLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -154,11 +154,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestStringLiterals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStringLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -197,11 +197,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestStringLiterals2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStringLiterals2(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -230,11 +230,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestStringLiterals3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestStringLiterals3(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -263,11 +263,11 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestDecimalLiterals1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDecimalLiterals1(host As TestHost) As Task
             Dim test =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -285,7 +285,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test)
+            Await TestStreamingFeature(test, host)
         End Function
     End Class
 End Namespace

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             using (var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions))
             {
-                var result = testState.ExtractViaCommand();
+                var result = await testState.ExtractViaCommandAsync();
 
                 if (expectedSuccess)
                 {

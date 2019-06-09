@@ -71,5 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
             Return False
         End Function
+
+        Protected Overrides Function IsNameOf(node As SyntaxNode) As Boolean
+            Return node.Kind() = SyntaxKind.NameOfKeyword
+        End Function
     End Class
 End Namespace

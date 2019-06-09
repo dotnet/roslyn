@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static ImmediateWindow_InProc Create() => new ImmediateWindow_InProc();
 
-        public void ShowImmediateWindow()=> ExecuteCommand("Debug.Immediate");
+        public void ShowImmediateWindow() => ExecuteCommand("Debug.Immediate");
 
         public string GetText()
         {

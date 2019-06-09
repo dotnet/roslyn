@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class NameOfExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of NameOfExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsRetriggerCharacter(ch As Char) As Boolean
             Return ch = ")"c
         End Function

@@ -188,6 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
+                /*
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
                 var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
 
@@ -195,6 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
                 }
+                */
             }
 
             return ImmutableHashSet<string>.Empty;

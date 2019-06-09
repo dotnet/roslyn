@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -581,7 +581,7 @@ class d
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                Assert.False(Controller.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
+                Assert.False(CommitManager.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
             }
         }
 
@@ -907,7 +907,7 @@ internal class Example
 }";
 
             await VerifyNoItemsExistAsync(markup);
-		}
+        }
 
         [WorkItem(26560, "https://github.com/dotnet/roslyn/issues/26560")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1121,7 +1121,7 @@ class Program
 
                 if (completionList != null)
                 {
-                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
+                    Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
                 }
             }
         }

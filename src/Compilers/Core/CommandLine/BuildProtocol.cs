@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // The request was rejected by the server.  
             Rejected,
-           
+
             // The server hash did not match the one supplied by the client
             IncorrectHash,
         }

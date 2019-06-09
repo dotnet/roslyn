@@ -7,50 +7,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ParameterWellKnownAttributeData : CommonParameterWellKnownAttributeData
     {
-        private bool _hasNotNullWhenTrueAttribute;
-        public bool HasNotNullWhenTrueAttribute
+        private bool _hasAllowNullAttribute;
+        public bool HasAllowNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasNotNullWhenTrueAttribute;
+                return _hasAllowNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasNotNullWhenTrueAttribute = value;
+                _hasAllowNullAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasNotNullWhenFalseAttribute;
-        public bool HasNotNullWhenFalseAttribute
+        private bool _hasDisallowNullAttribute;
+        public bool HasDisallowNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasNotNullWhenFalseAttribute;
+                return _hasDisallowNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasNotNullWhenFalseAttribute = value;
+                _hasDisallowNullAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool _hasEnsuresNotNullAttribute;
-        public bool HasEnsuresNotNullAttribute
+        private bool _hasMaybeNullAttribute;
+        public bool HasMaybeNullAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return _hasEnsuresNotNullAttribute;
+                return _hasMaybeNullAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                _hasEnsuresNotNullAttribute = value;
+                _hasMaybeNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool? _maybeNullWhenAttribute;
+        public bool? MaybeNullWhenAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _maybeNullWhenAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _maybeNullWhenAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasNotNullAttribute;
+        public bool HasNotNullAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasNotNullAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasNotNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool? _notNullWhenAttribute;
+        public bool? NotNullWhenAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _notNullWhenAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _notNullWhenAttribute = value;
                 SetDataStored();
             }
         }
@@ -83,6 +131,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 VerifySealed(expected: false);
                 _hasAssertsFalseAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasEnumeratorCancellationAttribute;
+        public bool HasEnumeratorCancellationAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasEnumeratorCancellationAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasEnumeratorCancellationAttribute = value;
                 SetDataStored();
             }
         }

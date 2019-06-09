@@ -79,8 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
+            var leftToken = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true);
+            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken) ||
+                syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
                 syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
             {
-                var directive = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true).GetAncestor<DirectiveTriviaSyntax>();
+                var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
                 if (directive.DirectiveNameToken.IsKind(
                     SyntaxKind.IfKeyword,
                     SyntaxKind.RegionKeyword,
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var snippets = service.GetSnippetsIfAvailable();
             if (isPreProcessorContext)
             {
-                snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
+                snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 return CommonCompletionItem.Create(
                                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                displayTextSuffix: "",
                                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                                 description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
                                 glyph: Glyph.Snippet,

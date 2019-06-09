@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
                 list.Add(new DiagnosticData(
                     id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
-                    project.Solution.Workspace, project.Id, location, additionalLocations,
+                    project.Id, location, additionalLocations,
                     title: title,
                     description: description,
                     helpLink: helpLink,

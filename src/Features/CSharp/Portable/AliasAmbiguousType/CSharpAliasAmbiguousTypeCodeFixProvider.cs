@@ -17,10 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType
         /// </summary>
         private const string CS0104 = nameof(CS0104);
 
+        [ImportingConstructor]
+        public CSharpAliasAmbiguousTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0104);
 
-        protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol) 
+        protected override string GetTextPreviewOfChange(string alias, ITypeSymbol typeSymbol)
             => $"using { alias } = { typeSymbol.ToNameDisplayString() };";
     }
 }

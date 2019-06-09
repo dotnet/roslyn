@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
-                && conversion1.MethodSymbol == conversion2.MethodSymbol;
+                && Equals(conversion1.MethodSymbol, conversion2.MethodSymbol);
         }
 
         private static bool IsInDelegateCreationExpression(ExpressionSyntax expression, SemanticModel semanticModel)
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var expressionToCastType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(cast, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
-            
+
             // Simple case: If the conversion from the inner expression to the cast type is identity,
             // the cast can be removed.
             if (expressionToCastType.IsIdentity)

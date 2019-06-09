@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to perform substitution on the wrapped type, if any, and then construct a new
         /// error type symbol from the result (if there was a change).
         /// </summary>
-        internal virtual TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
+        internal TypeWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            return TypeSymbolWithAnnotations.Create((ErrorTypeSymbol)typeMap.SubstituteNamedType(this));
+            return TypeWithAnnotations.Create(typeMap.SubstituteNamedType(this));
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -433,17 +433,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return null;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)
+        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeWithAnnotations> typeArguments, bool unbound)
         {
             return new ConstructedErrorTypeSymbol(this, typeArguments);
         }
@@ -591,22 +591,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return _hashCode;
         }
-
-        public override bool? NonNullTypes => false;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
     {
         private readonly ErrorTypeSymbol _constructedFrom;
-        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly TypeMap _map;
 
-        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeSymbolWithAnnotations> typeArguments) :
+        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations) :
             base((ErrorTypeSymbol)constructedFrom.OriginalDefinition)
         {
             _constructedFrom = constructedFrom;
-            _typeArguments = typeArguments;
-            _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArguments);
+            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
+            _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -614,9 +612,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom.TypeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
-            get { return _typeArguments; }
+            get { return _typeArgumentsWithAnnotations; }
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -645,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalDefinition)
         {
             _containingSymbol = containingSymbol;
-            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, nonNullTypesContext: originalDefinition, out _typeParameters);
+            _map = containingSymbol.TypeSubstitution.WithAlphaRename(originalDefinition, this, out _typeParameters);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -653,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer 
+    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
         protected override string GetLanguageName()
@@ -21,10 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 
         // If the member is already qualified with `base.`,
         // or member is in object initialization context,
-        // or member in property or field initialization, it cannot be qualified.
+        // or member in property or field initialization,
+        // or member in constructor initializer, it cannot be qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
         {
             if (node.GetAncestorOrThis<AttributeSyntax>() != null)
+            {
+                return false;
+            }
+
+            if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
             {
                 return false;
             }

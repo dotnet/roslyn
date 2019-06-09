@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-            ExitDecodeTypeName:
+ExitDecodeTypeName:
                 HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
                 pooledStrBuilder.Free();
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 goto default;
                             }
-                             
+
                             Advance();
                             if (Current != ']')
                             {
@@ -823,8 +823,8 @@ namespace Microsoft.CodeAnalysis
                                 lastChildNamespaceName, typesInLastChildNamespace));
                     }
 
-                DoneWithSequence:
-                    /*empty statement*/
+DoneWithSequence:
+/*empty statement*/
                     ;
                 }
             } // using
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
-                    messageProvider.CreateDiagnostic(code, Location.None, 
+                    messageProvider.CreateDiagnostic(code, Location.None,
                         new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }

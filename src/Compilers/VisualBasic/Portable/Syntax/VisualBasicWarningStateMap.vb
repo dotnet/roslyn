@@ -6,10 +6,10 @@ Imports Microsoft.CodeAnalysis.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class VisualBasicWarningStateMap
-        Inherits AbstractWarningStateMap
+        Inherits AbstractWarningStateMap(Of ReportDiagnostic)
 
         Public Sub New(tree As SyntaxTree)
-            MyBase.New(tree)
+            MyBase.New(tree, isGeneratedCode:=False)
         End Sub
 
         Protected Overrides Function CreateWarningStateMapEntries(syntaxTree As SyntaxTree) As WarningStateMapEntry()

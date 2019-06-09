@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     if (expression.Type.IsValueType)
                     {
+
+                        if (!HasHome(expression, addressKind))
+                        {
+                            // a readonly method is calling a non-readonly method, therefore we need to copy 'this'
+                            goto default;
+                        }
+
                         _builder.EmitLoadArgumentOpcode(0);
                     }
                     else
@@ -102,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var call = (BoundCall)expression;
                     var methodRefKind = call.Method.RefKind;
 
-                    if (methodRefKind == RefKind.Ref || 
+                    if (methodRefKind == RefKind.Ref ||
                         (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly))
                     {
                         EmitCallExpression(call, UseKind.UsedAsAddress);
@@ -316,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             DefineAndRecordLocals(sequence);
             EmitSideEffects(sequence);
-            var result =  EmitAddress(sequence.Value, addressKind);
+            var result = EmitAddress(sequence.Value, addressKind);
             CloseScopeAndKeepLocals(sequence);
 
             return result;
@@ -531,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Both the buffer backing struct and its only field should be at the same location,
             // so we could in theory just use address of the struct, but in some contexts that causes 
             // PEVerify errors because the struct has unexpected type. (Ex: struct& when int& is expected)
-            if (field.IsFixed)
+            if (field.IsFixedSizeBuffer)
             {
                 var fixedImpl = field.FixedImplementationType(_module);
                 var fixedElementField = fixedImpl.FixedElementField;

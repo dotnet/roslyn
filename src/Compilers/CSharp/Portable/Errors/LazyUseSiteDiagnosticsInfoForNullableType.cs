@@ -6,9 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LazyUseSiteDiagnosticsInfoForNullableType : LazyDiagnosticInfo
     {
-        private readonly TypeSymbolWithAnnotations _possiblyNullableTypeSymbol;
+        private readonly TypeWithAnnotations _possiblyNullableTypeSymbol;
 
-        internal LazyUseSiteDiagnosticsInfoForNullableType(TypeSymbolWithAnnotations possiblyNullableTypeSymbol)
+        internal LazyUseSiteDiagnosticsInfoForNullableType(TypeWithAnnotations possiblyNullableTypeSymbol)
         {
             _possiblyNullableTypeSymbol = possiblyNullableTypeSymbol;
         }
@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_possiblyNullableTypeSymbol.IsNullableType())
             {
-                return _possiblyNullableTypeSymbol.TypeSymbol.OriginalDefinition.GetUseSiteDiagnostic();
+                return _possiblyNullableTypeSymbol.Type.OriginalDefinition.GetUseSiteDiagnostic();
             }
-            else if (_possiblyNullableTypeSymbol.TypeSymbol.IsUnconstrainedTypeParameter())
+            else if (_possiblyNullableTypeSymbol.Type.IsTypeParameterDisallowingAnnotation())
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_NullableUnconstrainedTypeParameter);
             }

@@ -1,12 +1,11 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
     <IsShipping>false</IsShipping>
-    <IsVisualStudioInsertionPackage>true</IsVisualStudioInsertionPackage>
+    <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
 
     <IsPackable>true</IsPackable>
     <PackageId>VS.Tools.Roslyn</PackageId>
@@ -29,13 +28,13 @@
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="all"/>
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeCompilerArtifacts">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(CompilerArtifact)" TargetDir="" />
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="" />
       <_File Include="$(MSBuildProjectDirectory)\Init.cmd" TargetDir="" />
 
       <!-- Workaround for https://github.com/dotnet/roslyn/issues/17864 -->
-      <_File Remove="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe"/>
+      <_File Remove="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe"/>
       <_File Include="$(IntermediateOutputPath)csc.exe"/>
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
@@ -45,21 +44,20 @@
   <!-- 
     Workaround for https://github.com/dotnet/roslyn/issues/17864.
   -->
-  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
-  <UsingTask TaskName="RoslynTools.SetCorFlags" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SetCorFlags" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
 
   <Target Name="_Generate32BitCsc" 
           AfterTargets="Build"
-          Inputs="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe"
+          Inputs="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe"
           Outputs="$(IntermediateOutputPath)csc.exe">
 
-    <Copy SourceFiles="$(ArtifactsConfigurationDir)Exes\csc\net46\csc.exe" DestinationFiles="$(IntermediateOutputPath)csc.exe"/>
-    <RoslynTools.SetCorFlags FilePath="$(IntermediateOutputPath)csc.exe" AddFlags="Prefers32Bit,Requires32Bit" />
+    <Copy SourceFiles="$(ArtifactsBinDir)csc\$(Configuration)\net472\csc.exe" DestinationFiles="$(IntermediateOutputPath)csc.exe"/>
+    <Microsoft.DotNet.Arcade.Sdk.SetCorFlags FilePath="$(IntermediateOutputPath)csc.exe" AddFlags="Prefers32Bit,Requires32Bit" />
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateOutputPath)csc.exe"/>
     </ItemGroup>
   </Target>
 
-  <Import Project="..\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>

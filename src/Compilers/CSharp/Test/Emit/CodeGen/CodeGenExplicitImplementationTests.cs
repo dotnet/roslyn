@@ -1042,7 +1042,16 @@ class C : A::I, B::I
             comp1.VerifyDiagnostics(
                 // (5,17): error CS0528: 'I' is already listed in interface list
                 // class C : A::I, B::I
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "B::I").WithArguments("I"));
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "B::I").WithArguments("I"),
+                // (5,7): error CS8646: 'I.E' is explicitly implemented more than once.
+                // class C : A::I, B::I
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.E").WithLocation(5, 7),
+                // (5,7): error CS8646: 'I.P' is explicitly implemented more than once.
+                // class C : A::I, B::I
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.P").WithLocation(5, 7),
+                // (5,7): error CS8646: 'I.M()' is explicitly implemented more than once.
+                // class C : A::I, B::I
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.M()").WithLocation(5, 7));
 
             // Two assemblies with the same content, two aliases.
             var comp2 = CreateCompilation(source, new[] { new CSharpCompilationReference(libComp1, aliases: ImmutableArray.Create("A")), new CSharpCompilationReference(libComp2, aliases: ImmutableArray.Create("B")) });

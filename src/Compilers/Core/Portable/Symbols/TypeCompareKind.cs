@@ -10,40 +10,22 @@ namespace Microsoft.CodeAnalysis
     [Flags]
     internal enum TypeCompareKind
     {
-        ConsiderEverything = 0, // Perhaps rename since this does not consider nullable modifiers.
+        ConsiderEverything = 0,
+
+        // This comparison option is temporary. All usages should be reviewed, and it should be removed. https://github.com/dotnet/roslyn/issues/31742
+        ConsiderEverything2 = ConsiderEverything,
         IgnoreCustomModifiersAndArraySizesAndLowerBounds = 1,
         IgnoreDynamic = 2,
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
 
-        /// <summary>
-        /// Note: comparisons with nullability-related options pull on NonNullTypes, which can cause cycles.
-        /// </summary>
-        CompareNullableModifiersForReferenceTypes = 8,
+        IgnoreNullableModifiersForReferenceTypes = 8,
+        ObliviousNullableModifierMatchesAny = 16,
 
-        /// <summary>
-        /// Has no impact without CompareNullableModifiersForReferenceTypes.
-        /// </summary>
-        UnknownNullableModifierMatchesAny = 16,
-        AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames,
-        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
-    }
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
+        AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
+        AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,
 
-    internal static class TypeCompareKindExtension
-    {
-        public static TypeCompareKind AddIgnoreCustomModifiersAndArraySizesAndLowerBounds(this TypeCompareKind self, bool condition)
-        {
-            return condition ? (self | TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) : self;
-        }
-
-        public static TypeCompareKind AddIgnoreDynamic(this TypeCompareKind self, bool condition)
-        {
-            return condition ? (self | TypeCompareKind.IgnoreDynamic) : self;
-        }
-
-        public static TypeCompareKind AddIgnoreTupleNames(this TypeCompareKind self, bool condition)
-        {
-            return condition ? (self | TypeCompareKind.IgnoreTupleNames) : self;
-        }
+        CLRSignatureCompareOptions = TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds,
     }
 }

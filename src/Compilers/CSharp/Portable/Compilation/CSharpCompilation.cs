@@ -164,12 +164,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True if we should enable nullable analysis in this compilation.
+        /// </summary>
+        internal bool NullableAnalysisEnabled => Feature("run-nullable-analysis") is "true";
+
+        /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null; 
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -304,7 +309,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), eventQueue)
+        {
+        }
+
+        private CSharpCompilation(
+            string assemblyName,
+            CSharpCompilationOptions options,
+            ImmutableArray<MetadataReference> references,
+            CSharpCompilation previousSubmission,
+            Type submissionReturnType,
+            Type hostObjectType,
+            bool isSubmission,
+            ReferenceManager referenceManager,
+            bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations,
+            IReadOnlyDictionary<string, string> features,
+            AsyncQueue<CompilationEvent> eventQueue = null)
+            : base(assemblyName, references, features, isSubmission, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
@@ -501,6 +523,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
                         state: null));
+        }
+
+        /// <summary>
+        /// Returns a new compilation with the listed additional features. This method does not reparse syntax trees
+        /// with the new features enabled.
+        /// </summary>
+        internal CSharpCompilation WithAdditionalFeatures(params (string feature, string value)[] additionalFeatures)
+        {
+            var newFeatures = new Dictionary<string, string>();
+            foreach (var (key, value) in _features)
+            {
+                newFeatures[key] = value;
+            }
+
+            foreach (var (key, value) in additionalFeatures)
+            {
+                newFeatures[key] = value;
+            }
+
+            return new CSharpCompilation(
+                this.AssemblyName,
+                this.Options,
+                this.ExternalReferences,
+                this.PreviousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager: true,
+                _syntaxAndDeclarations,
+                newFeatures);
         }
 
         /// <summary>
@@ -1263,7 +1316,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
-            var result = Assembly.GetSpecialType(specialType);
+            NamedTypeSymbol result;
+            if (IsTypeMissing(specialType))
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
+                result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
+            }
+            else
+            {
+                result = Assembly.GetSpecialType(specialType);
+            }
+
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
@@ -1425,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ErrorCode.WRN_MainIgnored, NoLocation.Singleton, mainTypeName);
@@ -1440,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
-                    if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct))
+                    if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct && !mainType.IsInterface))
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
                         return null;
@@ -1458,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if ((object)scriptClass != null)
                     {
                         foreach (var main in entryPointCandidates)
                         {
@@ -1619,19 +1682,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
         {
             // Common case optimization
-            if (method.ReturnType.SpecialType == SpecialType.System_Void || method.ReturnType.SpecialType == SpecialType.System_Int32)
+            if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
             {
                 return false;
             }
 
-            if (!(method.ReturnType.TypeSymbol is NamedTypeSymbol namedType))
+            if (!(method.ReturnType is NamedTypeSymbol namedType))
             {
                 return false;
             }
 
             // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
-            if (!(namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
-                  namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
@@ -1643,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
             return success &&
-                (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
+                (result.Type.IsVoidType() || result.Type.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -1660,9 +1723,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnType.TypeSymbol;
+            TypeSymbol returnType = method.ReturnType;
             bool returnsTaskOrTaskOfInt = false;
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
+            if (returnType.SpecialType != SpecialType.System_Int32 && !returnType.IsVoidType())
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
                 returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
@@ -1692,13 +1755,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var firstType = method.Parameters[0].Type;
+            var firstType = method.Parameters[0].TypeWithAnnotations;
             if (firstType.TypeKind != TypeKind.Array)
             {
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType.TypeSymbol;
+            var array = (ArrayTypeSymbol)firstType.Type;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
@@ -1807,7 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeSymbolWithAnnotations.Create(elementType), rank);
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeWithAnnotations.Create(elementType), rank);
         }
 
         /// <summary>
@@ -1820,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
+            return new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
         }
 
         private protected override bool IsSymbolAccessibleWithinCore(
@@ -2209,6 +2272,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
 
+                if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // the set of diagnostics related to establishing references.
@@ -2334,7 +2405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxTree is null)
             {
                 // Don't freeze the compilation if we're getting
-                // diagnositcs for a single tree
+                // diagnostics for a single tree
                 _declarationDiagnosticsFrozen = true;
 
                 // Also freeze generated attribute flags.
@@ -2981,20 +3052,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(elementTypes.Length);
+            var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
                 var elementType = elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]");
-                typesBuilder.Add(TypeSymbolWithAnnotations.Create(elementType));
+                typesBuilder.Add(TypeWithAnnotations.Create(elementType));
             }
 
             return TupleTypeSymbol.Create(
                 locationOpt: null, // no location for the type declaration
-                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
                 elementLocations: elementLocations,
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
+                includeNullability: false,
                 errorPositions: default(ImmutableArray<bool>));
         }
 
@@ -3041,7 +3113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = memberTypes[i];
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, TypeSymbolWithAnnotations.Create((TypeSymbol)type)));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create((TypeSymbol)type)));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -3217,7 +3289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
         /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
         /// </remarks>
         internal bool EnableEnumArrayBlockInitialization
         {
@@ -3409,7 +3481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var sourceType = symbol as SourceMemberContainerTypeSymbol;
-                    if (sourceType != null)
+                    if ((object)sourceType != null)
                     {
                         _cache[sourceType.MergedDeclaration] = sourceType;
                     }
@@ -3422,7 +3494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Func<string, bool> _predicate;
 
             public PredicateSymbolSearcher(
-                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken) 
+                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken)
                 : base(compilation, filter, cancellationToken)
             {
                 _predicate = predicate;

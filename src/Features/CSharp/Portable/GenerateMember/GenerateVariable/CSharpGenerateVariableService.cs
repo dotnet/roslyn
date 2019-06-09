@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
     internal partial class CSharpGenerateVariableService :
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateVariableService()
+        {
+        }
+
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
             => node is PropertyDeclarationSyntax;
 
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
             // something like "Goo < string >" then that's clearly something generic and we don't want
             // to offer to generate a member there.
-            var localRoot = identifierName.GetAncestor<StatementSyntax>() ?? 
+            var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
                             identifierName.GetAncestor<MemberDeclarationSyntax>() ??
                             identifierName.SyntaxTree.GetRoot(cancellationToken);
 
@@ -141,6 +146,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             }
 
             if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
             {
                 return true;
             }

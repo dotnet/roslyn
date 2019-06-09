@@ -3,8 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -41,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, nonNullTypesContext: this, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
@@ -86,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return GetTypeParametersAsTypeArguments(nonNullTypesContext: this); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override RefKind RefKind
@@ -96,10 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.RefKind; }
         }
 
-        public sealed override TypeSymbolWithAnnotations ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _interfaceMethod.ReturnType; }
+            get { return _interfaceMethod.ReturnTypeWithAnnotations; }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
@@ -259,7 +259,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ImmutableArray<string>.Empty;
         }
-
-        public override bool? NonNullTypes => false;
     }
 }

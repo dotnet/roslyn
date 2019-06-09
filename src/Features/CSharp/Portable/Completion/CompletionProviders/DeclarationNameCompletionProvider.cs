@@ -10,12 +10,12 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     sortValue++;
                 }
 
-                completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
+                completionContext.SuggestionModeItem = CommonCompletionItem.Create(
+                    CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
-                
+
                 var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
                     t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
@@ -198,9 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();
 
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType ||
-                    originalDefinition == lazyOfTType ||
+                if (Equals(originalDefinition, taskOfTType) ||
+                    Equals(originalDefinition, valueTaskType) ||
+                    Equals(originalDefinition, lazyOfTType) ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
@@ -217,10 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
-            var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
+            var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
+
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
                 // There's no special glyph for local functions.
@@ -240,7 +241,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
-                                result.Add(name, symbolKind);
+                                var targetToken = context.TargetToken;
+                                var uniqueName = semanticFactsService.GenerateUniqueName(
+                                    context.SemanticModel,
+                                    context.TargetToken.Parent,
+                                    containerOpt: null,
+                                    baseName: name,
+                                    filter: IsRelevantSymbolKind,
+                                    usedNames: Enumerable.Empty<string>(),
+                                    cancellationToken: cancellationToken);
+                                result.Add(uniqueName.Text, symbolKind);
                             }
                         }
                     }
@@ -250,13 +260,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
         }
 
+        /// <summary>
+        /// Check if the symbol is a relevant kind.
+        /// Only relevant if symbol could cause a conflict with a local variable.
+        /// </summary>
+        private bool IsRelevantSymbolKind(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable;
+        }
+
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
-                name, 
-                CompletionItemRules.Default, 
-                glyph: glyph, 
-                sortText: sortText, 
+                name,
+                displayTextSuffix: "",
+                CompletionItemRules.Default,
+                glyph: glyph,
+                sortText: sortText,
                 description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }

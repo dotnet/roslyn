@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
-            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream),
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 

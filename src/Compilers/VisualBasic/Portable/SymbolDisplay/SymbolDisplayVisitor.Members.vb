@@ -24,7 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name, visitedParents))
+            If symbol.ContainingType.TypeKind = TypeKind.Enum Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name, visitedParents))
+            ElseIf symbol.IsConst Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name, visitedParents))
+            Else
+                builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name, visitedParents))
+            End If
 
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) AndAlso
                Me.isFirstSymbolVisited AndAlso
@@ -312,8 +318,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case symbol.MethodKind
-                Case MethodKind.Ordinary, MethodKind.ReducedExtension, MethodKind.DelegateInvoke, MethodKind.DeclareMethod
+                Case MethodKind.Ordinary, MethodKind.DelegateInvoke, MethodKind.DeclareMethod
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
+
+                Case MethodKind.ReducedExtension
+                    ' Note: Extension methods invoked off of their static class will be tagged as methods.
+                    '       This behavior matches the semantic classification done in NameSyntaxClassifier.
+                    builder.Add(CreatePart(SymbolDisplayPartKind.ExtensionMethodName, symbol, symbol.Name, visitedParents))
 
                 Case MethodKind.PropertyGet,
                     MethodKind.PropertySet,

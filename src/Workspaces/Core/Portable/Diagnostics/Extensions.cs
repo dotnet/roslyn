@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class Extensions
+    internal static partial class Extensions
     {
         public static readonly CultureInfo s_USCultureInfo = new CultureInfo("en-US");
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return DiagnosticData.Create(project, diagnostic);
+            return DiagnosticData.Create(project.Solution.Workspace, diagnostic, project.Id);
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
@@ -212,92 +213,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        /// <summary>
-        /// Returns the equivalent <see cref="DiagnosticSeverity"/> for a <see cref="ReportDiagnostic"/> value.
-        /// </summary>
-        /// <param name="reportDiagnostic">The <see cref="ReportDiagnostic"/> value.</param>
-        /// <returns>
-        /// The equivalent <see cref="DiagnosticSeverity"/> for a <see cref="ReportDiagnostic"/> value; otherwise,
-        /// <see langword="null"/> if <see cref="DiagnosticSeverity"/> does not contain a direct equivalent for
-        /// <paramref name="reportDiagnostic"/>.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// If <paramref name="reportDiagnostic"/> is not one of the expected values.
-        /// </exception>
-        public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
+        public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
         {
-            switch (reportDiagnostic)
+            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
             {
-            case ReportDiagnostic.Error:
-                return DiagnosticSeverity.Error;
+                case ReportDiagnostic.Error:
+                    return NotificationOption.Error;
 
-            case ReportDiagnostic.Warn:
-                return DiagnosticSeverity.Warning;
+                case ReportDiagnostic.Warn:
+                    return NotificationOption.Warning;
 
-            case ReportDiagnostic.Info:
-                return DiagnosticSeverity.Info;
+                case ReportDiagnostic.Info:
+                    return NotificationOption.Suggestion;
 
-            case ReportDiagnostic.Hidden:
-                return DiagnosticSeverity.Hidden;
+                case ReportDiagnostic.Hidden:
+                    return NotificationOption.Silent;
 
-            case ReportDiagnostic.Suppress:
-            case ReportDiagnostic.Default:
-                return null;
+                case ReportDiagnostic.Suppress:
+                    return NotificationOption.None;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
-            }
-        }
-
-        /// <summary>
-        /// Applies a default severity to a <see cref="ReportDiagnostic"/> value.
-        /// </summary>
-        /// <param name="reportDiagnostic">The <see cref="ReportDiagnostic"/> value.</param>
-        /// <param name="defaultSeverity">The default severity.</param>
-        /// <returns>
-        /// <para>If <paramref name="reportDiagnostic"/> is <see cref="ReportDiagnostic.Default"/>, returns
-        /// <paramref name="defaultSeverity"/>.</para>
-        /// <para>-or-</para>
-        /// <para>Otherwise, returns <paramref name="reportDiagnostic"/> if it has a non-default value.</para>
-        /// </returns>
-        public static ReportDiagnostic WithDefaultSeverity(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
-        {
-            if (reportDiagnostic != ReportDiagnostic.Default)
-            {
-                return reportDiagnostic;
-            }
-
-            return defaultSeverity.ToReportDiagnostic();
-        }
-
-        /// <summary>
-        /// Returns the equivalent <see cref="ReportDiagnostic"/> for a <see cref="DiagnosticSeverity"/> value.
-        /// </summary>
-        /// <param name="diagnosticSeverity">The <see cref="DiagnosticSeverity"/> value.</param>
-        /// <returns>
-        /// The equivalent <see cref="ReportDiagnostic"/> for the <see cref="DiagnosticSeverity"/> value.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
-        /// </exception>
-        public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-        {
-            switch (diagnosticSeverity)
-            {
-            case DiagnosticSeverity.Hidden:
-                return ReportDiagnostic.Hidden;
-
-            case DiagnosticSeverity.Info:
-                return ReportDiagnostic.Info;
-
-            case DiagnosticSeverity.Warning:
-                return ReportDiagnostic.Warn;
-
-            case DiagnosticSeverity.Error:
-                return ReportDiagnostic.Error;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity);
+                case ReportDiagnostic.Default:
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
             }
         }
     }

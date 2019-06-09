@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
+            protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
             protected void AddPrefixTextForAwaitKeyword()
             {
@@ -166,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
-                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Exceptions_colon}"));
+                    parts.AddLineBreak();
+                    parts.AddText(WorkspacesResources.Exceptions_colon);
                     foreach (var exceptionString in exceptionTypes)
                     {
                         parts.AddRange(LineBreak());
@@ -192,14 +195,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
-                if(semanticModel.IsSpeculativeSemanticModel)
+                if (semanticModel.IsSpeculativeSemanticModel)
                 {
                     // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
                     // to ask questions about an expression if it were in a certain *scope* of code, not if it were inserted at a certain *position*).
                     //
                     // But in the context of symbol completion, we do prepare a description for the symbol while speculating. Only the "main description"
                     // section of that description will be displayed. We still add a "captures" section, just in case.
-                    AddToGroup(SymbolDescriptionGroups.Captures, new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon} ?"));
+                    AddToGroup(SymbolDescriptionGroups.Captures, LineBreak());
+                    AddToGroup(SymbolDescriptionGroups.Captures, PlainText($"{WorkspacesResources.Variables_captured_colon} ?"));
                     return;
                 }
 
@@ -208,7 +212,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (!captures.IsEmpty)
                 {
                     var parts = new List<SymbolDisplayPart>();
-                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon}"));
+                    parts.AddLineBreak();
+                    parts.AddText(WorkspacesResources.Variables_captured_colon);
                     bool first = true;
                     foreach (var captured in captures)
                     {
@@ -488,7 +493,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants);
+                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstantsAndModifiers);
             }
 
             private async Task AddDescriptionForLocalAsync(ILocalSymbol symbol)

@@ -532,7 +532,7 @@ class Program : IProjectConfigurationsService
 }");
         }
 
-        
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]

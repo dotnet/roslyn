@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Emit
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
-        
+
         internal Cci.IMethodReference PEEntryPoint;
         internal Cci.IMethodReference DebugEntryPoint;
-       
+
         private readonly ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
-        
+
         /// <summary>
         /// A list of the files that constitute the assembly. Empty for netmodule. These are not the source language files that may have been
         /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
@@ -347,9 +347,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
         }
-        
+
         public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
+            if (context.IsRefAssembly)
+            {
+                // Manifest resources are not included in ref assemblies
+                // Ref assemblies don't support added modules
+                return ImmutableArray<Cci.ManagedResource>.Empty;
+            }
+
             if (_lazyManagedResources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
@@ -373,9 +380,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public IEnumerable<EmbeddedText> EmbeddedTexts
         {
-            get 
-            { 
-                return _embeddedTexts; 
+            get
+            {
+                return _embeddedTexts;
             }
             set
             {
@@ -425,8 +432,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
-        protected abstract bool InjectedSymbolsAreFrozen { get; }
-
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -434,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
             EmitOptions emitOptions,
-            TModuleCompilationState compilationState) 
+            TModuleCompilationState compilationState)
             : base(manifestResources, emitOptions, outputKind, serializationProperties, compilation)
         {
             Debug.Assert(sourceModule != null);
@@ -452,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal override IAssemblySymbol CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
-        
+
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
@@ -497,9 +502,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             // First time through, we need to push things through TypeReferenceIndexer
-            // to make sure we collect all to be embedded NoPia types and members, as well as detect any usage of NonNullTypes.
-            if ((EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen) ||
-                !InjectedSymbolsAreFrozen)
+            // to make sure we collect all to be embedded NoPia types and members.
+            if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
             {
                 typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
                 Debug.Assert(names != null);
@@ -536,13 +540,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return privateImpl;
             }
 
-            foreach (var injected in GetInjectedTypes(context.Diagnostics))
-            {
-                AddTopLevelType(names, injected);
-                VisitTopLevelType(typeReferenceIndexer, injected);
-                yield return injected;
-            }
-
             if (EmbeddedTypesManagerOpt != null)
             {
                 foreach (var embedded in EmbeddedTypesManagerOpt.GetTypes(context.Diagnostics, names))
@@ -558,8 +555,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 _namesOfTopLevelTypes = names;
             }
         }
-
-        protected abstract ImmutableArray<TNamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics);
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
@@ -584,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override Compilation CommonCompilation => Compilation;
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
-        
+
         internal MetadataConstant CreateConstant(
             TTypeSymbol type,
             object value,

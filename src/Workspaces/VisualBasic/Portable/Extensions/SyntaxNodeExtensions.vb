@@ -138,6 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return ifBlock.Statements
             End If
 
+            Dim elseIfBlock = TryCast(node, ElseIfBlockSyntax)
+            If elseIfBlock IsNot Nothing Then
+                Return elseIfBlock.Statements
+            End If
+
             Dim elseBlock = TryCast(node, ElseBlockSyntax)
             If elseBlock IsNot Nothing Then
                 Return elseBlock.Statements
@@ -230,13 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(Of TSyntaxNode As SyntaxNode)(list As IEnumerable(Of TSyntaxNode)) As Boolean
-            If list Is Nothing OrElse Not list.Any() Then
-                Return False
-            End If
-
-            Dim tokens = list.SelectMany(Function(n) n.DescendantTokens())
-
-            Return tokens.SpansPreprocessorDirective()
+            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(list)
         End Function
 
         <Extension()>
@@ -471,6 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                          SyntaxKind.SingleLineElseClause,
                          SyntaxKind.SingleLineSubLambdaExpression,
                          SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseIfBlock,
                          SyntaxKind.ElseBlock,
                          SyntaxKind.TryBlock,
                          SyntaxKind.CatchBlock,
@@ -540,6 +540,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return SyntaxFactory.SingletonList(DirectCast(DirectCast(node, SingleLineLambdaExpressionSyntax).Body, StatementSyntax))
                     Case SyntaxKind.MultiLineIfBlock
                         Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseIfBlock
+                        Return DirectCast(node, ElseIfBlockSyntax).Statements
                     Case SyntaxKind.ElseBlock
                         Return DirectCast(node, ElseBlockSyntax).Statements
                     Case SyntaxKind.TryBlock
@@ -606,6 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As SingleLineElseClauseSyntax) x.WithStatements(statements),
                 Function(x As SingleLineLambdaExpressionSyntax) ReplaceSingleLineLambdaExpressionStatements(x, statements, annotations),
                 Function(x As MultiLineIfBlockSyntax) x.WithStatements(statements),
+                Function(x As ElseIfBlockSyntax) x.WithStatements(statements),
                 Function(x As ElseBlockSyntax) x.WithStatements(statements),
                 Function(x As TryBlockSyntax) x.WithStatements(statements),
                 Function(x As CatchBlockSyntax) x.WithStatements(statements),

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Initialized member reference <see cref="IMemberReferenceOperation"/> or an invalid operation for error cases.
         /// </summary>
         IOperation InitializedMember { get; }
-        
+
         /// <summary>
         /// Member initializer.
         /// </summary>

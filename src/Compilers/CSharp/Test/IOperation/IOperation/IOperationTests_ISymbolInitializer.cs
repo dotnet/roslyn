@@ -167,7 +167,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
@@ -197,7 +197,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 
@@ -225,7 +225,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.i1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
-  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: 

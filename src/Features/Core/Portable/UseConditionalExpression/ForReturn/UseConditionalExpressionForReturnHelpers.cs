@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal static class UseConditionalExpressionForReturnHelpers 
+    internal static class UseConditionalExpressionForReturnHelpers
     {
         public static bool TryMatchPattern(
             ISyntaxFactsService syntaxFacts,
@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseStatement == null)
             {
-                var parentBlock = ifOperation.Parent as IBlockOperation;
-                if (parentBlock == null)
+                if (!(ifOperation.Parent is IBlockOperation parentBlock))
                 {
                     return false;
                 }

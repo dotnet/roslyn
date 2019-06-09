@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpression,
         TMemberAccessExpression,
         TConditionalAccessExpression,
-        TElementAccessExpression> : AbstractCodeStyleDiagnosticAnalyzer
+        TElementAccessExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract ISemanticFactsService GetSemanticFactsService();
 
         protected abstract bool TryAnalyzePatternCondition(
-            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode, 
+            ISyntaxFactsService syntaxFacts, SyntaxNode conditionNode,
             out SyntaxNode conditionPartToCheck, out bool isEquals);
 
         protected override void InitializeWorker(AnalysisContext context)

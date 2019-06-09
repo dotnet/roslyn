@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed partial class UseExpressionBodyForLambdaCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId);
 
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         }
 
         private void AddEdits(
-            SyntaxEditor editor, SemanticModel semanticModel, 
+            SyntaxEditor editor, SemanticModel semanticModel,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];

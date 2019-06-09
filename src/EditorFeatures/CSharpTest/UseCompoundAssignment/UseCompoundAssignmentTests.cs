@@ -2,10 +2,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
@@ -213,6 +215,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         a >>= 10;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestCoalesceExpressionCSharp8OrGreater()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M(int? a)
+    {
+        a [||]= a ?? 10;
+    }
+}",
+@"public class C
+{
+    void M(int? a)
+    {
+        a ??= 10;
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestCoalesceExpressionCSharp7()
+        {
+            await TestMissingAsync(
+@"public class C
+{
+    void M(int? a)
+    {
+        a [||]= a ?? 10;
+    }
+}",
+    new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
@@ -704,6 +740,26 @@ public class C
     {
         b = (a += 10);
     }
+}");
+        }
+
+        [WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnObjectInitializer()
+        {
+            await TestMissingAsync(
+@"
+struct InsertionPoint
+{
+	int level;
+	
+	InsertionPoint Up()
+	{
+		return new InsertionPoint
+        {
+			level [||]= level - 1,
+		};
+	}
 }");
         }
     }

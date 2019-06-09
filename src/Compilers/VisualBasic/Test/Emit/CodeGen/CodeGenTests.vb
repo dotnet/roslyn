@@ -276,7 +276,8 @@ End Module
         End Sub
 
         <WorkItem(578074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578074")>
-        <Fact()>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub PreserveZeroDigitsInDecimal()
             CompileAndVerify(
 <compilation>
@@ -621,7 +622,10 @@ expectedOutput:=<![CDATA[
         ''' Breaking change: native compiler considers
         ''' digits &lt; 1e-49 when rounding.
         ''' </summary>
-        <Fact, WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494"), WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
+        <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
+        <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/32576")>
         Public Sub DecimalLiteral_BreakingChange()
 
             CompileAndVerify(
@@ -3254,7 +3258,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3368,7 +3372,7 @@ End Module</file>
         End Sub
 
         <Fact()>
-        public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+        Public Sub TestNullCoalesce_NullableWithConvertedDefault_Optimization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5258,8 +5262,9 @@ End Class
 ]]>)
         End Sub
 
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(529849, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529849")>
-        <Fact>
         Public Sub ArrayWithTypeCharsWithStaticLocals()
             CompileAndVerify(
 <compilation>
@@ -13495,7 +13500,7 @@ End Module
 }]]>)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
@@ -13547,7 +13552,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
@@ -13572,7 +13577,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13629,7 +13634,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim size = 8192
@@ -13657,7 +13662,7 @@ End Class
                 )
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50
@@ -13816,7 +13821,9 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
@@ -13860,7 +13867,9 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
             Dim c = CompileAndVerify(
 <compilation>
@@ -14754,6 +14763,36 @@ End Module
   IL_0014:  call       "Function String.Concat(String, String) As String"
   IL_0019:  ret
 }
+]]>)
+        End Sub
+
+        Public Sub NormalizedNaN()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Class Program
+    Shared Sub Main()
+        CheckNaN(Double.NaN)
+        CheckNaN(Single.NaN)
+        CheckNaN(0.0 / 0.0)
+        CheckNaN(0.0 / -0.0)
+        Dim inf As Double = 1.0 / 0.0
+        CheckNaN(inf + Double.NaN)
+        CheckNaN(inf - Double.NaN)
+        CheckNaN(-Double.NaN)
+    End Sub
+
+    Shared Sub CheckNaN(nan As Double)
+        Dim expected As Long = &amp;HFFF8000000000000
+        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(nan)
+        If expected &lt;> actual Then
+            Throw New System.Exception($"expected=0X{expected: X} actual=0X{actual:X}")
+        End If
+    End Sub
+End Class
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 

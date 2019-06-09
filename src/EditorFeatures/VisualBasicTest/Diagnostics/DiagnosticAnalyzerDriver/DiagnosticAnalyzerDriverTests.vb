@@ -65,7 +65,7 @@ End Class
         Using Workspace = TestWorkspace.CreateVisualBasic(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
-                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
+                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length)))
         End Using
     End Function
 
@@ -92,7 +92,7 @@ End Class
             currentProject = newSln.Projects.Single()
             Dim additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)
 
-            Dim additionalStream As AdditionalText = New AdditionalTextDocument(additionalDocument.State)
+            Dim additionalStream As AdditionalText = New AdditionalTextWithState(additionalDocument.State)
             Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalStream))
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(expectedOptions:=options)
 

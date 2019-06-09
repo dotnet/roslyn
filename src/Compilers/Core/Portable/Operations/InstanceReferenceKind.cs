@@ -17,5 +17,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// anonymous type creation initializer, or to the object being referred to in a VB With statement.
         /// </summary>
         ImplicitReceiver,
+        /// <summary>
+        /// Reference to the value being matching in a property subpattern.
+        /// </summary>
+        PatternInput,
     }
 }

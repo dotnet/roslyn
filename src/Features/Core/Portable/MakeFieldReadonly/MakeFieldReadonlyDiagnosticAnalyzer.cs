@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class MakeFieldReadonlyDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public MakeFieldReadonlyDiagnosticAnalyzer()
             : base(
@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -107,7 +105,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         !symbol.IsConst &&
                         !symbol.IsImplicitlyDeclared &&
                         symbol.Locations.Length == 1 &&
-                        !IsMutableValueType(symbol.Type);
+                        symbol.Type.IsMutableValueType() == false &&
+                        !symbol.IsFixedSizeBuffer;
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
@@ -215,25 +214,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
             var optionSet = options.GetDocumentOptionSetAsync(field.Locations[0].SourceTree, cancellationToken).GetAwaiter().GetResult();
             return optionSet?.GetOption(CodeStyleOptions.PreferReadonly, field.Language);
-        }
-
-        private static bool IsMutableValueType(ITypeSymbol type)
-        {
-            if (type.TypeKind != TypeKind.Struct)
-            {
-                return false;
-            }
-
-            foreach (var member in type.GetMembers())
-            {
-                if (member is IFieldSymbol fieldSymbol &&
-                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

@@ -399,7 +399,7 @@ class C
                      select/*3*/ d.Key.c;
         Console.WriteLine(ExpressionPrinter.Print(result.Expression));
     }
-}" }, 
+}" },
 
 // The exact result of this test isn't important, only that it was unchanged
 // by making AnonymousFunction conversions be side-affecting in the local rewriter

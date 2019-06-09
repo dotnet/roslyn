@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="new">A language name cannot be specified for this option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="new">A language name must be specified for this option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -16,17 +26,17 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">Il parametro '{0}' deve essere un elemento 'INamedTypeSymbol' o 'IAssemblySymbol'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">Il parametro '{0}' deve essere un simbolo di questa compilazione oppure un qualsiasi assembly cui viene fatto riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="translated">L'operazione specificata non contiene un elemento padre non Null.</target>
+        <target state="translated">L'operazione specificata contiene un elemento padre non Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -36,7 +46,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">L'operazione specificata non deve essere inclusa in un grafico del flusso di controllo.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -57,6 +67,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Non è possibile usare la copia del modulo per creare i metadati di un assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">L'analizzatore '{0}' contiene un descrittore Null nel relativo elemento 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -464,6 +479,16 @@
         <target state="translated">Il nome delle impostazioni cultura '{0}' non è valido</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">Non è possibile ridefinire la destinazione dell'identità WindowsRuntime</target>
@@ -528,7 +553,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">Le modifiche non devono sovrapporsi.</target>
+        <target state="translated">Le modifiche devono essere ordinate e non sovrapposte.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -603,7 +628,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">Il nodo di cui tenere traccia non è un discendente della radice.</target>
+        <target state="translated">Il nodo da tracciare non è un discendente della radice.</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">

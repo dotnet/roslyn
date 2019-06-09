@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         public static Document GetActiveDocument(this IDocumentTrackingService service, Solution solution)
         {
             // Note: GetDocument checks that the DocId is contained in the solution, and returns null if not.
-            return solution.GetDocument(service.GetActiveDocument());
+            return solution.GetDocument(service.TryGetActiveDocument());
         }
 
         /// <summary>

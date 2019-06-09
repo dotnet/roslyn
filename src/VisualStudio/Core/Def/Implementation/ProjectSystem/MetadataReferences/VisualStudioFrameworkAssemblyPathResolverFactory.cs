@@ -16,13 +16,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
+    internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public VisualStudiorFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+        public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;

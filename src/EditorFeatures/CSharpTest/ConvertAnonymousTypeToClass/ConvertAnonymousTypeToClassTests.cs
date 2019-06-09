@@ -48,8 +48,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -94,8 +93,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null;
+        return obj is NewClass other;
     }
 
     public override int GetHashCode()
@@ -137,8 +135,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A;
     }
 
@@ -183,8 +180,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -236,8 +232,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -301,8 +296,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -358,8 +352,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -415,8 +408,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -480,8 +472,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -531,8 +522,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -584,8 +574,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -651,8 +640,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                System.Collections.Generic.EqualityComparer<object>.Default.Equals(B, other.B);
     }
@@ -704,8 +692,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -757,8 +744,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -810,8 +796,7 @@ internal class NewClass<X, Y>
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass<X, Y>;
-        return other != null &&
+        return obj is NewClass<X, Y> other &&
                System.Collections.Generic.EqualityComparer<List<X>>.Default.Equals(A, other.A) &&
                System.Collections.Generic.EqualityComparer<Y[]>.Default.Equals(B, other.B);
     }
@@ -869,8 +854,7 @@ internal class NewClass1
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass1;
-        return other != null &&
+        return obj is NewClass1 other &&
                A == other.A &&
                B == other.B;
     }
@@ -920,8 +904,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                Item == other.Item;
     }
@@ -971,8 +954,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -1034,8 +1016,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -1097,8 +1078,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -1160,8 +1140,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }
@@ -1223,8 +1202,7 @@ internal class NewClass
 
     public override bool Equals(object obj)
     {
-        var other = obj as NewClass;
-        return other != null &&
+        return obj is NewClass other &&
                A == other.A &&
                B == other.B;
     }

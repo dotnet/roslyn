@@ -76,18 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         protected override void StartWorking()
         {
-            // Kick off a database update.
-            var sources = _installerService.PackageSources;
-
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            var allSources = sources.Concat(new PackageSource(
-                SymbolSearchUpdateEngine.NugetOrgSource, source: null));
-
-            foreach (var source in allSources)
-            {
-                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
-            }
+            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSourceUri));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -147,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             var result = ArrayBuilder<TPackageResult>.GetInstance();
 
-            // We always returm types from packages that we've use elsewhere in the project.
+            // We always return types from packages that we've use elsewhere in the project.
             result.AddRange(packagesUsedInOtherProjects);
 
             // For all other hits include as long as the popularity is high enough.  

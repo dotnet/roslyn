@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
                 solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<SymbolAndProjectId>.Empty;
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
                 project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
                 solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            var (succeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
+            var (succeeded, results) = await TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
                 project, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-            if (succeded)
+            if (succeeded)
             {
                 return results;
             }
@@ -141,7 +141,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var result = await solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                 new object[] { name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -165,7 +164,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                 new object[] { project.Id, name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -184,7 +182,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var result = await solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                 new object[] { pattern, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -208,7 +205,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                 new object[] { project.Id, pattern, criteria }, cancellationToken).ConfigureAwait(false);
 

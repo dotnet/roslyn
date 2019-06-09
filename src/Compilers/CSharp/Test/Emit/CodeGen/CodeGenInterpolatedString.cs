@@ -1,12 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class InterpolatedStringTests : CSharpTestBase
     {
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+        public void AlternateVerbatimString()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int i = 42;
+        var s = @$""{i}
+{i}"";
+        System.Console.Write(s);
+        var s2 = $@"""";
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"42
+42");
+
+            var tree = comp.SyntaxTrees.Single();
+            var interpolatedStrings = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            var token1 = interpolatedStrings[0].StringStartToken;
+            Assert.Equal("@$\"", token1.Text);
+            Assert.Equal("@$\"", token1.ValueText);
+
+            var token2 = interpolatedStrings[1].StringStartToken;
+            Assert.Equal("$@\"", token2.Text);
+            Assert.Equal("$@\"", token2.ValueText);
+
+            foreach (var token in tree.GetRoot().DescendantTokens().Where(t => t.Kind() != SyntaxKind.EndOfFileToken))
+            {
+                Assert.False(string.IsNullOrEmpty(token.Text));
+                Assert.False(string.IsNullOrEmpty(token.ValueText));
+            }
+        }
+
         [Fact]
         public void ConstInterpolations()
         {

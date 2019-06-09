@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: displayText,
+                    displayTextSuffix: "",
                     symbols: ImmutableArray.Create(alias ?? type),
                     rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
                     contextPosition: position);

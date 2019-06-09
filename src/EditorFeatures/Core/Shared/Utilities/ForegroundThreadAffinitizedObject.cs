@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                     async () =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         action();
                     },
                     cancellationToken,

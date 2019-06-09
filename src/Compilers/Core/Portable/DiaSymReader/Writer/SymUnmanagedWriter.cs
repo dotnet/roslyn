@@ -12,7 +12,7 @@ namespace Microsoft.DiaSymReader
     internal abstract class SymUnmanagedWriter : IDisposable
     {
         /// <summary>
-        /// Diposes the writer.
+        /// Disposes the writer.
         /// </summary>
         public abstract void Dispose();
 
@@ -44,7 +44,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="ObjectDisposedException">Object has been disposed.</exception>
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
-        public abstract int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, byte[] checksum, byte[] source);
+        public abstract int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, ReadOnlySpan<byte> checksum, ReadOnlySpan<byte> source);
 
         /// <summary>
         /// Defines sequence points.
@@ -69,7 +69,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         public abstract void CloseMethod();
-        
+
         /// <summary>
         /// Opens a local scope.
         /// </summary>
@@ -105,7 +105,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is null</exception>
         public abstract bool DefineLocalConstant(string name, object value, int constantSignatureToken);
-        
+
         /// <summary>
         /// Adds namespace import.
         /// </summary>
@@ -123,7 +123,12 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="yieldOffsets"/> or <paramref name="resumeOffsets"/> is null</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="yieldOffsets"/> or <paramref name="resumeOffsets"/> differ in length.</exception>
-        public abstract void SetAsyncInfo(int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, int[] yieldOffsets, int[] resumeOffsets);
+        public abstract void SetAsyncInfo(
+            int moveNextMethodToken,
+            int kickoffMethodToken,
+            int catchHandlerOffset,
+            ReadOnlySpan<int> yieldOffsets,
+            ReadOnlySpan<int> resumeOffsets);
 
         /// <summary>
         /// Associates custom debug information blob with the current method.

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal struct AnonymousTypeDisplayInfo
+    internal readonly struct AnonymousTypeDisplayInfo
     {
         public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
         public IList<SymbolDisplayPart> AnonymousTypesParts { get; }

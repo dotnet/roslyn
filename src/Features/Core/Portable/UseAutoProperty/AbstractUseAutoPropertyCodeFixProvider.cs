@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
     {
         protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds 
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseAutoPropertyDiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+                newRoot = Format(newRoot, fieldDocument, cancellationToken);
 
                 return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
-                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
+                newFieldTreeRoot = Format(newFieldTreeRoot, fieldDocument, cancellationToken);
+                newPropertyTreeRoot = Format(newPropertyTreeRoot, propertyDocument, cancellationToken);
 
                 updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return canEdit[sourceTree];
         }
 
-        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+        private SyntaxNode Format(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
             if (formattingRules == null)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            return await Formatter.FormatAsync(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             foreach (string pathPart in pathParts)
             {
                 next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
-                
+
                 if (next == null)
                 {
                     ThrowUnableToFindChildException(path, item);

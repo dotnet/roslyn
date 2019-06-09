@@ -43,10 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
         private bool _needsGeneratedNullableAttribute_Value;
-        private readonly InjectedNonNullTypesAttributeSymbol _injectedNonNullTypesAttribute;
-
-        protected abstract void EnsureNonNullTypesAttributeExists();
-        protected abstract void EnsureEmbeddedAttributeExists();
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -117,8 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
-
-            _injectedNonNullTypesAttribute = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute) as InjectedNonNullTypesAttributeSymbol;
         }
 
         public override string Name
@@ -454,11 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     if ((object)memberNamespace != null)
                     {
                         namespacesToProcess.Push(memberNamespace);
-                    }
-                    else if (member is InjectedAttributeSymbol injectedNonNullTypes)
-                    {
-                        // Skip injected attributes. We'll only embed those that are used.
-                        continue;
                     }
                     else
                     {
@@ -961,11 +950,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics);
             }
 
-            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_injectedNonNullTypesAttribute))
-            {
-                EnsureNonNullTypesAttributeExists();
-            }
-
             return namedTypeSymbol;
         }
 
@@ -1461,6 +1445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
         }
 
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
+
         internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1499,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// is a constructed type with a nullable reference type present in its type argument tree,
         /// returns a synthesized NullableAttribute with encoded nullable transforms array.
         /// </summary>
-        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeSymbolWithAnnotations type)
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeWithAnnotations type)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1507,34 +1493,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            var flagsBuilder = ArrayBuilder<bool>.GetInstance();
+            var flagsBuilder = ArrayBuilder<byte>.GetInstance();
             type.AddNullableTransforms(flagsBuilder);
 
             Debug.Assert(flagsBuilder.Any());
-            Debug.Assert(flagsBuilder.Contains(true));
+            Debug.Assert(flagsBuilder.Contains(NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.Contains(NullableAnnotationExtensions.AnnotatedAttributeValue));
 
             WellKnownMember constructor;
             ImmutableArray<TypedConstant> arguments;
+            NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+            Debug.Assert((object)byteType != null);
 
-            if (flagsBuilder.Count == 1 && flagsBuilder[0])
+            if (flagsBuilder.All(flag => flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.All(flag => flag == NullableAnnotationExtensions.AnnotatedAttributeValue))
             {
-                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor;
-                arguments = ImmutableArray<TypedConstant>.Empty;
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte;
+                arguments = ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, flagsBuilder[0]));
             }
             else
             {
-                NamedTypeSymbol booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
-                Debug.Assert((object)booleanType != null);
                 var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
 
-                foreach (bool flag in flagsBuilder)
+                foreach (byte flag in flagsBuilder)
                 {
-                    constantsBuilder.Add(new TypedConstant(booleanType, TypedConstantKind.Primitive, flag));
+                    Debug.Assert(flag == NullableAnnotationExtensions.ObliviousAttributeValue || flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue || flag == NullableAnnotationExtensions.AnnotatedAttributeValue);
+                    constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
                 }
 
-                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+                var byteArray = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
                 constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
-                arguments = ImmutableArray.Create(new TypedConstant(boolArray, constantsBuilder.ToImmutableAndFree()));
+                arguments = ImmutableArray.Create(new TypedConstant(byteArray, constantsBuilder.ToImmutableAndFree()));
             }
 
             flagsBuilder.Free();

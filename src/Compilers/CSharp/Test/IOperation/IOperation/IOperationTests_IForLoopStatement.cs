@@ -32,7 +32,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 3')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -54,7 +54,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -67,7 +67,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * 3')
+              IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x * 3')
                 Left: 
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
@@ -115,7 +115,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
                   ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
@@ -128,7 +128,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -177,7 +177,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
                   ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
@@ -190,7 +190,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -223,7 +223,7 @@ class C
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -250,7 +250,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -259,7 +259,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 2) continue;')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 2')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 2')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -274,7 +274,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
                   ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
@@ -306,7 +306,7 @@ class C
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = 0, ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -333,7 +333,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -342,7 +342,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 3) break;')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 3')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 3')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -357,7 +357,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
                   ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
@@ -395,7 +395,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
     IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
       IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (i > 4) break;')
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i > 4')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 4')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -410,7 +410,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 2')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 2')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -440,7 +440,7 @@ class C
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (i = i  ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 2')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 2')
       Left: 
         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
@@ -452,7 +452,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -463,7 +463,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -475,7 +475,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 2')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 2')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -486,7 +486,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                 Left: 
                   ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                 Right: 
@@ -517,7 +517,7 @@ class C
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (; i <  ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -530,7 +530,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -561,7 +561,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int k  ... }')
   Locals: Local_1: System.Int32 k
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'k > 100')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'k > 100')
       Left: 
         ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
       Right: 
@@ -583,7 +583,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'k - 1')
+              IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.Binary, Type: System.Int32) (Syntax: 'k - 1')
                 Left: 
                   ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
                 Right: 
@@ -658,7 +658,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 100')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -680,7 +680,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -713,7 +713,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 100')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -735,7 +735,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -745,7 +745,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -767,7 +767,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -802,7 +802,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -824,7 +824,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -834,7 +834,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -856,7 +856,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -897,7 +897,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -919,7 +919,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -929,7 +929,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < j')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < j')
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
@@ -941,7 +941,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                     IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = i + 1')
                       Initializer: 
                         IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i + 1')
-                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                             Left: 
                               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                             Right: 
@@ -955,7 +955,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j - 1')
+                    IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j - 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -991,7 +991,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1013,7 +1013,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1023,7 +1023,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -1045,7 +1045,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -1054,7 +1054,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
           IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (j == 5) ... break;')
               Condition: 
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j == 5')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j == 5')
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
@@ -1093,7 +1093,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1115,7 +1115,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1125,7 +1125,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -1147,7 +1147,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -1156,9 +1156,9 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
           IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if ((j % 2) ... continue;')
               Condition: 
-                IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(j % 2) != 0')
+                IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(j % 2) != 0')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j % 2')
+                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j % 2')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -1175,7 +1175,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                       Left: 
                         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -1220,7 +1220,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1242,7 +1242,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1252,7 +1252,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -1274,7 +1274,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                   Left: 
                     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
@@ -1290,7 +1290,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                       Left: 
                         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'j + 1')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'j + 1')
                           Left: 
                             ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                           Right: 
@@ -1323,7 +1323,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1345,7 +1345,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1355,7 +1355,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 10')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 10')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -1406,7 +1406,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1427,7 +1427,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
       IForLoopOperation (LoopKind.For, Continue Label Id: 2, Exit Label Id: 3) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
         Locals: Local_1: System.Int32 j
         Condition: 
-          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
+          IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 5')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
             Right: 
@@ -1474,7 +1474,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
   Locals: Local_1: System.Int32 i
     Local_2: System.Int32 j
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1500,7 +1500,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1541,11 +1541,11 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 50 - x')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 50 - x')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
-        IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '50 - x')
+        IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.Binary, Type: System.Int32) (Syntax: '50 - x')
           Left: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 50) (Syntax: '50')
           Right: 
@@ -1567,7 +1567,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -1580,7 +1580,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + 1')
                 Left: 
                   ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                 Right: 
@@ -1591,7 +1591,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'c')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c + 1')
                 Left: 
                   ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'c')
                 Right: 
@@ -1663,7 +1663,7 @@ public class F
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (F f =  ... }')
   Locals: Local_1: F f
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'f.i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'f.i < 5')
       Left: 
         IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'f.i')
           Instance Receiver: 
@@ -1707,7 +1707,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                 Instance Receiver: 
                   ILocalReferenceOperation: f (OperationKind.LocalReference, Type: F) (Syntax: 'f')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'f.i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'f.i + 1')
                 Left: 
                   IFieldReferenceOperation: System.Int32 F.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'f.i')
                     Instance Receiver: 
@@ -1764,7 +1764,7 @@ public class myFor
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (d.Init ... }')
   Condition: 
-    IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
+    IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
       Operand: 
         IDynamicMemberReferenceOperation (Member Name: ""Done"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Done')
           Type Arguments(0)
@@ -1820,7 +1820,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (var i  ...  = i + 1) ;')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -1842,7 +1842,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -2038,7 +2038,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -2162,7 +2162,7 @@ class C
             string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (e = x  ... }')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -2181,7 +2181,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x * x')
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x * x')
                         ReturnedValue: 
-                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * x')
+                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x * x')
                             Left: 
                               IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                             Right: 
@@ -2251,7 +2251,7 @@ class C
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -2280,7 +2280,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x * x')
                       IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x * x')
                         ReturnedValue: 
-                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * x')
+                          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x * x')
                             Left: 
                               IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                             Right: 
@@ -2291,7 +2291,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Left: 
               ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
+              IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'i + 1')
                 Left: 
                   ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                 Right: 
@@ -2356,7 +2356,7 @@ public class C1
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (C1 i = ... l; i++) { }')
   Locals: Local_1: C1 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i == null')
+    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == null')
       Left: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -2413,7 +2413,7 @@ class Program
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 5')
       Left: 
         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
@@ -2474,7 +2474,7 @@ class Program
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int j  ... }')
   Locals: Local_1: System.Int32 j
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j < 5')
       Left: 
         ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
       Right: 
@@ -2533,7 +2533,7 @@ class Program
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '++i < 5')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: '++i < 5')
       Left: 
         IIncrementOrDecrementOperation (Prefix) (OperationKind.Increment, Type: System.Int32) (Syntax: '++i')
           Target: 
@@ -2592,7 +2592,7 @@ class Program
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (int i  ... }')
   Locals: Local_1: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
+    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'foo(i--) > -5')
       Left: 
         IInvocationOperation (System.Int32 Program.foo(System.Int32 x)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'foo(i--)')
           Instance Receiver: 
@@ -2605,7 +2605,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Right: 
-        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -5) (Syntax: '-5')
+        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.Unary, Type: System.Int32, Constant: -5) (Syntax: '-5')
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
   Before:
@@ -2693,7 +2693,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
   Locals: Local_1: System.Int32 k
     Local_2: System.Int32 j
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'k < 100')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'k < 100')
       Left: 
         ILocalReferenceOperation: k (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'k')
       Right: 
@@ -2719,7 +2719,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
             Children(0)
       IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'j > 5')
         Expression: 
-          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'j > 5')
+          IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'j > 5')
             Left: 
               ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
             Right: 
@@ -2752,7 +2752,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
   Locals: Local_1: System.Int32 j
     Local_2: System.Int32 i
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 10')
+    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 10')
       Left: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
       Right: 
@@ -3509,7 +3509,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B7]
         Statements (0)
         Jump if False (Regular) to Block[B8]
-            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
+            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 3')
               Left: 
                 ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
               Right: 
@@ -3635,7 +3635,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B5]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
+            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 3')
               Left: 
                 ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
               Right: 
@@ -3723,7 +3723,7 @@ Block[B0] - Entry
         Predecessors: [B1] [B4]
         Statements (0)
         Jump if False (Regular) to Block[B5]
-            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 3')
+            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 3')
               Left: 
                 ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
               Right: 

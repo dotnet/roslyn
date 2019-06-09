@@ -2,10 +2,60 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CodeStyleResources.resx">
     <body>
-      <trans-unit id="EmptyResource">
-        <source>Remove this value when another is added.</source>
-        <target state="translated">Remover este valor quando outro for adicionado.</target>
-        <note>https://github.com/Microsoft/msbuild/issues/1661</note>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Um nome de idioma não pode ser especificado para essa opção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Um nome de idioma deve ser especificado para esta opção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="translated">Erro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Corrigir a formatação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Recuo e espaçamento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferências de nova linha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="translated">NENHUM</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Somente Refatoração</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="translated">Estilo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="translated">Sugestão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">Aviso</target>
+        <note />
       </trans-unit>
     </body>
   </file>

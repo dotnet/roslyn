@@ -889,6 +889,22 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        public void TestAnalyzerWithNullDescriptor()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
+            var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithCSharpCompilerId()
         {
@@ -2464,7 +2480,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
                   Left: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: 
@@ -2896,6 +2912,70 @@ namespace N5
                 Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer5").WithLocation(1, 1),
                 Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestInvocationInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        M();
+    }
+
+    private static void M() { }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.Invocation) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "M()", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestFieldReferenceInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        var x = _field;
+    }
+
+    private static int _field = 0;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.NamedType, OperationKind.FieldReference) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "_field", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
     }
 }

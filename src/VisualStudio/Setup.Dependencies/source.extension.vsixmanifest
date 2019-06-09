@@ -13,7 +13,7 @@
     <InstallationTarget Version="[15.0,]" Id="Microsoft.VisualStudio.VSWinExpress" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
   </Dependencies>
   <Assets>
   </Assets>

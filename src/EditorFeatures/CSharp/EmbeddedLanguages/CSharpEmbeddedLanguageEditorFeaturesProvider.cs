@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,8 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
     {
         public static IEmbeddedLanguageFeaturesProvider Instance = new CSharpEmbeddedLanguageEditorFeaturesProvider();
 
+        [ImportingConstructor]
         public CSharpEmbeddedLanguageEditorFeaturesProvider() : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }
+
+        internal override string EscapeText(string text, SyntaxToken token)
+            => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }

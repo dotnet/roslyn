@@ -181,9 +181,9 @@ namespace Roslyn.Test.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<bool> ReadBoolArray(this MetadataReader reader, BlobHandle blobHandle)
+        public static ImmutableArray<byte> ReadByteArray(this MetadataReader reader, BlobHandle blobHandle)
         {
-            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadBoolean());
+            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadByte());
         }
 
         public static IEnumerable<CustomAttributeRow> GetCustomAttributeRows(this MetadataReader reader)
@@ -349,6 +349,17 @@ namespace Roslyn.Test.Utilities
                     {
                         TypeReference type = reader.GetTypeReference((TypeReferenceHandle)handle);
                         return getQualifiedName(type.Namespace, type.Name);
+                    }
+                case HandleKind.FieldDefinition:
+                    {
+                        FieldDefinition field = reader.GetFieldDefinition((FieldDefinitionHandle)handle);
+                        var name = reader.GetString(field.Name);
+
+                        var blob = reader.GetBlobReader(field.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeFieldSignature(ref blob);
+
+                        return $"{type} {name}";
                     }
                 default:
                     return null;

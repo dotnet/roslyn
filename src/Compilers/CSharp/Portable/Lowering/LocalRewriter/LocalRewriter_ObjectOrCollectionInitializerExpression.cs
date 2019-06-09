@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dynamicFactory.MakeDynamicMemberInvocation(
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
                 rewrittenReceiver,
-                ImmutableArray<TypeSymbolWithAnnotations>.Empty,
+                ImmutableArray<TypeWithAnnotations>.Empty,
                 rewrittenArguments,
                 default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>),
@@ -132,12 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                  ~                               ~~~~~~~~
         private BoundExpression MakeCollectionInitializer(BoundExpression rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
-            Debug.Assert(initializer.AddMethod.Name == "Add");
+            MethodSymbol addMethod = initializer.AddMethod;
+
+            Debug.Assert(addMethod.Name == "Add");
+            Debug.Assert(addMethod.Parameters
+                .Skip(addMethod.IsExtensionMethod ? 1 : 0)
+                .All(p => p.RefKind == RefKind.None || p.RefKind == RefKind.In));
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
             var syntax = initializer.Syntax;
-            MethodSymbol addMethod = initializer.AddMethod;
 
             if (_allowOmissionOfConditionalCalls)
             {
@@ -156,6 +160,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            if (addMethod.Parameters[0].RefKind == RefKind.Ref)
+            {
+                // If the Add method is an extension which takes a `ref this` as the first parameter, implicitly add a `ref` to the argument
+                // Initializer element syntax cannot have `ref`, `in`, or `out` keywords.
+                // Arguments to `in` parameters will be converted to have RefKind.In later on.
+                var builder = ArrayBuilder<RefKind>.GetInstance(addMethod.Parameters.Length, RefKind.None);
+                builder[0] = RefKind.Ref;
+                argumentRefKindsOpt = builder.ToImmutableAndFree();
+            }
+
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
 
             if (initializer.InvokedAsExtensionMethod)
@@ -173,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, initializer.BinderOpt, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType.TypeSymbol, temps);
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);
         }
 
         // Rewrite object initializer member assignments and add them to the result.
@@ -434,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                     var fieldSymbol = (FieldSymbol)memberSymbol;
-                    return MakeFieldAccess(rewrittenLeft.Syntax, rewrittenReceiver, fieldSymbol, null, rewrittenLeft.ResultKind, fieldSymbol.Type.TypeSymbol);
+                    return MakeFieldAccess(rewrittenLeft.Syntax, rewrittenReceiver, fieldSymbol, null, rewrittenLeft.ResultKind, fieldSymbol.Type);
 
                 case SymbolKind.Property:
                     var propertySymbol = (PropertySymbol)memberSymbol;
@@ -450,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.ArgumentRefKindsOpt,
                             rewrittenLeft.Expanded,
                             rewrittenLeft.ArgsToParamsOpt,
-                            type: propertySymbol.Type.TypeSymbol,
+                            type: propertySymbol.Type,
                             oldNodeOpt: null,
                             isLeftOfAssignment: !isRhsNestedInitializer);
                     }
@@ -461,13 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenReceiver,
                             propertySymbol,
                             rewrittenLeft.ResultKind,
-                            propertySymbol.Type.TypeSymbol,
+                            propertySymbol.Type,
                             isLeftOfAssignment: !isRhsNestedInitializer);
                     }
 
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)memberSymbol;
-                    return MakeEventAccess(rewrittenLeft.Syntax, rewrittenReceiver, eventSymbol, null, rewrittenLeft.ResultKind, eventSymbol.Type.TypeSymbol);
+                    return MakeEventAccess(rewrittenLeft.Syntax, rewrittenReceiver, eventSymbol, null, rewrittenLeft.ResultKind, eventSymbol.Type);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(memberSymbol.Kind);

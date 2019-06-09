@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
     {
         private readonly IEmbeddedLanguagesProvider _languagesProvider;
 
-        public override ImmutableArray<int> SyntaxTokenKinds { get; } 
+        public override ImmutableArray<int> SyntaxTokenKinds { get; }
 
         protected AbstractEmbeddedLanguagesClassifier(IEmbeddedLanguagesProvider languagesProvider)
         {
             _languagesProvider = languagesProvider;
-            SyntaxTokenKinds = 
+            SyntaxTokenKinds =
                 languagesProvider.Languages.SelectMany(p => p.Classifier.SyntaxTokenKinds).Distinct().ToImmutableArray();
         }
 

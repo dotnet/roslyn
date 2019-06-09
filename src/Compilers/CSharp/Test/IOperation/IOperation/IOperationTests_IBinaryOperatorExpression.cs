@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
+        private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";
+        private const string RangeEndAtSignature = "System.Range System.Range.EndAt(System.Index end)";
+        private const string RangeAllSignature = "System.Range System.Range.All.get";
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyLiftedBinaryOperators1()
@@ -24,7 +30,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.BinaryOperator, Type: System.Int32?) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.Binary, Type: System.Int32?) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -49,7 +55,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -75,7 +81,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -101,7 +107,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == 1')
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == 1')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -130,7 +136,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == null')
+IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x == null')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -155,7 +161,7 @@ class C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
   Right: 
@@ -182,7 +188,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Int32?) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperationKind.Binary, Type: System.Int32?) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Right: 
@@ -210,7 +216,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
   Right: 
@@ -237,7 +243,7 @@ struct C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperator, Type: C?) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C?) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C?) (Syntax: 'x')
   Right: 
@@ -263,7 +269,7 @@ struct C
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
   Right: 
@@ -295,31 +301,31 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
-        IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
+        IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')
+            IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... * d / e % f')
+                IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... * d / e % f')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + (b << 20)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + (b << 20)')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a >> 10')
+                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >> 10')
                           Left: 
                             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << 20')
+                        IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b << 20')
                           Left: 
                             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d / e % f')
+                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d / e % f')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d / e')
+                        IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d / e')
                           Left: 
-                            IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d')
+                            IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d')
                               Left: 
                                 IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                               Right: 
@@ -331,37 +337,37 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
               Right: 
                 IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'g')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'h ^ (i == ( ... 0) ? 1 : 0)')
+            IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int32) (Syntax: 'h ^ (i == ( ... 0) ? 1 : 0)')
               Left: 
                 IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'h')
               Right: 
                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'i == (j !=  ...  0) ? 1 : 0')
                   Condition: 
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i == (j !=  ... 0) ? 1 : 0)')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == (j !=  ... 0) ? 1 : 0)')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'j != ((((k  ...  0) ? 1 : 0')
                           Condition: 
-                            IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j != ((((k  ...  p ? 1 : 0)')
+                            IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j != ((((k  ...  p ? 1 : 0)')
                               Left: 
                                 IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
                               Right: 
                                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '(((k < l ?  ... = p ? 1 : 0')
                                   Condition: 
-                                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(((k < l ?  ... 1 : 0) >= p')
+                                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(((k < l ?  ... 1 : 0) >= p')
                                       Left: 
                                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '((k < l ? 1 ... = o ? 1 : 0')
                                           Condition: 
-                                            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '((k < l ? 1 ... 1 : 0) <= o')
+                                            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: '((k < l ? 1 ... 1 : 0) <= o')
                                               Left: 
                                                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '(k < l ? 1  ... > m ? 1 : 0')
                                                   Condition: 
-                                                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(k < l ? 1 : 0) > m')
+                                                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(k < l ? 1 : 0) > m')
                                                       Left: 
                                                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'k < l ? 1 : 0')
                                                           Condition: 
-                                                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'k < l')
+                                                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'k < l')
                                                               Left: 
                                                                 IParameterReferenceOperation: k (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'k')
                                                               Right: 
@@ -429,31 +435,31 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
-        IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
+        IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... 0) ? 1 : 0)')
           Left: 
-            IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')
+            IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... / e % f & g')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + ... * d / e % f')
+                IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + ... * d / e % f')
                   Left: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a >> 10) + (b << 20)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a >> 10) + (b << 20)')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a >> 10')
+                        IBinaryOperation (BinaryOperatorKind.RightShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a >> 10')
                           Left: 
                             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                       Right: 
-                        IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << 20')
+                        IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b << 20')
                           Left: 
                             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d / e % f')
+                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d / e % f')
                       Left: 
-                        IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d / e')
+                        IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d / e')
                           Left: 
-                            IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'c * d')
+                            IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.Binary, Type: System.Int32) (Syntax: 'c * d')
                               Left: 
                                 IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                               Right: 
@@ -465,37 +471,37 @@ IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (Operat
               Right: 
                 IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'g')
           Right: 
-            IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'h ^ (i == ( ... 0) ? 1 : 0)')
+            IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int32) (Syntax: 'h ^ (i == ( ... 0) ? 1 : 0)')
               Left: 
                 IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'h')
               Right: 
                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'i == (j !=  ...  0) ? 1 : 0')
                   Condition: 
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i == (j !=  ... 0) ? 1 : 0)')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == (j !=  ... 0) ? 1 : 0)')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'j != ((((k  ...  0) ? 1 : 0')
                           Condition: 
-                            IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'j != ((((k  ...  p ? 1 : 0)')
+                            IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'j != ((((k  ...  p ? 1 : 0)')
                               Left: 
                                 IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
                               Right: 
                                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '(((k < l ?  ... = p ? 1 : 0')
                                   Condition: 
-                                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(((k < l ?  ... 1 : 0) >= p')
+                                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(((k < l ?  ... 1 : 0) >= p')
                                       Left: 
                                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '((k < l ? 1 ... = o ? 1 : 0')
                                           Condition: 
-                                            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '((k < l ? 1 ... 1 : 0) <= o')
+                                            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: '((k < l ? 1 ... 1 : 0) <= o')
                                               Left: 
                                                 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '(k < l ? 1  ... > m ? 1 : 0')
                                                   Condition: 
-                                                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(k < l ? 1 : 0) > m')
+                                                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(k < l ? 1 : 0) > m')
                                                       Left: 
                                                         IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'k < l ? 1 : 0')
                                                           Condition: 
-                                                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'k < l')
+                                                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'k < l')
                                                               Left: 
                                                                 IParameterReferenceOperation: k (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'k')
                                                               Right: 
@@ -1051,7 +1057,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
               Value: 
-                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd')
+                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd')
                   Operand: 
                     IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
 
@@ -1133,7 +1139,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
               Value: 
-                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd')
+                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd')
                   Operand: 
                     IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
 
@@ -1223,7 +1229,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
               Value: 
-                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd')
+                IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd')
                   Operand: 
                     IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
 
@@ -1360,7 +1366,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + b')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + b')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
                       Right: 
@@ -1472,7 +1478,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b + (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b + (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -1623,7 +1629,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
                       Right: 
@@ -1770,7 +1776,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 C.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? b')
                       Right: 
@@ -1883,7 +1889,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b - (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b - (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -1996,7 +2002,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b << (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2109,7 +2115,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b * (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b * (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2222,7 +2228,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b / (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b / (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2335,7 +2341,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b % (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b % (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2439,7 +2445,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b < (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b < (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2543,7 +2549,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b > (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b > (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2647,7 +2653,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b <= (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b <= (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2751,7 +2757,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b >= (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b >= (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2855,7 +2861,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b == (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b == (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -2959,7 +2965,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b != (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b != (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -3063,7 +3069,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b & (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b & (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -3167,7 +3173,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b | (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b | (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -3271,7 +3277,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b ^ (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.Binary, Type: System.Int32) (Syntax: 'b ^ (a ?? b)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                       Right: 
@@ -3318,7 +3324,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -3368,7 +3374,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -3475,7 +3481,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || (b ?? c).F')
+                        IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || (b ?? c).F')
                           Left: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsInvalid, IsImplicit) (Syntax: 'a')
                           Right: 
@@ -3583,7 +3589,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: '(b ?? c).F && a')
+                        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: '(b ?? c).F && a')
                           Left: 
                             IFieldReferenceOperation: System.Boolean? P.F (OperationKind.FieldReference, Type: System.Boolean?, IsInvalid) (Syntax: '(b ?? c).F')
                               Instance Receiver: 
@@ -3656,7 +3662,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -3675,7 +3681,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -3757,7 +3763,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -3776,7 +3782,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: C C.op_BitwiseAnd(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: C C.op_BitwiseAnd(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -3890,7 +3896,7 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (0)
             Jump if False (Regular) to Block[B7]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a ?? c')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a ?? c')
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? c')
 
@@ -3909,7 +3915,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(a ?? c) || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: '(a ?? c) || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: '(a ?? c) || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? c')
                       Right: 
@@ -3991,7 +3997,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                 Entering: {R3} {R4}
@@ -4051,7 +4057,7 @@ Block[B0] - Entry
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && (b ?? c)')
                       Value: 
-                        IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: C C.op_BitwiseAnd(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a && (b ?? c)')
+                        IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: C C.op_BitwiseAnd(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a && (b ?? c)')
                           Left: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                           Right: 
@@ -4116,7 +4122,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4172,7 +4178,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4225,7 +4231,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4286,7 +4292,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4341,7 +4347,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4409,7 +4415,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
 
@@ -4428,7 +4434,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.BinaryOperator, Type: C?) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.Binary, Type: C?) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -4495,7 +4501,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4567,7 +4573,7 @@ Block[B0] - Entry
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
 
@@ -4586,7 +4592,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.BinaryOperator, Type: C?) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.Binary, Type: C?) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -4659,7 +4665,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4730,7 +4736,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IInvalidOperation (OperationKind.Invalid, Type: C?, IsImplicit) (Syntax: 'a')
                       Children(1):
@@ -4751,7 +4757,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -4820,7 +4826,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4877,7 +4883,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -4964,7 +4970,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.BinaryOperator, Type: C?) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C? C.op_BitwiseOr(C? x, C? y)) (OperationKind.Binary, Type: C?) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5056,7 +5062,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean B.op_True(B c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean B.op_True(B c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5075,7 +5081,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5147,7 +5153,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a || b')
                       Left: 
                         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
                       Right: 
@@ -5215,7 +5221,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C? c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
 
@@ -5234,7 +5240,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.BinaryOperator, Type: C?) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: C C.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C?) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5311,7 +5317,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -5330,7 +5336,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5407,7 +5413,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.False) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.False) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -5426,7 +5432,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5535,7 +5541,7 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (0)
             Jump if False (Regular) to Block[B7]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a ?? c')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a ?? c')
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a ?? c')
 
@@ -5554,7 +5560,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(a ?? c) || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: '(a ?? c) || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: '(a ?? c) || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a ?? c')
                       Right: 
@@ -5631,7 +5637,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.False) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.False) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                 Entering: {R3} {R4}
@@ -5691,7 +5697,7 @@ Block[B0] - Entry
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && (b ?? c)')
                       Value: 
-                        IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && (b ?? c)')
+                        IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && (b ?? c)')
                           Left: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                           Right: 
@@ -5769,7 +5775,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -5788,7 +5794,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5886,7 +5892,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -5984,7 +5990,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6061,7 +6067,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -6080,7 +6086,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6182,7 +6188,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6265,7 +6271,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -6284,7 +6290,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6388,7 +6394,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6492,7 +6498,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6571,7 +6577,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -6590,7 +6596,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6694,7 +6700,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6802,7 +6808,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6906,7 +6912,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -6986,7 +6992,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -7005,7 +7011,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7085,7 +7091,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: System.Boolean C.op_False(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -7108,7 +7114,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7188,7 +7194,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean C.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -7211,7 +7217,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7291,7 +7297,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
 
@@ -7310,7 +7316,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.Binary, Type: dynamic) (Syntax: 'a || b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7415,7 +7421,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7524,7 +7530,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7634,7 +7640,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7737,7 +7743,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7846,7 +7852,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: dynamic, IsInvalid) (Syntax: 'a && b')
+                    IBinaryOperation (BinaryOperatorKind.And) (OperationKind.Binary, Type: dynamic, IsInvalid) (Syntax: 'a && b')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsInvalid, IsImplicit) (Syntax: 'a')
                       Right: 
@@ -7882,6 +7888,265 @@ Block[B6] - Exit
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_Int_Create()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var x = /*<bind>*/1..2/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..2')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  RightOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '2')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_Int_Create_WithHat()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int arg)
+    {
+        var x = /*<bind>*/0..^1/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..^1')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  RightOperand: 
+    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_Int_ToEnd()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var x = /*<bind>*/..2/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..2')
+  LeftOperand: 
+    null
+  RightOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '2')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeEndAtSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_Int_FromStart()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var x = /*<bind>*/1../*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  RightOperand: 
+    null
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeStartAtSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_Int_All()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var x = /*<bind>*/../*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..')
+  LeftOperand: 
+    null
+  RightOperand: 
+    null
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeAllSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_NullableInt_Create()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? start, int? end)
+    {
+        var x = /*<bind>*/start..end/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..end')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
+  RightOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'end')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_NullableInt_Create_WithHat()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? start, int? end)
+    {
+        var x = /*<bind>*/start..^end/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..^end')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
+  RightOperand: 
+    IUnaryOperation (UnaryOperatorKind.Hat, IsLifted) (OperationKind.Unary, Type: System.Index?) (Syntax: '^end')
+      Operand: 
+        IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_NullableInt_ToEnd()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? end)
+    {
+        var x = /*<bind>*/..end/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '..end')
+  LeftOperand: 
+    null
+  RightOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'end')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeEndAtSignature, operation.Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyRangeOperator_NullableInt_FromStart()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? start)
+    {
+        var x = /*<bind>*/start../*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: 'start..')
+  LeftOperand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index?, IsImplicit) (Syntax: 'start')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+      Operand: 
+        IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
+  RightOperand: 
+    null
+";
+
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal(RangeStartAtSignature, operation.Method.ToTestDisplayString());
         }
     }
 }

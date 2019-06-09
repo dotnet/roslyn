@@ -1752,6 +1752,12 @@ End Class]]></text>.NormalizedValue(),
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestDateLiteral() As Task
+            Await TestInMethodAsync("Dim f = #8/23/1970 $$3:45:39 AM#",
+                                    MainDescription("Structure System.DateTime"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTrueKeyword() As Task
             Await TestInMethodAsync("Dim f = True$$",
                                     MainDescription("Structure System.Boolean"))
@@ -1768,6 +1774,22 @@ End Class]]></text>.NormalizedValue(),
         Public Async Function TestNothingLiteral() As Task
             Await TestInMethodAsync("Dim f As String = Nothing$$",
                                     MainDescription("Class System.String"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralWithNoType() As Task
+            Await TestInMethodAsync("Dim f = Nothing$$",
+                                    MainDescription("Class System.Object"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Await TestAsync("
+Option Strict On
+Class C
+    Dim f = Nothing$$
+End Class",
+                            MainDescription("Class System.Object"))
         End Function
 
         ''' <Remarks>
@@ -2368,6 +2390,54 @@ Class C3
     End Sub
 End Class",
             MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function BuiltInOperatorWithUserDefinedEquivalent() As Task
+            Await TestAsync(
+"
+class X
+    sub N(a as string, b as string)
+        dim v = a $$= b
+    end sub
+end class",
+                MainDescription("Operator String.=(a As String, b As String) As Boolean"),
+                SymbolGlyph(Glyph.Operator))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestGetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        G$$et
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        Get
+            Return 0
+        End Get
+        S$$et(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
         End Function
     End Class
 End Namespace

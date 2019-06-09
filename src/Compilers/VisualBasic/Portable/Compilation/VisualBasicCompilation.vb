@@ -1278,7 +1278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
         ''' This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        ''' We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        ''' We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
         ''' </remarks>
         Friend ReadOnly Property EnableEnumArrayBlockInitialization As Boolean
             Get
@@ -1672,18 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
-            If EventQueue Is Nothing Then
-                Return False
-            End If
-
-            For Each location As Location In symbol.Locations
-                If location.SourceTree IsNot Nothing Then
-                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
-                    Return True
-                End If
-            Next
-
-            Return False
+            Return EventQueue IsNot Nothing AndAlso symbol.IsInSource()
         End Function
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)

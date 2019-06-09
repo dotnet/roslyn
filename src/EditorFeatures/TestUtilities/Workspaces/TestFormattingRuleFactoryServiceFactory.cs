@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return UseBaseIndentation;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 if (BaseIndentation == 0)
                 {
-                    return new NoOpFormattingRule();
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var root = document.GetSyntaxRootAsync().Result;

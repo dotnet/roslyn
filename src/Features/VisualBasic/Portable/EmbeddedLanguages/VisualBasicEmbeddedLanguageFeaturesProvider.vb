@@ -12,8 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
         Public Shared Shadows Instance As New VisualBasicEmbeddedLanguageFeaturesProvider()
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
+
+        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return EmbeddedLanguageUtilities.EscapeText(text, token)
+        End Function
     End Class
 End Namespace

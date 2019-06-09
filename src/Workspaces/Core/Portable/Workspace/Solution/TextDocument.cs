@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -10,7 +11,8 @@ namespace Microsoft.CodeAnalysis
 {
     public class TextDocument
     {
-        internal readonly TextDocumentState State;
+        internal TextDocumentState State { get; }
+        internal TextDocumentKind Kind { get; }
 
         /// <summary>
         /// The project this document belongs to.
@@ -21,13 +23,14 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal TextDocument(Project project, TextDocumentState state)
+        internal TextDocument(Project project, TextDocumentState state, TextDocumentKind kind)
         {
             Contract.ThrowIfNull(project);
             Contract.ThrowIfNull(state);
 
             this.Project = project;
             State = state;
+            Kind = kind;
         }
 
         /// <summary>
@@ -50,6 +53,11 @@ namespace Microsoft.CodeAnalysis
         /// The sequence of logical folders the document is contained in.
         /// </summary>
         public IReadOnlyList<string> Folders => State.Folders;
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        internal IDocumentServiceProvider Services => State.Services;
 
         /// <summary>
         /// Get the current text for the document if it is already loaded and available.
@@ -109,6 +117,14 @@ namespace Microsoft.CodeAnalysis
         internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal virtual bool HasInfoChanged(TextDocument otherTextDocument)
+        {
+            return State.Attributes != otherTextDocument.State.Attributes;
         }
     }
 }

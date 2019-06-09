@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var value = (string)reader.Value;
-                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+                return value == null ? null : Checksum.FromSerialized(Convert.FromBase64String(value));
             }
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
@@ -191,12 +191,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // all integer is long
                 var scopeId = ReadProperty<long>(reader);
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
+                var workspaceVersion = ReadProperty<long>(reader);
                 var checksum = ReadProperty<Checksum>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, checksum);
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -208,6 +209,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("primary");
                 writer.WriteValue(scope.FromPrimaryBranch);
+
+                writer.WritePropertyName("version");
+                writer.WriteValue(scope.WorkspaceVersion);
 
                 writer.WritePropertyName("checksum");
                 serializer.Serialize(writer, scope.SolutionChecksum);

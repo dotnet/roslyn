@@ -286,5 +286,21 @@ namespace ConsoleApp282
     }
 }");
         }
+
+        [WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestMissingDiagnosticForNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    Action action = () => {
+        var x = [|nameof|](System);
+#warning xxx
+    };
+}");
+        }
     }
 }

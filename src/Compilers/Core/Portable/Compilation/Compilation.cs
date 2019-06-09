@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private readonly IReadOnlyDictionary<string, string> _features;
+        // Protected for access in CSharpCompilation.WithAdditionalFeatures
+        protected readonly IReadOnlyDictionary<string, string> _features;
 
         public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
@@ -1357,7 +1359,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
-        /// <returns>True when there is no error.</returns>
+        /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
         internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
         {
             bool hasError = false;
@@ -1376,7 +1378,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error)
+                else if (filtered.Severity == DiagnosticSeverity.Error &&
+                         !filtered.IsSuppressed)
                 {
                     hasError = true;
                 }
@@ -1651,6 +1654,20 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Emit
+
+        /// <summary>
+        /// There are two ways to sign PE files
+        ///   1. By directly signing the <see cref="PEBuilder"/>
+        ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
+        /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
+        /// we must continue to support #2 as it's the only way to do the following:
+        ///   - Access private keys stored in a key container
+        ///   - Do proper counter signature verification for AssemblySignatureKey attributes
+        /// </summary>
+        internal bool SignUsingBuilder =>
+            string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
+            !StrongNameKeys.HasCounterSignature &&
+            !_features.ContainsKey("UseLegacyStrongNameProvider");
 
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
@@ -2414,7 +2431,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2422,7 +2439,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
+                if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
                 }
@@ -2564,7 +2581,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (diagnostics.HasAnyErrors())
+            if (CommonCompiler.HasUnsuppressedErrors(diagnostics))
             {
                 return null;
             }
@@ -2610,10 +2627,8 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             Cci.PdbWriter nativePdbWriter = null;
-            Stream signingInputStream = null;
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
-            Stream peStream = null;
 
             bool deterministic = IsEmitDeterministic;
 
@@ -2634,8 +2649,17 @@ namespace Microsoft.CodeAnalysis
                 pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
 
+            EmitStream emitPeStream = null;
+            EmitStream emitMetadataStream = null;
             try
             {
+                var signKind = IsRealSigned
+                    ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBulider : EmitStreamSignKind.SignedWithFile)
+                    : EmitStreamSignKind.None;
+                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitMetadataStream = metadataPEStreamProvider == null
+                    ? null
+                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -2649,22 +2673,10 @@ namespace Microsoft.CodeAnalysis
                     nativePdbWriter = new Cci.PdbWriter(pePdbFilePath, testSymWriterFactory, deterministic ? moduleBeingBuilt.PdbChecksumAlgorithm : default);
                 }
 
-                Func<Stream> getPeStream = () =>
-                {
-                    Stream ret;
-                    (peStream, signingInputStream, ret) = GetPeStream(metadataDiagnostics, peStreamProvider, metadataOnly);
-                    return ret;
-                };
-
-                Func<Stream> getRefPeStream = 
-                    metadataPEStreamProvider == null
-                    ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
-
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
@@ -2672,8 +2684,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        getPeStream,
-                        getRefPeStream,
+                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -2723,36 +2735,18 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (signingInputStream != null && peStream != null)
-                {
-                    Debug.Assert(Options.StrongNameProvider != null);
-
-                    try
-                    {
-                        Options.StrongNameProvider.SignStream(StrongNameKeys, signingInputStream, peStream);
-                    }
-                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
-                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
-                        return false;
-                    }
-                    catch (IOException ex)
-                    {
-                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
-                        return false;
-                    }
-                }
+                return
+                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
             }
             finally
             {
                 nativePdbWriter?.Dispose();
-                signingInputStream?.Dispose();
+                emitPeStream?.Close();
+                emitMetadataStream?.Close();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
             }
-
-            return true;
         }
 
         private static Stream ConditionalGetOrCreateStream(EmitStreamProvider metadataPEStreamProvider, DiagnosticBag metadataDiagnostics)
@@ -2765,58 +2759,6 @@ namespace Microsoft.CodeAnalysis
             var auxStream = metadataPEStreamProvider.GetOrCreateStream(metadataDiagnostics);
             Debug.Assert(auxStream != null || metadataDiagnostics.HasAnyErrors());
             return auxStream;
-        }
-
-        /// <summary>
-        /// Returns a tuple of streams where
-        /// * <c>peStream</c> is a stream which will carry the output PE bits
-        /// * <c>signingStream</c> is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * <c>selectedStream</c> is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
-        /// </summary>
-        private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
-        {
-            Stream peStream = null;
-            Stream signingStream = null;
-            Stream selectedStream = null;
-
-            if (metadataDiagnostics.HasAnyErrors())
-            {
-                return (peStream, signingStream, selectedStream);
-            }
-
-            peStream = peStreamProvider.GetOrCreateStream(metadataDiagnostics);
-            if (peStream == null)
-            {
-                Debug.Assert(metadataDiagnostics.HasAnyErrors());
-                return (peStream, signingStream, selectedStream);
-            }
-
-            // If the current strong name provider is the Desktop version, signing can only be done to on-disk files.
-            // If this binary is configured to be signed, create a temp file, output to that
-            // then stream that to the stream that this method was called with. Otherwise output to the
-            // stream that this method was called with.
-            if (!metadataOnly && IsRealSigned && Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
-            {
-                Debug.Assert(Options.StrongNameProvider != null);
-
-                try
-                {
-                    signingStream = Options.StrongNameProvider.CreateInputStream();
-                }
-                catch (IOException e)
-                {
-                    throw new Cci.PeWritingException(e);
-                }
-
-                selectedStream = signingStream;
-            }
-            else
-            {
-                signingStream = null;
-                selectedStream = peStream;
-            }
-
-            return (peStream, signingStream, selectedStream);
         }
 
         internal static bool SerializePeToStream(
@@ -3154,7 +3096,17 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
+        internal void MakeTypeMissing(SpecialType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
         internal void MakeTypeMissing(WellKnownType type)
+        {
+            MakeTypeMissing((int)type);
+        }
+
+        private void MakeTypeMissing(int type)
         {
             if (_lazyMakeWellKnownTypeMissingMap == null)
             {
@@ -3164,7 +3116,17 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
+        internal bool IsTypeMissing(SpecialType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
         internal bool IsTypeMissing(WellKnownType type)
+        {
+            return IsTypeMissing((int)type);
+        }
+
+        private bool IsTypeMissing(int type)
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }

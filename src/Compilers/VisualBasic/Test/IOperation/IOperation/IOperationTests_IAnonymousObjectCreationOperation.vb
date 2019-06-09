@@ -1069,7 +1069,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '(i) = j')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
                   Left: 
                     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, IsInvalid) (Syntax: '(i)')
                       Operand: 
@@ -1147,7 +1147,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '(i) = j')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
                   Left: 
                     IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, IsInvalid) (Syntax: '(i)')
                       Operand: 

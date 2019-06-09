@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest0()
         {
-            Test(@"@""cat([a-\d]*)dog""", @"<Tree>
+            Test(@"@""cat([a-\d]*)dog""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \d in character range"" Span=""[17..19)"" Text=""\d"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "d")}"" Span=""[17..19)"" Text=""\d"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..25)"" Text=""cat([a-\d]*)dog"" />
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest1()
         {
-            Test(@"@""\k<1""", @"<Tree>
+            Test(@"@""\k<1""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, "k")}"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""\k&lt;1"" />
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest2()
         {
-            Test(@"@""\k<""", @"<Tree>
+            Test(@"@""\k<""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[10..12)"" Text=""\k"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_named_back_reference.Replace("<", "&lt;").Replace(">", "&gt;")}"" Span=""[10..12)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""\k&lt;"" />
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest3()
         {
-            Test(@"@""\k""", @"<Tree>
+            Test(@"@""\k""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[10..12)"" Text=""\k"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_named_back_reference.Replace("<", "&lt;").Replace(">", "&gt;")}"" Span=""[10..12)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""\k"" />
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest4()
         {
-            Test(@"@""\1""", @"<Tree>
+            Test(@"@""\1""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <BackreferenceEscape>
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 1"" Span=""[11..12)"" Text=""1"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, "1")}"" Span=""[11..12)"" Text=""1"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""\1"" />
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest5()
         {
-            Test(@"@""(?')""", @"<Tree>
+            Test(@"@""(?')""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[13..14)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[13..14)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""(?')"" />
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest6()
         {
-            Test(@"@""(?<)""", @"<Tree>
+            Test(@"@""(?<)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[13..14)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[13..14)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;)"" />
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest7()
         {
-            Test(@"@""(?)""", @"<Tree>
+            Test(@"@""(?)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?)"" />
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest8()
         {
-            Test(@"@""(?>""", @"<Tree>
+            Test(@"@""(?>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NonBacktrackingGrouping>
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?&gt;"" />
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest9()
         {
-            Test(@"@""(?<!""", @"<Tree>
+            Test(@"@""(?<!""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NegativeLookbehindGrouping>
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;!"" />
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest10()
         {
-            Test(@"@""(?<=""", @"<Tree>
+            Test(@"@""(?<=""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <PositiveLookbehindGrouping>
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""(?&lt;="" />
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest11()
         {
-            Test(@"@""(?!""", @"<Tree>
+            Test(@"@""(?!""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NegativeLookaheadGrouping>
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?!"" />
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest12()
         {
-            Test(@"@""(?=""", @"<Tree>
+            Test(@"@""(?=""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <PositiveLookaheadGrouping>
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?="" />
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest13()
         {
-            Test(@"@""(?imn )""", @"<Tree>
+            Test(@"@""(?imn )""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleOptionsGrouping>
@@ -383,8 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
-    <Diagnostic Message=""Too many )'s"" Span=""[16..17)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Too_many_close_parens}"" Span=""[16..17)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""(?imn )"" />
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest14()
         {
-            Test(@"@""(?imn""", @"<Tree>
+            Test(@"@""(?imn""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleOptionsGrouping>
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..15)"" Text=""(?imn"" />
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest15()
         {
-            Test(@"@""(?:""", @"<Tree>
+            Test(@"@""(?:""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NonCapturingGrouping>
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?:"" />
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest16()
         {
-            Test(@"@""(?'cat'""", @"<Tree>
+            Test(@"@""(?'cat'""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""(?'cat'"" />
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest17()
         {
-            Test(@"@""(?'""", @"<Tree>
+            Test(@"@""(?'""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -489,8 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..13)"" Text=""(?'"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..13)"" Text=""(?'"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?'"" />
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest18()
         {
-            Test(@"@""[^""", @"<Tree>
+            Test(@"@""[^""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NegatedCharacterClass>
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""[^"" />
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest19()
         {
-            Test(@"@""[cat""", @"<Tree>
+            Test(@"@""[cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""[cat"" />
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest20()
         {
-            Test(@"@""[^cat""", @"<Tree>
+            Test(@"@""[^cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <NegatedCharacterClass>
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[15..15)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..15)"" Text=""[^cat"" />
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest21()
         {
-            Test(@"@""[a-""", @"<Tree>
+            Test(@"@""[a-""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""[a-"" />
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest22()
         {
-            Test(@"@""\p{""", @"<Tree>
+            Test(@"@""\p{""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -621,16 +621,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <TextToken>p</TextToken>
       </SimpleEscape>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" Text=""\p{"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\p{{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest23()
         {
-            Test(@"@""\p{cat""", @"<Tree>
+            Test(@"@""\p{cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -646,16 +646,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <TextToken>p</TextToken>
       </SimpleEscape>
       <Text>
-        <TextToken>{cat</TextToken>
+        <TextToken>{{cat</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" Text=""\p{cat"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\p{{cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest24()
         {
-            Test(@"@""\k<cat""", @"<Tree>
+            Test(@"@""\k<cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, "k")}"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""\k&lt;cat"" />
@@ -688,24 +688,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest25()
         {
-            Test(@"@""\p{cat}""", @"<Tree>
+            Test(@"@""\p{cat}""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CategoryEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>p</TextToken>
-        <OpenBraceToken>{</OpenBraceToken>
+        <OpenBraceToken>{{</OpenBraceToken>
         <EscapeCategoryToken>cat</EscapeCategoryToken>
-        <CloseBraceToken>}</CloseBraceToken>
+        <CloseBraceToken>}}</CloseBraceToken>
       </CategoryEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unknown property 'cat'"" Span=""[13..16)"" Text=""cat"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unknown_property_0, "cat")}"" Span=""[13..16)"" Text=""cat"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" Text=""\p{cat}"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\p{{cat}}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest26()
         {
-            Test(@"@""\P{cat""", @"<Tree>
+            Test(@"@""\P{cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -721,16 +721,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <TextToken>P</TextToken>
       </SimpleEscape>
       <Text>
-        <TextToken>{cat</TextToken>
+        <TextToken>{{cat</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\P"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[10..12)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" Text=""\P{cat"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""\P{{cat"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -738,24 +738,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest27()
         {
-            Test(@"@""\P{cat}""", @"<Tree>
+            Test(@"@""\P{cat}""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CategoryEscape>
         <BackslashToken>\</BackslashToken>
         <TextToken>P</TextToken>
-        <OpenBraceToken>{</OpenBraceToken>
+        <OpenBraceToken>{{</OpenBraceToken>
         <EscapeCategoryToken>cat</EscapeCategoryToken>
-        <CloseBraceToken>}</CloseBraceToken>
+        <CloseBraceToken>}}</CloseBraceToken>
       </CategoryEscape>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unknown property 'cat'"" Span=""[13..16)"" Text=""cat"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unknown_property_0, "cat")}"" Span=""[13..16)"" Text=""cat"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..17)"" Text=""\P{cat}"" />
+    <Capture Name=""0"" Span=""[10..17)"" Text=""\P{{cat}}"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest28()
         {
-            Test(@"@""(""", @"<Tree>
+            Test(@"@""(""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[11..11)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[11..11)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..11)"" Text=""("" />
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest29()
         {
-            Test(@"@""(?""", @"<Tree>
+            Test(@"@""(?""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -803,9 +803,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[12..12)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""(?"" />
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest30()
         {
-            Test(@"@""(?<""", @"<Tree>
+            Test(@"@""(?<""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -832,8 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..13)"" Text=""(?&lt;"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..13)"" Text=""(?&lt;"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?&lt;"" />
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest31()
         {
-            Test(@"@""(?<cat>""", @"<Tree>
+            Test(@"@""(?<cat>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""(?&lt;cat&gt;"" />
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest32()
         {
-            Test(@"@""\P{""", @"<Tree>
+            Test(@"@""\P{""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -881,16 +881,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <TextToken>P</TextToken>
       </SimpleEscape>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\P"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[10..12)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..13)"" Text=""\P{"" />
+    <Capture Name=""0"" Span=""[10..13)"" Text=""\P{{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest33()
         {
-            Test(@"@""\k<>""", @"<Tree>
+            Test(@"@""\k<>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \k"" Span=""[11..12)"" Text=""k"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, "k")}"" Span=""[11..12)"" Text=""k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""\k&lt;&gt;"" />
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest34()
         {
-            Test(@"@""(?(""", @"<Tree>
+            Test(@"@""(?(""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?("" />
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest35()
         {
-            Test(@"@""(?()|""", @"<Tree>
+            Test(@"@""(?()|""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[15..15)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..15)"" Text=""(?()|"" />
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest36()
         {
-            Test(@"@""?(a|b)""", @"<Tree>
+            Test(@"@""?(a|b)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""?(a|b)"" />
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest37()
         {
-            Test(@"@""?((a)""", @"<Tree>
+            Test(@"@""?((a)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1049,8 +1049,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[15..15)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[15..15)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..15)"" Text=""?((a)"" />
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest38()
         {
-            Test(@"@""?((a)a""", @"<Tree>
+            Test(@"@""?((a)a""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1091,8 +1091,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""?((a)a"" />
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest39()
         {
-            Test(@"@""?((a)a|""", @"<Tree>
+            Test(@"@""?((a)a|""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1137,8 +1137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[17..17)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[17..17)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""?((a)a|"" />
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest40()
         {
-            Test(@"@""?((a)a|b""", @"<Tree>
+            Test(@"@""?((a)a|b""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1187,8 +1187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[18..18)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[18..18)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""?((a)a|b"" />
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest42()
         {
-            Test(@"@""?(a)""", @"<Tree>
+            Test(@"@""?(a)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""?(a)"" />
@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest51()
         {
-            Test(@"@""[a""", @"<Tree>
+            Test(@"@""[a""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""[a"" />
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest52()
         {
-            Test(@"@""?(a:b)""", @"<Tree>
+            Test(@"@""?(a:b)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[10..11)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[10..11)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""?(a:b)"" />
@@ -1533,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest53()
         {
-            Test(@"@""(?(?""", @"<Tree>
+            Test(@"@""(?(?""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -1555,9 +1555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[13..14)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""(?(?"" />
@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest54()
         {
-            Test(@"@""(?(cat""", @"<Tree>
+            Test(@"@""(?(cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -1590,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""(?(cat"" />
@@ -1601,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest55()
         {
-            Test(@"@""(?(cat)|""", @"<Tree>
+            Test(@"@""(?(cat)|""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[18..18)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[18..18)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""(?(cat)|"" />
@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest56()
         {
-            Test(@"@""foo(?<0>bar)""", @"<Tree>
+            Test(@"@""foo(?<0>bar)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
+    <Diagnostic Message=""{WorkspacesResources.Capture_number_cannot_be_zero}"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""foo(?&lt;0&gt;bar)"" />
@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest57()
         {
-            Test(@"@""foo(?'0'bar)""", @"<Tree>
+            Test(@"@""foo(?'0'bar)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
+    <Diagnostic Message=""{WorkspacesResources.Capture_number_cannot_be_zero}"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""foo(?'0'bar)"" />
@@ -1706,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest58()
         {
-            Test(@"@""foo(?<1bar)""", @"<Tree>
+            Test(@"@""foo(?<1bar)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1729,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""b"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[17..18)"" Text=""b"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""foo(?&lt;1bar)"" />
@@ -1741,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest59()
         {
-            Test(@"@""foo(?'1bar)""", @"<Tree>
+            Test(@"@""foo(?'1bar)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""b"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[17..18)"" Text=""b"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""foo(?'1bar)"" />
@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest60()
         {
-            Test(@"@""(?(""", @"<Tree>
+            Test(@"@""(?(""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Not enough )'s"" Span=""[13..13)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[13..13)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""(?("" />
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest61()
         {
-            Test(@"@""\p{klsak""", @"<Tree>
+            Test(@"@""\p{klsak""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleEscape>
@@ -1813,16 +1813,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <TextToken>p</TextToken>
       </SimpleEscape>
       <Text>
-        <TextToken>{klsak</TextToken>
+        <TextToken>{{klsak</TextToken>
       </Text>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[10..12)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[10..12)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..18)"" Text=""\p{klsak"" />
+    <Capture Name=""0"" Span=""[10..18)"" Text=""\p{{klsak"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest62()
         {
-            Test(@"@""(?c:cat)""", @"<Tree>
+            Test(@"@""(?c:cat)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -1849,8 +1849,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""(?c:cat)"" />
@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest63()
         {
-            Test(@"@""(??e:cat)""", @"<Tree>
+            Test(@"@""(??e:cat)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -1883,8 +1883,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""(??e:cat)"" />
@@ -1896,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest64()
         {
-            Test(@"@""[a-f-[]]+""", @"<Tree>
+            Test(@"@""[a-f-[]]+""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -1933,8 +1933,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""A subtraction must be the last element in a character class"" Span=""[14..14)"" Text="""" />
-    <Diagnostic Message=""Unterminated [] set"" Span=""[19..19)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.A_subtraction_must_be_the_last_element_in_a_character_class}"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[19..19)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""[a-f-[]]+"" />
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest65()
         {
-            Test(@"@""[A-[]+""", @"<Tree>
+            Test(@"@""[A-[]+""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[16..16)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""[A-[]+"" />
@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest66()
         {
-            Test(@"@""(?(?e))""", @"<Tree>
+            Test(@"@""(?(?e))""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -2009,8 +2009,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[13..14)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""(?(?e))"" />
@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest67()
         {
-            Test(@"@""(?(?a)""", @"<Tree>
+            Test(@"@""(?(?a)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <ConditionalExpressionGrouping>
@@ -2046,9 +2046,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[12..13)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[13..14)"" Text=""?"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[12..13)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[13..14)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..16)"" Text=""(?(?a)"" />
@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest68()
         {
-            Test(@"@""(?r:cat)""", @"<Tree>
+            Test(@"@""(?r:cat)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -2078,8 +2078,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[10..11)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[11..12)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[10..11)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[11..12)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..18)"" Text=""(?r:cat)"" />
@@ -2117,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest70()
         {
-            Test(@"@""[]""", @"<Tree>
+            Test(@"@""[]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -2133,7 +2133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[12..12)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[12..12)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""[]"" />
@@ -2144,7 +2144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest71()
         {
-            Test(@"@""\x2""", @"<Tree>
+            Test(@"@""\x2""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <HexEscape>
@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\x2"" />
+    <Diagnostic Message=""{WorkspacesResources.Insufficient_hexadecimal_digits}"" Span=""[10..13)"" Text=""\x2"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""\x2"" />
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest72()
         {
-            Test(@"@""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace""", @"<Tree>
+            Test(@"@""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -2200,7 +2200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated (?#...) comment"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_regex_comment}"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..66)"" Text=""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"" />
@@ -2212,7 +2212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest73()
         {
-            Test(@"@""cat(?(?afdcat)dog)""", @"<Tree>
+            Test(@"@""cat(?(?afdcat)dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2244,8 +2244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[15..16)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[16..17)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[15..16)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[16..17)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..28)"" Text=""cat(?(?afdcat)dog)"" />
@@ -2256,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest74()
         {
-            Test(@"@""cat(?(?<cat>cat)dog)""", @"<Tree>
+            Test(@"@""cat(?(?<cat>cat)dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Span=""[13..14)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named}"" Span=""[13..14)"" Text=""("" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?&lt;cat&gt;cat)dog)"" />
@@ -2300,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest75()
         {
-            Test(@"@""cat(?(?'cat'cat)dog)""", @"<Tree>
+            Test(@"@""cat(?(?'cat'cat)dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2333,7 +2333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions do not capture and cannot be named"" Span=""[13..14)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named}"" Span=""[13..14)"" Text=""("" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?'cat'cat)dog)"" />
@@ -2344,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest76()
         {
-            Test(@"@""cat(?(?#COMMENT)cat)""", @"<Tree>
+            Test(@"@""cat(?(?#COMMENT)cat)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2376,9 +2376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Alternation conditions cannot be comments"" Span=""[13..14)"" Text=""("" />
-    <Diagnostic Message=""Unrecognized grouping construct"" Span=""[15..16)"" Text=""("" />
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[16..17)"" Text=""?"" />
+    <Diagnostic Message=""{WorkspacesResources.Alternation_conditions_cannot_be_comments}"" Span=""[13..14)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_grouping_construct}"" Span=""[15..16)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[16..17)"" Text=""?"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..30)"" Text=""cat(?(?#COMMENT)cat)"" />
@@ -2389,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest77()
         {
-            Test(@"@""(?<cat>cat)\w+(?<dog-()*!@>dog)""", @"<Tree>
+            Test(@"@""(?<cat>cat)\w+(?<dog-()*!@>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -2439,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[31..32)"" Text=""("" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[31..32)"" Text=""("" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..41)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-()*!@&gt;dog)"" />
@@ -2455,7 +2455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest78()
         {
-            Test(@"@""(?<cat>cat)\w+(?<dog-catdog>dog)""", @"<Tree>
+            Test(@"@""(?<cat>cat)\w+(?<dog-catdog>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -2497,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name catdog"" Span=""[31..37)"" Text=""catdog"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, "catdog")}"" Span=""[31..37)"" Text=""catdog"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..42)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-catdog&gt;dog)"" />
@@ -2512,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest79()
         {
-            Test(@"@""(?<cat>cat)\w+(?<dog-1uosn>dog)""", @"<Tree>
+            Test(@"@""(?<cat>cat)\w+(?<dog-1uosn>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -2554,7 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[32..33)"" Text=""u"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[32..33)"" Text=""u"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..41)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-1uosn&gt;dog)"" />
@@ -2569,7 +2569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest80()
         {
-            Test(@"@""(?<cat>cat)\w+(?<dog-16>dog)""", @"<Tree>
+            Test(@"@""(?<cat>cat)\w+(?<dog-16>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -2611,7 +2611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 16"" Span=""[31..33)"" Text=""16"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, "16")}"" Span=""[31..33)"" Text=""16"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\w+(?&lt;dog-16&gt;dog)"" />
@@ -2626,7 +2626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest81()
         {
-            Test(@"@""cat(?<->dog)""", @"<Tree>
+            Test(@"@""cat(?<->dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2651,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""&gt;"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[17..18)"" Text=""&gt;"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""cat(?&lt;-&gt;dog)"" />
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest82()
         {
-            Test(@"@""cat(?<>dog)""", @"<Tree>
+            Test(@"@""cat(?<>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2685,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[16..17)"" Text=""&gt;"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[16..17)"" Text=""&gt;"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""cat(?&lt;&gt;dog)"" />
@@ -2696,7 +2696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest83()
         {
-            Test(@"@""cat(?<dog<>)_*>dog)""", @"<Tree>
+            Test(@"@""cat(?<dog<>)_*>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2731,8 +2731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text=""&lt;"" />
-    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[19..20)"" Text=""&lt;"" />
+    <Diagnostic Message=""{WorkspacesResources.Too_many_close_parens}"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog&lt;&gt;)_*&gt;dog)"" />
@@ -2745,7 +2745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest84()
         {
-            Test(@"@""cat(?<dog >)_*>dog)""", @"<Tree>
+            Test(@"@""cat(?<dog >)_*>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2780,8 +2780,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text="" "" />
-    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[19..20)"" Text="" "" />
+    <Diagnostic Message=""{WorkspacesResources.Too_many_close_parens}"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog &gt;)_*&gt;dog)"" />
@@ -2794,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest85()
         {
-            Test(@"@""cat(?<dog!>)_*>dog)""", @"<Tree>
+            Test(@"@""cat(?<dog!>)_*>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2829,8 +2829,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text=""!"" />
-    <Diagnostic Message=""Too many )'s"" Span=""[28..29)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[19..20)"" Text=""!"" />
+    <Diagnostic Message=""{WorkspacesResources.Too_many_close_parens}"" Span=""[28..29)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..29)"" Text=""cat(?&lt;dog!&gt;)_*&gt;dog)"" />
@@ -2843,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest86()
         {
-            Test(@"@""cat(?<dog)_*>dog)""", @"<Tree>
+            Test(@"@""cat(?<dog)_*>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2874,8 +2874,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[19..20)"" Text="")"" />
-    <Diagnostic Message=""Too many )'s"" Span=""[26..27)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[19..20)"" Text="")"" />
+    <Diagnostic Message=""{WorkspacesResources.Too_many_close_parens}"" Span=""[26..27)"" Text="")"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..27)"" Text=""cat(?&lt;dog)_*&gt;dog)"" />
@@ -2888,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest87()
         {
-            Test(@"@""cat(?<1dog>dog)""", @"<Tree>
+            Test(@"@""cat(?<1dog>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2911,7 +2911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Invalid group name: Group names must begin with a word character"" Span=""[17..18)"" Text=""d"" />
+    <Diagnostic Message=""{WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}"" Span=""[17..18)"" Text=""d"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..25)"" Text=""cat(?&lt;1dog&gt;dog)"" />
@@ -2923,7 +2923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest88()
         {
-            Test(@"@""cat(?<0>dog)""", @"<Tree>
+            Test(@"@""cat(?<0>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -2946,7 +2946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture number cannot be zero"" Span=""[16..17)"" Text=""0"" />
+    <Diagnostic Message=""{WorkspacesResources.Capture_number_cannot_be_zero}"" Span=""[16..17)"" Text=""0"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""cat(?&lt;0&gt;dog)"" />
@@ -2957,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest89()
         {
-            Test(@"@""([5-\D]*)dog""", @"<Tree>
+            Test(@"@""([5-\D]*)dog""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -2992,7 +2992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \D in character range"" Span=""[14..16)"" Text=""\D"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "D")}"" Span=""[14..16)"" Text=""\D"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""([5-\D]*)dog"" />
@@ -3004,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest90()
         {
-            Test(@"@""cat([6-\s]*)dog""", @"<Tree>
+            Test(@"@""cat([6-\s]*)dog""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -3042,7 +3042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \s in character range"" Span=""[17..19)"" Text=""\s"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "s")}"" Span=""[17..19)"" Text=""\s"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..25)"" Text=""cat([6-\s]*)dog"" />
@@ -3054,7 +3054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest91()
         {
-            Test(@"@""cat([c-\S]*)""", @"<Tree>
+            Test(@"@""cat([c-\S]*)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -3089,7 +3089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \S in character range"" Span=""[17..19)"" Text=""\S"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "S")}"" Span=""[17..19)"" Text=""\S"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""cat([c-\S]*)"" />
@@ -3101,7 +3101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest92()
         {
-            Test(@"@""cat([7-\w]*)""", @"<Tree>
+            Test(@"@""cat([7-\w]*)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -3136,7 +3136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \w in character range"" Span=""[17..19)"" Text=""\w"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "w")}"" Span=""[17..19)"" Text=""\w"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" Text=""cat([7-\w]*)"" />
@@ -3148,7 +3148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest93()
         {
-            Test(@"@""cat([a-\W]*)dog""", @"<Tree>
+            Test(@"@""cat([a-\W]*)dog""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <Text>
@@ -3186,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \W in character range"" Span=""[17..19)"" Text=""\W"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "W")}"" Span=""[17..19)"" Text=""\W"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..25)"" Text=""cat([a-\W]*)dog"" />
@@ -3198,7 +3198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest94()
         {
-            Test(@"@""([f-\p{Lu}]\w*)\s([\p{Lu}]\w*)""", @"<Tree>
+            Test(@"@""([f-\p{Lu}]\w*)\s([\p{Lu}]\w*)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3215,9 +3215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 <CategoryEscape>
                   <BackslashToken>\</BackslashToken>
                   <TextToken>p</TextToken>
-                  <OpenBraceToken>{</OpenBraceToken>
+                  <OpenBraceToken>{{</OpenBraceToken>
                   <EscapeCategoryToken>Lu</EscapeCategoryToken>
-                  <CloseBraceToken>}</CloseBraceToken>
+                  <CloseBraceToken>}}</CloseBraceToken>
                 </CategoryEscape>
               </CharacterClassRange>
             </Sequence>
@@ -3246,9 +3246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <CategoryEscape>
                 <BackslashToken>\</BackslashToken>
                 <TextToken>p</TextToken>
-                <OpenBraceToken>{</OpenBraceToken>
+                <OpenBraceToken>{{</OpenBraceToken>
                 <EscapeCategoryToken>Lu</EscapeCategoryToken>
-                <CloseBraceToken>}</CloseBraceToken>
+                <CloseBraceToken>}}</CloseBraceToken>
               </CategoryEscape>
             </Sequence>
             <CloseBracketToken>]</CloseBracketToken>
@@ -3267,12 +3267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \p in character range"" Span=""[14..16)"" Text=""\p"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "p")}"" Span=""[14..16)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..40)"" Text=""([f-\p{Lu}]\w*)\s([\p{Lu}]\w*)"" />
-    <Capture Name=""1"" Span=""[10..25)"" Text=""([f-\p{Lu}]\w*)"" />
-    <Capture Name=""2"" Span=""[27..40)"" Text=""([\p{Lu}]\w*)"" />
+    <Capture Name=""0"" Span=""[10..40)"" Text=""([f-\p{{Lu}}]\w*)\s([\p{{Lu}}]\w*)"" />
+    <Capture Name=""1"" Span=""[10..25)"" Text=""([f-\p{{Lu}}]\w*)"" />
+    <Capture Name=""2"" Span=""[27..40)"" Text=""([\p{{Lu}}]\w*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3280,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest95()
         {
-            Test(@"@""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace""", @"<Tree>
+            Test(@"@""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3319,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     </EndOfFile>
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated (?#...) comment"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_regex_comment}"" Span=""[31..66)"" Text=""(?#followed by 1 or more whitespace"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..66)"" Text=""(cat) (?#cat)    \s+ (?#followed by 1 or more whitespace"" />
@@ -3331,7 +3331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest96()
         {
-            Test(@"@""([1-\P{Ll}][\p{Ll}]*)\s([\P{Ll}][\p{Ll}]*)""", @"<Tree>
+            Test(@"@""([1-\P{Ll}][\p{Ll}]*)\s([\P{Ll}][\p{Ll}]*)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3348,9 +3348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 <CategoryEscape>
                   <BackslashToken>\</BackslashToken>
                   <TextToken>P</TextToken>
-                  <OpenBraceToken>{</OpenBraceToken>
+                  <OpenBraceToken>{{</OpenBraceToken>
                   <EscapeCategoryToken>Ll</EscapeCategoryToken>
-                  <CloseBraceToken>}</CloseBraceToken>
+                  <CloseBraceToken>}}</CloseBraceToken>
                 </CategoryEscape>
               </CharacterClassRange>
             </Sequence>
@@ -3363,9 +3363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 <CategoryEscape>
                   <BackslashToken>\</BackslashToken>
                   <TextToken>p</TextToken>
-                  <OpenBraceToken>{</OpenBraceToken>
+                  <OpenBraceToken>{{</OpenBraceToken>
                   <EscapeCategoryToken>Ll</EscapeCategoryToken>
-                  <CloseBraceToken>}</CloseBraceToken>
+                  <CloseBraceToken>}}</CloseBraceToken>
                 </CategoryEscape>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3388,9 +3388,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <CategoryEscape>
                 <BackslashToken>\</BackslashToken>
                 <TextToken>P</TextToken>
-                <OpenBraceToken>{</OpenBraceToken>
+                <OpenBraceToken>{{</OpenBraceToken>
                 <EscapeCategoryToken>Ll</EscapeCategoryToken>
-                <CloseBraceToken>}</CloseBraceToken>
+                <CloseBraceToken>}}</CloseBraceToken>
               </CategoryEscape>
             </Sequence>
             <CloseBracketToken>]</CloseBracketToken>
@@ -3402,9 +3402,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 <CategoryEscape>
                   <BackslashToken>\</BackslashToken>
                   <TextToken>p</TextToken>
-                  <OpenBraceToken>{</OpenBraceToken>
+                  <OpenBraceToken>{{</OpenBraceToken>
                   <EscapeCategoryToken>Ll</EscapeCategoryToken>
-                  <CloseBraceToken>}</CloseBraceToken>
+                  <CloseBraceToken>}}</CloseBraceToken>
                 </CategoryEscape>
               </Sequence>
               <CloseBracketToken>]</CloseBracketToken>
@@ -3418,12 +3418,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Cannot include class \P in character range"" Span=""[14..16)"" Text=""\P"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, "P")}"" Span=""[14..16)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..52)"" Text=""([1-\P{Ll}][\p{Ll}]*)\s([\P{Ll}][\p{Ll}]*)"" />
-    <Capture Name=""1"" Span=""[10..31)"" Text=""([1-\P{Ll}][\p{Ll}]*)"" />
-    <Capture Name=""2"" Span=""[33..52)"" Text=""([\P{Ll}][\p{Ll}]*)"" />
+    <Capture Name=""0"" Span=""[10..52)"" Text=""([1-\P{{Ll}}][\p{{Ll}}]*)\s([\P{{Ll}}][\p{{Ll}}]*)"" />
+    <Capture Name=""1"" Span=""[10..31)"" Text=""([1-\P{{Ll}}][\p{{Ll}}]*)"" />
+    <Capture Name=""2"" Span=""[33..52)"" Text=""([\P{{Ll}}][\p{{Ll}}]*)"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3431,7 +3431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest97()
         {
-            Test(@"@""[\P]""", @"<Tree>
+            Test(@"@""[\P]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -3448,7 +3448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\P"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[11..13)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""[\P]"" />
@@ -3459,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest98()
         {
-            Test(@"@""([\pcat])""", @"<Tree>
+            Test(@"@""([\pcat])""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3485,7 +3485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \p{X} character escape"" Span=""[12..14)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_character_escape}"" Span=""[12..14)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""([\pcat])"" />
@@ -3497,7 +3497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest99()
         {
-            Test(@"@""([\Pcat])""", @"<Tree>
+            Test(@"@""([\Pcat])""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3523,7 +3523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \p{X} character escape"" Span=""[12..14)"" Text=""\P"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_character_escape}"" Span=""[12..14)"" Text=""\P"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""([\Pcat])"" />
@@ -3535,7 +3535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest100()
         {
-            Test(@"@""(\p{""", @"<Tree>
+            Test(@"@""(\p{""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3546,7 +3546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             <TextToken>p</TextToken>
           </SimpleEscape>
           <Text>
-            <TextToken>{</TextToken>
+            <TextToken>{{</TextToken>
           </Text>
         </Sequence>
         <CloseParenToken />
@@ -3555,12 +3555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[14..14)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[11..13)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[14..14)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..14)"" Text=""(\p{"" />
-    <Capture Name=""1"" Span=""[10..14)"" Text=""(\p{"" />
+    <Capture Name=""0"" Span=""[10..14)"" Text=""(\p{{"" />
+    <Capture Name=""1"" Span=""[10..14)"" Text=""(\p{{"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3568,7 +3568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest101()
         {
-            Test(@"@""(\p{Ll""", @"<Tree>
+            Test(@"@""(\p{Ll""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             <TextToken>p</TextToken>
           </SimpleEscape>
           <Text>
-            <TextToken>{Ll</TextToken>
+            <TextToken>{{Ll</TextToken>
           </Text>
         </Sequence>
         <CloseParenToken />
@@ -3588,12 +3588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[16..16)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[11..13)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[16..16)"" Text="""" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..16)"" Text=""(\p{Ll"" />
-    <Capture Name=""1"" Span=""[10..16)"" Text=""(\p{Ll"" />
+    <Capture Name=""0"" Span=""[10..16)"" Text=""(\p{{Ll"" />
+    <Capture Name=""1"" Span=""[10..16)"" Text=""(\p{{Ll"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3601,7 +3601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest102()
         {
-            Test(@"@""(cat)([\o]*)(dog)""", @"<Tree>
+            Test(@"@""(cat)([\o]*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -3645,7 +3645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized escape sequence \o"" Span=""[18..19)"" Text=""o"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, "o")}"" Span=""[18..19)"" Text=""o"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)([\o]*)(dog)"" />
@@ -3659,7 +3659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest103()
         {
-            Test(@"@""[\p]""", @"<Tree>
+            Test(@"@""[\p]""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -3676,7 +3676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Incomplete \p{X} character escape"" Span=""[11..13)"" Text=""\p"" />
+    <Diagnostic Message=""{WorkspacesResources.Incomplete_character_escape}"" Span=""[11..13)"" Text=""\p"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..14)"" Text=""[\p]"" />
@@ -3687,7 +3687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest104()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\kcat""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\kcat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -3734,7 +3734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_named_back_reference.Replace("<", "&lt;").Replace(">", "&gt;")}"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..40)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\kcat"" />
@@ -3749,7 +3749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest105()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<cat2>""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<cat2>""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -3796,7 +3796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group name cat2"" Span=""[38..42)"" Text=""cat2"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, "cat2")}"" Span=""[38..42)"" Text=""cat2"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;cat2&gt;"" />
@@ -3811,7 +3811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest106()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<8>cat""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<8>cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -3861,7 +3861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 8"" Span=""[38..39)"" Text=""8"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, "8")}"" Span=""[38..39)"" Text=""8"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;8&gt;cat"" />
@@ -3876,7 +3876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest107()
         {
-            Test(@"@""^[abcd]{1}?*$""", @"<Tree>
+            Test(@"@""^[abcd]{1}?*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -3893,9 +3893,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             </Sequence>
             <CloseBracketToken>]</CloseBracketToken>
           </CharacterClass>
-          <OpenBraceToken>{</OpenBraceToken>
+          <OpenBraceToken>{{</OpenBraceToken>
           <NumberToken value=""1"">1</NumberToken>
-          <CloseBraceToken>}</CloseBraceToken>
+          <CloseBraceToken>}}</CloseBraceToken>
         </ExactNumericQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
@@ -3909,10 +3909,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[21..22)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[21..22)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{1}?*$"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{{1}}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -3920,7 +3920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest108()
         {
-            Test(@"@""^[abcd]*+$""", @"<Tree>
+            Test(@"@""^[abcd]*+$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -3948,7 +3948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier +"" Span=""[18..19)"" Text=""+"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "+")}"" Span=""[18..19)"" Text=""+"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]*+$"" />
@@ -3959,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest109()
         {
-            Test(@"@""^[abcd]+*$""", @"<Tree>
+            Test(@"@""^[abcd]+*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -3987,7 +3987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[18..19)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]+*$"" />
@@ -3998,7 +3998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest110()
         {
-            Test(@"@""^[abcd]?*$""", @"<Tree>
+            Test(@"@""^[abcd]?*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4026,7 +4026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[18..19)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..20)"" Text=""^[abcd]?*$"" />
@@ -4037,7 +4037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest111()
         {
-            Test(@"@""^[abcd]*?+$""", @"<Tree>
+            Test(@"@""^[abcd]*?+$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4068,7 +4068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier +"" Span=""[19..20)"" Text=""+"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "+")}"" Span=""[19..20)"" Text=""+"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]*?+$"" />
@@ -4079,7 +4079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest112()
         {
-            Test(@"@""^[abcd]+?*$""", @"<Tree>
+            Test(@"@""^[abcd]+?*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4110,7 +4110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]+?*$"" />
@@ -4121,7 +4121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest113()
         {
-            Test(@"@""^[abcd]{1,}?*$""", @"<Tree>
+            Test(@"@""^[abcd]{1,}?*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4138,10 +4138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             </Sequence>
             <CloseBracketToken>]</CloseBracketToken>
           </CharacterClass>
-          <OpenBraceToken>{</OpenBraceToken>
+          <OpenBraceToken>{{</OpenBraceToken>
           <NumberToken value=""1"">1</NumberToken>
           <CommaToken>,</CommaToken>
-          <CloseBraceToken>}</CloseBraceToken>
+          <CloseBraceToken>}}</CloseBraceToken>
         </OpenRangeNumericQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
@@ -4155,10 +4155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[22..23)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[22..23)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]{1,}?*$"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]{{1,}}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4166,7 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest114()
         {
-            Test(@"@""^[abcd]??*$""", @"<Tree>
+            Test(@"@""^[abcd]??*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4197,7 +4197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..21)"" Text=""^[abcd]??*$"" />
@@ -4208,7 +4208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest115()
         {
-            Test(@"@""^[abcd]+{0,5}$""", @"<Tree>
+            Test(@"@""^[abcd]+{0,5}$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4227,10 +4227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <PlusToken>+</PlusToken>
       </OneOrMoreQuantifier>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
       <Text>
-        <TextToken>0,5}</TextToken>
+        <TextToken>0,5}}</TextToken>
       </Text>
       <EndAnchor>
         <DollarToken>$</DollarToken>
@@ -4239,10 +4239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "{")}"" Span=""[18..19)"" Text=""{{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]+{0,5}$"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]+{{0,5}}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4250,7 +4250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest116()
         {
-            Test(@"@""^[abcd]?{0,5}$""", @"<Tree>
+            Test(@"@""^[abcd]?{0,5}$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4269,10 +4269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <QuestionToken>?</QuestionToken>
       </ZeroOrOneQuantifier>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
       <Text>
-        <TextToken>0,5}</TextToken>
+        <TextToken>0,5}}</TextToken>
       </Text>
       <EndAnchor>
         <DollarToken>$</DollarToken>
@@ -4281,10 +4281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "{")}"" Span=""[18..19)"" Text=""{{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]?{0,5}$"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]?{{0,5}}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4292,7 +4292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest117()
         {
-            Test(@"@""\u""", @"<Tree>
+            Test(@"@""\u""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <UnicodeEscape>
@@ -4304,7 +4304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..12)"" Text=""\u"" />
+    <Diagnostic Message=""{WorkspacesResources.Insufficient_hexadecimal_digits}"" Span=""[10..12)"" Text=""\u"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""\u"" />
@@ -4315,7 +4315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest118()
         {
-            Test(@"@""\ua""", @"<Tree>
+            Test(@"@""\ua""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <UnicodeEscape>
@@ -4327,7 +4327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\ua"" />
+    <Diagnostic Message=""{WorkspacesResources.Insufficient_hexadecimal_digits}"" Span=""[10..13)"" Text=""\ua"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""\ua"" />
@@ -4338,7 +4338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest119()
         {
-            Test(@"@""\u0""", @"<Tree>
+            Test(@"@""\u0""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <UnicodeEscape>
@@ -4350,7 +4350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..13)"" Text=""\u0"" />
+    <Diagnostic Message=""{WorkspacesResources.Insufficient_hexadecimal_digits}"" Span=""[10..13)"" Text=""\u0"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..13)"" Text=""\u0"" />
@@ -4361,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest120()
         {
-            Test(@"@""\x""", @"<Tree>
+            Test(@"@""\x""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <HexEscape>
@@ -4373,7 +4373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Insufficient hexadecimal digits"" Span=""[10..12)"" Text=""\x"" />
+    <Diagnostic Message=""{WorkspacesResources.Insufficient_hexadecimal_digits}"" Span=""[10..12)"" Text=""\x"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..12)"" Text=""\x"" />
@@ -4384,7 +4384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest121()
         {
-            Test(@"@""^[abcd]*{0,5}$""", @"<Tree>
+            Test(@"@""^[abcd]*{0,5}$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4403,10 +4403,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <AsteriskToken>*</AsteriskToken>
       </ZeroOrMoreQuantifier>
       <Text>
-        <TextToken>{</TextToken>
+        <TextToken>{{</TextToken>
       </Text>
       <Text>
-        <TextToken>0,5}</TextToken>
+        <TextToken>0,5}}</TextToken>
       </Text>
       <EndAnchor>
         <DollarToken>$</DollarToken>
@@ -4415,10 +4415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier {"" Span=""[18..19)"" Text=""{"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "{")}"" Span=""[18..19)"" Text=""{{"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]*{0,5}$"" />
+    <Capture Name=""0"" Span=""[10..24)"" Text=""^[abcd]*{{0,5}}$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4426,7 +4426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest122()
         {
-            Test(@"@""[""", @"<Tree>
+            Test(@"@""[""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CharacterClass>
@@ -4438,7 +4438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[11..11)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[11..11)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..11)"" Text=""["" />
@@ -4449,7 +4449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest123()
         {
-            Test(@"@""^[abcd]{0,16}?*$""", @"<Tree>
+            Test(@"@""^[abcd]{0,16}?*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4466,11 +4466,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             </Sequence>
             <CloseBracketToken>]</CloseBracketToken>
           </CharacterClass>
-          <OpenBraceToken>{</OpenBraceToken>
+          <OpenBraceToken>{{</OpenBraceToken>
           <NumberToken value=""0"">0</NumberToken>
           <CommaToken>,</CommaToken>
           <NumberToken value=""16"">16</NumberToken>
-          <CloseBraceToken>}</CloseBraceToken>
+          <CloseBraceToken>}}</CloseBraceToken>
         </ClosedRangeNumericQuantifier>
         <QuestionToken>?</QuestionToken>
       </LazyQuantifier>
@@ -4484,10 +4484,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[24..25)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[24..25)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..26)"" Text=""^[abcd]{0,16}?*$"" />
+    <Capture Name=""0"" Span=""[10..26)"" Text=""^[abcd]{{0,16}}?*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4495,7 +4495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest124()
         {
-            Test(@"@""^[abcd]{1,}*$""", @"<Tree>
+            Test(@"@""^[abcd]{1,}*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4511,10 +4511,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </Sequence>
           <CloseBracketToken>]</CloseBracketToken>
         </CharacterClass>
-        <OpenBraceToken>{</OpenBraceToken>
+        <OpenBraceToken>{{</OpenBraceToken>
         <NumberToken value=""1"">1</NumberToken>
         <CommaToken>,</CommaToken>
-        <CloseBraceToken>}</CloseBraceToken>
+        <CloseBraceToken>}}</CloseBraceToken>
       </OpenRangeNumericQuantifier>
       <Text>
         <TextToken>*</TextToken>
@@ -4526,10 +4526,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[21..22)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[21..22)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{1,}*$"" />
+    <Capture Name=""0"" Span=""[10..23)"" Text=""^[abcd]{{1,}}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4537,7 +4537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest125()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<8>cat""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k<8>cat""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -4587,7 +4587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 8"" Span=""[38..39)"" Text=""8"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, "8")}"" Span=""[38..39)"" Text=""8"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..43)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k&lt;8&gt;cat"" />
@@ -4602,7 +4602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest126()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k8""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k8""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -4649,7 +4649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_named_back_reference.Replace("<", "&lt;").Replace(">", "&gt;")}"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k8"" />
@@ -4664,7 +4664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest127()
         {
-            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k8""", @"<Tree>
+            Test(@"@""(?<cat>cat)\s+(?<dog>dog)\k8""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <CaptureGrouping>
@@ -4711,7 +4711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Malformed \k&lt;...&gt; named back reference"" Span=""[35..37)"" Text=""\k"" />
+    <Diagnostic Message=""{WorkspacesResources.Malformed_named_back_reference.Replace("<", "&lt;").Replace(">", "&gt;")}"" Span=""[35..37)"" Text=""\k"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..38)"" Text=""(?&lt;cat&gt;cat)\s+(?&lt;dog&gt;dog)\k8"" />
@@ -4726,7 +4726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest128()
         {
-            Test(@"@""(cat)(\7)""", @"<Tree>
+            Test(@"@""(cat)(\7)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -4752,7 +4752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Reference to undefined group number 7"" Span=""[17..18)"" Text=""7"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, "7")}"" Span=""[17..18)"" Text=""7"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..19)"" Text=""(cat)(\7)"" />
@@ -4765,7 +4765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest129()
         {
-            Test(@"@""(cat)\s+(?<2147483648>dog)""", @"<Tree>
+            Test(@"@""(cat)\s+(?<2147483648>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -4801,7 +4801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Span=""[21..31)"" Text=""2147483648"" />
+    <Diagnostic Message=""{WorkspacesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}"" Span=""[21..31)"" Text=""2147483648"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""-2147483648"" Span=""[18..36)"" Text=""(?&lt;2147483648&gt;dog)"" />
@@ -4814,7 +4814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest130()
         {
-            Test(@"@""(cat)\s+(?<21474836481097>dog)""", @"<Tree>
+            Test(@"@""(cat)\s+(?<21474836481097>dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -4850,7 +4850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Capture group numbers must be less than or equal to Int32.MaxValue"" Span=""[21..35)"" Text=""21474836481097"" />
+    <Diagnostic Message=""{WorkspacesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}"" Span=""[21..35)"" Text=""21474836481097"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..40)"" Text=""(cat)\s+(?&lt;21474836481097&gt;dog)"" />
@@ -4863,7 +4863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest131()
         {
-            Test(@"@""^[abcd]{1}*$""", @"<Tree>
+            Test(@"@""^[abcd]{1}*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -4879,9 +4879,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </Sequence>
           <CloseBracketToken>]</CloseBracketToken>
         </CharacterClass>
-        <OpenBraceToken>{</OpenBraceToken>
+        <OpenBraceToken>{{</OpenBraceToken>
         <NumberToken value=""1"">1</NumberToken>
-        <CloseBraceToken>}</CloseBraceToken>
+        <CloseBraceToken>}}</CloseBraceToken>
       </ExactNumericQuantifier>
       <Text>
         <TextToken>*</TextToken>
@@ -4893,10 +4893,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[20..21)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[20..21)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..22)"" Text=""^[abcd]{1}*$"" />
+    <Capture Name=""0"" Span=""[10..22)"" Text=""^[abcd]{{1}}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -4904,7 +4904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest132()
         {
-            Test(@"@""(cat)(\c*)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -4943,7 +4943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""*"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_control_character}"" Span=""[18..19)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..25)"" Text=""(cat)(\c*)(dog)"" />
@@ -4957,7 +4957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest133()
         {
-            Test(@"@""(cat)(\c *)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c *)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -4999,7 +4999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text="" "" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_control_character}"" Span=""[18..19)"" Text="" "" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c *)(dog)"" />
@@ -5013,7 +5013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest134()
         {
-            Test(@"@""(cat)(\c?*)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c?*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -5055,8 +5055,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""?"" />
-    <Diagnostic Message=""Nested quantifier *"" Span=""[19..20)"" Text=""*"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_control_character}"" Span=""[18..19)"" Text=""?"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[19..20)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c?*)(dog)"" />
@@ -5070,7 +5070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest135()
         {
-            Test(@"@""(cat)(\c`*)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c`*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -5112,7 +5112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unrecognized control character"" Span=""[18..19)"" Text=""`"" />
+    <Diagnostic Message=""{WorkspacesResources.Unrecognized_control_character}"" Span=""[18..19)"" Text=""`"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..26)"" Text=""(cat)(\c`*)(dog)"" />
@@ -5126,7 +5126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest136()
         {
-            Test(@"@""(cat)(\c\|*)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c\|*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -5170,7 +5170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Quantifier {x,y} following nothing"" Span=""[20..21)"" Text=""*"" />
+    <Diagnostic Message=""{WorkspacesResources.Quantifier_x_y_following_nothing}"" Span=""[20..21)"" Text=""*"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)(\c\|*)(dog)"" />
@@ -5184,7 +5184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest137()
         {
-            Test(@"@""(cat)(\c\[*)(dog)""", @"<Tree>
+            Test(@"@""(cat)(\c\[*)(dog)""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -5220,8 +5220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Unterminated [] set"" Span=""[27..27)"" Text="""" />
-    <Diagnostic Message=""Not enough )'s"" Span=""[27..27)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Unterminated_character_class_set}"" Span=""[27..27)"" Text="""" />
+    <Diagnostic Message=""{WorkspacesResources.Not_enough_close_parens}"" Span=""[27..27)"" Text="""" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..27)"" Text=""(cat)(\c\[*)(dog)"" />
@@ -5234,7 +5234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest138()
         {
-            Test(@"@""^[abcd]{0,16}*$""", @"<Tree>
+            Test(@"@""^[abcd]{0,16}*$""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <StartAnchor>
@@ -5250,11 +5250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </Sequence>
           <CloseBracketToken>]</CloseBracketToken>
         </CharacterClass>
-        <OpenBraceToken>{</OpenBraceToken>
+        <OpenBraceToken>{{</OpenBraceToken>
         <NumberToken value=""0"">0</NumberToken>
         <CommaToken>,</CommaToken>
         <NumberToken value=""16"">16</NumberToken>
-        <CloseBraceToken>}</CloseBraceToken>
+        <CloseBraceToken>}}</CloseBraceToken>
       </ClosedRangeNumericQuantifier>
       <Text>
         <TextToken>*</TextToken>
@@ -5266,10 +5266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Nested quantifier *"" Span=""[23..24)"" Text=""*"" />
+    <Diagnostic Message=""{string.Format(WorkspacesResources.Nested_quantifier_0, "*")}"" Span=""[23..24)"" Text=""*"" />
   </Diagnostics>
   <Captures>
-    <Capture Name=""0"" Span=""[10..25)"" Text=""^[abcd]{0,16}*$"" />
+    <Capture Name=""0"" Span=""[10..25)"" Text=""^[abcd]{{0,16}}*$"" />
   </Captures>
 </Tree>", RegexOptions.None);
         }
@@ -5277,7 +5277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         [Fact]
         public void NegativeTest139()
         {
-            Test(@"@""(cat)\c""", @"<Tree>
+            Test(@"@""(cat)\c""", $@"<Tree>
   <CompilationUnit>
     <Sequence>
       <SimpleGrouping>
@@ -5298,7 +5298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <EndOfFile />
   </CompilationUnit>
   <Diagnostics>
-    <Diagnostic Message=""Missing control character"" Span=""[16..17)"" Text=""c"" />
+    <Diagnostic Message=""{WorkspacesResources.Missing_control_character}"" Span=""[16..17)"" Text=""c"" />
   </Diagnostics>
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" Text=""(cat)\c"" />

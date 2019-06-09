@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function IsSystemTypeReference(type As ITypeSymbol) As Boolean
-            Return DirectCast(type, TypeSymbol) = GetWellKnownType(WellKnownType.System_Type)
+            Return TypeSymbol.Equals(DirectCast(type, TypeSymbol), GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything)
         End Function
 
         Friend Overrides Function CommonGetWellKnownTypeMember(member As WellKnownMember) As ISymbol
@@ -626,6 +626,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function IsByRefMethod(ByVal method As MethodSymbol) As Boolean
                 Return method.ReturnsByRef
+            End Function
+
+            Protected Overrides Function IsByRefProperty(ByVal [property] As PropertySymbol) As Boolean
+                Return [property].ReturnsByRef
             End Function
 
             Protected Overrides Function IsGenericMethodTypeParam(type As TypeSymbol, paramPosition As Integer) As Boolean

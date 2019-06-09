@@ -82,7 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            // misc workspace will enable syntax errors and semantic errors for script files for
+            // all participating projects in the workspace
+            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
         }
 
         internal void StopSolutionCrawler()
@@ -105,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IEnumerable<MetadataReference> CreateMetadataReferences()
         {
             var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var searchPaths = ReferencePathUtilities.GetReferencePaths();
+            var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                    let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)
@@ -352,6 +354,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
+            var fileExtension = PathUtilities.GetExtension(filePath);
+
             var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
             var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
 
@@ -361,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (parseOptionsOpt != null &&
                 compilationOptionsOpt != null &&
-                PathUtilities.GetExtension(filePath) == languageInformation.ScriptExtension)
+                fileExtension == languageInformation.ScriptExtension)
             {
                 parseOptionsOpt = parseOptionsOpt.WithKind(SourceCodeKind.Script);
 
@@ -391,10 +395,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
+            var sourceCodeKind = GetSourceCodeKind(parseOptionsOpt, fileExtension, languageInformation);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 filePath,
-                sourceCodeKind: parseOptionsOpt?.Kind ?? SourceCodeKind.Regular,
+                sourceCodeKind: sourceCodeKind,
                 loader: new FileTextLoader(filePath, defaultEncoding: null),
                 filePath: filePath);
 
@@ -414,8 +419,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 metadataReferences: _metadataReferences);
 
             // Miscellaneous files projects are never fully loaded since, by definition, it won't know
-            // what the full set of information is.
-            return projectInfo.WithHasAllInformation(hasAllInformation: false);
+            // what the full set of information is except when the file is script code.
+            return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+        }
+
+        private SourceCodeKind GetSourceCodeKind(
+            ParseOptions parseOptionsOpt,
+            string fileExtension,
+            LanguageInformation languageInformation)
+        {
+            if (parseOptionsOpt != null)
+            {
+                return parseOptionsOpt.Kind;
+            }
+
+            return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
+                SourceCodeKind.Script : SourceCodeKind.Regular;
         }
 
         private void DetachFromDocument(uint docCookie, string moniker)

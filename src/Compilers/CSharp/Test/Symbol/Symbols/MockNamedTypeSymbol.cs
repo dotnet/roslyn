@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
-                return ImmutableArray.Create<TypeSymbolWithAnnotations>();
+                return ImmutableArray.Create<TypeWithAnnotations>();
             }
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => throw new NotImplementedException();
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw new NotImplementedException();
         }
@@ -233,25 +233,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw new NotImplementedException();
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             throw new NotImplementedException();
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return true;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Managed;
 
         internal override bool ShouldAddWinRTMembers
         {

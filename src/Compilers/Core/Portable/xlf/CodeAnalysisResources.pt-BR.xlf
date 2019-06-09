@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="new">A language name cannot be specified for this option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="new">A language name must be specified for this option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
@@ -16,17 +26,17 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">O parâmetro '{0}' deve ser um 'INamedTypeSymbol' ou um 'IAssemblySymbol'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">O parâmetro '{0}' deve ser um símbolo desta compilação ou um assembly referenciado.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="translated">A operação fornecida tem um elemento primário não nulo.</target>
+        <target state="translated">A operação especificada tem um pai não nulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -36,7 +46,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">A operação fornecida não deve ser parte de um Gráfico de Fluxo de Controle.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -57,6 +67,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Cópia de módulo não pode ser usada para criar metadados do assembly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">O analisador '{0}' contém um descritor nulo em seu 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -81,7 +96,7 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegate</target>
+        <target state="translated">delegar</target>
         <note />
       </trans-unit>
       <trans-unit id="Enum1">
@@ -96,7 +111,7 @@
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="translated">campo</target>
+        <target state="translated">Campo</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
@@ -156,7 +171,7 @@
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt;módulo na memória&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -191,7 +206,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Valor muito grande para ser representado como um inteiro sem sinal de 30 bits.</target>
+        <target state="translated">Valor muito grande para ser representado como um inteiro não assinado de 30 bits.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
@@ -464,6 +479,16 @@
         <target state="translated">Nome de cultura inválido: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">Identidade de WindowsRuntime não pode ser redirecionável</target>
@@ -528,7 +553,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">As alterações não podem se sobrepor.</target>
+        <target state="translated">As alterações devem ser ordenadas e não sobrepostas.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

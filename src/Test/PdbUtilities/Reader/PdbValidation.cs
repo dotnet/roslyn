@@ -135,11 +135,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
 
             AssertEx.AssertLinesEqual(
-                expected, 
-                actual, 
+                expected,
+                actual,
                 $"PDB format: {format}{Environment.NewLine}",
-                expectedValueSourcePath, 
-                expectedValueSourceLine, 
+                expectedValueSourcePath,
+                expectedValueSourceLine,
                 escapeQuotes: !expectedIsXmlLiteral);
         }
 
@@ -278,11 +278,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable, actualIsConverted: false);
 
             AssertEx.AssertLinesEqual(
-                expected, 
-                actual, 
-                $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}", 
+                expected,
+                actual,
+                $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}",
                 expectedValueSourcePath,
-                expectedValueSourceLine, 
+                expectedValueSourceLine,
                 escapeQuotes: !expectedIsXmlLiteral);
         }
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "windows");
             }
-            else 
+            else
             {
                 RemoveElementsWithSpecifiedFormat(expectedXml, "portable");
             }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (RemoveElements(from e in pdb.DescendantsAndSelf()
                                   where e.Name == "scope" && !e.HasElements
-                                  select e));
+                                  select e)) ;
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)

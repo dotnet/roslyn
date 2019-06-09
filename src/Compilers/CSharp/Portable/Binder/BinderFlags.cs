@@ -103,6 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InContextualAttributeBinder = 1 << 29,
 
+        /// <summary>
+        /// Are we binding for the purpose of an Expression Evaluator
+        /// </summary>
+        InEEMethodBinder = 1 << 30,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

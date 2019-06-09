@@ -147,10 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new TextSpan(location.TextSpan.Start + position, replacementText.Length);
             }
 
-            private string GetWithoutAttributeSuffix(string value) 
+            private string GetWithoutAttributeSuffix(string value)
                 => value.GetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive);
 
-            private bool HasAttributeSuffix(string value) 
+            private bool HasAttributeSuffix(string value)
                 => value.TryGetWithoutAttributeSuffix(isCaseSensitive: _document.GetLanguageService<ISyntaxFactsService>().IsCaseSensitive, result: out var _);
 
             private static string GetSpanText(Document document, TextSpan triggerSpan, CancellationToken cancellationToken)

@@ -75,8 +75,53 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="needs-review-translation">反白資料指標下符號的參考項目; 反白資料指標下相關的關鍵字; 檔案開啟時輸入大綱模式; 顯示程序行分隔符號; 產生 XML 文件註解; 顯示關閉的檔案之診斷; 顯示重新命名追踨的預覽; 排序 usings 時先放置 'System' 指示詞; 自訂結構上不要放置 ref 或 out</target>
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">顯示已關閉檔的診斷程式;
+著色正則運算式;
+在游標下突出顯示相關元件;
+報告不正確正則運算式;
+實現完整的解決方案分析;
+在外部過程中執行編輯器功能分析;
+啟用導航以反編譯源;
+使用指令;
+在對使用進行排序時, 首先放置系統指令;
+分離使用的指令組;
+建議引用程式集中類型的使用;
+建議 nuget 包中類型的使用建議;
+突出顯示;
+突出顯示游標下符號的參照;
+在游標下突出顯示相關關鍵字;
+概述;
+當檔打開時, 進入大綱顯示模式;
+顯示過程行分隔符號;
+顯示聲明級別構造的大綱;
+顯示代碼級構造的大綱;
+顯示評論和預處理器區域的大綱;
+折疊到定義時折疊區域;
+褪色;
+淡出未使用的用途;
+淡出無法訪問的代碼;
+塊結構指南;
+顯示聲明級別構造的指南;
+顯示代碼級構造的指南;
+編輯説明;
+生成 xml 文檔注釋///;
+在撰寫/* */評論時, 在新行開頭插入 *;
+顯示重命名跟蹤的預覽;
+在 enter 上拆分字串文本;
+報告字串中不正確預留位置。設置調用格式;
+提取方法;
+不要在自訂結構上放置參考或輸出;
+實現介面或抽象類別;
+插入屬性、事件和方法時, 放置它們;
+與其他同類成員;
+在最後;
+生成屬性時;
+喜歡投擲屬性;
+喜歡汽車物業;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -84,25 +129,12 @@ prefer auto properties;</source>
 Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
-Automatically format on paste;
-Format Document Settings;
-Apply all C# formatting rules indentation, wrapping, spacing;
-Perform additional code cleanup during formatting;
-Remove unnecessary usings;
-Sort usings;
-Add remove braces for single-line control statements;
-Add accessibility modifiers;
-Sort accessibility modifiers;
-Apply expression block/body preferences;
-Apply implicit/explicit type preferences;
-Apply inline out variables preferences;
-Apply language/framework type preferences;
-Apply object/collection initialization preferences;
-Apply this qualification preferences;
-Make private fields readonly when possible;
-Remove unnecessary casts;
-Remove unused variables;</source>
-        <target state="needs-review-translation">於分號處自動格式化陳述式; 於大括弧處自動格式化區塊; 貼上時自動格式化; 清除程式碼;</target>
+Automatically format on paste;</source>
+        <target state="translated">鍵入時自動格式化;
+遇到分號時自動將陳述式格式化;
+遇到右大括弧時自動將區塊格式化;
+返回時自動格式化;
+貼上時自動格式化;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -115,7 +147,15 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">縮排區塊內容;縮排左括號與右括號, 縮排 case 內容;縮排 case 標籤;標籤縮排</target>
+        <target state="translated">將區塊內容縮排;
+將左右大括弧縮排;
+將 case 內容縮排;
+將 case 內容縮排 (若為區塊);
+將 case 標籤縮排;
+將標籤縮排;
+將 goto 標籤放入最左邊的資料行;
+將標籤正常縮排;
+將 goto 標籤的位置比目前多凸一排;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -136,7 +176,23 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="needs-review-translation">括號的新行格式化選項;關鍵字的新行格式化選項</target>
+        <target state="translated">大括弧的新行格式選項;關鍵字的新行格式選項;大括弧的新行選項;
+將打開支架放在類型的新行上;
+將開支架放在新的線上, 用於方法和本地函數;
+將打開的大括弧放在屬性、索引子和事件的新行上;
+將打開的大括弧放在屬性、索引子和事件存取子的新行上;
+將打開支架放在匿名方法的新行上;
+將開支架放在控制塊的新生產線上;
+將匿名型別的新行打開支架;
+在物件、集合和陣列初始值設定項的新行上放置打開大括弧;
+關鍵字的新行選項;
+在新的線路上放置其他地方;
+在新的線路上放置捕獲;
+最後地方在新的線;
+運算式的新行選項;
+將物件初始化器中的成員放在新行上;
+將匿名型別的成員放在新行上;
+將查詢運算式子句放在新行上;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -171,7 +227,37 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="needs-review-translation">設定方法宣告的間距;設定方法呼叫的間距;設定其他間距選項;設定括號間距;設定分隔符號間距;設定運算子間距</target>
+        <target state="translated">設定方法宣告的間距;
+在方法名稱和其左括號之間插入空格;
+在參數清單括號中插入空格;
+在空的參數清單括號中插入空格;
+設定方法呼叫的間距;
+在引數清單括號中插入空格;
+在空的引數清單括號中插入空格;
+設定其他間距選項;
+在控制流程陳述式中的關鍵字後方插入空格;
+在運算式的括號中插入空格;
+在類型轉換的括號中插入空格;
+在控制流程陳述式的括號中插入空格;
+在轉換後方插入空間;
+略過宣告陳述式中的空格;
+設定方括弧的間距;
+在左方括弧前方插入空格;
+在空的方括弧中插入空格;
+在方括弧中插入空格;
+設定分隔符號的間距;
+在類型宣告中基底或介面的冒號後方插入空格;
+在逗號後方插入空格;
+在點後方插入空格;
+在 for 陳述式中的分號後方插入空格;
+在類型宣告中基部或介面的冒號前方插入空格;
+在逗號前方插入空格;
+在點前方插入空格;
+在 for 陳述式中的分號前方插入空格;
+設定運算子的間距;
+略過二元運算子周圍的空格;
+移除二元運算子前後的空格;
+在二元運算子前後插入空格;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -194,7 +280,20 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員</target>
+        <target state="translated">變更完成清單設置;預先選取最近使用的成員;完成清單;
+鍵入字元後顯示完成清單;
+刪除字元後顯示完成清單;
+醒目提示完成清單項目的相符部分;
+顯示完成項目篩選;
+程式碼片段行為;
+永遠不包括程式碼片段;
+永遠包括程式碼片段;
+在識別碼後面鍵入 ?-Tab 時包括程式碼片段;
+Enter 鍵行為;
+永遠不要在按 Enter 鍵時新增行;
+只在完整鍵入的文字結尾後按 Enter 鍵時才新增行;
+永遠在按 Enter 鍵時新增行;
+顯示名稱建議;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -271,6 +370,16 @@ Show name suggestions;</source>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

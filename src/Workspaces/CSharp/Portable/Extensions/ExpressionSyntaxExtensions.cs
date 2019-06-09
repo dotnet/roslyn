@@ -232,6 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
         }
 
+        public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
+            => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
+
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
         {
             return
@@ -322,7 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            // TODO(cyrusn): Add more cases.
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
+            // note: the above list is not intended to be exhaustive.  If more cases
+            // are discovered that should be considered 'constant' contexts in the 
+            // language, then this should be updated accordingly.
             return false;
         }
 
@@ -566,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (!(expression is ObjectCreationExpressionSyntax) && 
+            if (!(expression is ObjectCreationExpressionSyntax) &&
                 !(expression is AnonymousObjectCreationExpressionSyntax) &&
                 !expression.IsLeftSideOfAssignExpression())
             {
@@ -1998,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
         private static bool TrySimplifyMemberAccessOrQualifiedName(
-        ExpressionSyntax left,
+            ExpressionSyntax left,
             ExpressionSyntax right,
             SemanticModel semanticModel,
             OptionSet optionSet,
@@ -2261,12 +2271,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(name, reducedName) ||
                 name.IsNotNullableReplaceable(reducedName) ||
-                IsQualifiedNameInUsingDirective(semanticModel, name, reducedName))
+                IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
                 return false;
             }
 
             return true;
+        }
+
+        private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
+        {
+            // Whereas most of the time we do not want to reduce namespace names, We will
+            // make an exception for namespaces with the global:: alias.
+            return IsQualifiedNameInUsingDirective(model, name, reducedName) &&
+                !IsGlobalAliasQualifiedName(name);
         }
 
         private static bool IsQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
@@ -2289,6 +2307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        private static bool IsGlobalAliasQualifiedName(NameSyntax name)
+        {
+            // Checks whether the `global::` alias is applied to the name
+            return name is AliasQualifiedNameSyntax aliasName &&
+                aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword);
         }
 
         private static bool IsInScriptClass(SemanticModel model, NameSyntax name)

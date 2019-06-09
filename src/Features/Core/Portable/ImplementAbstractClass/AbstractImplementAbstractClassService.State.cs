@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers { get; }
 
             private State(
-                TClassSyntax node, 
-                INamedTypeSymbol classType, 
+                TClassSyntax node,
+                INamedTypeSymbol classType,
                 INamedTypeSymbol abstractClassType,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
             {

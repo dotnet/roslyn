@@ -14,21 +14,20 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractCodeStyleDiagnosticAnalyzer
+        TBinaryExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer() 
+        protected AbstractUseCoalesceExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(BlockCommentEditingCommandHandler))]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {
         [ImportingConstructor]

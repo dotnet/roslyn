@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Roslyn.Test.Utilities;
@@ -110,6 +111,28 @@ namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
                     ilOffset: 0,
                     DkmActiveStatementFlags.MidStatement)
             }));
+        }
+
+        [Theory]
+        [InlineData(1, 2, 3, 4, 0, 1, 2, 3)]
+        [InlineData(5, 0, 5, 0, 4, 0, 4, 0)]
+        [InlineData(0, 0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(0, 2, 2, 2, 0, 0, 0, 0)]
+        [InlineData(2, 0, 2, 2, 0, 0, 0, 0)]
+        [InlineData(2, 2, 0, 2, 0, 0, 0, 0)]
+        [InlineData(2, 2, 2, 0, 0, 0, 0, 0)]
+        [InlineData(int.MinValue, 2, 2, 2, 0, 0, 0, 0)]
+        [InlineData(2, int.MinValue, 2, 2, 0, 0, 0, 0)]
+        [InlineData(2, 2, int.MinValue, 2, 0, 0, 0, 0)]
+        [InlineData(2, 2, 2, int.MinValue, 0, 0, 0, 0)]
+        [InlineData(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue - 1, int.MaxValue - 1, int.MaxValue - 1, int.MaxValue - 1)]
+        public void Span(int startLine, int startColumn, int endLine, int endColumn,
+                         int expectedStartLine, int expectedStartColumn, int expectedEndLine, int expectedEndColumn)
+        {
+            var actual = VisualStudioActiveStatementProvider.ToLinePositionSpan(new DkmTextSpan(StartLine: startLine, EndLine: endLine, StartColumn: startColumn, EndColumn: endColumn));
+            var expected = new LinePositionSpan(new LinePosition(expectedStartLine, expectedStartColumn), new LinePosition(expectedEndLine, expectedEndColumn));
+
+            Assert.Equal(expected, actual);
         }
     }
 }

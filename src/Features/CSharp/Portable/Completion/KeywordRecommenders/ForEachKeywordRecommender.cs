@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsStatementContext ||
-                context.IsGlobalStatementContext;
+                context.IsGlobalStatementContext ||
+                context.IsAwaitStatementContext(position, cancellationToken);
         }
     }
 }

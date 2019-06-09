@@ -1,8 +1,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,16 +12,12 @@
 
   <Target Name="_CalculateInputsOutputs">
     <PropertyGroup>
-      <_InstallerDir>$(ArtifactsDir)Installer\</_InstallerDir>
+      <_InstallerDir>$(VisualStudioSetupOutputPath)Installer\</_InstallerDir>
       <_InstallerFilePath>$(_InstallerDir)Roslyn_Preview.zip</_InstallerFilePath>
       <_ZipDir>$(IntermediateOutputPath)Zip\</_ZipDir>
       <_DeploymentVsixPath>$(VisualStudioSetupOutputPath)RoslynDeployment.vsix</_DeploymentVsixPath>
     </PropertyGroup>
   </Target>
-
-  <!-- TODO: remove, once we upgrade to 15.8 -->
-  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
-  <UsingTask TaskName="RoslynTools.ZipDirectory" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
 
   <Target Name="_GenerateZip" 
           AfterTargets="Pack"
@@ -41,7 +36,7 @@
     <Copy SourceFiles="%(_Files.Identity)" DestinationFolder="$(_ZipDir)%(_Files.TargetDir)" SkipUnchangedFiles="true" />
 
     <MakeDir Directories="$(_InstallerDir)" />
-    <RoslynTools.ZipDirectory SourceDirectory="$(_ZipDir)" DestinationFile="$(_InstallerFilePath)" Overwrite="true"/>
+    <ZipDirectory SourceDirectory="$(_ZipDir)" DestinationFile="$(_InstallerFilePath)" Overwrite="true"/>
     
     <ItemGroup>
       <FileWrites Include="$(_InstallerFilePath)"/>

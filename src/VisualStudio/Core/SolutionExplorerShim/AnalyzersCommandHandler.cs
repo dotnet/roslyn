@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _setSeverityHiddenMenuItem.Checked = false;
             _setSeverityNoneMenuItem.Checked = false;
 
-            var workspace = TryGetWorkspace() as VisualStudioWorkspaceImpl;
+            var workspace = TryGetWorkspace() as VisualStudioWorkspace;
             if (workspace == null)
             {
                 return;
@@ -259,23 +259,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             foreach (var group in groups)
             {
-                var project = (AbstractProject)workspace.GetHostProject(group.Key);
-                IRuleSetFile ruleSet = project.RuleSetFile?.Target;
+                var ruleSetPath = workspace.TryGetRuleSetPathForProject(group.Key);
 
-                if (ruleSet != null)
+                if (ruleSetPath != null)
                 {
-                    var specificOptions = ruleSet.GetSpecificDiagnosticOptions();
-
-                    foreach (var diagnosticItem in group)
+                    var ruleSetManager = workspace.Services.GetRequiredService<VisualStudioRuleSetManager>();
+                    using (var ruleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath))
                     {
-                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out var ruleSetSeverity))
+                        var specificOptions = ruleSet.Target.Value.GetSpecificDiagnosticOptions();
+
+                        foreach (var diagnosticItem in group)
                         {
-                            selectedItemSeverities.Add(ruleSetSeverity);
-                        }
-                        else
-                        {
-                            // The rule has no setting.
-                            selectedItemSeverities.Add(ReportDiagnostic.Default);
+                            if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out var ruleSetSeverity))
+                            {
+                                selectedItemSeverities.Add(ruleSetSeverity);
+                            }
+                            else
+                            {
+                                // The rule has no setting.
+                                selectedItemSeverities.Add(ReportDiagnostic.Default);
+                            }
                         }
                     }
                 }
@@ -365,18 +368,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (_tracker.SelectedFolder != null &&
                 _serviceProvider != null)
             {
-                var workspace = _tracker.SelectedFolder.Workspace as VisualStudioWorkspaceImpl;
+                var workspace = _tracker.SelectedFolder.Workspace as VisualStudioWorkspace;
                 var projectId = _tracker.SelectedFolder.ProjectId;
                 if (workspace != null)
                 {
-                    var project = (AbstractProject)workspace.GetHostProject(projectId);
-                    if (project == null)
-                    {
-                        SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
-                        return;
-                    }
+                    var ruleSetFile = workspace.TryGetRuleSetPathForProject(projectId);
 
-                    if (project.RuleSetFile == null)
+                    if (ruleSetFile == null)
                     {
                         SendUnableToOpenRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                         return;
@@ -385,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     try
                     {
                         EnvDTE.DTE dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
-                        dte.ItemOperations.OpenFile(project.RuleSetFile.Target.FilePath);
+                        dte.ItemOperations.OpenFile(ruleSetFile);
                     }
                     catch (Exception e)
                     {
@@ -415,15 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
                 var projectId = selectedDiagnostic.ProjectId;
-                var project = (AbstractProject)workspace.GetHostProject(projectId);
-
-                if (project == null)
-                {
-                    SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
-                    continue;
-                }
-
-                var pathToRuleSet = project.RuleSetFile?.Target.FilePath;
+                var pathToRuleSet = workspace.TryGetRuleSetPathForProject(projectId);
 
                 if (pathToRuleSet == null)
                 {
@@ -433,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 try
                 {
-                    project.Hierarchy.TryGetProject(out var envDteProject);
+                    var envDteProject = workspace.TryGetDTEProject(projectId);
 
                     if (SdkUiUtilities.IsBuiltInRuleSet(pathToRuleSet, _serviceProvider))
                     {

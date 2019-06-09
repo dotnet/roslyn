@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return TypeSymbolWithAnnotations.Create(this.ContainingType);
+            return TypeWithAnnotations.Create(this.ContainingType);
         }
 
         public override Symbol AssociatedSymbol
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.FixedSize:
-                        Debug.Assert(!this.IsFixed);
+                        Debug.Assert(!this.IsFixedSizeBuffer);
                         state.NotePartComplete(CompletionPart.FixedSize);
                         break;
 

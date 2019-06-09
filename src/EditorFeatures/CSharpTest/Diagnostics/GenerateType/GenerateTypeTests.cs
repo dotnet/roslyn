@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1510,7 +1511,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters2()
+        public async Task GenerateWithOutParameters2_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -1537,6 +1538,40 @@ internal class T
     public T(out DateTime d)
     {
         d = default(DateTime);
+    }
+}",
+index: 1,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new T(out d);
+    }
+}
+
+internal class T
+{
+    public T(out DateTime d)
+    {
+        d = default;
     }
 }",
 index: 1);
@@ -1634,9 +1669,9 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters6CSharp7()
+        public async Task GenerateWithOutParameters6_CSharp7()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class Class<X>
 {
     void M(X d)
@@ -1659,7 +1694,8 @@ index: 1);
         }
     }
 }",
-index: 2, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+index: 2,
+parseOptions: TestOptions.Regular7);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -1684,7 +1720,7 @@ index: 2, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
     {
         public T(out X d)
         {
-            d = default(X);
+            d = default;
         }
     }
 }",
@@ -4358,7 +4394,7 @@ class A<T>
     {
     }
 }",
-count: 3);
+count: 6);
         }
 
         [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
@@ -5182,9 +5218,9 @@ class C
 
 internal class Class
 {{
-    private System.Object method;
+    private global::System.Object method;
 
-    public Class(System.Object method)
+    public Class(global::System.Object method)
     {{
         this.method = method;
     }}

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private static bool NeedsGrouping(
-            UsingDirectiveSyntax using1, 
+            UsingDirectiveSyntax using1,
             UsingDirectiveSyntax using2)
         {
             var directive1IsUsingStatic = using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case Platform.X64:
                         return Machine.Amd64;
                     case Platform.Arm64:
-                        return (Machine)0xAA64;//Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185
+                        return Machine.Arm64;
                     case Platform.Itanium:
                         return Machine.IA64;
                     default:
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private ModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -501,29 +501,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
-                if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
+                if (!CommonModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
                     CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
-                    arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
+                    arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NonNullTypes = value;
-            }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-               var data = GetDecodedWellKnownAttributeData();
-               return data?.NonNullTypes;
             }
         }
 

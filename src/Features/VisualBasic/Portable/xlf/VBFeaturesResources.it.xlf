@@ -4,13 +4,28 @@
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
-        <target state="new">Add Await</target>
+        <target state="translated">Aggiungi Await</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add Await and 'ConfigureAwait(false)'</source>
-        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <target state="translated">Aggiungi Await a 'ConfigureAwait(false)'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="translated">Aggiungi &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_Imports">
+        <source>Add missing Imports</source>
+        <target state="translated">Aggiungi Import mancanti</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_Shadows">
+        <source>Add 'Shadows'</source>
+        <target state="translated">Aggiungi 'Shadows'</target>
+        <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
@@ -52,6 +67,16 @@
         <target state="translated">Sono stati rilevati conflitti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="translated">Introduci istruzioni 'Using'</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="translated">Imposta '{0}' come ereditabile</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Spostare l'istruzione '{0}' alla riga {1}.</target>
@@ -69,7 +94,12 @@
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
-        <target state="translated">Rimuovi istruzioni Imports non necessarie</target>
+        <target state="translated">Rimuovi Import non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -314,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Imports">
         <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Ri&amp;muovi e ordina import</target>
+        <target state="translated">Ri&amp;muovi e ordina Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
@@ -959,7 +989,7 @@ Case {&lt;expression&gt;|&lt;expression1&gt; To &lt;expression2&gt;|[Is] &lt;com
       <trans-unit id="Sets_the_default_comparison_method_to_use_when_comparing_string_data_When_set_to_Text_uses_a_text_sort_order_that_is_not_case_sensitive_When_set_to_Binary_uses_a_strict_binary_sort_order_Option_Compare_Binary_Text">
         <source>Sets the default comparison method to use when comparing string data. When set to Text, uses a text sort order that is not case sensitive. When set to Binary, uses a strict binary sort order.
 Option Compare {Binary | Text}</source>
-        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
+        <target state="translated">Imposta il metodo di confronto predefinito da usare per il confronto di dati stringa. Se impostata su Text, usa un ordinamento testo che non rileva la distinzione tra maiuscole e minuscole. Se impostata su Binary, usa un ordinamento binario ridotto.
 Option Compare {Binary | Text}</target>
         <note />
       </trans-unit>
@@ -1519,7 +1549,7 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
         <source>Imports statement is unnecessary.</source>
-        <target state="translated">L'istruzione imports non è necessaria.</target>
+        <target state="translated">L'istruzione Imports non è necessaria.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1708,9 +1738,9 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">
-        <source>Add Overloads</source>
-        <target state="translated">Aggiungi overload</target>
-        <note />
+        <source>Add 'Overloads'</source>
+        <target state="translated">Aggiungi 'Overloads'</target>
+        <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
         <source>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</source>

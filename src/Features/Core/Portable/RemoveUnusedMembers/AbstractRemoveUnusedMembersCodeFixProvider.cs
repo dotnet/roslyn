@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
-            {   
+            {
                 // Get symbol to be removed.
                 var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var symbol = semanticModel.GetDeclaredSymbol(diagnosticNode, cancellationToken);
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         /// the removes the <paramref name="childDeclarators"/> from <paramref name="declarators"/>, and
         /// adds the <paramref name="parentDeclaration"/> to the <paramref name="declarators"/>.
         /// </summary>
-        protected void AdjustAndAddAppropriateDeclaratorsToRemove(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
+        protected static void AdjustAndAddAppropriateDeclaratorsToRemove(SyntaxNode parentDeclaration, IEnumerable<SyntaxNode> childDeclarators, HashSet<SyntaxNode> declarators)
         {
-            if(declarators.Contains(parentDeclaration))
+            if (declarators.Contains(parentDeclaration))
             {
                 Debug.Assert(childDeclarators.All(c => !declarators.Contains(c)));
                 return;

@@ -13,6 +13,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefEscapingTests : CompilingTestBase
     {
         [Fact]
+        public void RefStructSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+struct S1 { }
+ref struct S2 { public S1 F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        Span<int> span = default;
+        var s1 = new S1();
+        var s2 = new S2();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>();
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}", options: TestOptions.Regular7_3);
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            Assert.True(comp.GetDiagnostics().All(d => d.Severity != DiagnosticSeverity.Error));
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("span").IsRefLikeType);
+            Assert.False(getLocalType("s1").IsRefLikeType);
+            Assert.True(getLocalType("s2").IsRefLikeType);
+            Assert.False(getLocalType("i0").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("e1").IsRefLikeType);
+            Assert.False(getLocalType("o1").IsRefLikeType);
+            Assert.False(getLocalType("c1").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("u1").IsRefLikeType);
+            Assert.False(getLocalType("p1").IsRefLikeType);
+            Assert.False(getLocalType("a1").IsRefLikeType);
+            Assert.False(getLocalType("a2").IsRefLikeType);
+            Assert.False(getLocalType("t2").IsRefLikeType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
         public void RefStructUsing()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -30,7 +86,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var x = GetRefStruct())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = GetRefStruct()").WithArguments("C.S2").WithLocation(6, 16));
         }
@@ -327,7 +383,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(39, 19)
             );
         }
-        
+
         [Fact()]
         public void RefLikeReturnEscapeInParam()
         {
@@ -1122,7 +1178,7 @@ class Program
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics expected
+            // no diagnostics expected
             );
         }
 
@@ -1367,7 +1423,7 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // no diagnostics
+            // no diagnostics
             );
         }
 
@@ -2410,6 +2466,181 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefStruct_Method_RefLikeStructParameter()
+        {
+            var csharp = @"
+using System;
+
+public readonly ref struct S<T>
+{
+    public void M(Span<T> x) { }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.M(x);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyMethod_RefLikeStructParameter()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly void M(Span<T> x) { }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.M(x);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefStruct_RefLikeProperty()
+        {
+            var csharp = @"
+using System;
+
+public readonly ref struct S<T>
+{
+    public Span<T> P { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefLikeProperty_01()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly Span<T> P { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyRefLikeProperty_02()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public Span<T> P { get => default; readonly set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        b.P = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b.P = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyIndexer_RefLikeStructParameter_01()
+        {
+            var csharp = @"
+using System;
+
+public ref struct S<T>
+{
+    public readonly Span<T> this[Span<T> span] { get => default; set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        _ = b[x];
+        b[x] = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8347: Cannot use a result of 'S<byte>.this[Span<byte>]' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(11, 13),
+                // (11,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 15));
+        }
+
+        [Fact, WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        public void ReadOnlyIndexer_RefLikeStructParameter_02()
+        {
+            var csharp = @"
+using System;
+public ref struct S<T>
+{
+    public Span<T> this[Span<T> span] { get => default; readonly set {} }
+
+    public unsafe static void N(S<byte> b)
+    {
+        Span<byte> x = stackalloc byte[5];
+        _ = b[x];
+        b[x] = x;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(10, 13),
+                // (10,15): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = b[x];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(10, 15),
+                // (11,9): error CS8350: This combination of arguments to 'S<byte>.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         b[x] = x;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "b[x]").WithArguments("S<byte>.this[System.Span<byte>]", "span").WithLocation(11, 9),
+                // (11,11): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         b[x] = x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(11, 11));
+        }
+
         [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
         [Fact()]
         public void RefTernaryMustMatchValEscapes()
@@ -2601,9 +2832,6 @@ public static class Extensions
                 // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
-                // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
             );
@@ -3393,7 +3621,7 @@ public struct Thing
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Class()
+        public void RefThisAssignment_Class()
         {
             CreateCompilation(@"
 class Test
@@ -3420,7 +3648,7 @@ class Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_Struct()
+        public void RefThisAssignment_Struct()
         {
             CreateCompilation(@"
 struct Test
@@ -3444,7 +3672,7 @@ struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyStruct()
+        public void RefThisAssignment_ReadOnlyStruct()
         {
             CreateCompilation(@"
 readonly struct Test
@@ -3468,7 +3696,7 @@ readonly struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_RefStruct()
+        public void RefThisAssignment_RefStruct()
         {
             CreateCompilation(@"
 ref struct Test
@@ -3492,7 +3720,7 @@ ref struct Test
         }
 
         [Fact, WorkItem(26457, "https://github.com/dotnet/roslyn/issues/26457")]
-        public void RefThisAssignement_ReadOnlyRefStruct()
+        public void RefThisAssignment_ReadOnlyRefStruct()
         {
             CreateCompilation(@"
 readonly ref struct Test

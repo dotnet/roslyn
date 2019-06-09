@@ -1423,7 +1423,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1471,7 +1471,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
@@ -1970,6 +1970,131 @@ class Program
         (x, y) = (1, 2);
     }
 }", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestIndexExpression()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}", TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Index NewMethod()
+    {
+        return ^1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Empty()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Left()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Right()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Both()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..2;
+    }
+}");
         }
     }
 }

@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
     {
-        // Size of the buffers to use: 64K
-        private const int PipeBufferSize = 0x10000;
-
         private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _pipeName;
         private int _loggingIdentifier;
@@ -47,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // as Windows refusing to create the pipe for some reason 
             // (out of handles?), or the pipe was disconnected before we 
             // starting listening.
-            NamedPipeServerStream pipeStream = ConstructPipe(_pipeName);
+            CompilerServerLogger.Log("Constructing pipe '{0}'.", _pipeName);
+            var pipeStream = NamedPipeUtil.CreateServer(_pipeName);
+            CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", _pipeName);
 
             CompilerServerLogger.Log("Waiting for new connection");
             await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -61,58 +60,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             pipeStream.Close();
             throw new Exception("Insufficient resources to process new connection.");
-        }
-
-        /// <summary>
-        /// Create an instance of the pipe. This might be the first instance, or a subsequent instance.
-        /// There always needs to be an instance of the pipe created to listen for a new client connection.
-        /// </summary>
-        /// <returns>The pipe instance or throws an exception.</returns>
-        private NamedPipeServerStream ConstructPipe(string pipeName)
-        {
-            CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
-
-#if NET46
-            SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
-            PipeSecurity security = new PipeSecurity();
-
-            // Restrict access to just this account.  
-            PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
-            security.AddAccessRule(rule);
-            security.SetOwner(identifier);
-
-            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
-                PipeBufferSize, // Default input buffer
-                PipeBufferSize, // Default output buffer
-                security,
-                HandleInheritability.None);
-#else
-            // The overload of NamedPipeServerStream with the PipeAccessRule
-            // parameter was removed in netstandard. However, the default
-            // constructor does not provide WRITE_DAC, so attempting to use
-            // SetAccessControl will always fail. So, completely ignore ACLs on
-            // netcore, and trust that our `ClientAndOurIdentitiesMatch`
-            // verification will catch any invalid connections.
-            // Issue to add WRITE_DAC support:
-            // https://github.com/dotnet/corefx/issues/24040
-            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
-                PipeBufferSize, // Default input buffer
-                PipeBufferSize);// Default output buffer
-#endif
-
-            CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
-
-            return pipeStream;
         }
     }
 
@@ -141,46 +88,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void ValidateBuildRequest(BuildRequest request)
         {
             // Now that we've read data from the stream we can validate the identity.
-            if (!ClientAndOurIdentitiesMatch(_pipeStream))
+            if (!NamedPipeUtil.CheckClientElevationMatches(_pipeStream))
             {
                 throw new Exception("Client identity does not match server identity.");
             }
-        }
-
-        /// <summary>
-        /// Does the client of "pipeStream" have the same identity and elevation as we do?
-        /// </summary>
-        private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
-        {
-            if (PlatformInformation.IsWindows)
-            {
-                var serverIdentity = GetIdentity(impersonating: false);
-
-                (string name, bool admin) clientIdentity = default;
-                pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
-
-                CompilerServerLogger.Log($"Server identity = '{serverIdentity.name}', server elevation='{serverIdentity.admin}'.");
-                CompilerServerLogger.Log($"Client identity = '{clientIdentity.name}', client elevation='{serverIdentity.admin}'.");
-
-                return
-                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
-                    serverIdentity.admin == clientIdentity.admin;
-            }
-            else
-            {
-                return BuildServerConnection.CheckIdentityUnix(pipeStream);
-            }
-        }
-
-        /// <summary>
-        /// Return the current user name and whether the current user is in the administrator role.
-        /// </summary>
-        private static (string name, bool admin) GetIdentity(bool impersonating)
-        {
-            WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
-            WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
-            var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            return (currentIdentity.Name, elevatedToAdmin);
         }
 
         public override void Close()

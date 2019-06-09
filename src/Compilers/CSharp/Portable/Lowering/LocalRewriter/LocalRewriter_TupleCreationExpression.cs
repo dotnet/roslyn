@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 currentCreation = currentCreation.Update(
-                    currentCreation.Constructor, 
-                    currentCreation.Arguments, 
-                    currentCreation.ArgumentNamesOpt, 
-                    currentCreation.ArgumentRefKindsOpt, 
-                    currentCreation.Expanded, 
-                    currentCreation.ArgsToParamsOpt, 
-                    currentCreation.ConstantValue, 
+                    currentCreation.Constructor,
+                    currentCreation.Arguments,
+                    currentCreation.ArgumentNamesOpt,
+                    currentCreation.ArgumentRefKindsOpt,
+                    currentCreation.Expanded,
+                    currentCreation.ArgsToParamsOpt,
+                    currentCreation.ConstantValue,
                     currentCreation.InitializerExpressionOpt,
                     currentCreation.BinderOpt,
                     type);

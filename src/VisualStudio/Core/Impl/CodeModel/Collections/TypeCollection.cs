@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var nodesBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, 
+            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
                 nodesBuilder.ToImmutableAndFree());
         }
 

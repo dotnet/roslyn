@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -12,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
@@ -25,10 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// failure.
         /// </summary>
         private void TestWorker(
-            string inputMarkup, string expectedOutputMarkup, Action callback, bool verifyUndo = true)
+            string inputMarkup,
+            string expectedOutputMarkup,
+            Action callback,
+            bool verifyUndo = true,
+            IndentStyle indentStyle = IndentStyle.Smart)
         {
             using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
             {
+                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+
                 var document = workspace.Documents.Single();
                 var view = document.GetTextView();
 
@@ -40,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 var commandHandler = new SplitStringLiteralCommandHandler(
                     undoHistoryRegistry,
                     workspace.GetService<IEditorOperationsFactoryService>());
-                
+
                 if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
                 {
                     callback();
@@ -74,7 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestHandled(string inputMarkup, string expectedOutputMarkup, bool verifyUndo = true)
+        private void TestHandled(
+            string inputMarkup, string expectedOutputMarkup,
+            bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart)
         {
             TestWorker(
                 inputMarkup, expectedOutputMarkup,
@@ -82,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 {
                     Assert.True(false, "Should not reach here.");
                 },
-                verifyUndo);
+                verifyUndo, indentStyle);
         }
 
         private void TestNotHandled(string inputMarkup)
@@ -279,6 +290,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyString_BlockIndent()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = """" +
+        ""[||]"";
+    }
+}",
+            verifyUndo: false,
+            IndentStyle.Block);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyString_NoneIndent()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = """" +
+""[||]"";
+    }
+}",
+            verifyUndo: false,
+            IndentStyle.None);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestInEmptyInterpolatedString()
         {
             TestHandled(
@@ -297,6 +358,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""[||]"";
     }
 }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyInterpolatedString_BlockIndent()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = $"""" +
+        $""[||]"";
+    }
+}", indentStyle: IndentStyle.Block);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestInEmptyInterpolatedString_NoneIndent()
+        {
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""[||]"";
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var v = $"""" +
+$""[||]"";
+    }
+}", indentStyle: IndentStyle.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]

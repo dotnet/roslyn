@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InvertConditional
 {
-    internal abstract class AbstractInvertConditionalCodeRefactoringProvider<TConditionalExpressionSyntax> 
+    internal abstract class AbstractInvertConditionalCodeRefactoringProvider<TConditionalExpressionSyntax>
         : CodeRefactoringProvider
         where TConditionalExpressionSyntax : SyntaxNode
     {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

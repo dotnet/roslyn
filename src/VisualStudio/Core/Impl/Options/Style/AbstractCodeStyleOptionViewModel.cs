@@ -46,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             IOption option,
             string description,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)

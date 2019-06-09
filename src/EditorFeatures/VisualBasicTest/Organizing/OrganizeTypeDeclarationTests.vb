@@ -939,7 +939,7 @@ End Namespace</element>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestOrganizingCommandsDisabledInSubmission()
             Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
                 .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
+#if NET472
 
 using System;
 using System.Collections.Generic;
@@ -317,7 +317,7 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 if (shouldSucceed)
                 {
-                    throw new Exception($"Verification failed: {ex.Message}");
+                    throw new Exception("Verification failed", ex);
                 }
             }
         }

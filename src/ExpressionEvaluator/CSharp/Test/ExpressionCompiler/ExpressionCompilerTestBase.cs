@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             AppDomain appDomain,
             ImmutableArray<MetadataBlock> blocks,
             (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
-            MakeAssemblyReferencesKind kind =  MakeAssemblyReferencesKind.AllReferences)
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllReferences)
         {
             return CreateMethodContext(
                 appDomain,
@@ -335,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var compilation = CreateCompilation(
                 source,
+                parseOptions: SyntaxHelpers.ParseOptions,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe);
 
             return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
@@ -373,10 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// </summary>
         internal static void VerifyTypeParameters(MethodSymbol method)
         {
-            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType.TypeSymbol));
+            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
             AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
-            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type.TypeSymbol));
+            AssertEx.All(method.TypeArgumentsWithAnnotations, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.Type));
+            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
             VerifyTypeParameters(method.ContainingType);
         }
 
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var candidates = compilation.GetMembers(methodOrTypeName);
             var methodOrType = (parameterTypeNames == null) ?
                 candidates.FirstOrDefault() :
-                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.Type.Name)));
+                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
 
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
             return methodOrType;

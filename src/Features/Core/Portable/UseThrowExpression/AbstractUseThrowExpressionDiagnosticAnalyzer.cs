@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected abstract bool IsSupported(ParseOptions options);
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, 
+            IMethodSymbol symbol, Project project, IImmutableSet<Document> documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             // First, find any documents with the full name of the accessor (i.e. get_Goo).
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IMethodSymbol symbol, Document document, SemanticModel semanticModel, 
+            IMethodSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel, 
+                    new SymbolAndProjectId(property, document.Project.Id), document, semanticModel,
                     options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
                     cancellationToken).ConfigureAwait(false);
 

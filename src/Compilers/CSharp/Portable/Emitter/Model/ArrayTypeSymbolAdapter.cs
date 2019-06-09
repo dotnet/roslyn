@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            TypeSymbolWithAnnotations elementType = this.ElementType;
-            var type = moduleBeingBuilt.Translate(elementType.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            TypeWithAnnotations elementType = this.ElementTypeWithAnnotations;
+            var type = moduleBeingBuilt.Translate(elementType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
             if (elementType.CustomModifiers.Length == 0)
             {

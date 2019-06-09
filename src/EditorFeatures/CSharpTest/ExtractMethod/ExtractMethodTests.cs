@@ -10353,7 +10353,7 @@ namespace ClassLibrary9
         public void ExtractMethodCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
@@ -10937,6 +10937,202 @@ namespace ConsoleApp1
     }
 }";
 
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDataFlowInButNoReadInside()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            [|if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }|]
+        }
+    }
+}";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            NewMethod(ref test, a);
+        }
+
+        private static void NewMethod(ref object test, bool a)
+        {
+            if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task AllowBestEffortForUnknownVariableDataFlow()
+        {
+            var code = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        [|if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }|]
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        NewMethod(ref test, a);
+    }
+
+    private static void NewMethod(ref object test, bool a)
+    {
+        if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }
+    }
+}";
+            await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+        }
+
+        [WorkItem(30750, "https://github.com/dotnet/roslyn/issues/30750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInInterface()
+        {
+            var code = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        [|Foo();|]
+    }
+}";
+            var expected = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+        Foo();
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedConstructors()
+        {
+            var code = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = [|bar|];
+}";
+            var expected = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = GetBar(bar);
+
+    private static string GetBar(string bar)
+    {
+        return bar;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedFinalizers()
+        {
+            var code = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = [|true|];
+}";
+            var expected = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = NewMethod();
+
+    private static bool NewMethod()
+    {
+        return true;
+    }
+}";
             await TestExtractMethodAsync(code, expected);
         }
     }

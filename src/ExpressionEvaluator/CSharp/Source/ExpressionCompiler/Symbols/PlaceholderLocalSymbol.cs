@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
 
         internal readonly string DisplayName;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             _method = method;
             _name = name;
-            _type = TypeSymbolWithAnnotations.Create(type);
+            _type = TypeWithAnnotations.Create(type);
 
             this.DisplayName = displayName;
         }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.ToImmutableAndFree(),
                 checkLength: false);
             Debug.Assert((object)dynamicType != null);
-            Debug.Assert(dynamicType != type);
+            Debug.Assert(!TypeSymbol.Equals(dynamicType, type, TypeCompareKind.ConsiderEverything2));
             return dynamicType;
         }
     }

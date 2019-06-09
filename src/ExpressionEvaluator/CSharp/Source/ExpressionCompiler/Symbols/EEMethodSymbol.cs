@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// exactly once, otherwise it may be skipped.)
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
-        private TypeSymbolWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
         private ResultProperties _lazyResultProperties;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             GenerateMethodBody generateMethodBody)
         {
             Debug.Assert(sourceMethod.IsDefinition);
-            Debug.Assert(sourceMethod.ContainingSymbol == container.SubstitutedSourceType.OriginalDefinition);
+            Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
 
             _container = container;
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
             _allTypeParameters = container.TypeParameters.Concat(_typeParameters);
-            this.TypeMap = new TypeMap(NonNullTypesFalseContext.Instance, allSourceTypeParameters, _allTypeParameters);
+            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters);
 
             EENamedTypeSymbol.VerifyTypeParameters(this, _typeParameters);
 
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type.TypeSymbol == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(TypeSymbol.Equals(_thisParameter.Type, this.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything2));
                 parameterBuilder.Add(_thisParameter);
             }
 
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -285,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -297,7 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get { return GetTypeParametersAsTypeArguments(); }
         }
@@ -405,6 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override bool IsDeclaredReadOnly => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { throw ExceptionUtilities.Unreachable; }
@@ -421,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
-            _lazyReturnType = TypeSymbolWithAnnotations.Create(CalculateReturnType(compilation, body));
+            _lazyReturnType = TypeWithAnnotations.Create(CalculateReturnType(compilation, body));
 
             // Can't do this until the return type has been computed.
             TypeParameterChecker.Check(this, _allTypeParameters);
@@ -658,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if ((object)_thisParameter != null)
             {
-                var typeNameKind = GeneratedNames.GetKind(_thisParameter.Type.Name);
+                var typeNameKind = GeneratedNames.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
                 if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||

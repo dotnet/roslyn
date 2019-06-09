@@ -117,10 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
+            Dim analyzerConfigPaths = ArrayBuilder(Of String).GetInstance()
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
-            Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
+            Dim checksumAlgorithm = SourceHashAlgorithm.Sha256
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
@@ -189,7 +190,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics))
+                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                        sourceFiles.Add(ToCommandLineSourceFile(path))
+                    Next
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -392,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                            If (preferredUILang.CultureTypes And CultureTypes.UserCustomCulture) <> 0 Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
@@ -576,6 +579,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sdkPaths.Clear()
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Continue For
+
+                        Case "nosdkpath"
+                            sdkDirectory = Nothing
+                            sdkPaths.Clear()
                             Continue For
 
                         Case "instrument"
@@ -1162,23 +1170,35 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "additionalfile"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                                Continue For
+                            End If
+
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                additionalFiles.Add(ToCommandLineSourceFile(path))
+                            Next
+                            Continue For
+
+                        Case "analyzerconfig"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
 
                         Case "embed"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 embedAllSourceFiles = True
                                 Continue For
                             End If
 
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                embeddedFiles.Add(ToCommandLineSourceFile(path))
+                            Next
                             Continue For
                     End Select
                 End If
@@ -1398,6 +1418,7 @@ lVbRuntimePlus:
                 .MetadataReferences = metadataReferences.AsImmutable(),
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
+                .AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 .ReferencePaths = searchPaths,
                 .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),

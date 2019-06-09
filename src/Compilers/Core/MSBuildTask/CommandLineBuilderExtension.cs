@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Designed to handle the /link and /embed switches:
         ///
-        ///      /embed[resource]:&lt;filename>[,&lt;name>[,Private]]
-        ///      /link[resource]:&lt;filename>[,&lt;name>[,Private]]
+        ///      /resource:&lt;filename>[,&lt;name>[,Private]]
+        ///      /linkresource:&lt;filename>[,&lt;name>[,Private]]
         /// 
         /// Where the last flag--Private--is either present or not present
         /// depending on whether the ITaskItem has a Private="True" attribute.
@@ -261,6 +261,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         }
                     }
                 }
+            }
+        }
+
+        internal void AppendArgumentIfNotNull(string argument)
+        {
+            if (!string.IsNullOrEmpty(argument))
+            {
+                AppendSpaceIfNotEmpty();
+                AppendTextWithQuoting(argument);
             }
         }
     }

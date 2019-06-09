@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var submissionResultType = (method as SynthesizedInteractiveInitializerMethod)?.ResultType;
                 if (!hasTrailingExpression && ((object)submissionResultType != null))
                 {
-                    Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+                    Debug.Assert(!submissionResultType.IsVoidType());
 
                     var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode syntax = body.Syntax;
 
-            Debug.Assert(body.WasCompilerGenerated || 
-                         syntax.IsKind(SyntaxKind.Block) || 
+            Debug.Assert(body.WasCompilerGenerated ||
+                         syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
                          syntax.IsKind(SyntaxKind.ConstructorDeclaration));
 
-            BoundStatement ret = method.IsIterator
+            BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
-            DataFlowPass.Analyze(compilation, method, block, diagnostics);
+            DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics);
             return result;
         }
     }

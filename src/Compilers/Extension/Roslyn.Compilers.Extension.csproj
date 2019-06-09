@@ -2,12 +2,9 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Compilers.Extension</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
-    <RoslynProjectType>Vsix</RoslynProjectType>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -16,8 +13,6 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
@@ -30,51 +25,14 @@
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.Win32.Primitives" />
-    <!--
-      N.B. This list of facades must be kept in-sync with the
-      other facades used by the compiler. Facades are listed in
-      the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
-      src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
-      and src/NuGet/Microsoft.Net.Compilers.nuspec file.
-    -->
-    <NuGetPackageToIncludeInVsix Include="System.AppContext" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
+    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Console" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
-    <NuGetPackageToIncludeInVsix Include="System.IO" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes.AccessControl" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection" />
+    <NuGetPackageToIncludeInVsix Include="System.Memory" />
+    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.AccessControl" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Principal.Windows" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
+    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -87,6 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
@@ -96,7 +59,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -108,13 +71,13 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <!-- Workaround for https://github.com/dotnet/sdk/issues/433#issuecomment-320024771 . Remove once resolved. -->
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\csc\csc.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -130,7 +93,13 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -139,12 +108,14 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
+    <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 by referencing Microsoft.VisualStudio.Text.Data -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
 </Project>

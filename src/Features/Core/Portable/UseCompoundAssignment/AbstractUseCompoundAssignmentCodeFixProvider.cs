@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 {
     internal abstract class AbstractUseCompoundAssignmentCodeFixProvider<
-        TSyntaxKind, TAssignmentSyntax, TExpressionSyntax> 
+        TSyntaxKind, TAssignmentSyntax, TExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TAssignmentSyntax : SyntaxNode
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics[0];
-            
+
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(document, diagnostic, c)),
                 context.Diagnostics);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 editor.ReplaceNode(assignment,
                     (currentAssignment, generator) =>
                     {
-                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(currentAssignment, 
+                        syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(currentAssignment,
                             out var leftOfAssign, out var equalsToken, out var rightOfAssign);
 
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_compound_assignment, createChangedDocument, FeaturesResources.Use_compound_assignment)
             {
             }

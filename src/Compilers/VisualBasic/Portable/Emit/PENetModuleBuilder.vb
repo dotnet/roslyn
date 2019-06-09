@@ -44,15 +44,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Nothing
             End Get
         End Property
-
-        Protected Overrides ReadOnly Property InjectedSymbolsAreFrozen As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
-        Protected Overrides Function GetInjectedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-            Return ImmutableArray(Of NamedTypeSymbol).Empty
-        End Function
     End Class
 End Namespace

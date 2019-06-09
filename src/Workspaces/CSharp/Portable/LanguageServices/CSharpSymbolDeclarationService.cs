@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ISymbolDeclarationService), LanguageNames.CSharp), Shared]
     internal class CSharpSymbolDeclarationService : ISymbolDeclarationService
     {
+        [ImportingConstructor]
+        public CSharpSymbolDeclarationService()
+        {
+        }
+
         public ImmutableArray<SyntaxReference> GetDeclarations(ISymbol symbol)
             => symbol != null
                 ? symbol.DeclaringSyntaxReferences

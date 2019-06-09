@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerNameDesktop = "VBCSCompiler.exe";
-        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
-
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
 
@@ -68,11 +65,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported(string tempPath)
-        {
-            var pipeName = GetPipeNameForPathOpt("");
-            return pipeName != null && !IsPipePathTooLong(pipeName, tempPath);
-        }
+        internal static bool IsCompilerServerSupported(string tempPath) => GetPipeNameForPathOpt("") is object;
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -128,14 +121,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             Task<NamedPipeClientStream> pipeTask = null;
-            Mutex clientMutex = null;
+            IServerMutex clientMutex = null;
             var holdsMutex = false;
             try
             {
                 try
                 {
                     var clientMutexName = GetClientMutexName(pipeName);
-                    clientMutex = new Mutex(initiallyOwned: true, name: clientMutexName, out holdsMutex);
+                    clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
                 }
                 catch
                 {
@@ -151,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     try
                     {
-                        holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+                        holdsMutex = clientMutex.TryLock(timeoutNewProcess);
 
                         if (!holdsMutex)
                         {
@@ -176,14 +169,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             finally
             {
-                if (clientMutex != null)
-                {
-                    if (holdsMutex)
-                    {
-                        clientMutex.ReleaseMutex();
-                    }
-                    clientMutex.Dispose();
-                }
+                clientMutex?.Dispose();
             }
 
             if (pipeTask != null)
@@ -320,26 +306,27 @@ namespace Microsoft.CodeAnalysis.CommandLine
             NamedPipeClientStream pipeStream;
             try
             {
-                // If the pipe path would be too long, there cannot be a server at the other end.
-                // We're not using a saved temp path here because pipes are created with
-                // Path.GetTempPath() in corefx NamedPipeClientStream and we want to replicate that behavior.
-                if (IsPipePathTooLong(pipeName, Path.GetTempPath()))
-                {
-                    return null;
-                }
-
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
                 Log("Attempt to open named pipe '{0}'", pipeName);
 
-                pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
-                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
@@ -357,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Verify that we own the pipe.
-                if (!CheckPipeConnectionOwnership(pipeStream))
+                if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     Log("Owner of named pipe is incorrect");
                     return null;
@@ -372,33 +359,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
+        {
+            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var commandLineArgs = $@"""-pipename:{pipeName}""";
+            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
+        }
+
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
-            bool isRunningOnCoreClr = CoreClrShim.IsRunningOnCoreClr;
-            string expectedPath;
-            string processArguments;
-            if (isRunningOnCoreClr)
-            {
-                // The server should be in the same directory as the client
-                var expectedCompilerPath = Path.Combine(clientDir, ServerNameCoreClr);
-                expectedPath = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
-                processArguments = $@"""{expectedCompilerPath}"" ""-pipename:{pipeName}""";
+            var serverInfo = GetServerProcessInfo(clientDir, pipeName);
 
-                if (!File.Exists(expectedCompilerPath))
-                {
-                    return false;
-                }
-            }
-            else
+            if (!File.Exists(serverInfo.toolFilePath))
             {
-                // The server should be in the same directory as the client
-                expectedPath = Path.Combine(clientDir, ServerNameDesktop);
-                processArguments = $@"""-pipename:{pipeName}""";
-
-                if (!File.Exists(expectedPath))
-                {
-                    return false;
-                }
+                return false;
             }
 
             if (PlatformInformation.IsWindows)
@@ -417,9 +391,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", expectedPath);
+                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
-                var builder = new StringBuilder($@"""{expectedPath}"" {processArguments}");
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
                 bool success = CreateProcess(
                     lpApplicationName: null,
@@ -451,8 +425,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     var startInfo = new ProcessStartInfo()
                     {
-                        FileName = expectedPath,
-                        Arguments = processArguments,
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
                         UseShellExecute = false,
                         WorkingDirectory = clientDir,
                         RedirectStandardInput = true,
@@ -471,83 +445,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        /// <summary>
-        /// Check to ensure that the named pipe server we connected to is owned by the same
-        /// user.
-        /// </summary>
-        /// <remarks>
-        /// The type is embedded in assemblies that need to run cross platform.  While this particular
-        /// code will never be hit when running on non-Windows platforms it does need to work when
-        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to
-        /// compile into our cross plat assemblies.
-        /// </remarks>
-        private static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
-        {
-            try
-            {
-                if (PlatformInformation.IsWindows)
-                {
-                    var currentIdentity = WindowsIdentity.GetCurrent();
-                    var currentOwner = currentIdentity.Owner;
-                    var remotePipeSecurity = GetPipeSecurity(pipeStream);
-                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
-                    return currentOwner.Equals(remoteOwner);
-                }
-                else
-                {
-                    return CheckIdentityUnix(pipeStream);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, "Checking pipe connection");
-                return false;
-            }
-        }
-
-#if NET46
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            // Identity verification is unavailable in the MSBuild task,
-            // but verification is not needed client-side so that's okay.
-            return true;
-        }
-#else
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
-        private static extern uint GetEUid();
-
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetPeerID", SetLastError = true)]
-        private static extern int GetPeerID(SafeHandle socket, out uint euid);
-
-        internal static bool CheckIdentityUnix(PipeStream stream)
-        {
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
-            var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
-
-            uint myID = GetEUid();
-
-            if (GetPeerID(handle, out uint peerID) == -1)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return myID == peerID;
-        }
-#endif
-
-        private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
-        {
-            return pipeStream.GetAccessControl();
-        }
-
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
         internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
         {
-            var basePipeName = GetBasePipeName(compilerExeDirectory);
-
             // Prefix with username and elevation
             bool isAdmin = false;
             if (PlatformInformation.IsWindows)
@@ -563,60 +465,50 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+            return GetPipeName(userName, isAdmin, compilerExeDirectory);
         }
 
-        /// <summary>
-        /// Check if our constructed path is too long. On some Unix machines the pipe is a
-        /// real file in the temp directory, and there is a limit on how long the path can
-        /// be. This will never be true on Windows.
-        /// </summary>
-        internal static bool IsPipePathTooLong(string pipeName, string tempPath)
-        {
-            if (PlatformInformation.IsUnix)
-            {
-                // This is the maximum path length of Unix Domain Sockets on a number of systems.
-                // Since CoreFX implements named pipes using Unix Domain Sockets, if we exceed this
-                // length than the pipe will fail.
-                // This number is considered the smallest known max length according to
-                // http://man7.org/linux/man-pages/man7/unix.7.html
-                const int MaxPipePathLength = 92;
-                const int PrefixLength = 11; // "CoreFxPipe_".Length
-                return (tempPath.Length + PrefixLength + pipeName.Length) > MaxPipePathLength;
-            }
-            return false;
-        }
-
-        internal static string GetBasePipeName(string compilerExeDirectory)
+        internal static string GetPipeName(
+            string userName,
+            bool isAdmin,
+            string compilerExeDirectory)
         {
             // Normalize away trailing slashes.  File APIs include / exclude this with no 
             // discernable pattern.  Easiest to normalize it here vs. auditing every caller
             // of this method.
             compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
-            string basePipeName;
+            var pipeNameInput = $"{userName}.{isAdmin}.{compilerExeDirectory}";
             using (var sha = SHA256.Create())
             {
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
-                basePipeName = Convert.ToBase64String(bytes)
-                    .Substring(0, 10) // We only have ~50 total characters on Mac, so strip this down
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(pipeNameInput));
+                return Convert.ToBase64String(bytes)
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }
-
-            return basePipeName;
         }
 
         internal static bool WasServerMutexOpen(string mutexName)
         {
             try
             {
-                Mutex mutex;
-                var open = Mutex.TryOpenExisting(mutexName, out mutex);
-                if (open)
+                if (PlatformInformation.IsRunningOnMono)
                 {
-                    mutex.Dispose();
-                    return true;
+                    IServerMutex mutex = null;
+                    bool createdNew = false;
+                    try
+                    {
+                        mutex = new ServerFileMutexPair(mutexName, false, out createdNew);
+                        return !createdNew;
+                    }
+                    finally
+                    {
+                        mutex?.Dispose();
+                    }
+                }
+                else
+                {
+                    return ServerNamedMutex.WasOpen(mutexName);
                 }
             }
             catch
@@ -625,8 +517,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // the assumption is that it's not open. 
                 return false;
             }
+        }
 
-            return false;
+        internal static IServerMutex OpenOrCreateMutex(string name, out bool createdNew)
+        {
+            if (PlatformInformation.IsRunningOnMono)
+            {
+                return new ServerFileMutexPair(name, initiallyOwned: true, out createdNew);
+            }
+            else
+            {
+                return new ServerNamedMutex(name, out createdNew);
+            }
         }
 
         internal static string GetServerMutexName(string pipeName)
@@ -638,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{pipeName}.client";
         }
-  
+
         /// <summary>
         /// Gets the value of the temporary path for the current environment assuming the working directory
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
@@ -687,4 +589,225 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return Environment.GetEnvironmentVariable("SYSTEMROOT");
         }
     }
+
+    internal interface IServerMutex : IDisposable
+    {
+        bool TryLock(int timeoutMs);
+        void Unlock();
+        bool IsDisposed { get; }
+    }
+
+    /// <summary>
+    /// An interprocess mutex abstraction based on OS advisory locking (FileStream.Lock/Unlock).
+    /// If multiple processes running as the same user create FileMutex instances with the same name,
+    ///  those instances will all point to the same file somewhere in a selected temporary directory.
+    /// The TryLock method can be used to attempt to acquire the mutex, with Unlock or Dispose used to release.
+    /// Unlike Win32 named mutexes, there is no mechanism for detecting an abandoned mutex. The file
+    ///  will simply revert to being unlocked but remain where it is.
+    /// </summary>
+    internal sealed class FileMutex : IDisposable
+    {
+        public readonly FileStream Stream;
+        public readonly string FilePath;
+
+        public bool IsLocked { get; private set; }
+
+        internal static string GetMutexDirectory()
+        {
+            var tempPath = BuildServerConnection.GetTempPath(null);
+            var result = Path.Combine(tempPath, ".roslyn");
+            Directory.CreateDirectory(result);
+            return result;
+        }
+
+        public FileMutex(string name)
+        {
+            FilePath = Path.Combine(GetMutexDirectory(), name);
+            Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsLocked)
+                throw new InvalidOperationException("Lock already held");
+
+            var sw = Stopwatch.StartNew();
+            do
+            {
+                try
+                {
+                    Stream.Lock(0, 0);
+                    IsLocked = true;
+                    return true;
+                }
+                catch (IOException)
+                {
+                    // Lock currently held by someone else.
+                    // We want to sleep for a short period of time to ensure that other processes
+                    //  have an opportunity to finish their work and relinquish the lock.
+                    // Spinning here (via Yield) would work but risks creating a priority
+                    //  inversion if the lock is held by a lower-priority process.
+                    Thread.Sleep(1);
+                }
+                catch (Exception)
+                {
+                    // Something else went wrong.
+                    return false;
+                }
+            } while (sw.ElapsedMilliseconds < timeoutMs);
+
+            return false;
+        }
+
+        public void Unlock()
+        {
+            if (!IsLocked)
+                return;
+            Stream.Unlock(0, 0);
+            IsLocked = false;
+        }
+
+        public void Dispose()
+        {
+            var wasLocked = IsLocked;
+            if (wasLocked)
+                Unlock();
+            Stream.Dispose();
+            // We do not delete the lock file here because there is no reliable way to perform a
+            //  'delete if no one has the file open' operation atomically on *nix. This is a leak.
+        }
+    }
+
+    internal sealed class ServerNamedMutex : IServerMutex
+    {
+        public readonly Mutex Mutex;
+
+        public bool IsDisposed { get; private set; }
+        public bool IsLocked { get; private set; }
+
+        public ServerNamedMutex(string mutexName, out bool createdNew)
+        {
+            Mutex = new Mutex(
+                initiallyOwned: true,
+                name: mutexName,
+                createdNew: out createdNew
+            );
+            if (createdNew)
+                IsLocked = true;
+        }
+
+        public static bool WasOpen(string mutexName)
+        {
+            Mutex m = null;
+            try
+            {
+                return Mutex.TryOpenExisting(mutexName, out m);
+            }
+            catch
+            {
+                // In the case an exception occured trying to open the Mutex then 
+                // the assumption is that it's not open.
+                return false;
+            }
+            finally
+            {
+                m?.Dispose();
+            }
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            if (IsLocked)
+                throw new InvalidOperationException("Lock already held");
+            return IsLocked = Mutex.WaitOne(timeoutMs);
+        }
+
+        public void Unlock()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            if (!IsLocked)
+                throw new InvalidOperationException("Lock not held");
+            Mutex.ReleaseMutex();
+            IsLocked = false;
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+
+            try
+            {
+                if (IsLocked)
+                    Mutex.ReleaseMutex();
+            }
+            finally
+            {
+                Mutex.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Approximates a named mutex with 'locked', 'unlocked' and 'abandoned' states.
+    /// There is no reliable way to detect whether a mutex has been abandoned on some target platforms,
+    ///  so we use the AliveMutex to manually track whether the creator of a mutex is still running,
+    ///  while the HeldMutex represents the actual lock state of the mutex.
+    /// </summary>
+    internal sealed class ServerFileMutexPair : IServerMutex
+    {
+        public readonly FileMutex AliveMutex;
+        public readonly FileMutex HeldMutex;
+
+        public bool IsDisposed { get; private set; }
+
+        public ServerFileMutexPair(string mutexName, bool initiallyOwned, out bool createdNew)
+        {
+            AliveMutex = new FileMutex(mutexName + "-alive");
+            HeldMutex = new FileMutex(mutexName + "-held");
+            createdNew = AliveMutex.TryLock(0);
+            if (initiallyOwned && createdNew)
+            {
+                if (!TryLock(0))
+                    throw new Exception("Failed to lock mutex after creating it");
+            }
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            return HeldMutex.TryLock(timeoutMs);
+        }
+
+        public void Unlock()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            HeldMutex.Unlock();
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+
+            try
+            {
+                HeldMutex.Unlock();
+                AliveMutex.Unlock();
+            }
+            finally
+            {
+                AliveMutex.Dispose();
+                HeldMutex.Dispose();
+            }
+        }
+    }
+
 }

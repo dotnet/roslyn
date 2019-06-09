@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(InitializerOpt Is Nothing OrElse InitializerOpt.Type = Type)
+            Debug.Assert(InitializerOpt Is Nothing OrElse TypeSymbol.Equals(InitializerOpt.Type, Type, TypeCompareKind.ConsiderEverything))
         End Sub
 #End If
 

@@ -2,6 +2,31 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="translated">Přidat do _aktuálního souboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="translated">Aby bylo možné dokončit refaktoring, je nutné udělat další změny. Zkontrolujte změny níže.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">Všechny metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="translated">Povolit:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Vždy kvůli srozumitelnosti</target>
@@ -12,9 +37,39 @@
         <target state="translated">Použít schéma mapování klávesnice {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="translated">Vyhněte se výrazům, které implicitně ignorují hodnotu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">Vyhněte se nepoužitým parametrům.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="translated">Vyhněte se přiřazení nepoužitých hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="translated">Zpět</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="translated">Počítají se závislosti...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Classifications">
+        <source>Classifications</source>
+        <target state="translated">Klasifikace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
+        <target state="translated">Obarvit regulární výrazy</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -22,19 +77,34 @@
         <target state="translated">Element není platný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="translated">Dokončit</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
-        <target state="new">Generate .editorconfig file from settings</target>
+        <target state="translated">Generovat soubor .editorconfig z nastavení</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
+        <target state="translated">Zvýrazňovat související komponenty pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">V jiných operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="translated">Rozhraní nemůže mít pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -44,12 +114,62 @@
       </trans-unit>
       <trans-unit id="Kind">
         <source>Kind</source>
-        <target state="new">Kind</target>
+        <target state="translated">Druh</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="translated">Nastavit {0} jako abstraktní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="translated">Nastavit jako abstraktní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="translated">Členové</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="translated">Předvolby modifikátorů:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="translated">Obor názvů: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nikdy, pokud jsou nadbytečné</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">Neveřejné metody</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="translated">Předvolby parametrů:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -59,17 +179,52 @@
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="new">Prefer compound assignments</target>
+        <target state="translated">Preferovat složená přiřazení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_index_operator">
+        <source>Prefer index operator</source>
+        <target state="translated">Preferovat operátor indexu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_range_operator">
+        <source>Prefer range operator</source>
+        <target state="translated">Preferovat operátor rozsahu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">Preferovat pole jen pro čtení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="translated">Preferovat jednoduchý příkaz using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="translated">Preferovat statické místní funkce</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="translated">Stáhnout členy</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
+        <target state="translated">Regulární výrazy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">Přejmenovat {0} na {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
+        <target state="translated">Nahlásit neplatné regulární výrazy</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -77,19 +232,109 @@
         <target state="translated">Obnovit výchozí mapování klávesnice sady Visual Studio</target>
         <note />
       </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="translated">Zkontrolovat změny</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
-        <target state="new">Save .editorconfig file</target>
+        <target state="translated">Uložit soubor .editorconfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="translated">Vybrat cíl</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>Select _Dependents</source>
+        <target state="translated">Vybrat _závislé položky</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>Select _Public</source>
+        <target state="translated">Vybrat _veřejné</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="translated">Vyberte cíl a členy ke stažení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="translated">Vybrat cíl:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="translated">Vybrat člena</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="translated">Vybrat členy:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="translated">Zobrazit seznamy dokončení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">Nepoužitá hodnota se explicitně přiřadí nepoužité lokální hodnotě.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">Nepoužitá hodnota se explicitně přiřadí k zahození.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
+        <source>Use enhanced colors for C# and Basic</source>
+        <target state="translated">Pro C# a Basic používat rozšířené barvy</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
-        <target state="new">Use expression body for lambdas</target>
+        <target state="translated">Pro výrazy lambda používat text výrazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">Pro místní funkce používat text výrazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">Zde přiřazená hodnota se nikdy nepoužije.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">Hodnota vrácená voláním je implicitně ignorována.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">Zaznamenali jsme, že jste pozastavili: {0}. Obnovte mapování klávesnice, abyste mohli pokračovat v navigaci a refactoringu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="translated">Tento pracovní prostor nepodporuje aktualizaci možností kompilace jazyka Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -210,6 +455,21 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">Není platnou hodnotou.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="translated">{0} se změní na abstraktní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="translated">{0} se změní na nestatický.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="translated">{0} se změní na veřejný.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1433,11 +1693,6 @@ Další informace: {1}</target>
         <target state="translated">Povolit úplnou _analýzu řešení</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">Provést analýzu _funkcí editoru v externím procesu (experimentální)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">Zesvětlit nedosažitelný kód</target>
@@ -1554,8 +1809,8 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">Nastavení nakonfigurovaná zde platí pouze pro váš počítač. Pokud je chcete nakonfigurovat tak, aby byla součástí vašeho řešení a přecházela mezi zařízeními, použijte soubory .editorconfig.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">Nastavení nakonfigurovaná zde platí pouze pro váš počítač. Pokud je chcete nakonfigurovat tak, aby byla součástí vašeho řešení a přecházela mezi zařízeními, použijte soubory .editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
@@ -1568,16 +1823,6 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
         <target state="translated">Změny nelze použít – neočekávaná chyba: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">Předvolby pole:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">Upřednostnit jen pro čtení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
         <target state="translated">Analyzuje se {0}.</target>
@@ -1586,11 +1831,6 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">Spravovat styly pojmenování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Dynamická analýza kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">

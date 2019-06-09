@@ -624,11 +624,11 @@
   <data name="Automatic_Formatting" xml:space="preserve">
     <value>Automatic Formatting</value>
   </data>
-  <data name="Extract_method_failed_with_following_reasons_colon" xml:space="preserve">
-    <value>Extract method failed with following reasons :</value>
+  <data name="Extract_method_encountered_the_following_issues" xml:space="preserve">
+    <value>Extract method encountered the following issues:</value>
   </data>
-  <data name="Do_you_still_want_to_proceed_it_will_generate_broken_code" xml:space="preserve">
-    <value>Do you still want to proceed? it will generate broken code.</value>
+  <data name="Do_you_still_want_to_proceed_This_may_produce_broken_code" xml:space="preserve">
+    <value>Do you still want to proceed? This may produce broken code.</value>
   </data>
   <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
     <value>We can fix the error by not making struct "out/ref" parameter(s).
@@ -826,5 +826,73 @@ Do you want to proceed?</value>
   </data>
   <data name="Change_configuration" xml:space="preserve">
     <value>Change configuration</value>
+  </data>
+  <data name="Paste_Tracking" xml:space="preserve">
+    <value>Paste Tracking</value>
+  </data>
+  <data name="Filter_image_element" xml:space="preserve">
+    <value>Filter</value>
+    <comment>Caption/tooltip for "Filter" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Warning_image_element" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Caption/tooltip for "Warning" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Invalid_assembly_name" xml:space="preserve">
+    <value>Invalid assembly name</value>
+  </data>
+  <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
+    <value>Invalid characters in assembly name</value>
+  </data>
+  <data name="User_Members_Constants" xml:space="preserve">
+    <value>User Members - Constants</value>
+  </data>
+  <data name="User_Members_Enum_Members" xml:space="preserve">
+    <value>User Members - Enum Members</value>
+  </data>
+  <data name="User_Members_Events" xml:space="preserve">
+    <value>User Members - Events</value>
+  </data>
+  <data name="User_Members_Extension_Methods" xml:space="preserve">
+    <value>User Members - Extension Methods</value>
+  </data>
+  <data name="User_Members_Fields" xml:space="preserve">
+    <value>User Members - Fields</value>
+  </data>
+  <data name="User_Members_Locals" xml:space="preserve">
+    <value>User Members - Locals</value>
+  </data>
+  <data name="User_Members_Methods" xml:space="preserve">
+    <value>User Members - Methods</value>
+  </data>
+  <data name="User_Members_Namespaces" xml:space="preserve">
+    <value>User Members - Namespaces</value>
+  </data>
+  <data name="User_Members_Parameters" xml:space="preserve">
+    <value>User Members - Parameters</value>
+  </data>
+  <data name="User_Members_Properties" xml:space="preserve">
+    <value>User Members - Properties</value>
+  </data>
+  <data name="User_Members_Labels" xml:space="preserve">
+    <value>User Members - Labels</value>
+  </data>
+  <data name="Keyword_Control" xml:space="preserve">
+    <value>Keyword - Control</value>
+  </data>
+  <data name="Symbol_Static" xml:space="preserve">
+    <value>Symbol - Static</value>
+  </data>
+  <data name="Operator_Overloaded" xml:space="preserve">
+    <value>Operator - Overloaded</value>
+  </data>
+  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
+    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
   </data>
 </root>

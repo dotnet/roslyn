@@ -37,11 +37,8 @@ namespace Microsoft.CodeAnalysis.Host
             _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
-            if (workspace is Workspace editorWorkspace)
-            {
-                editorWorkspace.DocumentOpened += this.OnDocumentOpened;
-                editorWorkspace.DocumentClosed += this.OnDocumentClosed;
-            }
+            workspace.DocumentOpened += this.OnDocumentOpened;
+            workspace.DocumentClosed += this.OnDocumentClosed;
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)

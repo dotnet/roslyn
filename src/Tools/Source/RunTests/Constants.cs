@@ -10,8 +10,6 @@ namespace RunTests
 {
     internal static class Constants
     {
-        internal static string ResultsDirectoryName => "xUnitResults";
-
         internal static string JenkinsUrl => Environment.GetEnvironmentVariable("JENKINS_URL");
 
         internal static bool IsJenkinsRun => !string.IsNullOrEmpty(JenkinsUrl);
