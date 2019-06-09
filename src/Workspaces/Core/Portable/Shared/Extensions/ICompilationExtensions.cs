@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -103,9 +104,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
-
         public static INamedTypeSymbol IEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
+
+        public static INamedTypeSymbol IEnumeratorOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName);
+
+        public static INamedTypeSymbol IAsyncEnumerableOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
+
+        public static INamedTypeSymbol IAsyncEnumeratorOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
 
         public static INamedTypeSymbol SerializableAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName);
@@ -154,5 +163,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol ComUnregisterFunctionAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName);
+
+        public static INamedTypeSymbol ConditionalAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName);
+
+        public static INamedTypeSymbol ObsoleteAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+
+        public static INamedTypeSymbol SystemCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Composition.ImportingConstructorAttribute).FullName);
+
+        public static INamedTypeSymbol SystemComponentModelCompositionImportingConstructorAttribute(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
+
+        public static INamedTypeSymbol SystemIDisposableType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName);
     }
 }

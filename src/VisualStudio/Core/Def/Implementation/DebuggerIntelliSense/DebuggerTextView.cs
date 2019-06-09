@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
@@ -28,6 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         private IMultiSelectionBroker _multiSelectionBroker;
 
+        // This name "CompletionRoot" is specified on the Editor side.
+        // Roslyn must match the name.
+        // The const should be removed with resolution of https://github.com/dotnet/roslyn/issues/31189
+        public const string CompletionRoot = nameof(CompletionRoot);
+
         public DebuggerTextView(
             IWpfTextView innerTextView,
             IBufferGraph bufferGraph,
@@ -38,6 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _debuggerTextLinesOpt = debuggerTextLinesOpt;
             BufferGraph = bufferGraph;
             IsImmediateWindow = isImmediateWindow;
+
+            // The editor requires the current top buffer.
+            // TODO it seems to be a hack. It should be removed.
+            // Here is an issue to track: https://github.com/dotnet/roslyn/issues/31189
+            // Starting debugging for the second time, we already have the property set.
+            _innerTextView.Properties[CompletionRoot] = bufferGraph.TopBuffer;
         }
 
         /// <summary>
@@ -330,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
         {
-            throw new NotSupportedException();
+            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
         }
 
         public void QueueSpaceReservationStackRefresh()
@@ -353,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
         }
 
-        public void DisconnectFromIntellisenseControllers()
+        public void Cleanup()
         {
             // The innerTextView of the immediate window never closes, but we want
             // our completion subscribers to unsubscribe from events when this
@@ -362,7 +368,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
+
+            _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
+
+        public void QueuePostLayoutAction(Action action) => _innerTextView.QueuePostLayoutAction(action);
+
+        public bool TryGetTextViewLines(out ITextViewLineCollection textViewLines) => _innerTextView.TryGetTextViewLines(out textViewLines);
+
+        public bool TryGetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition, out ITextViewLine textViewLine)
+            => _innerTextView.TryGetTextViewLineContainingBufferPosition(bufferPosition, out textViewLine);
 
         private event EventHandler ClosedInternal;
 

@@ -285,13 +285,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return _underlyingModule.NonNullTypes;
-            }
-        }
     }
 }

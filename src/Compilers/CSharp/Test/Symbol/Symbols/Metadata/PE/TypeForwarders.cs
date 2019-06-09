@@ -1143,10 +1143,10 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => 
-                !ns.StartsWith("System", StringComparison.Ordinal) && 
-                !ns.StartsWith("Windows", StringComparison.Ordinal) && 
-                !ns.StartsWith("FxResources", StringComparison.Ordinal) && 
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns =>
+                !ns.StartsWith("System", StringComparison.Ordinal) &&
+                !ns.StartsWith("Windows", StringComparison.Ordinal) &&
+                !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
                 !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
@@ -1607,7 +1607,7 @@ public class CF1
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            // Exported types in .Net module cause PEVerify to fail.
+            // Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {

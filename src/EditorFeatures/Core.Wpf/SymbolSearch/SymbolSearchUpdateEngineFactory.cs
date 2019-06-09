@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             ISymbolSearchProgressService progressService,
             CancellationToken cancellationToken)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(
-                RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
@@ -103,23 +102,23 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 _progressService = progressService;
             }
 
-            public Task LogExceptionAsync(string exception, string text)
-                => _logService.LogExceptionAsync(exception, text);
+            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
+                => _logService.LogExceptionAsync(exception, text, cancellationToken);
 
-            public Task LogInfoAsync(string text)
-                => _logService.LogInfoAsync(text);
+            public Task LogInfoAsync(string text, CancellationToken cancellationToken)
+                => _logService.LogInfoAsync(text, cancellationToken);
 
-            public Task OnDownloadFullDatabaseStartedAsync(string title)
-                => _progressService.OnDownloadFullDatabaseStartedAsync(title);
+            public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
+                => _progressService.OnDownloadFullDatabaseStartedAsync(title, cancellationToken);
 
-            public Task OnDownloadFullDatabaseSucceededAsync()
-                => _progressService.OnDownloadFullDatabaseSucceededAsync();
+            public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellation)
+                => _progressService.OnDownloadFullDatabaseSucceededAsync(cancellation);
 
-            public Task OnDownloadFullDatabaseCanceledAsync()
-                => _progressService.OnDownloadFullDatabaseCanceledAsync();
+            public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
+                => _progressService.OnDownloadFullDatabaseCanceledAsync(cancellationToken);
 
-            public Task OnDownloadFullDatabaseFailedAsync(string message)
-                => _progressService.OnDownloadFullDatabaseFailedAsync(message);
+            public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
+                => _progressService.OnDownloadFullDatabaseFailedAsync(message, cancellationToken);
         }
     }
 }

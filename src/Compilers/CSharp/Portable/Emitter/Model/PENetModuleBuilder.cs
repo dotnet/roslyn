@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
         }
 
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            // Embedded attributes should never be synthesized in modules.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable;
@@ -29,10 +35,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override int CurrentGenerationOrdinal => 0;
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
         public override ISourceAssemblySymbolInternal SourceAssemblyOpt => null;
-
-        protected override void EnsureNonNullTypesAttributeExists() => throw ExceptionUtilities.Unreachable;
-        protected override void EnsureEmbeddedAttributeExists() => throw ExceptionUtilities.Unreachable;
-        protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics) => ImmutableArray<NamedTypeSymbol>.Empty;
-        protected override bool InjectedSymbolsAreFrozen => true;
     }
 }

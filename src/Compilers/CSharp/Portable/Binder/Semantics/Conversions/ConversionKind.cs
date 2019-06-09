@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ConversionKind : byte
     {
+        UnsetConversionKind = 0,
         NoConversion,
         Identity,
         ImplicitNumeric,

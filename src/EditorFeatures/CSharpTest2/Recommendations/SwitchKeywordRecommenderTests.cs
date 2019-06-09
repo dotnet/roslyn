@@ -95,6 +95,34 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"_ = expr $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression_InMethodWithArrowBody()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    bool M() => this $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterForeachVar()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterTuple()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"_ = (expr, expr) $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSwitch2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(

@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Folder_Properties">
         <source>Folder Properties</source>
-        <target state="translated">Propiedades de carpeta</target>
+        <target state="translated">Propiedades de la carpeta</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Properties">
@@ -30,11 +30,6 @@
       <trans-unit id="Diagnostic_Properties">
         <source>Diagnostic Properties</source>
         <target state="translated">Propiedades de diagnóstico</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project {0}.</source>
-        <target state="translated">No se encuentra el proyecto {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
@@ -64,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Error_">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
@@ -139,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ID">
         <source>ID</source>
-        <target state="translated">Id.</target>
+        <target state="translated">ID.</target>
         <note />
       </trans-unit>
       <trans-unit id="Message">

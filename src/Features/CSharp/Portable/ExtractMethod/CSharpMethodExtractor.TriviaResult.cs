@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (tokenPair.PreviousToken == method.Body.OpenBraceToken &&
                         tokenPair.NextToken == method.Body.CloseBraceToken)
                     {
-                        return (location == TriviaLocation.AfterBeginningOfSpan) 
-                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker) 
+                        return (location == TriviaLocation.AfterBeginningOfSpan)
+                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
                             : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                     }
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (tokenPair.PreviousToken == method.ExpressionBody.ArrowToken &&
                         tokenPair.NextToken.GetPreviousToken() == method.SemicolonToken)
                     {
-                        return (location == TriviaLocation.AfterBeginningOfSpan) 
+                        return (location == TriviaLocation.AfterBeginningOfSpan)
                             ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
                             : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                     }

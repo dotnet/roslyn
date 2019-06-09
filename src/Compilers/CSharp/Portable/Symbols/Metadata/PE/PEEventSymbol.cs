@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly string _name;
         private readonly PENamedTypeSymbol _containingType;
         private readonly EventDefinitionHandle _handle;
-        private readonly TypeSymbolWithAnnotations _eventType;
+        private readonly TypeWithAnnotations _eventTypeWithAnnotations;
         private readonly PEMethodSymbol _addMethod;
         private readonly PEMethodSymbol _removeMethod;
         private readonly PEFieldSymbol _associatedFieldOpt;
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (eventType.IsNil)
                 {
-                    _eventType = TypeSymbolWithAnnotations.Create(containingType, new UnsupportedMetadataTypeSymbol(mrEx));
+                    _eventTypeWithAnnotations = TypeWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
                 }
             }
 
-            TypeSymbol originalEventType = _eventType.TypeSymbol;
-            if (_eventType.IsNull)
+            TypeSymbol originalEventType = _eventTypeWithAnnotations.Type;
+            if (!_eventTypeWithAnnotations.HasType)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
                 originalEventType = metadataDecoder.GetTypeOfToken(eventType);
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
 
                 // We start without annotation (they will be decoded below)
-                var type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: containingType, typeSymbol);
+                var type = TypeWithAnnotations.Create(typeSymbol);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
                 type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
-                _eventType = type;
+                _eventTypeWithAnnotations = type;
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
@@ -158,20 +158,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Unfortunately, this will cause us to realize the type of the field, which would
                 // otherwise have been lazy.
-                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type.TypeSymbol;
+                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
 
                 if (isWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
-                    if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol)
+                    if (TypeSymbol.Equals(eventRegistrationTokenTable_T, candidateAssociatedFieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
+                        TypeSymbol.Equals(_eventTypeWithAnnotations.Type, ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
                 }
                 else
                 {
-                    if (candidateAssociatedFieldType == _eventType.TypeSymbol)
+                    if (TypeSymbol.Equals(candidateAssociatedFieldType, _eventTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
                     {
                         return candidateAssociatedField;
                     }
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // does not check whether the containing type is a WinRT type -
                 // it was a design goal to accept any events of this form.
                 return
-                    _addMethod.ReturnType.TypeSymbol == token &&
+                    TypeSymbol.Equals(_addMethod.ReturnType, token, TypeCompareKind.ConsiderEverything2) &&
                     _addMethod.ParameterCount == 1 &&
                     _removeMethod.ParameterCount == 1 &&
-                    _removeMethod.Parameters[0].Type.TypeSymbol == token;
+                    TypeSymbol.Equals(_removeMethod.Parameters[0].Type, token, TypeCompareKind.ConsiderEverything2);
             }
         }
 
@@ -318,9 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _eventType; }
+            get { return _eventTypeWithAnnotations; }
         }
 
         public override MethodSymbol AddMethod
@@ -472,17 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool optOut;
-
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out optOut) ? optOut : base.NonNullTypes;
-            }
         }
     }
 }

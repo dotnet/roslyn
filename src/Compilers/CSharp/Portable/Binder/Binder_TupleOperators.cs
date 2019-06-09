@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Aside from default (which we fixed or ruled out above) and tuple literals,
             // we must have typed expressions at this point
-            Debug.Assert(left.Type != null || left.Kind == BoundKind.TupleLiteral);
-            Debug.Assert(right.Type != null || right.Kind == BoundKind.TupleLiteral);
+            Debug.Assert((object)left.Type != null || left.Kind == BoundKind.TupleLiteral);
+            Debug.Assert((object)right.Type != null || right.Kind == BoundKind.TupleLiteral);
 
             int leftCardinality = GetTupleCardinality(left);
             int rightCardinality = GetTupleCardinality(right);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.IsTupleType)
             {
-                return type.TupleElementTypes.Length;
+                return type.TupleElementTypesWithAnnotations.Length;
             }
 
             return -1;
@@ -385,8 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
             TypeSymbol tupleType = expr.Type.StrippedType();
-            ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypes
-                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t.TypeSymbol), expr.Syntax);
+            ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypesWithAnnotations
+                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t.Type), expr.Syntax);
 
             return (placeholders, tupleType.TupleElementNames);
         }
@@ -411,9 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
             var tuple = TupleTypeSymbol.Create(locationOpt: null,
-                elementTypes: convertedTypes.SelectAsArray((t, m) => TypeSymbolWithAnnotations.Create(nonNullTypesContext: m, t), compilation.SourceModule),
+                elementTypesWithAnnotations: convertedTypes.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 elementLocations, elementNames: names, compilation,
-                shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
+                shouldCheckConstraints: true, includeNullability: false, errorPositions: default, syntax, diagnostics);
 
             if (!isNullable)
             {

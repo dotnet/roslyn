@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
 
             If Not pastedTextSpan.IsEmpty Then
                 Dim PasteTrackingService = Workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
+
+                ' This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+                ' registered consecutively And that the last registered span wins.
+                PasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, Nothing)
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan)
             End If
 
@@ -314,6 +318,49 @@ End Namespace
 "
 
             Await TestInRegularAndScriptAsync(code, expected)
+        End Function
+
+        <WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")>
+        <WpfFact>
+        Public Async Function AddMissingImports_AddMultipleImports_NoPreviousImports() As Task
+            Dim code = "
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports A
+Imports B
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
     End Class
 End Namespace

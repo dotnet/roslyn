@@ -39,14 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
                 return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
             }
-            else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            else if (TypeSymbol.Equals(type.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything2))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
                 var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals);
+                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(
+                    stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
@@ -63,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: ErrorTypeSymbol.UnknownResultType);
                 }
 
-                return new BoundSequence(
+                _needsSpilling = true;
+                return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            
+
             BoundExpression convertedCount = _factory.Convert(uintType, countExpression, Conversion.ExplicitNumeric);
             convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 

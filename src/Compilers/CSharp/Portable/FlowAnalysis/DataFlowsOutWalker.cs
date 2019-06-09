@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
 #endif
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _dataFlowsOut;
@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DeclarationPattern:
                         {
                             return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
+                        }
+
+                    case BoundKind.RecursivePattern:
+                        {
+                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new void Analyze(ref bool badRegion)
+        private void Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);
@@ -94,15 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _labelsInside.Add(node.ContinueLabel);
             }
             return base.VisitForStatement(node);
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            if (IsInside)
-            {
-                _labelsInside.Add(node.BreakLabel);
-            }
-            return base.VisitSwitchStatement(node);
         }
 
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)

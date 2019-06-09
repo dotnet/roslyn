@@ -1571,7 +1571,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default(DateTime);
+        d = default;
     }
 }",
 index: 1);
@@ -1720,7 +1720,7 @@ parseOptions: TestOptions.Regular7);
     {
         public T(out X d)
         {
-            d = default(X);
+            d = default;
         }
     }
 }",
@@ -4394,7 +4394,7 @@ class A<T>
     {
     }
 }",
-count: 3);
+count: 6);
         }
 
         [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
@@ -5218,9 +5218,9 @@ class C
 
 internal class Class
 {{
-    private System.Object method;
+    private global::System.Object method;
 
-    public Class(System.Object method)
+    public Class(global::System.Object method)
     {{
         this.method = method;
     }}

@@ -1112,8 +1112,8 @@ public class C {}
                 }
                 ";
 
-            var netmoduleCompilation = CreateEmptyCompilation(netModuleSource, 
-                                                         options: TestOptions.ReleaseModule, 
+            var netmoduleCompilation = CreateEmptyCompilation(netModuleSource,
+                                                         options: TestOptions.ReleaseModule,
                                                          references: new[] { MinCorlibRef });
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));

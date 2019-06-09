@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
             var isAltInterpolatedVerbatim = originalText.Length > 2 && originalText[0] == '@'; // @$
-            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 &&  originalText[1] == '@');
+            var isVerbatim = isAltInterpolatedVerbatim || (originalText.Length > 2 && originalText[1] == '@');
 
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openQuoteText = isAltInterpolatedVerbatim
                 ? "@$\""
                 : isVerbatim
-                    ?  "$@\""
+                    ? "$@\""
                     : "$\"";
             var openQuote = SyntaxFactory.Token(originalToken.GetLeadingTrivia(), openQuoteKind, openQuoteText, openQuoteText, trailing: null);
 

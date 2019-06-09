@@ -1251,6 +1251,12 @@ class D
                 MainDescription("class System.String"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullLiteralWithVar()
+        {
+            await TestInMethodAsync(@"var f = null$$");
+        }
+
         [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestDefaultLiteral()
@@ -2203,7 +2209,8 @@ class B
         $$y.ToString();
     }
 }",
-                MainDescription($"({FeaturesResources.local_variable}) A<B?>? y"));
+                // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+                MainDescription($"({FeaturesResources.local_variable}) A<B?> y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6275,6 +6282,23 @@ class X
     void M() => Goo -$$= null;
 }",
                 Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task BuiltInOperatorWithUserDefinedEquivalent()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N(string a, string b)
+    {
+        var v = a $$== b;
+    }
+}",
+                MainDescription("bool string.operator ==(string a, string b)"),
+                SymbolGlyph(Glyph.Operator));
         }
     }
 }

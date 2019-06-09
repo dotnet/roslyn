@@ -123,8 +123,7 @@ end class",
 "class C
     sub M()
         if true
-            dim x as integer
-= 5
+            dim x as integer = 5
             Console.WriteLine(x)
         end if
     end sub

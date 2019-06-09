@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 ProduceTagsSynchronously(
-                    context, spanToTag, 
+                    context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }

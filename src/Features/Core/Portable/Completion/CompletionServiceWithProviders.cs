@@ -33,10 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private readonly Workspace _workspace;
 
-        /// <summary>
-        /// Internal for testing purposes.
-        /// </summary>
-        internal readonly ImmutableArray<CompletionProvider>? ExclusiveProviders;
+        private readonly ImmutableArray<CompletionProvider>? _exclusiveProviders;
 
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
-            ExclusiveProviders = exclusiveProviders;
+            _exclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
             _getProviderByName = GetProviderByName;
@@ -114,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
         {
-            if (ExclusiveProviders.HasValue)
+            if (_exclusiveProviders.HasValue)
             {
-                return ExclusiveProviders.Value;
+                return _exclusiveProviders.Value;
             }
 
             var builtin = GetBuiltInProviders();
@@ -185,18 +182,17 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return ImmutableArray<CompletionProvider>.Empty;
-
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
             CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out var name))
+            if (item.ProviderName != null)
             {
                 lock (_gate)
                 {
-                    provider = _nameToProvider.GetOrAdd(name, _getProviderByName);
+                    provider = _nameToProvider.GetOrAdd(item.ProviderName, _getProviderByName);
                 }
             }
 
@@ -248,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Note: we keep any context with items *or* with a suggested item.  
             var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders, 
+                defaultItemSpan, triggeredProviders,
                 cancellationToken).ConfigureAwait(false);
 
             // If we didn't even get any back with items, then there's nothing to do.
@@ -422,20 +418,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        // Internal for testing purposes only.
-        internal async Task<CompletionContext> GetContextAsync(
-            CompletionProvider provider,
-            Document document,
-            int position,
-            CompletionTrigger triggerInfo,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            return await GetContextAsync(
-                provider, document, position, triggerInfo,
-                options, defaultSpan: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
@@ -504,6 +486,16 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, TextSpan completionListSpan,
+            char? commitKey, CancellationToken cancellationToken)
+        {
+            var provider = GetProvider(item);
+            return provider != null
+                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, cancellationToken).ConfigureAwait(false)
+                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
+        }
+
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
         {
             if (x == y)
@@ -536,6 +528,40 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return hash;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionServiceWithProviders _completionServiceWithProviders;
+
+            public TestAccessor(CompletionServiceWithProviders completionServiceWithProviders)
+            {
+                _completionServiceWithProviders = completionServiceWithProviders;
+            }
+
+            internal ImmutableArray<CompletionProvider>? ExclusiveProviders
+                => _completionServiceWithProviders._exclusiveProviders;
+
+            internal Task<CompletionContext> GetContextAsync(
+                CompletionProvider provider,
+                Document document,
+                int position,
+                CompletionTrigger triggerInfo,
+                OptionSet options,
+                CancellationToken cancellationToken)
+            {
+                return _completionServiceWithProviders.GetContextAsync(
+                    provider,
+                    document,
+                    position,
+                    triggerInfo,
+                    options,
+                    defaultSpan: null,
+                    cancellationToken);
+            }
         }
     }
 }

@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (!pastedTextSpan.IsEmpty)
             {
                 var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
+
+                // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+                // registered consecutively and that the last registered span wins.
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, default);
                 pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
             }
 
@@ -335,6 +339,52 @@ namespace B
 ";
 
             await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WorkItem(31768, "https://github.com/dotnet/roslyn/issues/31768")]
+        [WpfFact]
+        public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
+        {
+            var code = @"
+class C
+{
+    [|public D Foo { get; }
+    public E Bar { get; }|]
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using A;
+using B;
+
+class C
+{
+    public D Foo { get; }
+    public E Bar { get; }
+}
+
+namespace A
+{
+    public class D { }
+}
+
+namespace B
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
     }
 }

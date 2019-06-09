@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
 
             If parentBinary IsNot Nothing Then
-                precedence = GetPrecedenceKind(parentBinary)
+                precedence = VisualBasicPrecedenceService.Instance.GetPrecedenceKind(parentBinary)
                 clarifiesPrecedence = Not innerExpressionIsSimple AndAlso
                                       parentBinary.GetOperatorPrecedence() <> innerExpressionPrecedence
                 Return True
@@ -53,32 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             precedence = PrecedenceKind.Other
             clarifiesPrecedence = False
             Return True
-        End Function
-
-        Public Shared Function GetPrecedenceKind(binary As BinaryExpressionSyntax) As PrecedenceKind
-            Dim precedence = binary.GetOperatorPrecedence()
-            Select Case precedence
-                Case OperatorPrecedence.PrecedenceXor,
-                     OperatorPrecedence.PrecedenceOr,
-                     OperatorPrecedence.PrecedenceAnd
-                    Return PrecedenceKind.Logical
-
-                Case OperatorPrecedence.PrecedenceRelational
-                    Return PrecedenceKind.Relational
-
-                Case OperatorPrecedence.PrecedenceShift
-                    Return PrecedenceKind.Shift
-
-                Case OperatorPrecedence.PrecedenceConcatenate,
-                     OperatorPrecedence.PrecedenceAdd,
-                     OperatorPrecedence.PrecedenceModulus,
-                     OperatorPrecedence.PrecedenceIntegerDivide,
-                     OperatorPrecedence.PrecedenceMultiply,
-                     OperatorPrecedence.PrecedenceExponentiate
-                    Return PrecedenceKind.Arithmetic
-            End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(precedence)
         End Function
     End Class
 End Namespace

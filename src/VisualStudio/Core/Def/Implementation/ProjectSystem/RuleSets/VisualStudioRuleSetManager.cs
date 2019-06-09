@@ -15,19 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
-        /// <summary>
-        /// Gate that guards access to <see cref="_ruleSetFileMap"/>.
-        /// </summary>
-        private readonly object _gate = new object();
-
-        /// <summary>
-        /// The map of cached <see cref="RuleSetFile"/>. We use a WeakReference here because we want to strike this entry from the cache when all users are
-        /// disposed, but that means we ourselves don't want to be contributing to that reference count. Since consumers of this are responsible for all
-        /// disposing, it's safe for us to also remove entries from this map if we need to refresh -- once everybody who consumed it disposes everything,
-        /// the underlying file watchers will be cleaned up.
-        /// </summary>
-        private readonly Dictionary<string, ReferenceCountedDisposable<RuleSetFile>.WeakReference> _ruleSetFileMap =
-            new Dictionary<string, ReferenceCountedDisposable<RuleSetFile>.WeakReference>();
+        private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new ReferenceCountedDisposableCache<string, RuleSetFile>();
 
         public VisualStudioRuleSetManager(
             FileChangeWatcher fileChangeWatcher, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
@@ -37,36 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _listener = listener;
         }
 
-        public IReferenceCountedDisposable<IRuleSetFile> GetOrCreateRuleSet(string ruleSetFileFullPath)
+        public IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath)
         {
-            ReferenceCountedDisposable<RuleSetFile> disposable = null;
+            var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, _ => new RuleSetFile(ruleSetFileFullPath, this));
 
-            lock (_gate)
-            {
-                // If we already have one in the map to hand out, great
-                if (_ruleSetFileMap.TryGetValue(ruleSetFileFullPath, out var weakReference))
-                {
-                    disposable = weakReference.TryAddReference();
-                }
+            // Call InitializeFileTracking outside the lock inside ReferenceCountedDisposableCache, so we don't have requests
+            // for other files blocking behind the initialization of this one. RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.
+            cacheEntry.Target.Value.InitializeFileTracking(_fileChangeWatcher);
 
-                if (disposable == null)
-                {
-                    // We didn't easily get a disposable, so one of two things is the case:
-                    //
-                    // 1. We have no entry in _ruleSetFileMap at all for this.
-                    // 2. We had an entry, but it was disposed and is no longer valid.
-
-                    // In either case, we'll create a new rule set file and add it to the map.
-                    disposable = new ReferenceCountedDisposable<RuleSetFile>(new RuleSetFile(ruleSetFileFullPath, this));
-                    _ruleSetFileMap[ruleSetFileFullPath] = new ReferenceCountedDisposable<RuleSetFile>.WeakReference(disposable);
-                }
-            }
-
-            // Call InitializeFileTracking outside the lock, so we don't have requests for other files blocking behind the initialization of this one.
-            // RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.
-            disposable.Target.InitializeFileTracking(_fileChangeWatcher);
-
-            return disposable;
+            return cacheEntry;
         }
 
         private void StopTrackingRuleSetFile(RuleSetFile ruleSetFile)
@@ -82,10 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // (perhaps by a file change), and we're removing a live instance. This is fine, as this doesn't affect correctness: we consider this to be a cache
             // and if two callers got different copies that's fine. We *could* fetch the item out of the dictionary, check if the item is strong and then compare,
             // but that seems overkill.
-            lock (_gate)
-            {
-                _ruleSetFileMap.Remove(ruleSetFile.FilePath);
-            }
+            _ruleSetFileMap.Evict(ruleSetFile.FilePath);
         }
     }
 }

@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(options.Deterministic);
             writer.WriteBoolean(options.PublicSign);
 
+            writer.WriteByte((byte)options.MetadataImportOptions);
+
             // REVIEW: What should I do with these. we probably need to implement either out own one
             //         or somehow share these as service....
             //
@@ -95,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Execution
             out bool concurrentBuild,
             out bool deterministic,
             out bool publicSign,
+            out MetadataImportOptions metadataImportOptions,
             out XmlReferenceResolver xmlReferenceResolver,
             out SourceReferenceResolver sourceReferenceResolver,
             out MetadataReferenceResolver metadataReferenceResolver,
@@ -151,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Execution
             concurrentBuild = reader.ReadBoolean();
             deterministic = reader.ReadBoolean();
             publicSign = reader.ReadBoolean();
+
+            metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
 
             // REVIEW: What should I do with these. are these service required when compilation is built ourselves, not through
             //         compiler.

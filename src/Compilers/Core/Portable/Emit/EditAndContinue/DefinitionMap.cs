@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     try
                     {
-                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty : 
+                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty :
                             GetLocalSlotMapFromMetadata(localSignature, debugInfo);
                     }
                     catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingAttribute,
-                method.Locations.First(), 
+                method.Locations.First(),
                 MessageProvider.GetErrorDisplayString(method),
                 stateMachineAttributeFullName));
         }

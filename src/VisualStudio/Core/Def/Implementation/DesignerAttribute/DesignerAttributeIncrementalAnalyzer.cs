@@ -145,6 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
             var cps = vsWorkspace?.IsCPSProject(project) == true;
 
             // The remainder of this method does not need to execute on the UI thread, but it's pointless to force a

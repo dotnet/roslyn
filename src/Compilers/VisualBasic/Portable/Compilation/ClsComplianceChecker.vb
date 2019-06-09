@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If symbol.Kind <> SymbolKind.Namespace Then
                 Dim type As NamedTypeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+                For Each [interface] In type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Keys
                     If Not IsAccessibleOutsideAssembly([interface]) Then
                         Continue For
                     End If
@@ -933,13 +933,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim xArrayType As ArrayTypeSymbol = DirectCast(xType, ArrayTypeSymbol)
                     Dim yArrayType As ArrayTypeSymbol = DirectCast(yType, ArrayTypeSymbol)
                     sawArrayRankDifference = sawArrayRankDifference OrElse xArrayType.Rank <> yArrayType.Rank
-                    Dim elementTypesDiffer As Boolean = xArrayType.ElementType <> yArrayType.ElementType
+                    Dim elementTypesDiffer As Boolean = Not TypeSymbol.Equals(xArrayType.ElementType, yArrayType.ElementType, TypeCompareKind.ConsiderEverything)
                     If IsArrayOfArrays(xArrayType) AndAlso IsArrayOfArrays(yArrayType) Then ' NOTE: C# uses OrElse
                         sawArrayOfArraysDifference = sawArrayOfArraysDifference OrElse elementTypesDiffer
                     ElseIf elementTypesDiffer Then
                         Return False
                     End If
-                ElseIf xType <> yType Then
+                ElseIf Not TypeSymbol.Equals(xType, yType, TypeCompareKind.ConsiderEverything) Then
                     Return False
                 End If
             Next

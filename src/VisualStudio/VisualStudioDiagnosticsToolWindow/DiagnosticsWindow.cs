@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Hosting.Diagnostics.PerfMargin;
 using Roslyn.Hosting.Diagnostics.RemoteHost;
+using Roslyn.VisualStudio.DiagnosticsWindow.Telemetry;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
@@ -45,10 +46,16 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 Content = new PerfMarginPanel()
             };
 
-            var remoteHost = new TabItem()
+            var remoteHostPanel = new TabItem()
             {
                 Header = "Remote",
                 Content = new RemoteHostPanel(workspace)
+            };
+
+            var telemetryPanel = new TabItem()
+            {
+                Header = "Telemetry",
+                Content = new TelemetryPanel()
             };
 
             var tabControl = new TabControl
@@ -57,7 +64,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             };
 
             tabControl.Items.Add(perfMarginPanel);
-            tabControl.Items.Add(remoteHost);
+            tabControl.Items.Add(remoteHostPanel);
+            tabControl.Items.Add(telemetryPanel);
 
             base.Content = tabControl;
         }

@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseInterpolatedVerbatimStringCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create("CS8401");
 

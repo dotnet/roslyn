@@ -747,10 +747,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-            // According to ECMA spec:
-            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-            //  indexes a row in the TypeDef table or the TypeRef table.
-            tryAgain:
+// According to ECMA spec:
+//  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+//  indexes a row in the TypeDef table or the TypeRef table.
+tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -1131,7 +1131,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = signature.AsSpan())
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);

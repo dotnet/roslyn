@@ -33,14 +33,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
                 string path = null;
-                while (directory != null && !File.Exists(path = Path.Combine(directory, "Binaries", "Tools", "ILAsm", ilasmExeName)))
+#if DEBUG
+                const string configuration = "Debug";
+#else
+                const string configuration = "Release";
+#endif
+
+                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILTools", configuration, ilasmExeName)))
                 {
                     directory = Path.GetDirectoryName(directory);
                 }
 
                 if (directory == null)
                 {
-                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to ./Binaries/Tools?");
+                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to /artifacts/tools?");
                 }
 
                 return path;

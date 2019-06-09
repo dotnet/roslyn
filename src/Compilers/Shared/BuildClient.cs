@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 #if NET472
@@ -14,6 +15,7 @@ using System.Runtime.Loader;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -48,14 +50,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public static string GetSystemSdkDirectory()
         {
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                return null;
-            }
-            else
-            {
-                return RuntimeEnvironment.GetRuntimeDirectory();
-            }
+            return RuntimeHostInfo.IsCoreClrRuntime
+                ? null
+                : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
         /// <summary>
@@ -167,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             BuildResponse buildResponse;
 
+            if (!AreNamedPipesSupported())
+            {
+                return null;
+            }
+
             try
             {
                 var buildResponseTask = RunServerCompilation(
@@ -236,12 +238,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            if (Type.GetType("Mono.Runtime") != null)
+            if (PlatformInformation.IsRunningOnMono)
             {
                 return false;
             }
 
-            if (CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsCoreClrRuntime)
             {
                 // The native invoke ends up giving us both CoreRun and the exe file.
                 // We've decided to ignore backcompat for CoreCLR,
@@ -251,6 +253,32 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return true;
+        }
+
+        private static bool AreNamedPipesSupported()
+        {
+            if (!PlatformInformation.IsRunningOnMono)
+                return true;
+
+            IDisposable npcs = null;
+            try
+            {
+                var testPipeName = $"mono-{Guid.NewGuid()}";
+                // Mono configurations without named pipe support will throw a PNSE at some point in this process.
+                npcs = new NamedPipeClientStream(".", testPipeName, PipeDirection.InOut);
+                npcs.Dispose();
+                return true;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                if (npcs != null)
+                {
+                    // Compensate for broken finalizer in older builds of mono
+                    // https://github.com/mono/mono/commit/2a731f29b065392ca9b44d6613abee2aa413a144
+                    GC.SuppressFinalize(npcs);
+                }
+                return false;
+            }
         }
 
         /// <summary>

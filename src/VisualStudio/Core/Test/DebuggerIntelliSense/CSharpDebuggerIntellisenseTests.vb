@@ -669,29 +669,29 @@ $$</Document>
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
-			Dim text = <Workspace>
-							   <Project Language="C#" CommonReferences="true">
-								   <Document>$$</Document>
-								   <Document>class Program
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
 	{
 		static void Main(string[] args)
 		[|{|]
 
 		}
 	}</Document>
-							   </Project>
-						   </Workspace>
-		
-		    Using state = TestState.CreateCSharpTestState(text, True)
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, True)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 state.SendTypeChars("4")
                 Await state.AssertNoCompletionSession()
-			End Using
-		End Function
-        
-		<ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
-		Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
+            End Using
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>$$</Document>

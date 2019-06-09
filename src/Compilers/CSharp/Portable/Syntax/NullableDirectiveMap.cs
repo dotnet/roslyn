@@ -1,25 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal sealed class NullableDirectiveMap
     {
-        private static readonly NullableDirectiveMap Empty = new NullableDirectiveMap(ImmutableArray<(int Position, bool State)>.Empty);
+        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: true);
 
-        private readonly ImmutableArray<(int Position, bool State)> _directives;
+        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: false);
 
-        internal static NullableDirectiveMap Create(SyntaxTree tree)
+
+        private readonly ImmutableArray<(int Position, bool? State)> _directives;
+
+        private readonly bool _isGeneratedCode;
+
+        internal static NullableDirectiveMap Create(SyntaxTree tree, bool isGeneratedCode)
         {
             var directives = GetDirectives(tree);
-            return directives.IsEmpty ? Empty : new NullableDirectiveMap(directives);
+
+            var empty = isGeneratedCode ? EmptyGenerated : EmptyNonGenerated;
+            return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGeneratedCode);
         }
 
-        private NullableDirectiveMap(ImmutableArray<(int Position, bool State)> directives)
+        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives, bool isGeneratedCode)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -28,11 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 #endif
             _directives = directives;
+            _isGeneratedCode = isGeneratedCode;
         }
 
         /// <summary>
         /// Returns true if the `#nullable` directive preceding the position is
-        /// `enable`, false if `disable`, and null if no preceding directive.
+        /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
+        /// or directive preceding the position is `restore`.
         /// </summary>
         internal bool? GetDirectiveState(int position)
         {
@@ -43,18 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 // of the index of the next higher value.
                 index = ~index - 1;
             }
-            if (index < 0)
+
+            // Generated files have an initial nullable context that is "disabled"
+            bool? state = (_isGeneratedCode) ? false : (bool?)null;
+            if (index >= 0)
             {
-                return null;
+                Debug.Assert(_directives[index].Position <= position);
+                Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
+                state = _directives[index].State;
             }
-            Debug.Assert(_directives[index].Position <= position);
-            Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
-            return _directives[index].State;
+
+            return state;
         }
 
-        private static ImmutableArray<(int Position, bool State)> GetDirectives(SyntaxTree tree)
+        private static ImmutableArray<(int Position, bool? State)> GetDirectives(SyntaxTree tree)
         {
-            var builder = ArrayBuilder<(int Position, bool State)>.GetInstance();
+            var builder = ArrayBuilder<(int Position, bool? State)>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
                 if (d.Kind() != SyntaxKind.NullableDirectiveTrivia)
@@ -66,16 +81,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     continue;
                 }
-                builder.Add((nn.Location.SourceSpan.End, nn.SettingToken.Kind() == SyntaxKind.EnableKeyword));
+
+                bool? state;
+                switch (nn.SettingToken.Kind())
+                {
+                    case SyntaxKind.EnableKeyword:
+                        state = true;
+                        break;
+                    case SyntaxKind.RestoreKeyword:
+                        state = null;
+                        break;
+                    case SyntaxKind.DisableKeyword:
+                        state = false;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nn.SettingToken.Kind());
+                }
+
+                builder.Add((nn.Location.SourceSpan.End, state));
             }
             return builder.ToImmutableAndFree();
         }
 
-        private sealed class PositionComparer : IComparer<(int Position, bool State)>
+        private sealed class PositionComparer : IComparer<(int Position, bool? State)>
         {
             internal static readonly PositionComparer Instance = new PositionComparer();
 
-            public int Compare((int Position, bool State) x, (int Position, bool State) y)
+            public int Compare((int Position, bool? State) x, (int Position, bool? State) y)
             {
                 return x.Position.CompareTo(y.Position);
             }

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
             await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
-            await LoadComponentsAsync(cancellationToken);
+            await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);

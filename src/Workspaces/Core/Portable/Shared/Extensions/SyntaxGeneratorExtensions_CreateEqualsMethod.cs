@@ -23,14 +23,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> symbols, 
+            ImmutableArray<ISymbol> symbols,
             string localNameOpt,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, containingType, symbols, localNameOpt, cancellationToken);
+                factory, compilation, parseOptions, containingType, symbols, localNameOpt, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
             string localNameOpt,
@@ -104,14 +106,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var localName = localNameOpt ?? GetLocalName(containingType);
 
             var localNameExpression = factory.IdentifierName(localName);
-
             var objNameExpression = factory.IdentifierName(ObjName);
 
             // These will be all the expressions that we'll '&&' together inside the final
             // return statement of 'Equals'.
             var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (containingType.IsValueType)
+            if (factory.SupportsPatterns(parseOptions))
+            {
+                // If we support patterns then we can do "return obj is MyType myType && ..."
+                expressions.Add(
+                    factory.IsPatternExpression(objNameExpression,
+                        factory.DeclarationPattern(containingType, localName)));
+            }
+            else if (containingType.IsValueType)
             {
                 // If we're a value type, then we need an is-check first to make sure
                 // the object is our type:
@@ -151,18 +159,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      myType != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
-                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
-                {
-                    // If we're overriding something that also provided an overridden 'Equals',
-                    // then ensure the base type thinks it is equals as well.
-                    //
-                    //      base.Equals(obj)
-                    expressions.Add(factory.InvocationExpression(
-                        factory.MemberAccessExpression(
-                            factory.BaseExpression(),
-                            factory.IdentifierName(EqualsName)),
-                        objNameExpression));
-                }
+            }
+
+            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
+            {
+                // If we're overriding something that also provided an overridden 'Equals',
+                // then ensure the base type thinks it is equals as well.
+                //
+                //      base.Equals(obj)
+                expressions.Add(factory.InvocationExpression(
+                    factory.MemberAccessExpression(
+                        factory.BaseExpression(),
+                        factory.IdentifierName(EqualsName)),
+                    objNameExpression));
             }
 
             AddMemberChecks(factory, compilation, members, localNameExpression, expressions);
@@ -308,7 +317,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                var constructed = iequatableType.Construct(memberType);
+                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                var constructed = iequatableType.Construct(memberType.WithoutNullability());
                 return memberType.AllInterfaces.Contains(constructed);
             }
 

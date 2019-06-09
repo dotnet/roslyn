@@ -8,17 +8,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal sealed class NodeKeyValidation
     {
-        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap;
+        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap =
+            new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
 
         public NodeKeyValidation()
         {
-            _nodeKeysMap = new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
         }
 
-        public void AddProject(Project project)
+        public NodeKeyValidation(ProjectCodeModelFactory projectCodeModelFactory)
         {
-            /*
-            if (project.ProjectCodeModel is ProjectCodeModel projectCodeModel)
+            foreach (var projectCodeModel in projectCodeModelFactory.GetAllProjectCodeModels())
             {
                 var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
@@ -29,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     _nodeKeysMap.Add(fcm, globalNodeKeys);
                 }
             }
-            */
         }
 
         public void AddFileCodeModel(FileCodeModel fileCodeModel)

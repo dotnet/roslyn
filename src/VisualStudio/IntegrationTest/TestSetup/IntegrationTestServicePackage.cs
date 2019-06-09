@@ -16,10 +16,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class IntegrationTestServicePackage : AsyncPackage
     {
+        private static readonly Guid s_compilerPackage = new Guid("31C0675E-87A4-4061-A0DD-A4E510FCCF97");
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell));
+            ErrorHandler.ThrowOnFailure(shell.IsPackageInstalled(s_compilerPackage, out var installed));
+            if (installed != 0)
+            {
+                await ((IVsShell7)shell).LoadPackageAsync(s_compilerPackage);
+            }
 
             IntegrationTestServiceCommands.Initialize(this);
         }

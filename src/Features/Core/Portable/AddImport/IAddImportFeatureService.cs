@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// the information from the provided fixes.
         /// </summary>
         ImmutableArray<CodeAction> GetCodeActionsForFixes(
-            Document document, ImmutableArray<AddImportFixData> fixes, 
+            Document document, ImmutableArray<AddImportFixData> fixes,
             IPackageInstallerService installerService, int maxResults);
     }
 }

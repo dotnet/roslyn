@@ -27,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me._testState = testState
         End Sub
 
-        Public Sub PresentItems(triggerSpan As ITrackingSpan,
+        Public Sub PresentItems(textSnapshot As ITextSnapshot,
+                                triggerSpan As ITrackingSpan,
                                 completionItems As IList(Of CompletionItem),
                                 selectedItem As CompletionItem,
                                 suggestionModeItem As CompletionItem,

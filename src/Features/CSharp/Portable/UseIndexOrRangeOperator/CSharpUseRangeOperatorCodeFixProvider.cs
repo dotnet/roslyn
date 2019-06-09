@@ -26,9 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseRangeOperatorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseRangeOperatorDiagnosticId);
- 
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -51,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 canReplace: (_1, _2) => true,
                 (semanticModel, currentRoot, currentInvocation) =>
                     UpdateInvocation(semanticModel, currentRoot, currentInvocation, cancellationToken),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
 
         private SyntaxNode UpdateInvocation(
-            SemanticModel semanticModel, SyntaxNode currentRoot, 
-            InvocationExpressionSyntax currentInvocation, 
+            SemanticModel semanticModel, SyntaxNode currentRoot,
+            InvocationExpressionSyntax currentInvocation,
             CancellationToken cancellationToken)
         {
             var invocation = semanticModel.GetOperation(currentInvocation, cancellationToken) as IInvocationOperation;
@@ -221,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_range_operator, createChangedDocument, FeaturesResources.Use_range_operator)
             {
             }

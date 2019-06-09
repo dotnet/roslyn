@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     AssemblyIdentity currentIdentity = sameName[i].Key;
 
-                    if (comparer(identity.Version, currentIdentity.Version, sameName[i].Value) && 
+                    if (comparer(identity.Version, currentIdentity.Version, sameName[i].Value) &&
                         AssemblyIdentity.EqualIgnoringNameAndVersion(currentIdentity, identity))
                     {
                         value = sameName[i].Value;

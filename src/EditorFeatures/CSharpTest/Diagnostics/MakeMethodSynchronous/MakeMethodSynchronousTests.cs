@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -763,5 +762,90 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumerableReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    async IAsyncEnumerable<int> [|MAsync|]()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        async IAsyncEnumerator<int> [|MAsync|]()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        IEnumerator<int> M()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable);
+        }
+
+        private const string IAsyncEnumerable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+
+    public interface IAsyncEnumerator<out T> : IAsyncDisposable
+    {
+        ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}";
     }
 }

@@ -46,7 +46,7 @@ class C
                     New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
-                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateExpeditedWaitTask()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),

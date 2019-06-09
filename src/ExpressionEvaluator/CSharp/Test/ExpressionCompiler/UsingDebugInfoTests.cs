@@ -227,8 +227,7 @@ namespace B
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
             WithRuntimeInstance(comp, runtime =>
             {
@@ -330,8 +329,7 @@ namespace D
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib", parseOptions: TestOptions.Regular7).EmitToImageReference(aliases: ImmutableArray.Create("A"));
+            var aliasedRef = CreateEmptyCompilation("", assemblyName: "Lib").EmitToImageReference(aliases: ImmutableArray.Create("A"));
             var comp = CreateCompilation(source, new[] { aliasedRef });
 
             WithRuntimeInstance(comp, runtime =>
@@ -396,7 +394,7 @@ namespace D
                 }
             });
 
-            ImmutableArray < string> externAliasStrings;
+            ImmutableArray<string> externAliasStrings;
             var importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken1, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
@@ -651,7 +649,7 @@ class C
 
                 var actualNamespace = imports.Usings.Single().NamespaceOrType;
                 Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                Assert.Equal(NamespaceKind.Compilation, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
                 Assert.Equal("System", actualNamespace.ToTestDisplayString());
             });
         }
@@ -692,7 +690,7 @@ class C
                 {
                     var actualNamespace = usings[i];
                     Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                    Assert.Equal(actualNamespace.Name == "System" ? NamespaceKind.Compilation : NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                    Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
                     Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
                 }
             });
@@ -735,7 +733,7 @@ namespace A
 
                     var actualNamespace = imports.Usings.Single().NamespaceOrType;
                     Assert.Equal(SymbolKind.Namespace, actualNamespace.Kind);
-                    Assert.Equal(actualNamespace.Name == "System" ? NamespaceKind.Compilation : NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
+                    Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)actualNamespace).Extent.Kind);
                     Assert.Equal(expectedNames[i], actualNamespace.ToTestDisplayString());
                 }
             });
@@ -777,7 +775,7 @@ class C
 
                 var namespaceSymbol = aliasSymbol.Target;
                 Assert.Equal(SymbolKind.Namespace, namespaceSymbol.Kind);
-                Assert.Equal(NamespaceKind.Compilation, ((NamespaceSymbol)namespaceSymbol).Extent.Kind);
+                Assert.Equal(NamespaceKind.Module, ((NamespaceSymbol)namespaceSymbol).Extent.Kind);
                 Assert.Equal("System", namespaceSymbol.ToTestDisplayString());
             });
         }

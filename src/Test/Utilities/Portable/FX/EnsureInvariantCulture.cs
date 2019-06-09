@@ -18,9 +18,9 @@ namespace Roslyn.Test.Utilities
             _threadCulture = CultureInfo.CurrentCulture;
 
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-		}
+        }
 
-		public void Dispose()
+        public void Dispose()
         {
             Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
 

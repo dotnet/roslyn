@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             generateMethodBody As GenerateMethodBody)
 
             Debug.Assert(sourceMethod.IsDefinition)
-            Debug.Assert(sourceMethod.ContainingSymbol = container.SubstitutedSourceType.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(sourceMethod.ContainingType, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
             Debug.Assert(sourceLocals.All(Function(l) l.ContainingSymbol = sourceMethod))
 
             _compilation = compilation
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
             If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
-                Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(_meParameter.Type, Me.SubstitutedSourceMethod.ContainingType, TypeCompareKind.ConsiderEverything))
                 parameterBuilder.Add(_meParameter)
             End If
 

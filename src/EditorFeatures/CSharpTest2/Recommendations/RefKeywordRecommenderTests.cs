@@ -842,7 +842,7 @@ ref int x = ref true ? $$"));
             await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
 int x = 0;
 ref int y = ref true ? ref x : $$"));
-	}
+        }
 
         [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

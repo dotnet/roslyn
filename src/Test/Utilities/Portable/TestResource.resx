@@ -186,6 +186,29 @@ namespace My
             string y = null!;
         }
 
+        void Patterns(object o, object p)
+        {
+            var b = o is string s;
+            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            switch (o, p)
+            {
+                case (2, 1): break;
+                case (2, 2) q: break;
+                case X(2, 3): break;
+                case X(2, 4) q: break;
+                case X { A: 2, B: 5 }: break;
+                case X { A: 2, B: 6 } q: break;
+                case X(2, 1) { A: 2, B: 7 }: break;
+                case X(2, 4) { A: 2, B: 8 } q: break;
+                case { A: 3, B: 9 }: break;
+                case { A: 3, B: 10 } q: break;
+                case X q: break;
+                case var (x, y) when x == y: break;
+                case var (x, (y, z)) when x == y: break;
+                case _: break;
+            }
+        }
+
         [method: Obsolete]
         public A([param: Obsolete] int goo) :
             base(1)
@@ -329,11 +352,16 @@ namespace My
                     break;
                 case int i:
                     break;
+                // case Type (int x, 3) { A: _, B: 7 } identifier:
+                //     break;
+                // case var (x, y, (z, w)):
+                //     break;
                 default:
                     {
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;
@@ -1162,7 +1190,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get
@@ -2206,7 +2234,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get

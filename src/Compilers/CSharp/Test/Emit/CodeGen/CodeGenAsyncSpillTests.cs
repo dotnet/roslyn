@@ -594,8 +594,8 @@ public class Test
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
+            v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"{
   // Code size      273 (0x111)
   .maxstack  5
   .locals init (int V_0,

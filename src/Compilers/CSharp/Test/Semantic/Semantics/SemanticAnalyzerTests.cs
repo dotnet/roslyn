@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -75,16 +76,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-// (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o1 = (D)(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
-
-// (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o2 = new D(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C")
-                );
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
+                // (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1464,7 +1463,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1499,7 +1498,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("String", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("String", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1534,7 +1533,7 @@ class C
             Assert.Equal(1, newExpr.Arguments.Length);
             Assert.Equal(1, newExpr.Constructor.Parameters.Length);
             Assert.Equal("a", newExpr.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
     }
 }

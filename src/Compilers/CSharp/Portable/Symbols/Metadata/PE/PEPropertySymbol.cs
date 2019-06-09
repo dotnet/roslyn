@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbolWithAnnotations _propertyType;
+        private readonly TypeWithAnnotations _propertyTypeWithAnnotations;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
@@ -167,14 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
             // We start without annotation (they will be decoded below)
-            var propertyType = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, originalPropertyType, isAnnotated: false, typeCustomModifiers);
+            var propertyTypeWithAnnotations = TypeWithAnnotations.Create(originalPropertyType, customModifiers: typeCustomModifiers);
 
             // Decode nullable before tuple types to avoid converting between
             // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-            propertyType = NullableTypeDecoder.TransformType(propertyType, handle, moduleSymbol);
-            propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
+            propertyTypeWithAnnotations = NullableTypeDecoder.TransformType(propertyTypeWithAnnotations, handle, moduleSymbol);
+            propertyTypeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyTypeWithAnnotations, handle, moduleSymbol);
 
-            _propertyType = propertyType;
+            _propertyTypeWithAnnotations = propertyTypeWithAnnotations;
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -486,9 +487,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return _refKind; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _propertyType; }
+            get { return _propertyTypeWithAnnotations; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -580,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 foreach (var prop in propertiesWithImplementedGetters)
                 {
-                    if ((object)prop.SetMethod == null || propertiesWithImplementedSetters.Contains(prop))
+                    if (!prop.SetMethod.IsImplementable() || propertiesWithImplementedSetters.Contains(prop))
                     {
                         builder.Add(prop);
                     }
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // No need to worry about duplicates.  If prop was added by the previous loop,
                     // then it must have a GetMethod.
-                    if ((object)prop.GetMethod == null)
+                    if (!prop.GetMethod.IsImplementable())
                     {
                         builder.Add(prop);
                     }
@@ -732,16 +733,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool nonNullTypes;
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
-            }
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

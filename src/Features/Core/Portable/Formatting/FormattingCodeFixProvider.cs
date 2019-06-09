@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Formatting
     [Shared]
     internal class FormattingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public FormattingCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
@@ -34,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var options = await context.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await FormattingCodeFixHelper.FixOneAsync(context.Document, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            var tree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var formattedTree = await FormattingCodeFixHelper.FixOneAsync(tree, context.Document.Project.Solution.Workspace, options, diagnostic, cancellationToken).ConfigureAwait(false);
+            return context.Document.WithSyntaxRoot(await formattedTree.GetRootAsync(cancellationToken).ConfigureAwait(false));
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)

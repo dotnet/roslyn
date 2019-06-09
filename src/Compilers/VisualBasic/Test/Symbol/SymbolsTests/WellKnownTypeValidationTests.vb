@@ -451,7 +451,12 @@ End Namespace
             For special As SpecialType = CType(SpecialType.None + 1, SpecialType) To SpecialType.Count
                 Dim symbol = comp.GetSpecialType(special)
                 Assert.NotNull(symbol)
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+
+                If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
+                Else
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+                End If
             Next
         End Sub
 
@@ -474,7 +479,12 @@ End Namespace
                 End Select
 
                 Dim symbol = comp.GetSpecialTypeMember(special)
-                Assert.NotNull(symbol)
+
+                If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces Then
+                    Assert.Null(symbol) ' Not available
+                Else
+                    Assert.NotNull(symbol)
+                End If
             Next
         End Sub
 
@@ -507,16 +517,22 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
-                         WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
-                         WellKnownType.System_Runtime_CompilerServices_IStrongBox_T,
+                         WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
+                         WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask
+                         WellKnownType.System_Threading_Tasks_ValueTask,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                         WellKnownType.System_Threading_CancellationToken,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -525,12 +541,9 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
-                        Continue For
-                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
-                        ' Injected type
                         Continue For
                 End Select
 
@@ -565,16 +578,22 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
-                         WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
-                         WellKnownType.System_Runtime_CompilerServices_IStrongBox_T,
+                         WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
+                         WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource,
                          WellKnownType.System_Threading_Tasks_ValueTask_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask
+                         WellKnownType.System_Threading_Tasks_ValueTask,
+                         WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
+                         WellKnownType.System_Threading_CancellationToken,
+                         WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -583,12 +602,9 @@ End Namespace
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ITuple
                         ' Not always available.
-                        Continue For
-                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
-                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
-                        ' Injected type
                         Continue For
                 End Select
 
@@ -599,7 +615,7 @@ End Namespace
         End Sub
 
         <Fact>
-               <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {
@@ -623,33 +639,42 @@ End Namespace
                         ' Not a real value.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
-                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value,
-                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
+                         WellKnownMember.System_Threading_Tasks_ValueTask__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -658,18 +683,19 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Index__ctor,
-                         WellKnownMember.System_Index__FromEnd,
-                         WellKnownMember.System_Index__Value,
-                         WellKnownMember.System_Range__Start,
-                         WellKnownMember.System_Range__End,
-                         WellKnownMember.System_Range__All,
-                         WellKnownMember.System_Range__Create,
-                         WellKnownMember.System_Range__FromStart,
-                         WellKnownMember.System_Range__ToEnd
+                         WellKnownMember.System_Index__GetOffset,
+                         WellKnownMember.System_Range__ctor,
+                         WellKnownMember.System_Range__EndAt,
+                         WellKnownMember.System_Range__get_All,
+                         WellKnownMember.System_Range__StartAt,
+                         WellKnownMember.System_Range__get_End,
+                         WellKnownMember.System_Range__get_Start,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
-                        Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
-                        ' Injected type available in VB.
                         Continue For
                 End Select
 
@@ -750,33 +776,42 @@ End Namespace
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
-                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
-                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value,
-                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__get_Version,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__Reset,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException,
+                         WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
                          WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
-                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorSourceAndToken,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctorValue,
+                         WellKnownMember.System_Threading_Tasks_ValueTask__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -785,18 +820,19 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Index__ctor,
-                         WellKnownMember.System_Index__FromEnd,
-                         WellKnownMember.System_Index__Value,
-                         WellKnownMember.System_Range__Start,
-                         WellKnownMember.System_Range__End,
-                         WellKnownMember.System_Range__All,
-                         WellKnownMember.System_Range__Create,
-                         WellKnownMember.System_Range__FromStart,
-                         WellKnownMember.System_Range__ToEnd
+                         WellKnownMember.System_Index__GetOffset,
+                         WellKnownMember.System_Range__ctor,
+                         WellKnownMember.System_Range__EndAt,
+                         WellKnownMember.System_Range__get_All,
+                         WellKnownMember.System_Range__StartAt,
+                         WellKnownMember.System_Range__get_End,
+                         WellKnownMember.System_Range__get_Start,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
+                         WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
-                        Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
-                        ' Injected type available in VB.
                         Continue For
                 End Select
 

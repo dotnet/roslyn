@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -27,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Name(PredefinedCommandHandlerNames.Commit)>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
     <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class CommitCommandHandler
         Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)
         Implements IChainedCommandHandler(Of PasteCommandArgs)
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Property
 
         <ImportingConstructor()>
-        Friend Sub New(
+        Public Sub New(
             bufferManagerFactory As CommitBufferManagerFactory,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             smartIndentationService As ISmartIndentationService,

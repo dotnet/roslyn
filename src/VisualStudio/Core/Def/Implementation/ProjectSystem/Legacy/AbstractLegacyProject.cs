@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -30,6 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         internal VisualStudioProjectOptionsProcessor VisualStudioProjectOptionsProcessor { get; set; }
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
+
+        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
+
+        /// <summary>
+        /// The path to the directory of the project. Read-only, since although you can rename
+        /// a project in Visual Studio you can't change the folder of a project without an
+        /// unload/reload.
+        /// </summary>
+        private readonly string _projectDirectory = null;
+
+        private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         #region Mutable fields that should only be used from the UI thread
 
@@ -61,7 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             {
                 projectFilePath = null;
             }
-     
+
+            if (projectFilePath != null)
+            {
+                _projectDirectory = Path.GetDirectoryName(projectFilePath);
+            }
+
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
             VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
                 projectSystemName,
@@ -72,10 +87,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    Hierarchy = hierarchy,
-                    ProjectGuid = GetProjectIDGuid(hierarchy),
-                    DefaultNamespace = GetDefaultNamespace(hierarchy, language)
+                    ProjectGuid = hierarchy.GetProjectGuid(),
                 });
+
+            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+                VisualStudioProject,
+                () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
+
+            // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+            // by assigning the value of the project's root namespace to it. So various feature can choose to 
+            // use it for their own purpose.
+            // In the future, we might consider officially exposing "default namespace" for VB project 
+            // (e.g. through a <defaultnamespace> msbuild property)
+            VisualStudioProject.DefaultNamespace = GetRootNamespacePropertyValue(hierarchy);
 
             Hierarchy = hierarchy;
             ConnectHierarchyEvents();
@@ -84,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
             try
             {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, Workspace, componentModel.GetService<ExternalErrorDiagnosticUpdateSource>());
                 _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
             }
             catch (Exception)
@@ -96,6 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         public string AssemblyName => VisualStudioProject.AssemblyName;
+
+        public string GetOutputFileName()
+            => VisualStudioProject.IntermediateOutputFilePath;
 
         public virtual void Disconnect()
         {
@@ -134,10 +161,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
         }
 
+        protected void AddFile(
+            string filename,
+            string linkMetadata,
+            SourceCodeKind sourceCodeKind)
+        {
+            // We have tests that assert that XOML files should not get added; this was similar
+            // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
+            // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
+            if (filename.EndsWith(".xoml"))
+            {
+                return;
+            }
+
+            var folders = ImmutableArray<string>.Empty;
+            if (!string.IsNullOrEmpty(linkMetadata))
+            {
+                var linkFolderPath = Path.GetDirectoryName(linkMetadata);
+                folders = linkFolderPath.Split(PathSeparatorCharacters, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            }
+            else if (!string.IsNullOrEmpty(VisualStudioProject.FilePath))
+            {
+                var relativePath = PathUtilities.GetRelativePath(_projectDirectory, filename);
+                var relativePathParts = relativePath.Split(PathSeparatorCharacters);
+                folders = ImmutableArray.Create(relativePathParts, start: 0, length: relativePathParts.Length - 1);
+            }
+
+            VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
+        }
+
         protected void RemoveFile(string filename)
         {
-            AssertIsForeground();
-
             // We have tests that assert that XOML files should not get added; this was similar
             // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
             // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
@@ -147,9 +201,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.RemoveSourceFile(filename);
+            ProjectCodeModel.OnSourceFileRemoved(filename);
         }
 
-        private void RefreshBinOutputPath()
+        protected void RefreshBinOutputPath()
         {
             var storage = Hierarchy as IVsBuildPropertyStorage;
             if (storage == null)
@@ -185,32 +240,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
-        }
 
-        private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
-        {
-            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
+            if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
             {
-                return guid;
+                VisualStudioProject.OutputRefFilePath = targetRefPath;
             }
-
-            return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
+            else
             {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
+                VisualStudioProject.OutputRefFilePath = null;
             }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -305,13 +343,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         /// <summary>
-        /// Get the default namespace of the project ("" if not defined, which means global namespace),
+        /// Get the value of "rootnamespace" property of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
         /// <remarks>
-        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// This property has different meaning between C# and VB, each project type can decide how to interpret the value.
         /// </remarks>>
-        private static string GetDefaultNamespace(IVsHierarchy hierarchy, string language)
+        private static string GetRootNamespacePropertyValue(IVsHierarchy hierarchy)
         {
             // While both csproj and vbproj might define <rootnamespace> property in the project file, 
             // they are very different things.
@@ -327,23 +365,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // 
             // Unfortunately, although being different concepts, default namespace and root namespace are almost
             // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
-            // files and, (2) the property name we use to call into DTE project below to retrieve the value is 
+            // files and, (2) the property name we use to call into hierarchy below to retrieve the value is 
             // called "DefaultNamespace".
 
-            if (hierarchy != null && language == LanguageNames.CSharp)
+            if (hierarchy.TryGetProperty(__VSHPROPID.VSHPROPID_DefaultNamespace, out string value))
             {
-                if (hierarchy.TryGetProject(out var dteProject))
-                {
-                    try
-                    {
-                        return (string)dteProject.Properties.Item("DefaultNamespace").Value;
-                    }
-                    catch (ArgumentException)
-                    {
-                        // DefaultNamespace does not exist for this project.
-                        return string.Empty;
-                    }
-                }
+                return value;
             }
 
             return null;

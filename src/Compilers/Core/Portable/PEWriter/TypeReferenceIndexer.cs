@@ -8,7 +8,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Visitor to force translation of all symbols that will be referred to
     /// in metadata. Allows us to build the set of types that must be embedded
-    /// as local types (for NoPia) and the set of injected types that must be embedded (NonNullTypes, Embedded).
+    /// as local types (for NoPia).
     /// </summary>
     internal sealed class TypeReferenceIndexer : ReferenceIndexerBase
     {
@@ -16,10 +16,6 @@ namespace Microsoft.Cci
             : base(context)
         {
         }
-
-        // For purpose of detecting any uses of NonNullTypes attribute, we need to process references in current module too.
-        protected override bool ProcessReferencesInCurrentModule
-            => true;
 
         public override void Visit(CommonPEModuleBuilder module)
         {

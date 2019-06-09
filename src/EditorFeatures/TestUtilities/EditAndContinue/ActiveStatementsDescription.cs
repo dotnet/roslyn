@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 (list, s) => SetListItem(list, s.Id, CreateActiveStatement(s.Span, s.Id, oldText, s_dummyDocumentId))).ToArray();
 
             NewSpans = GetActiveSpans(newSource).Aggregate(
-                new List<TextSpan>(), 
+                new List<TextSpan>(),
                 (list, s) => SetListItem(list, s.Id, s.Span)).ToArray();
 
             OldRegions = GetExceptionRegions(oldSource, OldStatements.Length);

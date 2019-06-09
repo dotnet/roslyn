@@ -349,7 +349,7 @@ class Program
 }";
             await VerifyItemIsAbsentAsync(markup, "DayOfWeek");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotInAnonymousMethodBlock()
         {

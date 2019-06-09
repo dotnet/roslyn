@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal static class UseConditionalExpressionForAssignmentHelpers 
+    internal static class UseConditionalExpressionForAssignmentHelpers
     {
         public static bool TryMatchPattern(
             ISyntaxFactsService syntaxFacts,

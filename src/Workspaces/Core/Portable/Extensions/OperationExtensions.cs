@@ -1,16 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,13 +35,63 @@ namespace Microsoft.CodeAnalysis
             | nameof(x)       |      |       |             |             |       ✔️        | ️
             | sizeof(x)       |      |       |             |             |       ✔️        | ️
             | typeof(x)       |      |       |             |             |       ✔️        | ️
+            | out var x       |      |  ✔️   |             |             |                 | ️
+            | case X x:       |      |  ✔️   |             |             |                 | ️
+            | obj is X x      |      |  ✔️   |             |             |                 |
 
             */
+            if (operation is ILocalReferenceOperation localReference &&
+                localReference.IsDeclaration &&
+                !localReference.IsImplicit) // Workaround for https://github.com/dotnet/roslyn/issues/30753
+            {
+                // Declaration expression is a definition (write) for the declared local.
+                return ValueUsageInfo.Write;
+            }
+            else if (operation is IDeclarationPatternOperation)
+            {
+                switch (operation.Parent)
+                {
+                    case IPatternCaseClauseOperation _:
+                        // A declaration pattern within a pattern case clause is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      switch (obj)
+                        //      {
+                        //          case X x:
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IOperation iop when iop.GetType().GetInterfaces().Any(i => i.Name == "IRecursivePatternOperation"):
+                        // A declaration pattern within a recursive pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      (obj) switch
+                        //      {
+                        //          (X x) => ...
+                        //      };
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case IIsPatternOperation _:
+                        // A declaration pattern within an is pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      if (obj is X x)
+                        //
+                        return ValueUsageInfo.Write;
+
+                    default:
+                        Debug.Fail("Unhandled declaration pattern context");
+
+                        // Conservatively assume read/write.
+                        return ValueUsageInfo.ReadWrite;
+                }
+            }
 
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
                 assignmentOperation.Target == operation)
             {
-                return operation.Parent.Kind == OperationKind.CompoundAssignment
+                return operation.Parent.IsAnyCompoundAssignment()
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
@@ -66,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NameOnly;
+                return ValueUsageInfo.Name;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
@@ -92,7 +137,11 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
-            else if (IsInLeftOfDeconstructionAssignment(operation))
+            else if (operation.Parent is IDeclarationExpressionOperation declarationExpression)
+            {
+                return declarationExpression.GetValueUsageInfo();
+            }
+            else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
                 return ValueUsageInfo.Write;
             }
@@ -100,8 +149,10 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
-        private static bool IsInLeftOfDeconstructionAssignment(IOperation operation)
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)
         {
+            deconstructionAssignment = null;
+
             var previousOperation = operation;
             operation = operation.Parent;
 
@@ -110,7 +161,7 @@ namespace Microsoft.CodeAnalysis
                 switch (operation.Kind)
                 {
                     case OperationKind.DeconstructionAssignment:
-                        var deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
                         return deconstructionAssignment.Target == previousOperation;
 
                     case OperationKind.Tuple:
@@ -126,6 +177,98 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Retursn true if the given operation is a regular compound assignment,
+        /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
+        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// such as <code>a ??= b</code>.
+        /// </summary>
+        public static bool IsAnyCompoundAssignment(this IOperation operation)
+        {
+            switch (operation)
+            {
+                case ICompoundAssignmentOperation _:
+                case ICoalesceAssignmentOperation _:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
+        {
+            foreach (var block in cfg.Blocks)
+            {
+                var isCatchRegionBlock = false;
+                var currentRegion = block.EnclosingRegion;
+                while (currentRegion != null)
+                {
+                    switch (currentRegion.Kind)
+                    {
+                        case ControlFlowRegionKind.Catch:
+                            isCatchRegionBlock = true;
+                            break;
+                    }
+
+                    currentRegion = currentRegion.EnclosingRegion;
+                }
+
+                if (isCatchRegionBlock)
+                {
+                    foreach (var descendant in block.DescendantOperations())
+                    {
+                        if (operation == descendant)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
+        {
+            foreach (var operationBlock in operationBlocks)
+            {
+                if (operationBlock.HasAnyOperationDescendant(predicate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
+        {
+            return operationBlock.HasAnyOperationDescendant(predicate, out _);
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        {
+            Debug.Assert(operationBlock != null);
+            Debug.Assert(predicate != null);
+            foreach (var descendant in operationBlock.DescendantsAndSelf())
+            {
+                if (predicate(descendant))
+                {
+                    foundOperation = descendant;
+                    return true;
+                }
+            }
+
+            foundOperation = null;
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, OperationKind kind)
+        {
+            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
         }
     }
 }

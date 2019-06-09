@@ -40,7 +40,7 @@ class C
             var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
             var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
             Assert.Equal("e", localSymbol.Name);
-            Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
+            Assert.Equal("System.IO.IOException", localSymbol.TypeWithAnnotations.ToDisplayString());
 
             var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
             Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());

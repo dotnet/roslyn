@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseDeconstructionDiagnosticAnalyzer() 
+        public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Deconstruct_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_deconstructed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         public static bool TryAnalyzeForEachStatement(
             SemanticModel semanticModel,
-            ForEachStatementSyntax forEachStatement, 
+            ForEachStatementSyntax forEachStatement,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)

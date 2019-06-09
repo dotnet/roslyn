@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             public bool Equals(ExportKey other)
-                => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 && 
+                => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
                    string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
 
             public override bool Equals(object obj)

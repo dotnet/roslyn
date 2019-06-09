@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var symbolsWithName = symbols.SelectAsArray(s => new SymbolAndProjectId(s, project.Id));
 
-                if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
+                if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have 
                     // the same language as startingCompilation.
@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list, 
+            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt,
+            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list,
             CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching

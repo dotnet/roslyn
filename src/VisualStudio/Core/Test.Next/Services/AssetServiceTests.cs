@@ -92,10 +92,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
-                foreach (var kv in map)
-                {
-                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
-                }
+                TestUtils.VerifyAssetStorage(map, storage);
             }
         }
 
@@ -120,10 +117,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
-                foreach (var kv in map)
-                {
-                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
-                }
+                TestUtils.VerifyAssetStorage(map, storage);
             }
         }
     }

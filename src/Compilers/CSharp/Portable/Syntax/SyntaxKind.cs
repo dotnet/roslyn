@@ -194,7 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
+        /// when adding a contextual keyword following functions must be adapted:
+        /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
 
+        // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
         ElifKeyword = 8467,
         EndIfKeyword = 8468,
@@ -222,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         EnableKeyword = 8487,
 
         // Other
+        VarKeyword = 8490,
         UnderscoreToken = 8491,
         OmittedTypeArgumentToken = 8492,
         OmittedArraySizeExpressionToken = 8493,
@@ -564,6 +569,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         CasePatternSwitchLabel = 9009,
         WhenClause = 9013,
         DiscardDesignation = 9014,
+
+        // added along with recursive patterns
+        RecursivePattern = 9020,
+        PropertyPatternClause = 9021,
+        Subpattern = 9022,
+        PositionalPatternClause = 9023,
+        DiscardPattern = 9024,
+        SwitchExpression = 9025,
+        SwitchExpressionArm = 9026,
+        VarPattern = 9027,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
         // Please start with 9040 if you add more kinds below.

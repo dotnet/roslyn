@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly TouchedFileLogger _loggerOpt;
 
-            public LoggingStrongNameFileSystem(TouchedFileLogger logger)
+            public LoggingStrongNameFileSystem(TouchedFileLogger logger, string tempPath)
+                : base(tempPath)
             {
                 _loggerOpt = logger;
             }

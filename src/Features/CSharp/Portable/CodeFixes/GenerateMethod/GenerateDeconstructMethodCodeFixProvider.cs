@@ -16,13 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateDeconstructMethod), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 
+        [ImportingConstructor]
+        public GenerateDeconstructMethodCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8129);
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -68,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     throw ExceptionUtilities.Unreachable;
             }
 
-            if (type.Kind != SymbolKind.NamedType)
+            if (type?.Kind != SymbolKind.NamedType)
             {
                 return;
             }

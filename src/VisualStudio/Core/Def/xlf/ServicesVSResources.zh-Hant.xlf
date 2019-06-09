@@ -2,6 +2,31 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_current_file">
+        <source>Add to _current file</source>
+        <target state="translated">新增至 _current 檔案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
+        <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
+        <target state="translated">必須進行其他變更，才能完成重構。請檢閱以下變更。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="translated">全部方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_colon">
+        <source>Allow:</source>
+        <target state="translated">允許:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">一律使用以明確表示</target>
@@ -12,9 +37,39 @@
         <target state="translated">套用 '{0}' 按鍵對應結構描述</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
+        <source>Avoid expression statements that implicitly ignore value</source>
+        <target state="translated">避免會隱含地忽略值的運算陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="translated">避免未使用的參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_value_assignments">
+        <source>Avoid unused value assignments</source>
+        <target state="translated">避免未使用的值指派</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Back">
+        <source>Back</source>
+        <target state="translated">返回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="translated">正在計算相依項...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Classifications">
+        <source>Classifications</source>
+        <target state="translated">分類</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
+        <target state="translated">為規則運算式添加色彩</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -22,19 +77,34 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finish">
+        <source>Finish</source>
+        <target state="translated">完成</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
-        <target state="new">Generate .editorconfig file from settings</target>
+        <target state="translated">從設定產生 .editorconfig 檔案</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
+        <target state="translated">反白資料指標下的相關元件</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">其他運算子中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_cannot_have_field">
+        <source>Interface cannot have field.</source>
+        <target state="translated">介面不得具有欄位。</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -44,12 +114,62 @@
       </trans-unit>
       <trans-unit id="Kind">
         <source>Kind</source>
-        <target state="new">Kind</target>
+        <target state="translated">種類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_abstract">
+        <source>Make '{0}' abstract</source>
+        <target state="translated">將 '{0}' 抽象化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="translated">抽象化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="translated">成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="translated">修飾詞喜好設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0">
+        <source>Namespace: '{0}'</source>
+        <target state="translated">命名空間: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">不需要時一律不要</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="translated">非公用方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_preferences_colon">
+        <source>Parameter preferences:</source>
+        <target state="translated">參數喜好設定:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -59,27 +179,52 @@
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="new">Prefer compound assignments</target>
+        <target state="translated">優先使用複合指派</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
-        <target state="new">Prefer index operator</target>
+        <target state="translated">優先使用索引運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
-        <target state="new">Prefer range operator</target>
+        <target state="translated">優先使用範圍運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="translated">建議使用唯讀欄位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="translated">建議使用簡單的 'using' 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="translated">建議使用靜態區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="translated">提升成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
+        <target state="translated">規則運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">將 {0} 重新命名為 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
+        <target state="translated">回報無效的規則運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
@@ -87,19 +232,109 @@
         <target state="translated">重設 Visual Studio 預設按鍵對應</target>
         <note />
       </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="translated">檢閱變更</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
-        <target state="new">Save .editorconfig file</target>
+        <target state="translated">儲存 .editorconfig 檔案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="translated">選取目的地</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>Select _Dependents</source>
+        <target state="translated">選取相依項(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>Select _Public</source>
+        <target state="translated">選取公用(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="translated">選取要提升的目的地及成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="translated">選取目的地:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="translated">選取成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="translated">選取成員:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="translated">顯示自動完成清單</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">未使用的值已明確指派至未使用的區域</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">未使用的值已明確指派至捨棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
+        <source>Use enhanced colors for C# and Basic</source>
+        <target state="translated">使用 C# 和 Basic 的增強色彩</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
-        <target state="new">Use expression body for lambdas</target>
+        <target state="translated">使用 lambda 的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">使用區域函式的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">這裡指派的值從未使用過</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">明確地忽略引動過程傳回的值</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">我們發現您暫止了 '{0}'。重設按鍵對應以繼續巡覽和重構。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="translated">此工作區不支援更新的 Visual Basic 編譯選項。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -220,6 +455,21 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">值無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="translated">'{0}' 會變更為抽象。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="translated">'{0}' 會變更為非靜態。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="translated">'{0}' 會變更為公用。</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1443,11 +1693,6 @@ Additional information: {1}</source>
         <target state="translated">啟用完整解決方案分析(_A)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">在外部處理序中執編輯器功能分析 (_F)(實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">淡出執行不到的程式碼</target>
@@ -1564,8 +1809,8 @@ I agree to all of the foregoing:</source>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">在此處進行的設定僅適用於您的電腦。若要這些設定隨著您的解決方案移動，請使用 .editorconfig 檔案。</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">在此處進行的設定僅適用於您的電腦。若要這些設定隨著您的解決方案移動，請使用 .editorconfig 檔案。</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
@@ -1578,16 +1823,6 @@ I agree to all of the foregoing:</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">欄位喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">偏好唯讀</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
         <target state="translated">正在分析 '{0}'</target>
@@ -1596,11 +1831,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">管理命名樣式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Live Code 分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.Type.IsInterfaceType())
                 {
-                    Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
+                    Debug.Assert(TypeSymbol.Equals(rewrittenObjectCreation.Type, ((NamedTypeSymbol)node.Type).ComImportCoClass, TypeCompareKind.ConsiderEverything2));
                     rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
                 }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Type.IsInterfaceType())
             {
-                Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
+                Debug.Assert(TypeSymbol.Equals(rewrittenObjectCreation.Type, ((NamedTypeSymbol)node.Type).ComImportCoClass, TypeCompareKind.ConsiderEverything2));
                 rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
             }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
-                return new BoundDefaultExpression(syntax, null, type: typeParameter, hasErrors: true);
+                return new BoundDefaultExpression(syntax, type: typeParameter, hasErrors: true);
             }
 
             Debug.Assert((object)method != null);

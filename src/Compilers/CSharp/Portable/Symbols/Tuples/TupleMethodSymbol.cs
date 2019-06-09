@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = container;
 
             TypeMap.Empty.WithAlphaRename(underlyingMethod, this, out _typeParameters);
-            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArguments);
+            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
         }
 
         public override bool IsTupleMethod
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _underlyingMethod.ReturnType;
+                return _underlyingMethod.ReturnTypeWithAnnotations;
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public override bool? NonNullTypes => false;
-
         public override int GetHashCode()
         {
             return _underlyingMethod.ConstructedFrom.GetHashCode();
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
         private readonly string NonNullTypes = @"
-" + Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase.NonNullTypesOn() + @"
+#nullable enable
 ";
 
         [Fact]
@@ -82,6 +82,56 @@ class Program
         }
 
         [Fact]
+        public async Task FixReturnType_Async()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string> M()
+    {
+        return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static async System.Threading.Tasks.Task<string?> M()
+    {
+        return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_AsyncLocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        async System.Threading.Tasks.Task<string> local()
+        {
+            return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        async System.Threading.Tasks.Task<string?> local()
+        {
+            return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixReturnType_WithTrivia()
         {
             await TestInRegularAndScript1Async(
@@ -138,7 +188,7 @@ class Program
         [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 NonNullTypes + @"
 class Program
 {
@@ -147,6 +197,17 @@ class Program
         string local()
         {
             return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        string? local()
+        {
+            return null;
         }
     }
 }", parameters: s_nullableFeature);
@@ -308,6 +369,106 @@ class Program
     static void M(object o)
     {
         string? x = o as string;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_Enumerable()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_Enumerator()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string> M()
+    {
+        yield return [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static System.Collections.Generic.IEnumerator<string?> M()
+    {
+        yield return null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_IteratorProperty()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string> Property
+    {
+        get
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    System.Collections.Generic.IEnumerable<string?> Property
+    {
+        get
+        {
+            yield return null;
+        }
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixReturnType_Iterator_LocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string> local()
+        {
+            yield return [|null|];
+        }
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        System.Collections.Generic.IEnumerable<string?> local()
+        {
+            yield return null;
+        }
     }
 }", parameters: s_nullableFeature);
         }

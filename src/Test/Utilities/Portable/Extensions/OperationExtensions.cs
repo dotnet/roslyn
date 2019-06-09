@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Test.Extensions
     {
         public static bool MustHaveNullType(this IOperation operation)
         {
-            switch(operation.Kind)
+            switch (operation.Kind)
             {
                 // TODO: Expand to cover all operations that must always have null type.
                 case OperationKind.ArrayInitializer:

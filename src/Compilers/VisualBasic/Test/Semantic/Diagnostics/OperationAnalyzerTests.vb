@@ -1316,7 +1316,7 @@ End Class
                          </compilation>
 
             ' We have 2 OperationKind.None operations in the operation tree:
-            ' (1) BoundUnstructedExceptionHandlingStatement for the method block with Resume statement
+            ' (1) BoundUnstructuredExceptionHandlingStatement for the method block with Resume statement
             ' (2) BoundResumeStatement for Resume statement
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()

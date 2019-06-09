@@ -14,23 +14,48 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">C# 編碼慣例</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">C# 格式化規則</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="translated">捨棄</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="translated">格式化文件設定 (實驗) </target>
+        <target state="translated">格式化文件設定 (實驗)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">一般</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">產生事件訂閱</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">關係運算子:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">在關係運算子中: &lt; &gt; &lt;= &gt;= 如同 == !=</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
@@ -42,14 +67,34 @@
         <target state="translated">參考相等檢查最好使用 'is null'</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="new">Prefer switch expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">移除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">排序 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -367,6 +412,11 @@
         <target state="translated">關鍵字的新行選項</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">未使用的區域函式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
         <target state="translated">產生區域變數時，請使用 'var'</target>
@@ -502,11 +552,6 @@
         <target state="translated">將屬性、索引子及事件的左邊大括號放在新行</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">為參考組件中的類型建議 Using(_R)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">為 NuGet 封裝中的類型建議 Using(_N)</target>
@@ -525,6 +570,11 @@
       <trans-unit id="Elsewhere">
         <source>Elsewhere</source>
         <target state="translated">其他地方</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="translated">在多行上時</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -571,6 +621,11 @@
         <source>'this.' preferences:</source>
         <target state="translated">'this.' 喜好設定:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
@@ -719,7 +774,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">報告 'string.Format' 呼叫中無效的預留位置</target>
+        <target state="translated">報告 'String.Format' 呼叫中無效的預留位置</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -732,19 +787,14 @@
         <target state="translated">顯示名稱建議(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">產生事件訂閱</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="translated">算術運算子中:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">算術運算子: * / % + - &lt;&lt; &gt;&gt; &amp; ^ |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">其他二元運算子中:  &amp;&amp;   ||   ??</target>
+        <target state="translated">在其他二元運算子中: &amp;&amp; || ??</target>
         <note />
       </trans-unit>
     </body>

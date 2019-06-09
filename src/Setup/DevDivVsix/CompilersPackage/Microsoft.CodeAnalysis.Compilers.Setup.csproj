@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- VS Insertion -->
     <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
@@ -26,36 +26,28 @@
   <!-- 
     Calculates which external dependencies included in the target VSIX need to be updated with optimization data.
   -->
-  <Target Name="_CalculateCompilerArtifactsToOptimize"
-          DependsOnTargets="InitializeCompilerArtifacts">
+  <Target Name="_CalculateDesktopCompilerArtifactsToOptimize"
+          DependsOnTargets="InitializeDesktopCompilerArtifacts">
 
     <ItemGroup>
-      <CompilerArtifact Condition="'%(CompilerArtifact.OverwriteOptimizationData)' == 'true'">
-        <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(CompilerArtifact.Identity))).pgo'))</_PreviousOptimizedFile>
-        <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(CompilerArtifact.Identity)))</_OptimizeAssembly>
-      </CompilerArtifact>
+      <DesktopCompilerArtifact Condition="'%(DesktopCompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+        <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(DesktopCompilerArtifact.Identity)))</_OptimizeAssembly>
+      </DesktopCompilerArtifact>
 
-      <CompilerArtifact Condition="!Exists(%(CompilerArtifact._PreviousOptimizedFile))">
-        <_PreviousOptimizedFile/>
-        <_OptimizeAssembly/>
-      </CompilerArtifact>
-
-      <OptimizeAssembly Include="@(CompilerArtifact->'%(_OptimizeAssembly)')"
-                        PreviousOptimizedFile="%(CompilerArtifact._PreviousOptimizedFile)"
-                        Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''" />
+      <OptimizeAssembly Include="@(DesktopCompilerArtifact->'%(_OptimizeAssembly)')" Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''" />
     </ItemGroup>
   </Target>
 
   <!-- 
     Copies the artifacts that need optimization data to an intermediate output dir.
   -->
-  <Target Name="_PrepareCompilerArtifactsForOptimization"
-          DependsOnTargets="_CalculateCompilerArtifactsToOptimize"
-          Inputs="@(CompilerArtifact)"
-          Outputs="@(CompilerArtifact->'%(_OptimizeAssembly)')"
-          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'">
+  <Target Name="_PrepareDesktopCompilerArtifactsForOptimization"
+          DependsOnTargets="_CalculateDesktopCompilerArtifactsToOptimize"
+          Inputs="@(DesktopCompilerArtifact)"
+          Outputs="@(DesktopCompilerArtifact->'%(_OptimizeAssembly)')"
+          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
 
-    <Copy SourceFiles="%(CompilerArtifact.Identity)" DestinationFiles="%(CompilerArtifact._OptimizeAssembly)" Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">
+    <Copy SourceFiles="%(DesktopCompilerArtifact.Identity)" DestinationFiles="%(DesktopCompilerArtifact._OptimizeAssembly)" Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>
@@ -63,19 +55,79 @@
   <Target Name="_GenerateSwrFile" 
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
-          DependsOnTargets="_SetSwrFilePath;InitializeCompilerArtifacts;_PrepareCompilerArtifactsForOptimization;ApplyOptimizations"
+          DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_File Include="@(CompilerArtifact)">
-        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' == ''">%(CompilerArtifact.Identity)</Path>
-        <Path Condition="'%(CompilerArtifact._OptimizeAssembly)' != ''">%(CompilerArtifact._OptimizeAssembly)</Path>
-        <NGenArchitectureString Condition="'%(CompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(CompilerArtifact.NgenArchitecture)</NGenArchitectureString>
-        <NGenPriorityString Condition="'%(CompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(CompilerArtifact.NGenPriority)</NGenPriorityString>
-        <NGenApplicationString Condition="'%(CompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(CompilerArtifact.NGenApplication)"</NGenApplicationString>
+      <_File Include="@(DesktopCompilerArtifact)">
+        <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' == ''">%(DesktopCompilerArtifact.Identity)</Path>
+        <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">%(DesktopCompilerArtifact._OptimizeAssembly)</Path>
+        <NGenArchitectureString Condition="'%(DesktopCompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(DesktopCompilerArtifact.NgenArchitecture)</NGenArchitectureString>
+        <NGenPriorityString Condition="'%(DesktopCompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(DesktopCompilerArtifact.NGenPriority)</NGenPriorityString>
+        <NGenApplicationString Condition="'%(DesktopCompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\Current\Bin\Roslyn\%(DesktopCompilerArtifact.NGenApplication)"</NGenApplicationString>
       </_File>
-      
+
       <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
+
+      <!-- Satellite assemblies -->
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
+      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\*.resources.dll"/>
+
+      <_CsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'cs\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_CsSatellite>
+
+      <_DeSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'de\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_DeSatellite>
+
+      <_EsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'es\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_EsSatellite>
+
+      <_FrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'fr\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_FrSatellite>
+
+      <_ItSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'it\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_ItSatellite>
+
+      <_JaSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ja\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_JaSatellite>
+
+      <_KoSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ko\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_KoSatellite>
+
+      <_PlSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pl\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_PlSatellite>
+
+      <_PtBrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pt-BR\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_PtBrSatellite>
+
+      <_RuSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ru\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_RuSatellite>
+
+      <_TrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'tr\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_TrSatellite>
+
+      <_Zh-HansSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hans\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_Zh-HansSatellite>
+
+      <_Zh-HantSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hant\'">
+        <_FileEntries>file source=%(Identity)</_FileEntries>
+      </_Zh-HantSatellite>
     </ItemGroup>
 
     <PropertyGroup>
@@ -91,11 +143,50 @@ vs.dependencies
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn
+folder InstallDir:\MSBuild\Current\Bin\Roslyn
   @(_FileEntries, '%0d%0a  ')
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
   file source="$(MSBuildProjectDirectory)\roslyn.bat"
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\cs
+  @(_CsSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\de
+  @(_DeSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\es
+  @(_EsSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\fr
+  @(_FrSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\it
+  @(_ItSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ja
+  @(_JaSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ko
+  @(_KoSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\pl
+  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\pt-BR
+  @(_PtBrSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ru
+  @(_RuSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\tr
+  @(_TrSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hans
+  @(_zh-HansSatellite->'%(_FileEntries)', '%0d%0a  ')
+
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
+  @(_zh-HantSatellite->'%(_FileEntries)', '%0d%0a  ')
 ]]>
       </_Lines>
     </PropertyGroup>
@@ -107,6 +198,6 @@ folder InstallDir:\Common7\Tools\vsdevcmd\ext
       <SwrFile Include="$(_SwrFilePath)"/>
     </ItemGroup>
   </Target>
-  
-  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
+
+  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>

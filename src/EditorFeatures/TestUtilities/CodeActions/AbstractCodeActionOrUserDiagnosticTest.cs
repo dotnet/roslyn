@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
+            internal readonly string title;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
-                bool retainNonFixableDiagnostics = false)
+                bool retainNonFixableDiagnostics = false,
+                string title = null)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -54,16 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.index = index;
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
+                this.title = title;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
         }
 
         protected abstract string GetLanguage();
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
-                Assert.Equal(0, diagnostics.Length);
+                Assert.True(0 == diagnostics.Length, $"Expected no diagnostics, but got {diagnostics.Length}");
             }
         }
 
@@ -323,11 +326,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             object fixProviderData = null,
-            ParseOptions parseOptions = null)
+            ParseOptions parseOptions = null,
+            string title = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title));
         }
 
         internal async Task TestInRegularAndScript1Async(
@@ -374,10 +378,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionAsync(
                     workspace, expected, action,
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
+        protected static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
             // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed
@@ -522,6 +522,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);
+            }
+
+            if (parameters.title != null)
+            {
+                Assert.Equal(parameters.title, action.Title);
             }
 
             return action.GetOperationsAsync(CancellationToken.None);
@@ -616,6 +621,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Tests all the code actions for the given <paramref name="input"/> string.  Each code
+        /// action must produce the corresponding output in the <paramref name="outputs"/> array.
+        /// 
+        /// Will throw if there are more outputs than code actions or more code actions than outputs.
+        /// </summary>
+        protected Task TestAllInRegularAndScriptAsync(
+            string input,
+            params string[] outputs)
+        {
+            return TestAllInRegularAndScriptAsync(input, parameters: default, outputs);
+        }
+
+        protected async Task TestAllInRegularAndScriptAsync(
+            string input,
+            TestParameters parameters,
+            params string[] outputs)
+        {
+            for (int index = 0; index < outputs.Length; index++)
+            {
+                var output = outputs[index];
+                await TestInRegularAndScript1Async(input, output, index, parameters: parameters);
+            }
+
+            await TestActionCountAsync(input, outputs.Length, parameters);
         }
     }
 }

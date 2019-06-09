@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             if (document != null)
             {
                 var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                var enabled = options.GetOption(
-                    SplitStringLiteralOptions.Enabled);
+                var enabled = options.GetOption(SplitStringLiteralOptions.Enabled);
+                var indentStyle = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
                 if (enabled)
                 {
@@ -132,11 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
+            var indentStyle = options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
-            var splitter = StringSplitter.Create(document, position, root, sourceText, useTabs, tabSize, cancellationToken);
+            var splitter = StringSplitter.Create(
+                document, position, root, sourceText,
+                useTabs, tabSize, indentStyle, cancellationToken);
             if (splitter == null)
             {
                 return null;

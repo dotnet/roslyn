@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAsAndNullCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
 
@@ -38,14 +44,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
+            var statementParentScopes = new HashSet<SyntaxNode>();
+            void RemoveStatement(StatementSyntax statement)
+            {
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                {
+                    statementParentScopes.Add(statement.Parent);
+                }
+            }
+
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, cancellationToken);
+                    AddEdits(editor, diagnostic, RemoveStatement, cancellationToken);
                 }
+            }
+
+            foreach (var parentScope in statementParentScopes)
+            {
+                editor.ReplaceNode(parentScope, (newParentScope, syntaxGenerator) =>
+                {
+                    var firstStatement = newParentScope is BlockSyntax
+                        ? ((BlockSyntax)newParentScope).Statements.First()
+                        : ((SwitchSectionSyntax)newParentScope).Statements.First();
+                    return syntaxGenerator.ReplaceNode(newParentScope, firstStatement, firstStatement.WithoutLeadingBlankLinesInTrivia());
+                });
             }
 
             return Task.CompletedTask;
@@ -54,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
+            Action<StatementSyntax> removeStatement,
             CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
@@ -79,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     isExpression.Parenthesize());
             }
 
-            if (declarator.Parent is VariableDeclarationSyntax declaration && 
-                declaration.Parent is LocalDeclarationStatementSyntax localDeclaration && 
+            if (declarator.Parent is VariableDeclarationSyntax declaration &&
+                declaration.Parent is LocalDeclarationStatementSyntax localDeclaration &&
                 declaration.Variables.Count == 1)
             {
                 // Trivia on the local declaration will move to the next statement.
@@ -89,9 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 editor.ReplaceNode(
                     localDeclaration.GetNextStatement(),
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+
+                removeStatement(localDeclaration);
+            }
+            else
+            {
+                editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
 
-            editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             editor.ReplaceNode(comparison, isExpression.WithTriviaFrom(comparison));
         }
 

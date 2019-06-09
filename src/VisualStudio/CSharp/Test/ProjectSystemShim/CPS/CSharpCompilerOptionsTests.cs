@@ -143,7 +143,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public void ProjectGuidSetter_CPS()
         {
             var initialGuid = Guid.NewGuid();
-            
+
             using (var environment = new TestEnvironment())
             using (IWorkspaceProjectContext projectContext = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid))
             {

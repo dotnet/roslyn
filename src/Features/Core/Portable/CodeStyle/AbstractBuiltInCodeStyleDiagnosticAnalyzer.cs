@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -14,7 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+            : base(supportedDiagnostics)
+        {
+        }
+
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
+
+        public virtual bool OpenFileOnly(Workspace workspace)
+            => false;
     }
 }

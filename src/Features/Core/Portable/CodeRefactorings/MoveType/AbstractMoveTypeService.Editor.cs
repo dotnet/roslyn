@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -34,9 +35,41 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             protected SemanticDocument SemanticDocument => State.SemanticDocument;
 
             /// <summary>
-            /// operations performed by CodeAction.
+            /// Operations performed by CodeAction.
             /// </summary>
-            internal abstract Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync();
+            public virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            {
+                var solution = await GetModifiedSolutionAsync().ConfigureAwait(false);
+
+                if (solution == null)
+                {
+                    return ImmutableArray<CodeActionOperation>.Empty;
+                }
+
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solution));
+            }
+
+            /// <summary>
+            /// Incremental solution edits that correlate to code operations
+            /// </summary>
+            public abstract Task<Solution> GetModifiedSolutionAsync();
+
+            public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, State state, string fileName, CancellationToken cancellationToken)
+            {
+                switch (operationKind)
+                {
+                    case MoveTypeOperationKind.MoveType:
+                        return new MoveTypeEditor(service, state, fileName, cancellationToken);
+                    case MoveTypeOperationKind.RenameType:
+                        return new RenameTypeEditor(service, state, fileName, cancellationToken);
+                    case MoveTypeOperationKind.RenameFile:
+                        return new RenameFileEditor(service, state, fileName, cancellationToken);
+                    case MoveTypeOperationKind.MoveTypeNamespaceScope:
+                        return new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(operationKind);
+                }
+            }
         }
     }
 }

@@ -13,24 +13,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// returns the type transformed to have IsNullable set to true or false
         /// (but not null) for each reference type in the type.
         /// </summary>
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)
         {
-            Debug.Assert(!metadataType.IsNull);
+            Debug.Assert(metadataType.HasType);
 
-            ImmutableArray<bool> nullableTransformFlags;
-            containingModule.Module.HasNullableAttribute(targetSymbolToken, out nullableTransformFlags);
+            byte defaultTransformFlag;
+            ImmutableArray<byte> nullableTransformFlags;
+            containingModule.Module.HasNullableAttribute(targetSymbolToken, out defaultTransformFlag, out nullableTransformFlags);
 
-            return TransformType(metadataType, nullableTransformFlags);
+            return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags)
+        internal static TypeWithAnnotations TransformType(TypeWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
         {
+            if (nullableTransformFlags.IsDefault && defaultTransformFlag == 0)
+            {
+                return metadataType;
+            }
+
             int position = 0;
-            TypeSymbolWithAnnotations result;
-            if (metadataType.ApplyNullableTransforms(nullableTransformFlags, metadataType.NonNullTypesContext, ref position, out result) &&
+            TypeWithAnnotations result;
+            if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
                 return result;
@@ -41,11 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
-            ImmutableArray<bool> extraAnnotations)
+            ImmutableArray<byte> extraAnnotations)
         {
             if (extraAnnotations.IsDefault)
             {
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else
             {
-                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations).WithNonNullTypesContext(NonNullTypesTrueContext.Instance);
+                return NullableTypeDecoder.TransformType(metadataType, defaultTransformFlag: 0, extraAnnotations);
             }
         }
     }

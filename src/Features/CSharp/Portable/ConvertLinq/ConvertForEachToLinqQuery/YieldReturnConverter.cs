@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         private readonly YieldStatementSyntax _yieldBreakStatement;
 
         public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo, 
-            YieldStatementSyntax yieldReturnStatement, 
-            YieldStatementSyntax yieldBreakStatement) 
+            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+            YieldStatementSyntax yieldReturnStatement,
+            YieldStatementSyntax yieldBreakStatement)
             : base(forEachInfo)
         {
             _yieldReturnStatement = yieldReturnStatement;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                convertToQuery: convertToQuery);
 
             editor.ReplaceNode(
-                ForEachInfo.ForEachStatement, 
+                ForEachInfo.ForEachStatement,
                 SyntaxFactory.ReturnStatement(queryOrLinqInvocationExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             // Delete the yield break just after the loop.

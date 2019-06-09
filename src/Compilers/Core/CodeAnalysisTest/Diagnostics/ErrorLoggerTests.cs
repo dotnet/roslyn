@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     Location.Create(@"Relative Additional/Location.cs", span, position),
                     Location.Create(@"a:cannot/interpret/as\uri", span, position),
                 };
-                
+
                 logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations));
             }
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
-            string expected = 
+            string expected =
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
   ""version"": ""1.0.0"",

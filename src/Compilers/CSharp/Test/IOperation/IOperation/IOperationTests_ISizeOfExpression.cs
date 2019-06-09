@@ -84,7 +84,7 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32) (Syntax: 'sizeof(voi
   TypeOperand: System.Void**
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-           
+
             VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeReleaseDll);
         }
 

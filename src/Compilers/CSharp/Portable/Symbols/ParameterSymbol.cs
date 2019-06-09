@@ -45,9 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Gets the type of the parameter along with its annotations.
+        /// </summary>
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbolWithAnnotations Type { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
@@ -229,15 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
         internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                Debug.Assert(IsDefinition);
-                return ContainingSymbol?.NonNullTypes;
-            }
-        }
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -430,12 +426,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IParameterSymbol.Type
         {
-            get { return this.Type.TypeSymbol; }
+            get { return this.Type; }
         }
+
+        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            get { return this.Type.CustomModifiers; }
+            get { return this.TypeWithAnnotations.CustomModifiers; }
         }
 
         ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers

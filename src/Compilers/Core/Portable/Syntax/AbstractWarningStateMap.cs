@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal abstract class AbstractWarningStateMap
+    internal abstract class AbstractWarningStateMap<WarningState>
     {
         /// <summary>
         /// List of entries sorted in source order, each of which captures a
@@ -15,8 +15,14 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// </summary>
         private readonly WarningStateMapEntry[] _warningStateMapEntries;
 
-        protected AbstractWarningStateMap(SyntaxTree syntaxTree)
+        /// <summary>
+        /// Records if this state map is for generated code, which can have differing semantics in some cases
+        /// </summary>
+        protected readonly bool _isGeneratedCode;
+
+        protected AbstractWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode)
         {
+            _isGeneratedCode = isGeneratedCode;
             _warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
         }
 
@@ -31,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// Returns the reporting state for the supplied diagnostic id at the supplied position
         /// in the associated syntax tree.
         /// </summary>
-        public ReportDiagnostic GetWarningState(string id, int position)
+        public WarningState GetWarningState(string id, int position)
         {
             var entry = GetEntryAtOrBeforePosition(position);
 
-            ReportDiagnostic state;
+            WarningState state;
             if (entry.SpecificWarningOption.TryGetValue(id, out state))
             {
                 return state;
@@ -63,23 +69,23 @@ namespace Microsoft.CodeAnalysis.Syntax
             public readonly int Position;
 
             // the general option applicable to all warnings, accumulated of all #pragma up to the current Line.
-            public readonly ReportDiagnostic GeneralWarningOption;
+            public readonly WarningState GeneralWarningOption;
 
             // the mapping of the specific warning to the option, accumulated of all #pragma up to the current Line.
-            public readonly ImmutableDictionary<string, ReportDiagnostic> SpecificWarningOption;
+            public readonly ImmutableDictionary<string, WarningState> SpecificWarningOption;
 
             public WarningStateMapEntry(int position)
             {
                 this.Position = position;
-                this.GeneralWarningOption = ReportDiagnostic.Default;
-                this.SpecificWarningOption = ImmutableDictionary.Create<string, ReportDiagnostic>();
+                this.GeneralWarningOption = default;
+                this.SpecificWarningOption = ImmutableDictionary.Create<string, WarningState>();
             }
 
-            public WarningStateMapEntry(int position, ReportDiagnostic general, ImmutableDictionary<string, ReportDiagnostic> specific)
+            public WarningStateMapEntry(int position, WarningState general, ImmutableDictionary<string, WarningState> specific)
             {
                 this.Position = position;
                 this.GeneralWarningOption = general;
-                this.SpecificWarningOption = specific ?? ImmutableDictionary.Create<string, ReportDiagnostic>();
+                this.SpecificWarningOption = specific ?? ImmutableDictionary.Create<string, WarningState>();
             }
 
             public int CompareTo(WarningStateMapEntry other)

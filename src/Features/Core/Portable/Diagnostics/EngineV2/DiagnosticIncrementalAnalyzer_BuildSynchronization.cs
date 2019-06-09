@@ -87,9 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
             {
-                // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
-                // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
-                var version = VersionStamp.Default;
                 var lookup = diagnostics.ToLookup(d => d.Id);
 
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
@@ -98,16 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
-                    var group = liveDiagnostics.GroupBy(d => d.DocumentId);
-                    var result = new DiagnosticAnalysisResult(
-                        project.Id,
-                        version,
-                        documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
-                        syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
-                        nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
-                        fromBuild: true);
+                    var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
 
                     builder.Add(stateSet.Analyzer, result);
                 }
@@ -204,7 +192,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostic.WarningLevel,
                 descriptor.CustomTags.ToImmutableArray(),
                 diagnostic.Properties,
-                diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,
                 diagnostic.AdditionalLocations,

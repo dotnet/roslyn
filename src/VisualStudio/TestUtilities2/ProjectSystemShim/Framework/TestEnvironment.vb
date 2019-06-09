@@ -5,13 +5,10 @@ Imports System.ComponentModel.Composition.Hosting
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
@@ -25,6 +22,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -40,6 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
                                             GetType(MockVisualStudioWorkspace),
+                                            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                                             GetType(VisualStudioProjectFactory),
                                             GetType(MockServiceProvider),
                                             GetType(SolutionEventsBatchScopeCreator),
@@ -54,22 +53,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
+        Public ReadOnly Property ThreadingContext As IThreadingContext
+        Public ReadOnly Property ServiceProvider As MockServiceProvider
+        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
             ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
+            Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
-            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
-            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            ServiceProvider = mockServiceProvider
-
-            Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
-                New FileChangeWatcher(System.Threading.Tasks.Task.FromResult(DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx))),
-                New TestForegroundNotificationService(),
-                AsynchronousOperationListenerProvider.NullListener)
-
-            Dim documentTrackingService = New VisualStudioDocumentTrackingService(ServiceProvider)
+            ServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
+            ServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
         End Sub
+
+        Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
+            Get
+                Return ExportProvider.GetExportedValue(Of VisualStudioProjectFactory)
+            End Get
+        End Property
 
         <PartNotDiscoverable>
         <Export(GetType(VisualStudioWorkspace))>
@@ -85,10 +87,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
                 Throw New NotImplementedException()
             End Sub
-
-            Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel
-                Throw New NotImplementedException()
-            End Function
 
             Public Overrides Function TryGoToDefinition(symbol As ISymbol, project As Microsoft.CodeAnalysis.Project, cancellationToken As CancellationToken) As Boolean
                 Throw New NotImplementedException()
@@ -106,12 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
-
-        Public ReadOnly Property ThreadingContext As IThreadingContext
-        Public ReadOnly Property ServiceProvider As IServiceProvider
-        Public ReadOnly Property ExportProvider As Composition.ExportProvider
-
-        Public ReadOnly Property Workspace As VisualStudioWorkspace
+        Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
             Get
                 Return _workspace
             End Get
@@ -135,8 +128,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return result
         End Function
 
-        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectCapabilities)
+        Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectRefPath As String, projectCapabilities As String) As IVsHierarchy
+            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities, Guid.NewGuid())
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
@@ -146,26 +139,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <PartNotDiscoverable>
         <Export>
         <Export(GetType(SVsServiceProvider))>
-        Private Class MockServiceProvider
+        Public Class MockServiceProvider
             Implements System.IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
             Implements Shell.IAsyncServiceProvider
 
             Private ReadOnly _exportProvider As Composition.ExportProvider
+            Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
 
             Public MockMonitorSelection As IVsMonitorSelection
+            Public VsSolutionMock As MockVsSolution
 
             <ImportingConstructor>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 _exportProvider = exportProvider
+                VsSolutionMock = New MockVsSolution()
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
-                        ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
-                        Return solutionMock.Object
+                        Return VsSolutionMock
 
                     Case GetType(SComponentModel)
                         Return GetComponentModelMock()
@@ -180,10 +174,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return New MockVsSmartOpenScope
 
                     Case GetType(SVsFileChangeEx)
-                        Return New MockVsFileChangeEx
+                        Return _fileChangeEx
+
+                    Case GetType(SVsRunningDocumentTable)
+                        Dim rdtMock As New Mock(Of IVsRunningDocumentTable4)(MockBehavior.Loose)
+                        Return rdtMock.Object
 
                     Case Else
-                        Return Nothing
+                        Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select
             End Function
 
@@ -247,6 +245,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        Friend Sub RaiseFileChange(path As String)
+            ' Ensure we've pushed everything to the file change watcher
+            Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
+            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
+            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
+            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
+            mockFileChangeService.FireUpdate(path)
+        End Sub
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope

@@ -11,9 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyThisOrMe), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-    internal partial class CSharpSimplifyThisOrMeCodeFixProvider 
+    internal partial class CSharpSimplifyThisOrMeCodeFixProvider
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpSimplifyThisOrMeCodeFixProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
                 => this.memberAccessNodes = memberAccessNodes;
 
             public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node) 
+                => memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Navigation
     {
         private ISymbolNavigationService _singleton;
 
+        [ImportingConstructor]
+        public DefaultSymbolNavigationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (_singleton == null)

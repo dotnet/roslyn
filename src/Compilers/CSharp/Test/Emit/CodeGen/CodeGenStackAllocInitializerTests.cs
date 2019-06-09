@@ -119,7 +119,7 @@ unsafe class Test
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
                 expectedOutput: "424242424242424242",
-                verify: Verification.Fails).VerifyIL("Test.M<T>(T)", 
+                verify: Verification.Fails).VerifyIL("Test.M<T>(T)",
 @"{
   // Code size      163 (0xa3)
   .maxstack  4
@@ -193,7 +193,7 @@ unsafe class Test
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25997")]
+        [Fact]
         public void TestUnmanaged_Span()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -421,6 +421,48 @@ static unsafe class C
   IL_0011:  pop
   IL_0012:  ret
 }");
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeDebugExe,
+                expectedOutput: "12",
+                verify: Verification.Fails).VerifyIL("C.Main",
+@"{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init (int* V_0) //p
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   16
+  IL_0003:  conv.u
+  IL_0004:  localloc
+  IL_0006:  dup
+  IL_0007:  ldc.i4.s   42
+  IL_0009:  stind.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.4
+  IL_000c:  add
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""byte C.Method(int)""
+  IL_0013:  stind.i4
+  IL_0014:  dup
+  IL_0015:  ldc.i4.2
+  IL_0016:  conv.i
+  IL_0017:  ldc.i4.4
+  IL_0018:  mul
+  IL_0019:  add
+  IL_001a:  ldc.i4.s   42
+  IL_001c:  stind.i4
+  IL_001d:  dup
+  IL_001e:  ldc.i4.3
+  IL_001f:  conv.i
+  IL_0020:  ldc.i4.4
+  IL_0021:  mul
+  IL_0022:  add
+  IL_0023:  ldc.i4.2
+  IL_0024:  call       ""byte C.Method(int)""
+  IL_0029:  stind.i4
+  IL_002a:  stloc.0
+  IL_002b:  ret
+}");
         }
 
         [Fact]
@@ -620,7 +662,7 @@ static unsafe class C
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails ,expectedOutput: @"123").VerifyIL("C.Main",
+                verify: Verification.Fails, expectedOutput: @"123").VerifyIL("C.Main",
 @"{
   // Code size       70 (0x46)
   .maxstack  4

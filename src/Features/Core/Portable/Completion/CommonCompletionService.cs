@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Completion
     internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
     {
         protected CommonCompletionService(
-            Workspace workspace, 
+            Workspace workspace,
             ImmutableArray<CompletionProvider>? exclusiveProviders)
             : base(workspace, exclusiveProviders)
         {

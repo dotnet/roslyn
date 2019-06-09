@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // First, look for the right containing type (As a type may be partial). 
                 // We want the type-block that this constructor is contained within.
-                var typeDeclaration = 
+                var typeDeclaration =
                     parameter.ContainingType.DeclaringSyntaxReferences
                                             .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
                                             .Single(d => functionDeclaration.Ancestors().Contains(d));

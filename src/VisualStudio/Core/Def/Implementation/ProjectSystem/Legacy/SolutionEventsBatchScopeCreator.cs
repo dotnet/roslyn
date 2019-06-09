@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 EnsureSubscribedToRunningDocumentTableEvents();
             }
         }
-       
+
         public void StopTrackingProject(VisualStudioProject project)
         {
             AssertIsForeground();
@@ -111,7 +111,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // We never unsubscribe from these, so we just throw out the cookie. We could consider unsubscribing if/when all our
             // projects are unloaded, but it seems fairly unecessary -- it'd only be useful if somebody closed one solution but then
             // opened other solutions in entirely different languages from there.
-            solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _);
+            if (ErrorHandler.Succeeded(solution.AdviseSolutionEvents(new SolutionEventsEventSink(this), out _)))
+            {
+                _isSubscribedToSolutionEvents = true;
+            }
 
             // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event 
             var shellMonitorSelection = (IVsMonitorSelection)_serviceProvider.GetService(typeof(SVsShellMonitorSelection));
@@ -190,6 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
             {
+                _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
 
                 return VSConstants.S_OK;

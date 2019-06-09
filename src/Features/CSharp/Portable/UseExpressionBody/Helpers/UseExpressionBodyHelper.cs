@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 UseExpressionBodyForMethodsHelper.Instance,
                 UseExpressionBodyForOperatorsHelper.Instance,
                 UseExpressionBodyForPropertiesHelper.Instance,
-                UseExpressionBodyForAccessorsHelper.Instance);
+                UseExpressionBodyForAccessorsHelper.Instance,
+                UseExpressionBodyForLocalFunctionHelper.Instance);
     }
 }

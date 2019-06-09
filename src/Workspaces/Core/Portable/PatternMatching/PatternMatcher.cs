@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             return _compareInfo.Compare(
-                candidate, candidatePart.Start, patternPart.Length, 
+                candidate, candidatePart.Start, patternPart.Length,
                 pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
         }
 

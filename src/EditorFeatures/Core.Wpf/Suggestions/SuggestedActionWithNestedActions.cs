@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public SuggestedActionWithNestedActions(
             IThreadingContext threadingContext,
-            SuggestedActionsSourceProvider sourceProvider, Workspace workspace, 
-            ITextBuffer subjectBuffer, object provider, 
-            CodeAction codeAction, SuggestedActionSet nestedActionSet) 
+            SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
+            ITextBuffer subjectBuffer, object provider,
+            CodeAction codeAction, SuggestedActionSet nestedActionSet)
             : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
         {
             NestedActionSet = nestedActionSet;

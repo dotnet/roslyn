@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             public SyntaxList<TStatementSyntax> OutermostBlockStatements { get; private set; }
             public SyntaxList<TStatementSyntax> InnermostBlockStatements { get; private set; }
             public TStatementSyntax FirstStatementAffectedInInnermostBlock { get; private set; }
+            public int IndexOfDeclarationStatementInInnermostBlock { get; private set; }
+            public int IndexOfFirstStatementAffectedInInnermostBlock { get; private set; }
 
             internal static async Task<State> GenerateAsync(
                 TService service,
@@ -130,12 +132,12 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                var originalIndexInBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
-                var firstStatementIndexAffectedInBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
-                if (originalIndexInBlock >= 0 &&
-                    originalIndexInBlock < firstStatementIndexAffectedInBlock)
+                this.IndexOfDeclarationStatementInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
+                this.IndexOfFirstStatementAffectedInInnermostBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);
+                if (this.IndexOfDeclarationStatementInInnermostBlock >= 0 &&
+                    this.IndexOfDeclarationStatementInInnermostBlock < this.IndexOfFirstStatementAffectedInInnermostBlock)
                 {
-                    // Don't want to move a decl past other decls in order to move it to the first
+                    // Don't want to move a decl with initializer past other decls in order to move it to the first
                     // affected statement.  If we do we can end up in the following situation: 
 #if false
                     int x = 0;
@@ -147,7 +149,15 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     // solution is overly aggressive.  Technically if 'y' weren't referenced in
                     // Console.Writeline, then it might be a good idea to move the 'x'.  But this
                     // gives good enough behavior most of the time.
-                    if (InDeclarationStatementGroup(originalIndexInBlock, firstStatementIndexAffectedInBlock))
+
+                    // Note that if the variable declaration has no initializer, then we still want to offer
+                    // the move as the closest reference will be an assignment to the variable
+                    // and we should be able to merge the declaration and assignment into a single
+                    // statement.
+                    // So, we also check if the variable declaration has an initializer below.
+
+                    if (syntaxFacts.GetInitializerOfVariableDeclarator(this.VariableDeclarator) != null &&
+                        InDeclarationStatementGroup(this.IndexOfDeclarationStatementInInnermostBlock, this.IndexOfFirstStatementAffectedInInnermostBlock))
                     {
                         return false;
                     }

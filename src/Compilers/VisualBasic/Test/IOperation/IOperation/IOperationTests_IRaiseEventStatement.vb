@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
-        Inherits SemanticModelTestBase        
+        Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
@@ -309,7 +309,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
             Dim expectedDiagnostics = String.Empty
             VerifyOperationTreeAndDiagnosticsForTest(Of RaiseEventStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub EventAccessFromRaiseEventShouldReturnEventReference()
@@ -323,7 +323,7 @@ Class TestClass
         RaiseEvent TestEvent()'BIND:"TestEvent"
     End Sub
 End Class]]>.Value
-            
+
             Dim expectedOperationTree = <![CDATA[
 IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
   Instance Receiver: 
@@ -355,7 +355,7 @@ Class TestClass
         RaiseEvent TestEvent()'BIND:"TestEvent"
     End Sub
 End Class]]>.Value
-            
+
             Dim expectedOperationTree = <![CDATA[
 IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
   Instance Receiver: 

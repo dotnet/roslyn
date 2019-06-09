@@ -26,9 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         protected abstract TextSpan GetFadeSpan(TCastExpression node);
         protected abstract bool IsUnnecessaryCast(SemanticModel model, TCastExpression node, CancellationToken cancellationToken);
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             }
 
             return Diagnostic.Create(
-                UnnecessaryWithSuggestionDescriptor, 
+                UnnecessaryWithSuggestionDescriptor,
                 node.SyntaxTree.GetLocation(GetFadeSpan(node)),
                 ImmutableArray.Create(node.GetLocation()));
         }

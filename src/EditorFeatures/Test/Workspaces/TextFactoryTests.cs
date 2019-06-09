@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!");
+            var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
+            var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
@@ -140,9 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private class FakeTextBufferCloneService : ITextBufferCloneService
         {
-            public ITextBuffer Clone(SnapshotSpan span) => throw new NotImplementedException();
+            public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span) => throw new NotImplementedException();
 
-            public ITextBuffer Clone(ITextImage textImage) => throw new NotImplementedException();
+            public ITextBuffer CloneWithUnknownContentType(ITextImage textImage) => throw new NotImplementedException();
+
+            public ITextBuffer CloneWithRoslynContentType(SourceText sourceText) => throw new NotImplementedException();
+
+            public ITextBuffer Clone(SourceText sourceText, IContentType contentType) => throw new NotImplementedException();
+
         }
     }
 }

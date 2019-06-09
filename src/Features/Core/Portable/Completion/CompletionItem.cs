@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -45,6 +46,13 @@ namespace Microsoft.CodeAnalysis.Completion
         public string SortText { get; }
 
         /// <summary>
+        /// Descriptive text to place after <see cref="DisplayText"/> in the display layer.  Should
+        /// be short as it will show up in the UI.  Display will present this in a way to distinguish
+        /// this from the normal text (for example, by fading out and right-aligning).
+        /// </summary>
+        internal string InlineDescription { get; }
+
+        /// <summary>
         /// The span of the syntax element associated with this item.
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
@@ -69,12 +77,22 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// The <see cref="Document"/> that this <see cref="CompletionItem"/> was
-        /// created for.  Not available to clients.  Only used by the Completion
-        /// subsystem itself for things like being able to go back to the originating
-        /// Document when doing things like getting descriptions.
+        /// The name of the <see cref="CompletionProvider"/> that created this 
+        /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
+        /// the Completion subsystem itself for things like getting description text
+        /// and making additional change during commit.
         /// </summary>
-        internal Document Document { get; set; }
+        internal string ProviderName { get; set; }
+
+        /// <summary>
+        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
+        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
+        /// other data correspodning to this item.
+        ///
+        /// TODO: Revisit the approach we used for caching VS items.
+        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// </summary>
+        internal bool IsCached { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -85,19 +103,22 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags,
             CompletionItemRules rules,
             string displayTextPrefix,
-            string displayTextSuffix)
+            string displayTextSuffix,
+            string inlineDescription)
         {
             this.DisplayText = displayText ?? "";
             this.DisplayTextPrefix = displayTextPrefix ?? "";
             this.DisplayTextSuffix = displayTextSuffix ?? "";
             this.FilterText = filterText ?? this.DisplayText;
             this.SortText = sortText ?? this.DisplayText;
+            this.InlineDescription = inlineDescription ?? "";
             this.Span = span;
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
         }
 
+        // binary back compat overload
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -109,6 +130,20 @@ namespace Microsoft.CodeAnalysis.Completion
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix: null, displayTextSuffix: null);
         }
 
+        // binary back compat overload
+        public static CompletionItem Create(
+            string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix)
+        {
+            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
+        }
+
         public static CompletionItem Create(
             string displayText,
             string filterText = null,
@@ -117,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default,
             CompletionItemRules rules = null,
             string displayTextPrefix = null,
-            string displayTextSuffix = null)
+            string displayTextSuffix = null,
+            string inlineDescription = null)
         {
             return new CompletionItem(
                 span: default,
@@ -128,7 +164,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
-                displayTextSuffix: displayTextSuffix);
+                displayTextSuffix: displayTextSuffix,
+                inlineDescription: inlineDescription);
         }
 
         /// <summary>
@@ -143,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
         [Obsolete("Use the Create overload that does not take a span", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -161,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: tags,
                 rules: rules,
                 displayTextPrefix: null,
-                displayTextSuffix: null);
+                displayTextSuffix: null,
+                inlineDescription: null);
         }
 
         private CompletionItem With(
@@ -173,12 +212,14 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<ImmutableArray<string>> tags = default,
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
-            Optional<string> displayTextSuffix = default)
+            Optional<string> displayTextSuffix = default,
+            Optional<string> inlineDescription = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
             var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
             var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
+            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : this.InlineDescription;
             var newProperties = properties.HasValue ? properties.Value : this.Properties;
             var newTags = tags.HasValue ? tags.Value : this.Tags;
             var newRules = rules.HasValue ? rules.Value : this.Rules;
@@ -193,7 +234,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 newTags == this.Tags &&
                 newRules == this.Rules &&
                 newDisplayTextPrefix == this.DisplayTextPrefix &&
-                newDisplayTextSuffix == this.DisplayTextSuffix)
+                newDisplayTextSuffix == this.DisplayTextSuffix &&
+                newInlineDescription == this.InlineDescription)
             {
                 return this;
             }
@@ -207,13 +249,18 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags: newTags,
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
-                displayTextSuffix: newDisplayTextSuffix);
+                displayTextSuffix: newDisplayTextSuffix,
+                inlineDescription: newInlineDescription)
+            {
+                ProviderName = ProviderName
+            };
         }
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
         [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CompletionItem WithSpan(TextSpan span)
         {
             return this;

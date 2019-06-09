@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private T RoundTripValue<T>(T value, bool recursive)
         {
-            return RoundTrip(value, 
+            return RoundTrip(value,
                 (w, v) =>
                 {
                     if (v != null && v.GetType().IsEnum)
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         w.WriteValue(v);
                     }
                 },
-                r => value != null && value.GetType().IsEnum 
-                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64()) 
+                r => value != null && value.GetType().IsEnum
+                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64())
                     : (T)r.ReadValue(), recursive);
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private TypeWithOneMember(ObjectReader reader)
             {
-                _member = typeof(T).IsEnum 
+                _member = typeof(T).IsEnum
                     ? (T)Enum.ToObject(typeof(T), reader.ReadInt64())
                     : (T)reader.ReadValue();
             }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    return  _member1.GetHashCode();
+                    return _member1.GetHashCode();
                 }
             }
 
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-// keep these around for analyzing perf issues
+        // keep these around for analyzing perf issues
 #if false
         [Fact]
         public void TestReaderPerf()

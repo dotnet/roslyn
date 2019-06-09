@@ -20,10 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
     internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider : CodeFixProvider
     {
         private const string CS8313 = nameof(CS8313); // A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
-        private const string CS8363 = nameof(CS8363); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+        private const string CS8505 = nameof(CS8505); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+
+        [ImportingConstructor]
+        public CSharpReplaceDefaultLiteralCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(CS8313, CS8363);
+            ImmutableArray.Create(CS8313, CS8505);
 
         public override FixAllProvider GetFixAllProvider()
         {

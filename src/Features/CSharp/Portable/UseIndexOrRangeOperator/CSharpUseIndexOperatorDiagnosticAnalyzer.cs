@@ -37,14 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseIndexOperatorDiagnosticAnalyzer() 
+        public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_index_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Indexing_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         private void AnalyzeInvokedMember(
-            OperationAnalysisContext context, InfoCache infoCache, 
+            OperationAnalysisContext context, InfoCache infoCache,
             IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue,
             IPropertySymbol lengthLikePropertyOpt, CancellationToken cancellationToken)
         {

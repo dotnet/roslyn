@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 {
                     TokenUtilities.AssertTokensEqual(cs, node.ToFullString(), LanguageNames.CSharp);
                 }
-                
+
                 if (csSimple != null)
                 {
                     var simplifiedRootNode = Simplify(workspace, WrapExpressionInBoilerplate(node, codeDefFactory), LanguageNames.CSharp);

@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBFeaturesResources", GetType(VBFeaturesResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -126,6 +125,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Add_missing_Imports() As String
             Get
                 Return ResourceManager.GetString("Add_missing_Imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &lt;Obsolete&gt;.
+        '''</summary>
+        Friend ReadOnly Property Add_Obsolete() As String
+            Get
+                Return ResourceManager.GetString("Add_Obsolete", resourceCulture)
             End Get
         End Property
         
@@ -1593,6 +1601,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Make &apos;{0}&apos; inheritable.
+        '''</summary>
+        Friend ReadOnly Property Make_0_inheritable() As String
+            Get
+                Return ResourceManager.GetString("Make_0_inheritable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Make Async Function.
         '''</summary>
         Friend ReadOnly Property Make_Async_Function() As String
@@ -2417,6 +2434,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Skips_elements_up_to_a_specified_position_in_the_collection() As String
             Get
                 Return ResourceManager.GetString("Skips_elements_up_to_a_specified_position_in_the_collection", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &amp;Sort Imports.
+        '''</summary>
+        Friend ReadOnly Property Sort_Imports() As String
+            Get
+                Return ResourceManager.GetString("Sort_Imports", resourceCulture)
             End Get
         End Property
         

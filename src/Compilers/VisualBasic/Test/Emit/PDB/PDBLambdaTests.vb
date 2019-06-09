@@ -3492,7 +3492,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3612,7 +3612,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3751,7 +3751,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3894,7 +3894,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -3987,7 +3987,7 @@ End Module
             compilation.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Nums">
@@ -4087,7 +4087,7 @@ End Module
             compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-0",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+_Closure$__" name="_Lambda$__0-0" parameterNames="a">

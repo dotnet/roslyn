@@ -616,9 +616,9 @@ Block[B4] - Exit
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, 
-                                                              targetFramework: Roslyn.Test.Utilities.TargetFramework.Empty, 
-                                                              references: new[] { MscorlibRef_v20});
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics,
+                                                              targetFramework: Roslyn.Test.Utilities.TargetFramework.Empty,
+                                                              references: new[] { MscorlibRef_v20 });
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

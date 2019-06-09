@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     [Guid(Guids.CSharpOptionPageFormattingSpacingIdString)]
     internal class FormattingSpacingPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new OptionPreviewControl(serviceProvider, (o, s) => new SpacingViewModel(o, s));
+            return new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new SpacingViewModel(o, s));
         }
     }
 }

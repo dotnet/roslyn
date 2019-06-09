@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         }
 
                         break;
+
+                    case SyntaxKind.SkippedTokensTrivia:
+                        AddClassification(t, ClassificationTypeNames.XmlDocCommentText);
+                        break;
                 }
             }
         }

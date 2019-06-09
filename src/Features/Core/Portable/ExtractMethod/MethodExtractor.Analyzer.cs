@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private OperationStatus GetOperationStatus(
-                SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap, 
+                SemanticModel model, Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 IList<VariableInfo> parameters, IList<ISymbol> failedVariables,
                 bool unsafeAddressTakenUsed, bool returnTypeHasAnonymousType)
             {
@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private void GenerateVariableInfoMap(
                 bool bestEffort,
                 SemanticModel model,
-                DataFlowAnalysis dataFlowAnalysisData, 
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap, 
+                DataFlowAnalysis dataFlowAnalysisData,
+                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
                 out IDictionary<ISymbol, VariableInfo> variableInfoMap,
                 out List<ISymbol> failedVariables)
             {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +20,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             this.languageName = languageName;
         }
 
+        public IDictionary<OptionKey, object> MergeStyles(IDictionary<OptionKey, object> first, IDictionary<OptionKey, object> second, string languageName)
+        {
+            var firstPreferences = (NamingStylePreferences)first.First().Value;
+            var secondPreferences = (NamingStylePreferences)second.First().Value;
+            return Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), new NamingStylePreferences(
+                firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
+                firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
+                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)));
+        }
+
         public IDictionary<OptionKey, object> ClassNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ClassNamesArePascalCaseOption());
 
@@ -33,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseOption());
+
+        public IDictionary<OptionKey, object> ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
         public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
@@ -322,6 +336,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
+        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name2",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name2",
+                prefix: "p_",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
         private static NamingStylePreferences LocalNamesAreCamelCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
@@ -548,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                     new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
                 accessibilityList: default,
                 ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)));
- 
+
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
                 capitalizationScheme: Capitalization.PascalCase,
@@ -556,19 +602,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 prefix: "",
                 suffix: "Async",
                 wordSeparator: "");
- 
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = ReportDiagnostic.Error
             };
- 
+
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),
                 ImmutableArray.Create(namingRule));
- 
+
             return info;
         }
     }

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
 
+        [ImportingConstructor]
+        public CSharpConvertLinqQueryToForEachProvider()
+        {
+        }
+
         protected override string Title => CSharpFeaturesResources.Convert_to_foreach;
 
         protected override bool TryConvert(

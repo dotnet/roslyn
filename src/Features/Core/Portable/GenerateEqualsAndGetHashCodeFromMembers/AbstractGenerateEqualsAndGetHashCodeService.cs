@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var rules = new List<IFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
+            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var formattedDocument = await Formatter.FormatAsync(
@@ -40,8 +40,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             string localNameOpt, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, namedType, members, localNameOpt,
+                compilation, tree.Options, namedType, members, localNameOpt,
                 s_specializedFormattingAnnotation, cancellationToken);
         }
 
@@ -59,20 +60,39 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document, INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
             var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
-                // return obj is T && this.Equals((T)obj);
-                expressions.Add(generator.IsTypeExpression(objName, containingType));
-                expressions.Add(
-                    generator.InvocationExpression(
-                        generator.MemberAccessExpression(
-                            generator.ThisExpression(),
-                            generator.IdentifierName(nameof(Equals))),
-                        generator.CastExpression(containingType, objName)));
+                if (generator.SupportsPatterns(tree.Options))
+                {
+                    // return obj is T t && this.Equals(t);
+                    var localName = containingType.GetLocalName();
+
+                    expressions.Add(
+                        generator.IsPatternExpression(objName,
+                            generator.DeclarationPattern(containingType, localName)));
+                    expressions.Add(
+                        generator.InvocationExpression(
+                            generator.MemberAccessExpression(
+                                generator.ThisExpression(),
+                                generator.IdentifierName(nameof(Equals))),
+                            generator.IdentifierName(localName)));
+                }
+                else
+                {
+                    // return obj is T && this.Equals((T)obj);
+                    expressions.Add(generator.IsTypeExpression(objName, containingType));
+                    expressions.Add(
+                        generator.InvocationExpression(
+                            generator.MemberAccessExpression(
+                                generator.ThisExpression(),
+                                generator.IdentifierName(nameof(Equals))),
+                            generator.CastExpression(containingType, objName)));
+                }
             }
             else
             {

@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         private IThreadingContext _threadingContext;
         private IRemoteHostClientService _remoteService;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             if (_optionService == null)
             {
@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _remoteService = workspace.Services.GetService<IRemoteHostClientService>();
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)

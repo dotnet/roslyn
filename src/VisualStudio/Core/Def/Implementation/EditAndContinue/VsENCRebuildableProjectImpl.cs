@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 _debugEncNotify.NotifyEncEditDisallowedByProject(_workspace.GetHierarchy(documentId.ProjectId));
                 return;
             }
-            
+
             // NotifyEncEditDisallowedByProject is broken if the project isn't built at the time the debugging starts (debugger bug 877586).
             string message;
             if (sessionReason == SessionReadOnlyReason.Running)
@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _project.Id.ToString(), outputPath, e.Message);
                         _mvid = Guid.Empty;
-                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message }); 
+                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message });
                     }
                 }
                 else
@@ -683,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
 
                         // If no edits were made the pending list will be empty and we need to keep the previous regions.
-                        var newNonRemappableRegions = (s_pendingNonRemappableRegions.Count == 0) ? null : 
+                        var newNonRemappableRegions = (s_pendingNonRemappableRegions.Count == 0) ? null :
                             GroupToImmutable(
                                 from regionsPerModule in s_pendingNonRemappableRegions
                                 from region in regionsPerModule
@@ -706,9 +706,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _changesApplied = false;
 
                     _diagnosticProvider.ClearDiagnostics(
-                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId),
                         _workspace.CurrentSolution,
-                        _project.Id, 
+                        _project.Id,
                         _documentsWithEmitError);
 
                     _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
@@ -762,7 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // so we'll to emit an empty delta. See bug 839558.
                 Debug.Assert(_lastEditSessionSummary == ProjectAnalysisSummary.ValidInsignificantChanges ||
                              _lastEditSessionSummary == ProjectAnalysisSummary.ValidChanges);
-                
+
                 // ISymUnmanagedReader can only be accessed from an MTA thread,
                 // so dispatch emit to one of thread pool threads, which are MTA.
                 var emitTask = Task.Factory.SafeStartNew(EmitProjectDelta, CancellationToken.None, TaskScheduler.Default);
@@ -933,18 +933,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private Deltas EmitProjectDelta()
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-            
+
             var baseline = _committedBaseline;
             if (baseline == null)
             {
                 var info = _moduleMetadataProvider.TryGetBaselineModuleInfo(_mvid);
                 if (info != null)
                 {
+                    var infoReader = EditAndContinueMethodDebugInfoReader.Create(info.SymReader, version: 1);
+
                     baseline = EmitBaseline.CreateInitialBaseline(
                         info.Metadata,
-                        h => GetBaselineEncDebugInfo(info.SymReader, h),
-                        h => GetBaselineLocalSignature(info.SymReader, h),
-                        HasPortableMetadata(info.SymReader));
+                        infoReader.GetDebugInfo,
+                        infoReader.GetLocalSignature,
+                        infoReader.IsPortable);
                 }
             }
 
@@ -968,121 +970,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             return emitTask.Result;
-        }
-
-        private unsafe bool HasPortableMetadata(ISymUnmanagedReader5 symReader)
-            => symReader.GetPortableDebugMetadata(out _, out _) == 0;
-
-        private static StandaloneSignatureHandle GetBaselineLocalSignature(ISymUnmanagedReader5 symReader, MethodDefinitionHandle methodHandle)
-        {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-
-            var symMethod = (ISymUnmanagedMethod2)symReader.GetMethodByVersion(MetadataTokens.GetToken(methodHandle), methodVersion: 1);
-
-            // Compiler generated methods (e.g. async kick-off methods) might not have debug information.
-            return symMethod == null ? default : MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
-        }
-
-        /// <summary>
-        /// Returns EnC debug information for initial version of the specified method.
-        /// </summary>
-        /// <exception cref="InvalidDataException">The debug information data is corrupt or can't be retrieved from the debugger.</exception>
-        private static EditAndContinueMethodDebugInformation GetBaselineEncDebugInfo(ISymUnmanagedReader5 symReader, MethodDefinitionHandle methodHandle)
-        {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-            return GetEditAndContinueMethodDebugInfo(symReader, methodHandle);
-        }
-
-        private static EditAndContinueMethodDebugInformation GetEditAndContinueMethodDebugInfo(ISymUnmanagedReader5 symReader, MethodDefinitionHandle methodHandle)
-        {
-            return TryGetPortableEncDebugInfo(symReader, methodHandle, out var info) ? info : GetNativeEncDebugInfo(symReader, methodHandle);
-        }
-
-        private static unsafe bool TryGetPortableEncDebugInfo(ISymUnmanagedReader5 symReader, MethodDefinitionHandle methodHandle, out EditAndContinueMethodDebugInformation info)
-        {
-            int hr = symReader.GetPortableDebugMetadataByVersion(version: 1, metadata: out byte* metadata, size: out int size);
-            Marshal.ThrowExceptionForHR(hr);
-
-            if (hr != 0)
-            {
-                info = default;
-                return false;
-            }
-
-            var pdbReader = new System.Reflection.Metadata.MetadataReader(metadata, size);
-
-            ImmutableArray<byte> GetCdiBytes(Guid kind) =>
-                TryGetCustomDebugInformation(pdbReader, methodHandle, kind, out var cdi) ? pdbReader.GetBlobContent(cdi.Value) : default;
-
-            info = EditAndContinueMethodDebugInformation.Create(
-                compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                compressedLambdaMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
-
-            return true;
-        }
-
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        private static bool TryGetCustomDebugInformation(System.Reflection.Metadata.MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
-        {
-            bool foundAny = false;
-            customDebugInfo = default;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == kind)
-                {
-                    if (foundAny)
-                    {
-                        throw new BadImageFormatException();
-                    }
-                    customDebugInfo = info;
-                    foundAny = true;
-                }
-            }
-            return foundAny;
-        }
-
-        private static EditAndContinueMethodDebugInformation GetNativeEncDebugInfo(ISymUnmanagedReader5 symReader, MethodDefinitionHandle methodHandle)
-        {
-            int methodToken = MetadataTokens.GetToken(methodHandle);
-
-            byte[] debugInfo;
-            try
-            {
-                debugInfo = symReader.GetCustomDebugInfo(methodToken, methodVersion: 1);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // Sometimes the debugger returns the HRESULT for ArgumentOutOfRangeException, rather than E_FAIL,
-                // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
-                debugInfo = null;
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
-            {
-                throw new InvalidDataException(e.Message, e);
-            }
-
-            try
-            {
-                ImmutableArray<byte> localSlots, lambdaMap;
-                if (debugInfo != null)
-                {
-                    localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
-                    lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
-                }
-                else
-                {
-                    localSlots = lambdaMap = default;
-                }
-
-                return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
-            }
-            catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
-            {
-                // TODO: CustomDebugInfoReader should throw InvalidDataException
-                throw new InvalidDataException(e.Message, e);
-            }
         }
 
         public int EncApplySucceeded(int hrApplyResult)

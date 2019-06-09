@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchDiagnosticAnalyzer : 
+    internal sealed class PopulateSwitchDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         #region Interface methods
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);

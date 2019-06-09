@@ -1260,6 +1260,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
   </data>
+  <data name="Add_Obsolete" xml:space="preserve">
+    <value>Add &lt;Obsolete&gt;</value>
+  </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
     <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
@@ -1271,5 +1274,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Introduce_Using_statement" xml:space="preserve">
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>&amp;Sort Imports</value>
   </data>
 </root>

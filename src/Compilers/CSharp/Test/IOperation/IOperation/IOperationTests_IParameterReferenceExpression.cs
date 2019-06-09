@@ -28,7 +28,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, System.Int32)) (Syn
   NaturalType: (System.Int32 x, System.Int32)
   Elements(2):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
         Left: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
         Right: 
@@ -116,11 +116,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Message = ""Hello"" + y')
         Left: 
-          IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 Amount, System.String Message>.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 Amount, System.String Message>, IsImplicit) (Syntax: 'new { Amoun ... ello"" + y }')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '""Hello"" + y')
+          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '""Hello"" + y')
             Left: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Hello"") (Syntax: '""Hello""')
             Right: 
@@ -848,9 +848,9 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
     Clauses:
         IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y  ...  (x >= 10):')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
-          Guard Expression: 
-            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x >= 10')
+            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32, DeclaredSymbol: System.Int32 y, MatchesNull: True)
+          Guard: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
               Right: 
@@ -920,7 +920,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: B B.op_BitwiseAnd(B x, B y)) (OperationKind.BinaryOperator, Type: B) (Syntax: 'x && y')
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: B B.op_BitwiseAnd(B x, B y)) (OperationKind.Binary, Type: B) (Syntax: 'x && y')
   Left: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -1037,10 +1037,10 @@ class Class1
 ";
             string expectedOperationTree = @"
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is int y')
-  Expression: 
+  Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
   Pattern: 
-    IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y')
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -25,7 +25,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x == y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
   Right: 
@@ -49,7 +49,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == (1, 2)')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x == (1, 2)')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
   Right: 
@@ -77,7 +77,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(1, 2) != y')
+ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(1, 2) != y')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int32)) (Syntax: '(1, 2)')
       NaturalType: (System.Int32, System.Int32)
@@ -111,7 +111,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (1, 2L))')
       NaturalType: null
@@ -157,7 +157,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'y == default')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'y == default')
   Left: 
     IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.String)) (Syntax: 'y')
   Right: 
@@ -222,7 +222,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
               Right: 
-                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x == y')
                   Left: 
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
                   Right: 
@@ -319,7 +319,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(x1 ?? x2) == y')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(x1 ?? x2) == y')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1 ?? x2')
                       Right: 
@@ -423,7 +423,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'y == (x1 ?? x2)')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'y == (x1 ?? x2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'y')
                       Right: 
@@ -565,7 +565,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(x1 ?? x2) == (y1 ?? y2)')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(x1 ?? x2) == (y1 ?? y2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1 ?? x2')
                       Right: 
@@ -611,7 +611,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
               Right: 
-                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(i1, i2) == (i3, i4)')
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(i1, i2) == (i3, i4)')
                   Left: 
                     ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
                       NaturalType: (System.Int32 i1, System.Int32 i2)
@@ -720,7 +720,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(i1, i2 ??  ... == (i3, i4)')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(i1, i2 ??  ... == (i3, i4)')
                       Left: 
                         ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32)) (Syntax: '(i1, i2 ?? i5)')
                           NaturalType: (System.Int32 i1, System.Int32)
@@ -840,7 +840,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(i1, i2) == ... , i4 ?? i5)')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(i1, i2) == ... , i4 ?? i5)')
                       Left: 
                         ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
                           NaturalType: (System.Int32 i1, System.Int32 i2)
@@ -1001,7 +1001,7 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(i1 ?? i5,  ... , i4 ?? i6)')
+                    ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(i1 ?? i5,  ... , i4 ?? i6)')
                       Left: 
                         ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32 i2)) (Syntax: '(i1 ?? i5, i2)')
                           NaturalType: (System.Int32, System.Int32 i2)

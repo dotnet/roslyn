@@ -39,12 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
-            int startingSelectedIndex = 0;
-
             if (parameters.ThisParameter != null)
             {
-                startingSelectedIndex++;
-
                 _thisParameter = new ParameterViewModel(this, parameters.ThisParameter);
                 _disabledParameters.Add(parameters.ThisParameter);
             }
@@ -59,7 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ParameterViewModel(this, p)).ToList();
             _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ParameterViewModel(this, p)).ToList();
-            this.SelectedIndex = startingSelectedIndex;
+
+            var selectedIndex = parameters.SelectedIndex;
+            this.SelectedIndex = (parameters.ThisParameter != null && selectedIndex == 0) ? 1 : selectedIndex;
         }
 
         public int GetStartingSelectionIndex()
@@ -156,7 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _originalParameterConfiguration.ThisParameter,
                 _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
                 _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.ParameterSymbol);
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.ParameterSymbol,
+                selectedIndex: -1);
         }
 
         private static SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
@@ -459,14 +458,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
-                            return ModifierText("out","ref","in","params","this");
+                            return ModifierText("out", "ref", "in", "params", "this");
                         case LanguageNames.VisualBasic:
                             return ModifierText(@ref: "ByRef", @params: "ParamArray", @this: "Me");
                         default:
                             return string.Empty;
                     }
 
-                    string ModifierText(string @out = default, string @ref = default, string @in  = default, string @params = default, string @this = default)
+                    string ModifierText(string @out = default, string @ref = default, string @in = default, string @params = default, string @this = default)
                     {
                         switch (ParameterSymbol.RefKind)
                         {
@@ -484,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         }
 
                         if (_changeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
+                            Equals(ParameterSymbol, _changeSignatureDialogViewModel._thisParameter.ParameterSymbol))
                         {
                             return @this ?? string.Empty;
                         }
@@ -512,7 +511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.VisualBasic:
                             return NullText("Nothing");
                     }
-                    return string.Empty; 
+                    return string.Empty;
 
                     string NullText(string @null)
                     {

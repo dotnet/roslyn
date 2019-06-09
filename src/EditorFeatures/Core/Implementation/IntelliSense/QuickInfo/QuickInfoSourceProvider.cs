@@ -6,12 +6,17 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
-{  
+{
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
     {
+        [ImportingConstructor]
+        public QuickInfoSourceProvider()
+        {
+        }
+
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return new QuickInfoSource(textBuffer);

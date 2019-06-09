@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IFormattable, INonNullTypesContext
+    internal abstract partial class Symbol : ISymbol, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -206,6 +206,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)container != null ? container.ContainingModule : null;
             }
         }
+
+        /// <summary>
+        /// The index of this member in the containing symbol. This is an optional
+        /// property, implemented by anonymous type properties only, for comparing
+        /// symbols in flow analysis.
+        /// </summary>
+        /// <remarks>
+        /// Should this be used for tuple fields as well?
+        /// </remarks>
+        internal virtual int? MemberIndexOpt => null;
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -546,9 +556,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      resorting to .Equals
 
             // the condition is expected to be folded when inlining "someSymbol == null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left == (object)null;
+                return left is null;
             }
 
             // this part is expected to disappear when inlining "someSymbol == null"
@@ -571,9 +581,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      since that sometimes results in a worse code
 
             // the condition is expected to be folded when inlining "someSymbol != null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left != (object)null;
+                return left is object;
             }
 
             // this part is expected to disappear when inlining "someSymbol != null"
@@ -629,16 +639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-        }
-
-        protected void AddSynthesizedNonNullTypesAttributeForMember(ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes.HasValue && nonNullTypes != ContainingType.NonNullTypes)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        DeclaringCompilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
-            }
         }
 
         /// <summary>
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        internal string GetDebuggerDisplay()
+        internal virtual string GetDebuggerDisplay()
         {
             return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
@@ -844,48 +844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
-        /// This is determined by the presence of the `[NonNullTypes]` attribute.
-        /// Returns null if no attribute was set.
-        /// Not valid to call on non-definitions.
-        ///
-        /// To avoid cycles, this property should not be accessed directly, except in its overrides (fall back to parent).
-        /// It can be accessed indirectly via <see cref="TypeSymbolWithAnnotations.IsNullable"/>
-        /// which delays its evaluation using <see cref="INonNullTypesContext"/>.
-        /// </summary>
-        public virtual bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal bool? GetNonNullTypesFromSyntax()
-        {
-            bool? result = null;
-            foreach (Location location in Locations)
-            {
-                SyntaxTree tree = location.SourceTree;
-                if (tree == null)
-                {
-                    continue;
-                }
-                bool? state = ((CSharpSyntaxTree)tree).GetNullableDirectiveState(location.SourceSpan.Start);
-                if (state == null)
-                {
-                    continue;
-                }
-                if (state == true)
-                {
-                    return true;
-                }
-                result = false;
-            }
-            return result;
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
@@ -977,15 +935,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbolWithAnnotations type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.TypeSymbol) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
@@ -1036,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var t in types)
             {
@@ -1066,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                if (parameter.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes))
                 {
                     return true;

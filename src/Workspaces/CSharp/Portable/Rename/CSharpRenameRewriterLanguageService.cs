@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
+        [ImportingConstructor]
+        public CSharpRenameConflictLanguageService()
+        {
+        }
         #region "Annotation"
 
         public SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
             {
                 return _replacementText == "Finalize" &&
-                    token.IsKind(SyntaxKind.IdentifierToken) && 
+                    token.IsKind(SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 
@@ -539,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
 
                         if (symbol != null && _renamedSymbol.Kind != SymbolKind.Local && _renamedSymbol.Kind != SymbolKind.RangeVariable &&
-                            (symbol == _renamedSymbol || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol.GetSymbolKey(), _renamedSymbol.GetSymbolKey())))
+                            (Equals(symbol, _renamedSymbol) || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol.GetSymbolKey(), _renamedSymbol.GetSymbolKey())))
                         {
                             return true;
                         }

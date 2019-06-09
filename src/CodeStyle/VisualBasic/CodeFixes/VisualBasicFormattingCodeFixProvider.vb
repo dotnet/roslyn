@@ -2,14 +2,24 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.CodingConventions
+Imports optionSet = Microsoft.CodeAnalysis.Options.OptionSet
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FixFormatting)>
     <[Shared]>
     Friend Class VisualBasicFormattingCodeFixProvider
         Inherits AbstractFormattingCodeFixProvider
+
+        Protected Overrides ReadOnly Property SyntaxFormattingService As ISyntaxFormattingService
+            Get
+                Return New VisualBasicSyntaxFormattingService()
+            End Get
+        End Property
 
         Protected Overrides Function ApplyFormattingOptions(optionSet As OptionSet, codingConventionContext As ICodingConventionContext) As OptionSet
             Return optionSet

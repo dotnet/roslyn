@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
     internal abstract class AbstractConvertAnonymousTypeToTupleCodeFixProvider<
         TExpressionSyntax,
         TTupleExpressionSyntax,
-        TAnonymousObjectCreationExpressionSyntax> 
+        TAnonymousObjectCreationExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TTupleExpressionSyntax : TExpressionSyntax

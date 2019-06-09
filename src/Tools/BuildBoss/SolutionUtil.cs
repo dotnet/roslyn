@@ -66,7 +66,7 @@ namespace BuildBoss
             index = end + 1;
             return line.Substring(start, end - start);
 
-        error:
+error:
             throw new Exception($"Invalid project line {line}");
         }
     }

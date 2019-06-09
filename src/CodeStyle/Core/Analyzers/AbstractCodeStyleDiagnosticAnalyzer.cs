@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -56,38 +54,42 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
+        protected AbstractCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+        {
+            SupportedDiagnostics = supportedDiagnostics;
+        }
+
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
             => CreateUnnecessaryDescriptor(DescriptorId);
 
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessageFormat,
-                DiagnosticCustomTags.Unnecessary);
+                isUnneccessary: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags);
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags: customTags);
 
         protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, title, title, customTags);
+            => CreateDescriptorWithId(DescriptorId, title, title, customTags: customTags);
 
-        protected DiagnosticDescriptor CreateDescriptorWithId(
-            string id, LocalizableString title, LocalizableString messageFormat,
+        protected static DiagnosticDescriptor CreateDescriptorWithId(
+            string id,
+            LocalizableString title,
+            LocalizableString messageFormat,
+            bool isUnneccessary = false,
+            bool isConfigurable = true,
+            LocalizableString description = null,
             params string[] customTags)
-        {
-            if (!_configurable)
-            {
-                customTags = customTags.Concat(new[] { WellKnownDiagnosticTags.NotConfigurable }).ToArray();
-            }
-
-            return new DiagnosticDescriptor(
-                id, title, messageFormat,
-                DiagnosticCategory.Style,
-                DiagnosticSeverity.Hidden,
-                isEnabledByDefault: true,
-                customTags: customTags);
-        }
+            => new DiagnosticDescriptor(
+                    id, title, messageFormat,
+                    DiagnosticCategory.Style,
+                    DiagnosticSeverity.Hidden,
+                    isEnabledByDefault: true,
+                    description: description,
+                    customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
 
         public sealed override void Initialize(AnalysisContext context)
         {

@@ -144,8 +144,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             => FindDialogByPropertyWorker(visualStudioHWnd, dialogName, AutomationElementIdentifiers.NameProperty);
 
         private static IUIAutomationElement FindDialogByPropertyWorker(
-            IntPtr visualStudioHWnd, 
-            string propertyValue, 
+            IntPtr visualStudioHWnd,
+            string propertyValue,
             AutomationProperty nameProperty)
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle(visualStudioHWnd);

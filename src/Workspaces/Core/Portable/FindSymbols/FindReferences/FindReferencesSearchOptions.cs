@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal class FindReferencesSearchOptions
     {
-        public static readonly FindReferencesSearchOptions Default = 
+        public static readonly FindReferencesSearchOptions Default =
             new FindReferencesSearchOptions(associatePropertyReferencesWithSpecificAccessor: false);
 
         /// <summary>

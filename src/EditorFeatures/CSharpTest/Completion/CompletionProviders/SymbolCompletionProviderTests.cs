@@ -1,18 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+
+    [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -22,6 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         internal override CompletionProvider CreateCompletionProvider()
         {
             return new SymbolCompletionProvider();
+        }
+
+        protected override ExportProvider GetExportProvider()
+        {
+            return ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
+                .CreateExportProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1273,6 +1286,60 @@ $$";
         public async Task SwitchPatternLabelCase()
         {
             var content = @"switch(i) { case $$ when";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task SwitchExpressionFirstBranch()
+        {
+            var content = @"i switch { $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task SwitchExpressionSecondBranch()
+        {
+            var content = @"i switch { 1 => true, $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PositionalPatternFirstPosition()
+        {
+            var content = @"i is ($$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PositionalPatternSecondPosition()
+        {
+            var content = @"i is (1, $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PropertyPatternFirstPosition()
+        {
+            var content = @"i is { P: $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PropertyPatternSecondPosition()
+        {
+            var content = @"i is { P1: 1, P2: $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
@@ -9456,7 +9523,7 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
             // should not crash
-            await VerifyItemExistsAsync(markup, "ToString");            
+            await VerifyItemExistsAsync(markup, "ToString");
         }
 
         [Fact]
@@ -9726,6 +9793,505 @@ class C
 @"public class X<T> where T : System.$$
 ";
             await VerifyItemExistsAsync(markup, "MulticastDelegate");
+        }
+
+        private static string CreateThenIncludeTestCode(string lambdaExpressionString, string methodDeclarationString)
+        {
+            var template = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ThenIncludeIntellisenseBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var registrations = new List<Registration>().AsQueryable();
+            var reg = registrations.Include(r => r.Activities).ThenInclude([1]);
+        }
+    }
+
+    internal class Registration
+    {
+        public ICollection<Activity> Activities { get; set; }
+    }
+
+    public class Activity
+    {
+        public Task Task { get; set; }
+    }
+
+    public class Task
+    {
+        public string Name { get; set; }
+    }
+
+    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
+    {
+    }
+
+    public static class EntityFrameworkQuerybleExtensions
+    {
+        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
+            this IQueryable<TEntity> source,
+            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
+            where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        [2]
+    }
+}";
+
+            return template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodDeclarationString);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenInclude()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeNoExpression()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgument()
+        {
+            var markup = CreateThenIncludeTestCode("0, b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentAndMultiArgumentLambda()
+        {
+            var markup = CreateThenIncludeTestCode("0, (a,b,c) => c.$$)",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentNoOverlap()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.Task, b =>b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath,
+        Expression<Func<TPreviousProperty, TProperty>> anotherNavigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+           this IIncludableQueryable<TEntity, TPreviousProperty> source,
+           Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap()
+        {
+            var markup = CreateThenIncludeTestCode("0, (a,b,c) => c.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+");
+
+            await VerifyItemIsAbsentAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35100"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeGenericAndNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+                   this IIncludableQueryable<Registration, ICollection<Activity>> source,
+                   Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, TPreviousProperty> source,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<Registration, Activity> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<ICollection<Activity>, Activity> navigationPropertyPath) 
+        {
+            return default(IIncludableQueryable<Registration, Activity>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
+        {
+            var markup = @"
+using System;
+class c
+{
+    void M()
+    {
+        Goo(builder =>
+        {
+            builder.$$
+        });
+    }
+
+    void Goo(Action<Builder> configure)
+    {
+        var builder = new Builder();
+        configure(builder);
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+}";
+
+            await VerifyItemExistsAsync(markup, "Something");
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAsArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1(Uri u);
+    public delegate void Delegate2(Guid g);
+
+    public void M(Delegate1 d) { }
+    public void M(Delegate2 d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Uri
+            await VerifyItemExistsAsync(markup, "AbsoluteUri");
+            await VerifyItemExistsAsync(markup, "Fragment");
+            await VerifyItemExistsAsync(markup, "Query");
+
+            // Should not appear for Delegate
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAndReversingArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1<T1,T2>(T2 t2, T1 t1);
+    public delegate void Delegate2<T1,T2>(T2 t2, int g, T1 t1);
+
+    public void M(Delegate1<Uri,Guid> d) { }
+    public void M(Delegate2<Uri,Guid> d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Should not appear for  Uri
+            await VerifyItemIsAbsentAsync(markup, "AbsoluteUri");
+            await VerifyItemIsAbsentAsync(markup, "Fragment");
+            await VerifyItemIsAbsentAsync(markup, "Query");
+
+            // Should not appear for Delegate
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodWithParamsBeforeParams()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Goo(builder =>
+        {
+            builder.$$
+        });
+    }
+
+    void Goo(Action<Builder> action, params Action<AnotherBuilder>[] otherActions)
+    {
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+};
+
+class AnotherBuilder
+{
+    public int AnotherSomething { get; set; }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "AnotherSomething");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault");
+            await VerifyItemExistsAsync(markup, "Something");
+        }
+
+        [WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodWithParamsInParams()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Goo(b0 => { }, b1 => {}, b2 => { b2.$$ });
+    }
+
+    void Goo(Action<Builder> action, params Action<AnotherBuilder>[] otherActions)
+    {
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+};
+
+class AnotherBuilder
+{
+    public int AnotherSomething { get; set; }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Something");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault");
+            await VerifyItemExistsAsync(markup, "AnotherSomething");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilterWithExperimentEnabled()
+        {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestNoTargetTypeFilterWithExperimentDisabled()
+        {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, false);
+
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter });
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilter_NotOnObjectMembers()
+        {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
+            var markup =
+@"public class C
+{
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "GetHashCode",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilter_NotNamedTypes()
+        {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
+            var markup =
+@"public class C
+{
+    void M(C c)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "c",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter });
+
+            await VerifyItemExistsAsync(
+                markup, "C",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter });
         }
     }
 }

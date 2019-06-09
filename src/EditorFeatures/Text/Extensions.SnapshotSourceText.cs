@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // otherwise, create a new cloned snapshot
-                var buffer = factory.Clone(TextImage);
+                var buffer = factory.CloneWithUnknownContentType(TextImage);
                 var baseSnapshot = buffer.CurrentSnapshot;
 
                 // apply the change to the buffer

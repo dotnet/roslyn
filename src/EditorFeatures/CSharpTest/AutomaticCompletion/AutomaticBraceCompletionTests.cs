@@ -372,6 +372,180 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_FollowedByInvocation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is $$
+        M();
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { }
+        M();
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+        }
+        M();
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_WithInvocation_FollowedByInvocation()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2) $$
+        M();
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2) { }
+        M();
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is (1, 2)
+        {
+
+        }
+        M();
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void SwitchExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this switch $$
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this switch { }
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+
+        }
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 12, expectedAfterReturn);
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_ObjectInitializer_OpenBrace_Enter()
         {
             var code = @"using System.Collections.Generic;

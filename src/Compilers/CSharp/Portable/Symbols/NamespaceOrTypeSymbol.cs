@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-        Done:
+Done:
             if ((object)namedType == null)
             {
                 if (isTopLevel)

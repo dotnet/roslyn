@@ -8,9 +8,10 @@ using Microsoft.CodeAnalysis.UseCompoundAssignment;
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpUseCompoundAssignmentCodeFixProvider 
+    internal class CSharpUseCompoundAssignmentCodeFixProvider
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
         public CSharpUseCompoundAssignmentCodeFixProvider()
             : base(Utilities.Kinds)
         {

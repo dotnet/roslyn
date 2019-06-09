@@ -13,10 +13,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            return null;
+        }
+
         protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic);
 
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
                     // diagnostic (i.e. if the compiler was reporting a diagnostic on a lambda
                     // itself).  However, once we start walking upwards, we don't want to cross
                     // a lambda.
-                    if (syntaxFacts.IsAnonymousOrLocalFunction(ancestor) && 
+                    if (syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
                         ancestor.SpanStart < token.SpanStart)
                     {
                         break;

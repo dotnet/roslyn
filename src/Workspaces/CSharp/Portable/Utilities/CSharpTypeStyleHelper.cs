@@ -121,6 +121,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             => true;
 
         protected virtual bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => true;
+        {
+            // Ensure that deconstruction assignment or foreach variable statement have a non-null deconstruct method.
+            DeconstructionInfo? deconstructionInfoOpt = null;
+            switch (declaration.Parent)
+            {
+                case AssignmentExpressionSyntax assignmentExpression:
+                    if (assignmentExpression.IsDeconstruction())
+                    {
+                        deconstructionInfoOpt = semanticModel.GetDeconstructionInfo(assignmentExpression);
+                    }
+
+                    break;
+
+                case ForEachVariableStatementSyntax forEachVariableStatement:
+                    deconstructionInfoOpt = semanticModel.GetDeconstructionInfo(forEachVariableStatement);
+                    break;
+            }
+
+            return !deconstructionInfoOpt.HasValue || !deconstructionInfoOpt.Value.Nested.IsEmpty || deconstructionInfoOpt.Value.Method != null;
+        }
     }
 }

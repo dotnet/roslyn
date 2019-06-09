@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// Creates an <see cref="IIncrementalAnalyzer"/> that collects basic information on <see cref="Project"/> inputs
@@ -27,6 +27,11 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public ProjectTelemetryIncrementalAnalyzerProvider()
+        {
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             return new Analyzer();
