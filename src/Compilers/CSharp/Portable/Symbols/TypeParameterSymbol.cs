@@ -509,6 +509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool? fromReferenceTypeConstraint = false;
 
+            if (this.HasNotNullConstraint)
+            {
+                return true;
+            }
+
             if (this.HasReferenceTypeConstraint)
             {
                 fromReferenceTypeConstraint = !this.ReferenceTypeConstraintIsNullable;
@@ -593,6 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This API returns false when <see cref="HasReferenceTypeConstraint"/> is false.
         /// </summary>
         internal abstract bool? ReferenceTypeConstraintIsNullable { get; }
+
+        public abstract bool HasNotNullConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
         internal Document(Project project, DocumentState state) :
-            base(project, state)
+            base(project, state, TextDocumentKind.Document)
         {
         }
 

@@ -819,5 +819,62 @@ class C
             Assert.Equal(@null, rightInfo.Nullability);
             Assert.Equal(notNull, rightInfo.ConvertedNullability);
         }
+
+        [Fact]
+        public void InferredDeclarationType()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+#nullable enable
+class C : System.IDisposable
+{
+    void M(C? x, C x2)
+    {
+        var /*T:C?*/ y = x;
+        var /*T:C!*/ y2 = x2;
+        
+        using var /*T:C?*/ y3 = x;
+        using var /*T:C!*/ y4 = x2;
+        
+        using (var /*T:C?*/ y5 = x) { }
+        using (var /*T:C!*/ y6 = x2) { }
+        
+        ref var/*T:C?*/ y7 = ref x;
+        ref var/*T:C!*/ y8 = ref x2;
+        
+        if (x == null) 
+            return;
+        var /*T:C!*/ y9 = x;
+        using var /*T:C!*/ y10 = x;
+        ref var /*T:C!*/ y11 = ref x;
+        
+        x = null;
+        var /*T:C?*/ y12 = x;
+        using var /*T:C?*/ y13 = x;
+        ref var /*T:C?*/ y14 = ref x;
+        
+        x2 = null; // 1
+        var /*T:C?*/ y15 = x2;
+        using var /*T:C?*/ y16 = x2;
+        ref var /*T:C?*/ y17 = ref x2;
+    }
+    
+    void M2(List<C?> l1, List<C> l2)
+    {
+        foreach (var /*T:C?*/ x in l1) { }
+        foreach (var /*T:C!*/ x in l2) { }
+    }
+
+    public void Dispose() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (31,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(31, 14)
+                );
+            comp.VerifyTypes();
+        }
     }
 }

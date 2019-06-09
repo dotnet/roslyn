@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -48,6 +48,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -106,6 +107,9 @@
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
@@ -191,13 +195,14 @@
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
-          AfterTargets="Build" 
-          DependsOnTargets="_CalculateDependenciesToInsert"
+          BeforeTargets="AfterBuild"
+          DependsOnTargets="_CalculateDependenciesToInsert;GetAssemblyVersion"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
+    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
 
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
@@ -215,7 +220,7 @@
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
   <Target Name="_CopyPackagesToInsert"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 

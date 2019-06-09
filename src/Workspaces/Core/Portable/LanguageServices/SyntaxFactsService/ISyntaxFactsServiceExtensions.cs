@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -125,6 +126,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
             => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+
+        public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, params SyntaxNode[] nodes)
+            => service.SpansPreprocessorDirective(nodes);
 
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);

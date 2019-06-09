@@ -235,13 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(Of TSyntaxNode As SyntaxNode)(list As IEnumerable(Of TSyntaxNode)) As Boolean
-            If list Is Nothing OrElse Not list.Any() Then
-                Return False
-            End If
-
-            Dim tokens = list.SelectMany(Function(n) n.DescendantTokens())
-
-            Return tokens.SpansPreprocessorDirective()
+            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(list)
         End Function
 
         <Extension()>

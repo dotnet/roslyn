@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Friend Sub New(threadingContext As IThreadingContext, listenerProvider As IAsynchronousOperationListenerProvider)
+        Public Sub New(threadingContext As IThreadingContext, listenerProvider As IAsynchronousOperationListenerProvider)
             MyBase.New(threadingContext, Nothing, listenerProvider)
         End Sub
 

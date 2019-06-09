@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private static bool s_infoBarReported = false;
 
-        public static void ShowInfoBar(Workspace workspace)
+        public static void ShowInfoBar(Workspace workspace, Exception exception = null)
         {
             // use info bar to show warning to users
             if (workspace == null || s_infoBarReported)
@@ -50,6 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         var unused = service.RequestNewRemoteHostAsync(CancellationToken.None);
                         s_infoBarReported = false;
                     }, closeAfterAction: true));
+            }
+
+            if (exception != null)
+            {
+                var errorReportingService = workspace.Services.GetService<IErrorReportingService>();
+                infoBarUIs.Add(
+                    new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () =>
+                        errorReportingService.ShowDetailedErrorInfo(exception), closeAfterAction: true));
             }
 
             workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(

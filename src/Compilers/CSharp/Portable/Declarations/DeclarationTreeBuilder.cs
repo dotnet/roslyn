@@ -256,6 +256,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_UnexpectedAliasedName, node.Name.GetLocation());
             }
 
+            if (node.AttributeLists.Count > 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.AttributeLists[0].GetLocation());
+            }
+
+            if (node.Modifiers.Count > 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.Modifiers[0].GetLocation());
+            }
+
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we
             // just grab the part after the colons (via GetUnqualifiedName, below).  This logic
             // must be kept in sync with NamespaceSymbol.GetNestedNamespace.

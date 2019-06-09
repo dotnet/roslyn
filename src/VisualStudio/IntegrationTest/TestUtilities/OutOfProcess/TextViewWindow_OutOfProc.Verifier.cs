@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Xunit;
@@ -30,12 +31,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 FixAllScope? fixAllScope = null,
                 bool blockUntilComplete = true)
             {
+                using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
                 var expectedItems = new[] { expectedItem };
-                CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
+
+                bool? applied;
+                do
+                {
+                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                    applied = CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                        ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
+                } while (applied is false);
             }
 
-            public void CodeActions(
+            /// <returns>
+            /// <list type="bullet">
+            /// <item><description><see langword="true"/> if <paramref name="applyFix"/> is specified and the fix is successfully applied</description></item>
+            /// <item><description><see langword="false"/> if <paramref name="applyFix"/> is specified but the fix is not successfully applied</description></item>
+            /// <item><description><see langword="null"/> if <paramref name="applyFix"/> is false, so there is no fix to apply</description></item>
+            /// </list>
+            /// </returns>
+            public bool? CodeActions(
                 IEnumerable<string> expectedItems,
                 string applyFix = null,
                 bool verifyNotShowing = false,
@@ -49,7 +66,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 if (verifyNotShowing)
                 {
                     CodeActionsNotShowing();
-                    return;
+                    return null;
                 }
 
                 var actions = _textViewWindow.GetLightBulbActions();
@@ -72,14 +89,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
                 if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
                 {
-                    _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
+                    var result = _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 
                     if (blockUntilComplete)
                     {
                         // wait for action to complete
                         _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
                     }
+
+                    return result;
                 }
+
+                return null;
             }
 
             public void CodeActionsNotShowing()

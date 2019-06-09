@@ -211,11 +211,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            return CreateAnalyzerLoadFailureDiagnostic(null, null, null, fullPath, e);
+            return CreateAnalyzerLoadFailureDiagnostic(projectId: null, language: null, fullPath, e);
         }
 
-        public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
-            Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
+        public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
             if (!TryGetErrorMessage(language, fullPath, e, out var id, out var message, out var messageFormat, out var description))
             {
@@ -228,11 +227,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 description: description,
                 warningLevel: 0,
-                workspace: workspace,
-                projectId: projectId);
+                projectId: projectId,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty);
         }
 
         private static bool TryGetErrorMessage(
