@@ -369,6 +369,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken ToIdentifierToken(string name);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
+        SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
-        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 

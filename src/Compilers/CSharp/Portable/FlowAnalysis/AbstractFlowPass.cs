@@ -376,14 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion)
+        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion, Optional<TLocalState> initialState = default)
         {
             ImmutableArray<PendingBranch> returns;
             do
             {
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
-                this.State = TopState();
+                this.State = initialState.HasValue ? initialState.Value : TopState();
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
@@ -423,8 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _symbol as MethodSymbol;
-                return (object)method == null ? null : method.ThisParameter;
+                ParameterSymbol thisParameter = null;
+                (_symbol as MethodSymbol)?.TryGetThisParameter(out thisParameter);
+                return thisParameter;
             }
         }
 
@@ -597,11 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected virtual void VisitRvalue(BoundExpression node)
         {
-            var result = Visit(node);
+            Visit(node);
             Unsplit();
-            return result;
         }
 
         /// <summary>
@@ -1188,6 +1188,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            // Index or Range pattern indexers evaluate the following in order:
+            // 1. The receiver
+            // 1. The Count or Length method off the receiver
+            // 2. The argument to the access
+            // 3. The pattern method
+            VisitRvalue(node.Receiver);
+            var method = GetReadMethod(node.LengthOrCountProperty);
+            VisitReceiverAfterCall(node.Receiver, method);
+            VisitRvalue(node.Argument);
+            method = node.PatternSymbol switch
+            {
+                PropertySymbol p => GetReadMethod(p),
+                MethodSymbol m => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+            };
+            VisitReceiverAfterCall(node.Receiver, method);
+
+            return null;
+        }
+
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             VisitRvalue(node.ReceiverOpt);
@@ -1590,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1598,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }
 
-            return result;
+            return null;
         }
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
@@ -2100,14 +2122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            if (node.LeftOperand != null)
+            if (node.LeftOperandOpt != null)
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperandOpt);
             }
 
-            if (node.RightOperand != null)
+            if (node.RightOperandOpt != null)
             {
-                VisitRvalue(node.RightOperand);
+                VisitRvalue(node.RightOperandOpt);
             }
 
             return null;
@@ -2503,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLabel(LabelSymbol label, BoundStatement node)
+        protected void VisitLabel(LabelSymbol label, BoundStatement node)
         {
             node.AssertIsLabeledStatementWithLabel(label);
             ResolveBranches(label, node);
@@ -2877,6 +2899,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Join(ref this.State, ref savedState);
+            return null;
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            VisitRvalue(node.Operand);
             return null;
         }
 

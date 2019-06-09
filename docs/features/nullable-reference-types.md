@@ -8,9 +8,11 @@ Project level nullable context can be set by using "nullable" command line switc
 -nullable[+|-]                        Specify nullable context option enable|disable.
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
 
-Through msbuild the context could be set by supplying an argument for a "NullableContextOptions" parameter of Csc build task.
+Through msbuild the context could be set by supplying an argument for a "Nullable" parameter of Csc build task.
 Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
-The Microsoft.CSharp.Core.targets passes value of msbuild property named "NullableContextOptions" for that parameter.
+The Microsoft.CSharp.Core.targets passes value of msbuild property named "Nullable" for that parameter.
+
+Note that in previous preview releases of C# 8.0 this "Nullable" property was successively named "NullableReferenceTypes" then "NullableContextOptions".
 
 ## Annotations
 In source, nullable reference types are annotated with `?`.
@@ -32,8 +34,17 @@ namespace System.Runtime.CompilerServices
         AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
     {
-        public NullableAttribute(byte b) { }
-        public NullableAttribute(byte[] b) { }
+        public readonly byte[] NullableFlags;
+
+        public NullableAttribute(byte b)
+        {
+            NullableFlags = new byte[] { b };
+        }
+
+        public NullableAttribute(byte[] b)
+        {
+            NullableFlags = b;
+        }
     }
 }
 ```
@@ -41,17 +52,20 @@ namespace System.Runtime.CompilerServices
 Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated.
 All value types are marked with flag 0 (oblivious).
 
-To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.  
+To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.
 
 Trivial/optimized cases:
-1)	All parts are NotAnnotated – a NullableAttribute with a single value 1 (rather than an array of 1s)
+1)	All parts are NotAnnotated â€“ a NullableAttribute with a single value 1 (rather than an array of 1s)
 2)	All parts are Annotated - a NullableAttribute with a single value 2 (rather than an array of 2s)
-3)	All parts are Oblivious – the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
+3)	All parts are Oblivious â€“ the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
     For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
-    but compiler will never emit an attribute like this. 
+    but compiler will never emit an attribute like this.
 
+NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
 NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
 NullableAttribute(2) should be placed on a type parameter definition that has a `class?` constraint.
+NullableAttribute(2) should be placed on a type parameter definition that has no `notnull`, `class`, `struct`, `unmanaged` and type constraints and
+is declared in a context where nullable type annotations are allowed, that is equivalent to having an `object?` constraint.
 Other forms of NullableAttribute are not emitted on type parameter definitions and are not specially recognized on them.
 
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation, but is needed to produce the output.
@@ -89,9 +103,11 @@ A number of null checks affect the flow state when tested for:
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
-- `[NotNullWhenTrue]` (e.g. `TryGetValue`) and `[NotNullWhenFalse]` (e.g. `string.IsNullOrEmpty`)
-- `[EnsuresNotNull]` (e.g. `ThrowIfNull`)
+- simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
+- simple post-conditions: `[MaybeNull]` and `[NotNull]`
+- conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
+See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -245,13 +261,13 @@ var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!
 ```
 
 ### Anonymous types
-Fields of anonymous types have nullability of the arguments. Field types may be _unspeakable_ types.
+Fields of anonymous types have nullability of the arguments, inferred from the initializing expression.
 ```c#
 static void F<T>(T x, T y)
 {
     if (x == null) return;
-    var a = new { x, y };
-    a.x.ToString(); // ok
+    var a = new { x, y }; // inferred as x:T, y:T (both Unannotated)
+    a.x.ToString(); // ok (non-null tracked by the nullable flow state of the initial value for property x)
     a.y.ToString(); // warning
 }
 ```
@@ -260,17 +276,32 @@ static void F<T>(T x, T y)
 The top-level nullability of `x ?? y` is `!` if `x` is `!` and otherwise the top-level nullability of `y`.
 A warning is reported if there is a nested nullability mismatch between `x` and `y`.
 
+### Try-finally
+We infer the state after a try statement in part by keeping track of which variables may have been assigned a null value in the finally block.
+This tracking distinguishes actual assignments from inferences:
+only actual assignments (but not inferences) affect the state after the try statement.
+See https://github.com/dotnet/roslyn/issues/34018 and https://github.com/dotnet/roslyn/pull/35276.
+This is not yet reflected in the language specification for nullable reference types
+(as we don't have a specification for how to handle try statements at this time).
+
 ## Type parameters
 A `class?` constraint is allowed, which, like class, requires the type argument to be a reference type, but allows it to be nullable.
 [Nullable strawman](https://github.com/dotnet/csharplang/issues/790)
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 
-An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable when it is a reference type.
+An explicit `object` (or `System.Object`) constraint is allowed, which requires the type to be non-nullable (value or reference type).
 However, an explicit `object?` constraint is not allowed.
-An unconstrained type parameter is essentially equivalent to one constrained by `object?`.
+An unconstrained (here it means - no type constraints, and no `class`, `struct`, or `unmanaged` constraints) type parameter is essentially
+equivalent to one constrained by `object?` when it is declared in a context where nullable annotations are enabled. If annotations are disabled,
+the type parameter is essentially equivalent to one constrained by `object~`. The context is determined at the identifier that declares the type
+parameter within a type parameter list.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
 Note, the `object`/`System.Object` constraint is represented in metadata as any other type constraint, the type is System.Object.
 
+An explicit `notnull` constraint is allowed, which requires the type to be non-nullable (value or reference type).
+[5/15/19](https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md)
+The rules to determine when it is a named type constraint or a special `notnull` constraint are similar to rules for `unmanaged`. Similarly, it is valid only
+at the first position in constraints list.
 
 A warning is reported for nullable type argument for type parameter with `class` constraint or non-nullable reference type or interface type constraint.
 [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
@@ -347,9 +378,7 @@ A syntax tree is determined to be generated if meets one or more of the followin
     - `<autogenerated`
     - `<auto-generateed`
 
-Newer, nullable-aware generators, may then opt-in to nullable analysis by including a generated `#nullable enable` at the beginning of the generated code.
-
-Within the context of a generated syntax tree `#nullable restore` will always set the state to "disable".
+Newer, nullable-aware generators may then opt-in to nullable analysis by including a generated `#nullable restore` at the beginning of the code, ensuring that the generated syntax tree will be analyzed according to the project-level nullable context.
 
 ## Public APIs
 There are a few questions that an API consumer would want to answer:

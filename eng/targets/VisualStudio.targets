@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
-
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
     
-    <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
+    <!-- 
+      Transitive references get passed to all VS command line tools related to VSIX, VSCT, etc ... processsing. 
+      These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
+      command line length for Windows. These projects must manually specify references to avoid this overflow.
+    -->
+    <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -100,10 +100,6 @@
       <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.10.0'
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
-      </ReferencePath>
-
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'">
-        <EmbedInteropTypes>true</EmbedInteropTypes>
       </ReferencePath>
     </ItemGroup>
   </Target>

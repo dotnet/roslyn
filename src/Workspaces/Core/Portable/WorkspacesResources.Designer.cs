@@ -268,6 +268,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding analyzer config documents is not supported..
+        /// </summary>
+        internal static string Adding_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Adding_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding analyzer references is not supported..
         /// </summary>
         internal static string Adding_analyzer_references_is_not_supported {
@@ -521,6 +530,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Changing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing compilation options is not supported..
         /// </summary>
         internal static string Changing_compilation_options_is_not_supported {
@@ -595,14 +613,12 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Constructors not allowed.
         /// </summary>
-        internal static string Constructors_not_allowed
-        {
-            get
-            {
+        internal static string Constructors_not_allowed {
+            get {
                 return ResourceManager.GetString("Constructors_not_allowed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Core EditorConfig Options.
         /// </summary>
@@ -1284,6 +1300,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Name_expected {
             get {
                 return ResourceManager.GetString("Name_expected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming styles.
+        /// </summary>
+        internal static string Naming_styles {
+            get {
+                return ResourceManager.GetString("Naming_styles", resourceCulture);
             }
         }
         
@@ -3359,6 +3393,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing analyzer config documents is not supported..
+        /// </summary>
+        internal static string Removing_analyzer_config_documents_is_not_supported {
+            get {
+                return ResourceManager.GetString("Removing_analyzer_config_documents_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removing analyzer references is not supported..
         /// </summary>
         internal static string Removing_analyzer_references_is_not_supported {
@@ -3509,6 +3552,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_0_is_not_from_source {
             get {
                 return ResourceManager.GetString("Symbol_0_is_not_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol specifications.
+        /// </summary>
+        internal static string Symbol_specifications {
+            get {
+                return ResourceManager.GetString("Symbol_specifications", resourceCulture);
             }
         }
         
@@ -3763,7 +3815,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Trailing_comma_not_allowed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Base Type.
         /// </summary>

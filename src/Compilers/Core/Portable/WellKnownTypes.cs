@@ -253,10 +253,10 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T3,
         System_ValueTuple_T4,
         System_ValueTuple_T5,
-        System_ValueTuple_T6,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T6,
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
         System_Threading_CancellationToken,
+        System_Threading_CancellationTokenSource,
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
@@ -549,10 +550,10 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`3",
             "System.ValueTuple`4",
             "System.ValueTuple`5",
-            "System.ValueTuple`6",
 
             "", // extension marker
 
+            "System.ValueTuple`6",
             "System.ValueTuple`7",
             "System.ValueTuple`8",
 
@@ -594,6 +595,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
             "System.Threading.CancellationToken",
+            "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
             "System.Runtime.CompilerServices.SwitchExpressionException"

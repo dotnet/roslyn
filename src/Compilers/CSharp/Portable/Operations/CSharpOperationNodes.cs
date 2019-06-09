@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +11,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
+
+    internal sealed class CSharpLazyNoneOperation : LazyNoneOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNode _boundNode;
+
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _boundNode = boundNode;
+        }
+
+        protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
+    }
+
+
     internal sealed class CSharpLazyAddressOfOperation : LazyAddressOfOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1411,6 +1429,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return null;
         }
+
+        protected override ImmutableArray<IOperation> CreateIgnoredDimensions()
+        {
+            return _operationFactory.CreateIgnoredDimensions(_localDeclaration, Syntax);
+        }
     }
 
     internal sealed class CSharpLazyWhileLoopOperation : LazyWhileLoopOperation
@@ -1805,24 +1828,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyFromEndIndexOperation : LazyFromEndIndexOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operand;
-
-        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operand = operand;
-        }
-
-        protected override IOperation CreateOperand()
-        {
-            return _operationFactory.Create(_operand);
-        }
-    }
-
     internal sealed class CSharpLazyRangeOperation : LazyRangeOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1837,12 +1842,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateLeftOperand()
         {
-            return _operationFactory.Create(_rangeExpression.LeftOperand);
+            return _operationFactory.Create(_rangeExpression.LeftOperandOpt);
         }
 
         protected override IOperation CreateRightOperand()
         {
-            return _operationFactory.Create(_rangeExpression.RightOperand);
+            return _operationFactory.Create(_rangeExpression.RightOperandOpt);
         }
     }
 }

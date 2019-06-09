@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
+        [ImportingConstructor]
         public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider()
             : this(pickMembersService: null)
         {
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode, cancellationToken))
             {
-                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: false, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
                     info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {

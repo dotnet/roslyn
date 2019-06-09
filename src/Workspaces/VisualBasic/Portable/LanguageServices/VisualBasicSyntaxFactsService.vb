@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSyntaxFactsServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSyntaxFactsService.Instance
         End Function
@@ -986,6 +990,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function
 
+        Public Function GetMembersOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfNamespaceDeclaration
+            Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
@@ -1687,15 +1695,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
-        End Function
-
-        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            ' VB does not have multi-line comments.
-            Return False
-        End Function
-
         Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
             ' VB does not have shebang directives.
             Return False
@@ -1772,8 +1771,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function GetSelectedMembers(root As SyntaxNode, textSpan As TextSpan) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedMembers
-            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetMembersInSpan(textSpan))
+        Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
+            Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
         End Function
 
         Private Function ISyntaxFactsService_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
@@ -1914,8 +1913,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
-            Return nodes.SpansPreprocessorDirective()
+        Public Shadows Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
+            Return MyBase.SpansPreprocessorDirective(nodes)
+        End Function
+
+        Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
+            Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
     End Class
 End Namespace

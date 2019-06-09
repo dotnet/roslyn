@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 if (char.IsLower(name[0]) && !semanticDocument.SemanticModel.Compilation.IsCaseSensitive)
                 {
-                    // It's near universal in .Net that types start with a capital letter.  As such,
+                    // It's near universal in .NET that types start with a capital letter.  As such,
                     // if this name starts with a lowercase letter, don't even bother to offer 
                     // "generate type".  The user most likely wants to run 'Add Import' (which will
                     // then fix up a case where they typed an existing type name in lowercase, 

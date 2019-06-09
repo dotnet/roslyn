@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// inside a lambda expression"</param>
         /// <param name="diagnostics">Where to place any diagnostics</param>
         /// <returns>Element type of the current iterator, or an error type.</returns>
-        internal virtual TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal virtual TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             return Next.GetIteratorElementType(node, diagnostics);
         }

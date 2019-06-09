@@ -2,14 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
-        <target state="new">Add to _current file</target>
+        <target state="translated">Ajouter au fichier a_ctif</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
-        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
+        <target state="translated">Des changements supplémentaires sont nécessaires pour effectuer la refactorisation. Passez en revue les changements ci-dessous.</target>
         <note />
       </trans-unit>
       <trans-unit id="All_methods">
@@ -19,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
-        <target state="new">Allow:</target>
+        <target state="translated">Autoriser :</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -29,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
-        <target state="translated">Appliquer le schéma de configuration du clavier '{0}'</target>
+        <target state="translated">Appliquer le modèle de configuration du clavier '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -44,37 +49,27 @@
       </trans-unit>
       <trans-unit id="Avoid_unused_value_assignments">
         <source>Avoid unused value assignments</source>
-        <target state="translated">Éviter les attributions de valeur inutilisée</target>
+        <target state="translated">Éviter les affectations de valeurs inutilisées</target>
         <note />
       </trans-unit>
       <trans-unit id="Back">
         <source>Back</source>
-        <target state="new">Back</target>
+        <target state="translated">Précédent</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
-        <target state="new">Calculating dependents...</target>
+        <target state="translated">Calcul des dépendants...</target>
         <note />
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="new">Classifications</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Colorize_JSON_strings">
-        <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
+        <target state="translated">Classifications</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
-        <target state="translated">Colorer les expressions régulières</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
-        <source>Detect and offer editor features for likely JSON strings</source>
-        <target state="new">Detect and offer editor features for likely JSON strings</target>
+        <target state="translated">Coloriser les expressions régulières</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -82,19 +77,24 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
-        <target state="new">Finish</target>
+        <target state="translated">Terminer</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
-        <target state="translated">Générer un fichier .editorconfig à partir des paramètres</target>
+        <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="translated">Mettre en évidence les composants connexes sous le curseur</target>
+        <target state="translated">Surligner les composants liés sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -104,12 +104,7 @@
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
-        <target state="new">Interface cannot have field.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_strings">
-        <source>JSON strings</source>
-        <target state="new">JSON strings</target>
+        <target state="translated">L'interface ne peut pas avoir de champ.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -122,29 +117,44 @@
         <target state="translated">Genre</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
-        <target state="new">Make '{0}' abstract</target>
+        <target state="translated">Rendre '{0}' abstrait</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">
         <source>Make abstract</source>
-        <target state="new">Make abstract</target>
+        <target state="translated">Rendre abstrait</target>
         <note />
       </trans-unit>
       <trans-unit id="Members">
         <source>Members</source>
-        <target state="new">Members</target>
+        <target state="translated">Membres</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">Préférences du modificateur :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
-        <target state="new">Namespace: '{0}'</target>
+        <target state="translated">Espace de noms : '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -159,17 +169,17 @@
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
-        <target state="translated">Préférences de paramètre :</target>
+        <target state="translated">Préférences relatives aux paramètres :</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="translated">Préférences de parenthèses :</target>
+        <target state="translated">Préférences relatives aux parenthèses :</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="translated">Préférer les attributions composées</target>
+        <target state="translated">Préférer les affectations composées</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
@@ -184,22 +194,22 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">Préférer les champs en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">Préférer une déclaration 'using' simple</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">Préférer les fonctions locales statiques</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
-        <target state="new">Pull Members Up</target>
+        <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -207,9 +217,9 @@
         <target state="translated">Expressions régulières</target>
         <note />
       </trans-unit>
-      <trans-unit id="Report_invalid_JSON_strings">
-        <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">Renommer {0} en {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -224,7 +234,7 @@
       </trans-unit>
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
-        <target state="new">Review Changes</target>
+        <target state="translated">Passer en revue les changements</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -234,87 +244,97 @@
       </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
-        <target state="new">Select destination</target>
+        <target state="translated">Sélectionner la destination</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="new">_Select Dependents</target>
+        <source>Select _Dependents</source>
+        <target state="translated">Sélectionner _Dépendants</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="new">_Select Public</target>
+        <source>Select _Public</source>
+        <target state="translated">Sélectionner _Public</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
         <source>Select destination and members to pull up.</source>
-        <target state="new">Select destination and members to pull up.</target>
+        <target state="translated">Sélectionnez la destination et les membres à élever.</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_colon">
         <source>Select destination:</source>
-        <target state="new">Select destination:</target>
+        <target state="translated">Sélectionner la destination :</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_member">
         <source>Select member</source>
-        <target state="new">Select member</target>
+        <target state="translated">Sélectionner le membre</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
-        <target state="new">Select members:</target>
+        <target state="translated">Sélectionner les membres :</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">Afficher la liste de saisie semi-automatique</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
-        <target state="translated">Une valeur inutilisée est explicitement attribuée à un local inutilisé</target>
+        <target state="translated">La valeur inutilisée est explicitement affectée à une variable locale inutilisée</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
         <source>Unused value is explicitly assigned to discard</source>
-        <target state="translated">La valeur non utilisée est explicitement marquée pour être ignorée</target>
+        <target state="translated">La valeur inutilisée est explicitement affectée à une variable discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+        <target state="translated">Utiliser les couleurs améliorées en C# et Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
-        <target state="translated">Utiliser le corps d'expression pour les expressions lambda</target>
+        <target state="translated">Utiliser un corps d'expression pour les expressions lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+        <target state="translated">Utiliser un corps d'expression pour les fonctions locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
-        <target state="translated">La valeur attribuée ici n'est jamais utilisée</target>
+        <target state="translated">La valeur affectée ici n'est jamais utilisée</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
-        <target state="translated">La valeur retournée par l'appel est implicitement ignorée</target>
+        <target state="translated">La valeur retournée par invocation est implicitement ignorée</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="translated">Nous avons remarqué que vous avez interrompu '{0}'. Réinitialisez la configuration du clavier pour continuer la navigation et la refactorisation.</target>
+        <target state="translated">Nous avons remarqué que vous avez interrompu '{0}'. Réinitialisez la configuration du clavier pour continuer à naviguer et à refactoriser.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">Cet espace de travail ne prend pas en charge la mise à jour des options de compilation Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -429,7 +449,7 @@
       </trans-unit>
       <trans-unit id="End_position_must_be_start_position">
         <source>End position must be &gt;= start position</source>
-        <target state="translated">La position de fin doit être &gt;= position de départ</target>
+        <target state="translated">La position de fin doit être &gt;= à la position de départ</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_a_valid_value">
@@ -439,22 +459,22 @@
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
-        <target state="new">'{0}' will be changed to abstract.</target>
+        <target state="translated">'{0}' va être changé en valeur abstraite.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_non_static">
         <source>'{0}' will be changed to non-static.</source>
-        <target state="new">'{0}' will be changed to non-static.</target>
+        <target state="translated">'{0}' va être changé en valeur non statique.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
-        <target state="new">'{0}' will be changed to public.</target>
+        <target state="translated">'{0}' va être changé en valeur publique.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
         <source>given workspace doesn't support undo</source>
-        <target state="translated">L'espace de travail donné ne prend pas en charge la fonction Annuler</target>
+        <target state="translated">l'espace de travail donné ne prend pas en charge la fonction Annuler</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_reference_to_0">
@@ -519,7 +539,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
-        <target state="translated">assembly</target>
+        <target state="translated">Assembly </target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">
@@ -539,12 +559,12 @@
       </trans-unit>
       <trans-unit id="Project">
         <source>Project </source>
-        <target state="translated">Projet</target>
+        <target state="translated">Projet </target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
-        <target state="translated">Remarques :</target>
+        <target state="translated">Notes :</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_colon">
@@ -751,7 +771,7 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
       </trans-unit>
       <trans-unit id="Parameter">
         <source>Parameter</source>
-        <target state="translated">paramètre</target>
+        <target state="translated">Paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_colon2">
@@ -911,7 +931,7 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
       </trans-unit>
       <trans-unit id="Active">
         <source>Active</source>
-        <target state="translated">ACTIVÉ</target>
+        <target state="translated">Actif</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppressed">
@@ -1161,7 +1181,7 @@ Utilisez le menu déroulant pour afficher et basculer vers d'autres projets auqu
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">Exemple</target>
+        <target state="translated">exemple</target>
         <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
@@ -1525,12 +1545,12 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="or">
         <source>or</source>
-        <target state="translated">Ou</target>
+        <target state="translated">ou</target>
         <note />
       </trans-unit>
       <trans-unit id="built_in_types">
         <source>built-in types</source>
-        <target state="translated">Types intégrés</target>
+        <target state="translated">types intégrés</target>
         <note />
       </trans-unit>
       <trans-unit id="everywhere_else">
@@ -1789,8 +1809,8 @@ Je suis d'accord avec tout ce qui précède :</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
@@ -1813,14 +1833,9 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="translated">Gérer les styles de nommage</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Analyse de code en temps réel</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">Préférer une expression conditionnelle à 'if' avec des attributions</target>
+        <target state="translated">Préférer une expression conditionnelle à 'if' avec des affectations</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">

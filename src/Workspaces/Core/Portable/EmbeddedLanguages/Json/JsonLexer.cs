@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal struct JsonLexer
     {
-        public readonly ImmutableArray<VirtualChar> Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public JsonLexer(ImmutableArray<VirtualChar> text) : this()
+        public JsonLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }
@@ -29,16 +29,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             ? Text[Position]
             : new VirtualChar((char)0, span: default);
 
-        public ImmutableArray<VirtualChar> GetCharsToCurrentPosition(int start)
+        public VirtualCharSequence GetCharsToCurrentPosition(int start)
         {
-            var end = Position;
-            var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
-            for (var i = start; i < end; i++)
-            {
-                result.Add(Text[i]);
-            }
-
-            return result.ToImmutableAndFree();
+            return this.Text.GetSubSequence(TextSpan.FromBounds(start, this.Position));
         }
 
         public JsonToken ScanNextToken()
@@ -48,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 return CreateToken(
                     JsonKind.EndOfFile, leadingTrivia,
-                    ImmutableArray<VirtualChar>.Empty, ImmutableArray<JsonTrivia>.Empty);
+                    VirtualCharSequence.Empty, ImmutableArray<JsonTrivia>.Empty);
             }
 
             var (chars, kind, diagnostic) = ScanNextTokenWorker();
@@ -100,7 +93,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return false;
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
             switch (this.CurrentChar)
@@ -135,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanString()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
             var openChar = this.CurrentChar.Char;
@@ -235,7 +228,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                    (c >= 'a' && c <= 'f');
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanText()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanText()
         {
             var start = Position;
 
@@ -248,9 +241,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
         {
-            var chars = ImmutableArray.Create(this.CurrentChar);
+            var chars = this.Text.GetSubSequence(new TextSpan(this.Position, 1));
             Position++;
             return (chars, kind, null);
         }

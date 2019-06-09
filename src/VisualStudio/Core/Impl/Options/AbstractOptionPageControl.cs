@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -79,6 +81,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindTristateToOption(CheckBox checkbox, Option<int> optionKey)
+        {
+            Debug.Assert(checkbox.IsThreeState);
+
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<int>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new CheckBoxTristateCheckedToIntConverter(),
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
         {
             var binding = new Binding()
@@ -148,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        internal virtual void LoadSettings()
+        internal virtual void OnLoad()
         {
             foreach (var bindingExpression in _bindingExpressions)
             {
@@ -156,17 +174,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal virtual void SaveSettings()
+        internal virtual void OnSave()
         {
-            foreach (var bindingExpression in _bindingExpressions)
-            {
-                if (!bindingExpression.IsDirty)
-                {
-                    continue;
-                }
-
-                bindingExpression.UpdateSource();
-            }
         }
 
         internal virtual void Close()
@@ -200,6 +209,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public object ConvertBack(object value, Type targetType, object parameter,
             System.Globalization.CultureInfo culture)
         {
+            return value.Equals(true) ? 1 : -1;
+        }
+    }
+
+    public class CheckBoxTristateCheckedToIntConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null || value.Equals(0))
+            {
+                return null;
+            }
+
+            return !value.Equals(-1);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+            {
+                return 0;
+            }
+
             return value.Equals(true) ? 1 : -1;
         }
     }

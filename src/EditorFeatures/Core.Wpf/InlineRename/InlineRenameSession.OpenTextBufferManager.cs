@@ -53,13 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 InlineRenameSession session,
                 ITextBuffer subjectBuffer,
                 Workspace workspace,
-                IEnumerable<Document> documents,
                 ITextBufferFactoryService textBufferFactoryService)
                 : base(session.ThreadingContext)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
-                _baseDocuments = documents;
+                _baseDocuments = subjectBuffer.GetRelatedDocuments();
                 _textBufferFactoryService = textBufferFactoryService;
                 _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
 

@@ -26,7 +26,7 @@ class c
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("\A")
+                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=WorkspacesResources.Regex_start_of_string_only_short)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(""\\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -74,8 +74,11 @@ class c
 
                 state.SendTypeChars("[")
 
+                ' WaitForAsynchronousOperationsAsync is not enough for waiting in the async completion.
+                ' To be sure that calculations are done, need to check session.GetComputedItems,
+                ' E.g. via AssertSelectedCompletionItem.
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("[  character-group  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()

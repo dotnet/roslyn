@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     [ExportOptionProvider, Shared]
     internal class RegexFeatureOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RegexFeatureOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RegexFeatureOptions.ColorizeRegexPatterns,
             RegexFeatureOptions.ReportInvalidRegexPatterns,

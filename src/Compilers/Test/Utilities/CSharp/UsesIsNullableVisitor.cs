@@ -48,24 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public override bool VisitMethod(MethodSymbol symbol)
         {
             return AddIfUsesIsNullable(symbol, symbol.TypeParameters, inProgress: null) ||
-                AddIfUsesIsNullable(symbol, symbol.ReturnType, inProgress: null) ||
+                AddIfUsesIsNullable(symbol, symbol.ReturnTypeWithAnnotations, inProgress: null) ||
                 AddIfUsesIsNullable(symbol, symbol.Parameters, inProgress: null);
         }
 
         public override bool VisitProperty(PropertySymbol symbol)
         {
-            return AddIfUsesIsNullable(symbol, symbol.Type, inProgress: null) ||
+            return AddIfUsesIsNullable(symbol, symbol.TypeWithAnnotations, inProgress: null) ||
                 AddIfUsesIsNullable(symbol, symbol.Parameters, inProgress: null);
         }
 
         public override bool VisitEvent(EventSymbol symbol)
         {
-            return AddIfUsesIsNullable(symbol, symbol.Type, inProgress: null);
+            return AddIfUsesIsNullable(symbol, symbol.TypeWithAnnotations, inProgress: null);
         }
 
         public override bool VisitField(FieldSymbol symbol)
         {
-            return AddIfUsesIsNullable(symbol, symbol.Type, inProgress: null);
+            return AddIfUsesIsNullable(symbol, symbol.TypeWithAnnotations, inProgress: null);
         }
 
         private bool VisitList<TSymbol>(ImmutableArray<TSymbol> symbols) where TSymbol : Symbol
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             foreach (var parameter in parameters)
             {
-                if (UsesIsNullable(parameter.Type, inProgress))
+                if (UsesIsNullable(parameter.TypeWithAnnotations, inProgress))
                 {
                     Add(symbol);
                     return true;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
-        private bool AddIfUsesIsNullable(Symbol symbol, TypeSymbolWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
+        private bool AddIfUsesIsNullable(Symbol symbol, TypeWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
         {
             if (UsesIsNullable(type, inProgress))
             {
@@ -144,15 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return false;
         }
 
-        private bool UsesIsNullable(TypeSymbolWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
+        private bool UsesIsNullable(TypeWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
         {
-            if (type.IsNull)
+            if (!type.HasType)
             {
                 return false;
             }
-            var typeSymbol = type.TypeSymbol;
-            return (type.NullableAnnotation != NullableAnnotation.Unknown && type.IsReferenceType && !type.IsErrorType()) ||
-                UsesIsNullable(type.TypeSymbol, inProgress);
+            var typeSymbol = type.Type;
+            return (type.NullableAnnotation != NullableAnnotation.Oblivious && typeSymbol.IsReferenceType && !typeSymbol.IsErrorType()) ||
+                UsesIsNullable(typeSymbol, inProgress);
         }
 
         private bool UsesIsNullable(TypeSymbol type, ConsList<TypeParameterSymbol> inProgress)
@@ -177,18 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return UsesIsNullable(((ArrayTypeSymbol)type).ElementType, inProgress);
+                    return UsesIsNullable(((ArrayTypeSymbol)type).ElementTypeWithAnnotations, inProgress);
                 case TypeKind.Class:
                 case TypeKind.Delegate:
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Struct:
-                    return UsesIsNullable(((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics, inProgress);
+                    return UsesIsNullable(((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, inProgress);
                 case TypeKind.Dynamic:
                 case TypeKind.Enum:
                     return false;
                 case TypeKind.Pointer:
-                    return UsesIsNullable(((PointerTypeSymbol)type).PointedAtType, inProgress);
+                    return UsesIsNullable(((PointerTypeSymbol)type).PointedAtTypeWithAnnotations, inProgress);
                 case TypeKind.TypeParameter:
                     var typeParameter = (TypeParameterSymbol)type;
                     if (inProgress?.ContainsReference(typeParameter) == true)
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        private bool UsesIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types, ConsList<TypeParameterSymbol> inProgress)
+        private bool UsesIsNullable(ImmutableArray<TypeWithAnnotations> types, ConsList<TypeParameterSymbol> inProgress)
         {
             return types.Any(t => UsesIsNullable(t, inProgress));
         }

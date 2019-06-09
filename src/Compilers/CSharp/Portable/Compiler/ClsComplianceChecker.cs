@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     bool hasUnacceptableParameterType = false;
 
-                    foreach (var paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
+                    foreach (var paramType in constructor.ParameterTypesWithAnnotations) // Public caller would select type out of parameters.
                     {
                         if (paramType.TypeKind == TypeKind.Array ||
-                            paramType.TypeSymbol.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
+                            paramType.Type.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
                         {
                             hasUnacceptableParameterType = true;
                             break;
@@ -546,14 +546,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (TypeSymbolWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                foreach (TypeWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                 {
-                    if (!IsCompliantType(constraintType.TypeSymbol, context))
+                    if (!IsCompliantType(constraintType.Type, context))
                     {
                         // TODO: it would be nice to report this on the constraint clause.
                         // NOTE: we're improving over dev11 by reporting on the type parameter declaration,
                         // rather than on the constraint type declaration.
-                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.Locations[0], constraintType.TypeSymbol);
+                        this.AddDiagnostic(ErrorCode.WRN_CLS_BadTypeVar, typeParameter.Locations[0], constraintType.Type);
                     }
                 }
             }
@@ -565,9 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (ParameterSymbol parameter in parameters)
             {
-                if (!IsCompliantType(parameter.Type.TypeSymbol, context))
+                if (!IsCompliantType(parameter.Type, context))
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type.TypeSymbol);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type);
                 }
             }
         }
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This catches things like param arrays and converted null literals.
                 if ((object)attribute.AttributeConstructor != null) // Happens in error scenarios.
                 {
-                    foreach (var type in attribute.AttributeConstructor.ParameterTypes)
+                    foreach (var type in attribute.AttributeConstructor.ParameterTypesWithAnnotations)
                     {
                         if (type.TypeKind == TypeKind.Array)
                         {
@@ -708,20 +708,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((FieldSymbol)symbol).Type.TypeSymbol;
+                    type = ((FieldSymbol)symbol).Type;
                     break;
                 case SymbolKind.Property:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
                 case SymbolKind.Event:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((EventSymbol)symbol).Type.TypeSymbol;
+                    type = ((EventSymbol)symbol).Type;
                     break;
                 case SymbolKind.Method:
                     code = ErrorCode.WRN_CLS_BadReturnType;
                     MethodSymbol method = (MethodSymbol)symbol;
-                    type = method.ReturnType.TypeSymbol;
+                    type = method.ReturnType;
 
                     if (method.MethodKind == MethodKind.DelegateInvoke)
                     {
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return IsCompliantType(((ArrayTypeSymbol)type).ElementType.TypeSymbol, context);
+                    return IsCompliantType(((ArrayTypeSymbol)type).ElementType, context);
                 case TypeKind.Dynamic:
                     // NOTE: It would probably be most correct to return 
                     // IsCompliantType(this.compilation.GetSpecialType(SpecialType.System_Object), context)
@@ -1035,9 +1035,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return IsCompliantType(type.TupleUnderlyingType, context);
             }
 
-            foreach (TypeSymbolWithAnnotations typeArg in type.TypeArgumentsNoUseSiteDiagnostics)
+            foreach (TypeWithAnnotations typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                if (!IsCompliantType(typeArg.TypeSymbol, context))
+                if (!IsCompliantType(typeArg.Type, context))
                 {
                     return false;
                 }
@@ -1322,28 +1322,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             code = ErrorCode.Void;
 
-            ImmutableArray<TypeSymbolWithAnnotations> xParameterTypes;
-            ImmutableArray<TypeSymbolWithAnnotations> yParameterTypes;
+            ImmutableArray<TypeWithAnnotations> xParameterTypes;
+            ImmutableArray<TypeWithAnnotations> yParameterTypes;
             ImmutableArray<RefKind> xRefKinds;
             ImmutableArray<RefKind> yRefKinds;
             switch (x.Kind)
             {
                 case SymbolKind.Method:
                     var mX = (MethodSymbol)x;
-                    xParameterTypes = mX.ParameterTypes;
+                    xParameterTypes = mX.ParameterTypesWithAnnotations;
                     xRefKinds = mX.ParameterRefKinds;
 
                     var mY = (MethodSymbol)y;
-                    yParameterTypes = mY.ParameterTypes;
+                    yParameterTypes = mY.ParameterTypesWithAnnotations;
                     yRefKinds = mY.ParameterRefKinds;
                     break;
                 case SymbolKind.Property:
                     var pX = (PropertySymbol)x;
-                    xParameterTypes = pX.ParameterTypes;
+                    xParameterTypes = pX.ParameterTypesWithAnnotations;
                     xRefKinds = pX.ParameterRefKinds;
 
                     var pY = (PropertySymbol)y;
-                    yParameterTypes = pY.ParameterTypes;
+                    yParameterTypes = pY.ParameterTypesWithAnnotations;
                     yRefKinds = pY.ParameterRefKinds;
                     break;
                 default:
@@ -1366,8 +1366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                TypeSymbol xType = xParameterTypes[i].TypeSymbol;
-                TypeSymbol yType = yParameterTypes[i].TypeSymbol;
+                TypeSymbol xType = xParameterTypes[i].Type;
+                TypeSymbol yType = yParameterTypes[i].Type;
 
                 TypeKind typeKind = xType.TypeKind;
                 if (yType.TypeKind != typeKind)
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     sawArrayRankDifference = sawArrayRankDifference || xArrayType.Rank != yArrayType.Rank;
 
-                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementType.TypeSymbol, yArrayType.ElementType.TypeSymbol, TypeCompareKind.ConsiderEverything2);
+                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementType, yArrayType.ElementType, TypeCompareKind.ConsiderEverything2);
 
                     // You might expect that only unnamed-vs-unnamed would produce a warning, but
                     // dev11 reports unnamed-vs-anything.

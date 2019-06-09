@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
+                        .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
 
         private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
             new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
@@ -57,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
                 typeof(CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
                 typeof(VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
-                typeof(VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
-                typeof(CSharp.Formatting.Indentation.CSharpIndentationService),
+                typeof(CodeAnalysis.VisualBasic.Indentation.VisualBasicIndentationService),
+                typeof(CodeAnalysis.CSharp.Indentation.CSharpIndentationService),
                 typeof(CodeAnalysis.CSharp.CSharpCompilationFactoryService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicCompilationFactoryService),
                 typeof(CodeAnalysis.CSharp.CSharpSyntaxTreeFactoryServiceFactory), // CSharpServicesCore
@@ -76,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
                 typeof(CSharp.Interactive.CSharpInteractiveEvaluator),
                 typeof(VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
-                typeof(VisualBasic.Interactive.VisualBasicInteractiveEvaluator),
                 typeof(CodeAnalysis.CSharp.Simplification.CSharpSimplificationService),
                 typeof(CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService),
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),
@@ -116,21 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .ToArray();
         }
 
-        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
-        }
-
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache
-                .GetOrCreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
-                .WithCompositionService();
-        }
+            => GetCSharpAndVisualBasicAssemblyCatalog().WithCompositionService();
 
-        public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()
+        public static ComposableCatalog GetCSharpAndVisualBasicAssemblyCatalog()
         {
-            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies());
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(
+                GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct(), ExportProviderCache.CreateResolver())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog());
         }
     }
 }

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
-                    private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
+                    private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
                         if (this.CancellationToken.IsCancellationRequested)
                         {
@@ -128,10 +128,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, w => w.ToString(), workItem, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, w => w.ToString(), workItem, cancellationToken))
                             {
-                                var cancellationToken = source.Token;
-
                                 var project = processingSolution.GetProject(projectId);
                                 if (project != null)
                                 {
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
+                                        await Processor.RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else
@@ -195,14 +193,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
                     {
-                        CancellationTokenSource source = new CancellationTokenSource();
-
                         var uniqueIds = new HashSet<ProjectId>();
                         foreach (var item in items)
                         {
                             if (uniqueIds.Add(item.ProjectId))
                             {
-                                ProcessProjectAsync(analyzers, item, source).Wait();
+                                ProcessProjectAsync(analyzers, item, CancellationToken.None).Wait();
                             }
                         }
                     }

@@ -371,6 +371,16 @@ Show name suggestions;</source>
         <target state="translated">IDE 中使用的 C# 组件。可能使用其他版本的编译器，具体取决于你的项目类型和设置。</target>
         <note>Help &gt; About</note>
       </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

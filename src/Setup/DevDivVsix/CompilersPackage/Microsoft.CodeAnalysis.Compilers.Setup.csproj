@@ -2,8 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
-    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- VS Insertion -->
     <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
@@ -65,7 +64,7 @@
         <Path Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">%(DesktopCompilerArtifact._OptimizeAssembly)</Path>
         <NGenArchitectureString Condition="'%(DesktopCompilerArtifact.NgenArchitecture)' != ''"> vs.file.ngenArchitecture=%(DesktopCompilerArtifact.NgenArchitecture)</NGenArchitectureString>
         <NGenPriorityString Condition="'%(DesktopCompilerArtifact.NGenPriority)' != ''"> vs.file.ngenPriority=%(DesktopCompilerArtifact.NGenPriority)</NGenPriorityString>
-        <NGenApplicationString Condition="'%(DesktopCompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\%(DesktopCompilerArtifact.NGenApplication)"</NGenApplicationString>
+        <NGenApplicationString Condition="'%(DesktopCompilerArtifact.NGenApplication)' != ''"> vs.file.ngenApplication="[installDir]\MSBuild\Current\Bin\Roslyn\%(DesktopCompilerArtifact.NGenApplication)"</NGenApplicationString>
       </_File>
 
       <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
@@ -144,49 +143,49 @@ vs.dependencies
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn
+folder InstallDir:\MSBuild\Current\Bin\Roslyn
   @(_FileEntries, '%0d%0a  ')
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
   file source="$(MSBuildProjectDirectory)\roslyn.bat"
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\cs
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\cs
   @(_CsSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\de
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\de
   @(_DeSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\es
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\es
   @(_EsSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\fr
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\fr
   @(_FrSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\it
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\it
   @(_ItSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ja
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ja
   @(_JaSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ko
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ko
   @(_KoSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\pl
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\pl
   @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\pt-BR
-  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\pt-BR
+  @(_PtBrSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\ru
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\ru
   @(_RuSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\tr
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\tr
   @(_TrSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\zh-Hans
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hans
   @(_zh-HansSatellite->'%(_FileEntries)', '%0d%0a  ')
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn\zh-Hant
+folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
   @(_zh-HantSatellite->'%(_FileEntries)', '%0d%0a  ')
 ]]>
       </_Lines>

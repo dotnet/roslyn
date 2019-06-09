@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // names. The names can be null if no names were supplied to any arguments.
         public void MethodInvocationOverloadResolution(
             ArrayBuilder<MethodSymbol> methods,
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<MethodSymbol> result,
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            ArrayBuilder<TypeWithAnnotations> typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             MethodOrPropertyOverloadResolution(
                 indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
                 allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void MethodOrPropertyOverloadResolution<TMember>(
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void PerformMemberOverloadResolution<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             BoundExpression receiver,
             AnalyzedArguments arguments,
             bool completeResults,
@@ -438,8 +438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = (MethodSymbol)(Symbol)result.Member;
                 bool returnsMatch =
                     (object)returnType == null ||
-                    method.ReturnType.TypeSymbol.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
-                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType.TypeSymbol, returnType, ref useSiteDiagnostics);
+                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
                 if (!returnsMatch)
                 {
                     results[f] = new MemberResolutionResult<TMember>(
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember member, // method or property
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.TypeSymbol.IsSZArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1439,11 +1439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            var type = parameter.Type.TypeSymbol;
+            var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && type.IsSZArray())
             {
-                return ((ArrayTypeSymbol)type).ElementType.TypeSymbol;
+                return ((ArrayTypeSymbol)type).ElementType;
             }
             else
             {
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // between the two types.
                 Debug.Assert(arr1.HasSameShapeAs(arr2));
 
-                return MoreSpecificType(arr1.ElementType.TypeSymbol, arr2.ElementType.TypeSymbol, ref useSiteDiagnostics);
+                return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
             }
 
             // SPEC EXTENSION: We apply the same rule to pointer types. 
@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var p1 = (PointerTypeSymbol)t1;
                 var p2 = (PointerTypeSymbol)t2;
-                return MoreSpecificType(p1.PointedAtType.TypeSymbol, p2.PointedAtType.TypeSymbol, ref useSiteDiagnostics);
+                return MoreSpecificType(p1.PointedAtType, p2.PointedAtType, ref useSiteDiagnostics);
             }
 
             if (t1.IsDynamic() || t2.IsDynamic())
@@ -2242,13 +2242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
                 (object)(invoke = d.DelegateInvokeMethod) != null &&
-                (y = invoke.ReturnType.TypeSymbol).SpecialType != SpecialType.System_Void)
+                !(y = invoke.ReturnType).IsVoidType())
             {
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
                 var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);
-                if (!x.IsNull && Conversions.HasIdentityConversion(x.TypeSymbol, y))
+                if (x.HasType && Conversions.HasIdentityConversion(x.Type, y))
                 {
                     return true;
                 }
@@ -2258,7 +2258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Dig through Task<...> for an async lambda.
                     if (y.OriginalDefinition.IsGenericTaskType(Compilation))
                     {
-                        y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                        y = ((NamedTypeSymbol)y).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                     }
                     else
                     {
@@ -2351,7 +2351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i].TypeSymbol, ref useSiteDiagnostics))
+                if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i].Type, ref useSiteDiagnostics))
                 {
                     return false;
                 }
@@ -2486,8 +2486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type2IsGenericTask)
                 {
                     // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
-                    return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol,
-                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol,
+                    return BetterConversionTargetCore(((NamedTypeSymbol)type1).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type,
+                                                      ((NamedTypeSymbol)type2).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type,
                                                       ref useSiteDiagnostics, betterConversionTargetRecursionLimit);
                 }
 
@@ -2516,19 +2516,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)invoke1 != null && (object)invoke2 != null)
                     {
-                        TypeSymbol r1 = invoke1.ReturnType.TypeSymbol;
-                        TypeSymbol r2 = invoke2.ReturnType.TypeSymbol;
+                        TypeSymbol r1 = invoke1.ReturnType;
+                        TypeSymbol r2 = invoke2.ReturnType;
                         BetterResult delegateResult = BetterResult.Neither;
 
-                        if (r1.SpecialType != SpecialType.System_Void)
+                        if (!r1.IsVoidType())
                         {
-                            if (r2.SpecialType == SpecialType.System_Void)
+                            if (r2.IsVoidType())
                             {
                                 // - D2 is void returning
                                 delegateResult = BetterResult.Left;
                             }
                         }
-                        else if (r2.SpecialType != SpecialType.System_Void)
+                        else if (!r2.IsVoidType())
                         {
                             // - D2 is void returning
                             delegateResult = BetterResult.Right;
@@ -2635,25 +2635,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        TypeSymbol r1 = invoke1.ReturnType.TypeSymbol;
-                        TypeSymbol r2 = invoke2.ReturnType.TypeSymbol;
+                        TypeSymbol r1 = invoke1.ReturnType;
+                        TypeSymbol r2 = invoke2.ReturnType;
 
 #if DEBUG
                         if (fromTypeAnalysis)
                         {
-                            Debug.Assert((r1.SpecialType == SpecialType.System_Void) == (r2.SpecialType == SpecialType.System_Void));
+                            Debug.Assert((r1.IsVoidType()) == (r2.IsVoidType()));
 
                             // Since we are dealing with variance delegate conversion and delegates have identical parameter
                             // lists, return types must be different and neither can be void.
-                            Debug.Assert(r1.SpecialType != SpecialType.System_Void);
-                            Debug.Assert(r2.SpecialType != SpecialType.System_Void);
+                            Debug.Assert(!r1.IsVoidType());
+                            Debug.Assert(!r2.IsVoidType());
                             Debug.Assert(!Conversions.HasIdentityConversion(r1, r2));
                         }
 #endif
 
-                        if (r1.SpecialType == SpecialType.System_Void)
+                        if (r1.IsVoidType())
                         {
-                            if (r2.SpecialType == SpecialType.System_Void)
+                            if (r2.IsVoidType())
                             {
                                 return true;
                             }
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(currentResult == BetterResult.Right);
                             return false;
                         }
-                        else if (r2.SpecialType == SpecialType.System_Void)
+                        else if (r2.IsVoidType())
                         {
                             Debug.Assert(currentResult == BetterResult.Left);
                             return false;
@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var x = lambda.InferReturnType(Conversions, d1, ref useSiteDiagnostics);
-                        if (x.IsNull)
+                        if (!x.HasType)
                         {
                             return true;
                         }
@@ -2721,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!Conversions.HasIdentityConversion(param1.Type.TypeSymbol, param2.Type.TypeSymbol))
+                if (!Conversions.HasIdentityConversion(param1.Type, param2.Type))
                 {
                     return false;
                 }
@@ -2779,7 +2779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             Binder binder,
             bool expanded,
-            out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
+            out ImmutableArray<TypeWithAnnotations> parameterTypes,
             out ImmutableArray<RefKind> parameterRefKinds)
         {
             bool hasAnyRefOmittedArgument;
@@ -2792,10 +2792,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct EffectiveParameters
         {
-            internal readonly ImmutableArray<TypeSymbolWithAnnotations> ParameterTypes;
+            internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;
 
-            internal EffectiveParameters(ImmutableArray<TypeSymbolWithAnnotations> types, ImmutableArray<RefKind> refKinds)
+            internal EffectiveParameters(ImmutableArray<TypeWithAnnotations> types, ImmutableArray<RefKind> refKinds)
             {
                 ParameterTypes = types;
                 ParameterRefKinds = refKinds;
@@ -2842,7 +2842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             ArrayBuilder<RefKind> refs = null;
             bool hasAnyRefArg = argumentRefKinds.Any();
 
@@ -2855,7 +2855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(parameter.Type);
+                types.Add(parameter.TypeWithAnnotations);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
@@ -2931,7 +2931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argumentRefKinds != null);
 
-            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
             var parameters = member.GetParameters();
@@ -2942,9 +2942,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                var type = parameter.Type;
+                var type = parameter.TypeWithAnnotations;
 
-                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.TypeSymbol).ElementType : type);
+                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
@@ -2964,7 +2964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
@@ -3048,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberResolutionResult<TMember> IsMemberApplicableInExpandedForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
             bool completeResults,
@@ -3116,7 +3116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberResolutionResult<TMember> IsApplicable<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property 
-            ArrayBuilder<TypeSymbolWithAnnotations> typeArgumentsBuilder,
+            ArrayBuilder<TypeWithAnnotations> typeArgumentsBuilder,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             EffectiveParameters constructedEffectiveParameters,
@@ -3150,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
 
-                    ImmutableArray<TypeSymbolWithAnnotations> typeArguments;
+                    ImmutableArray<TypeWithAnnotations> typeArguments;
                     if (typeArgumentsBuilder.Count > 0)
                     {
                         // generic type arguments explicitly specified at call-site:
@@ -3206,7 +3206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Compilation, Conversions))
+                        if (!parameterTypes[i].Type.CheckAllConstraints(Compilation, Conversions))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }
@@ -3245,7 +3245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
         }
 
-        private ImmutableArray<TypeSymbolWithAnnotations> InferMethodTypeArguments(
+        private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
             MethodSymbol method,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
@@ -3286,12 +3286,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
-                    return default(ImmutableArray<TypeSymbolWithAnnotations>);
+                    return default(ImmutableArray<TypeWithAnnotations>);
                 }
             }
 
             error = MemberAnalysisResult.TypeInferenceFailed();
-            return default(ImmutableArray<TypeSymbolWithAnnotations>);
+            return default(ImmutableArray<TypeWithAnnotations>);
         }
 
         private MemberAnalysisResult IsApplicable(
@@ -3373,7 +3373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         candidate,
                         argument,
                         argumentRefKind,
-                        parameters.ParameterTypes[argumentPosition].TypeSymbol,
+                        parameters.ParameterTypes[argumentPosition].Type,
                         parameterRefKind,
                         ignoreOpenTypes,
                         ref useSiteDiagnostics,

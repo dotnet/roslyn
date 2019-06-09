@@ -86,6 +86,29 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
+            protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+            {
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                newSourceText = newSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                var newDocument = OriginalDocument.WithText(newSourceText);
+
+                var indentationService = Wrapper.IndentationService;
+                var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
+                var desiredIndentation = indentationService.GetBlankLineIndentation(
+                    newDocument, originalLineNumber + 1,
+                    FormattingOptions.IndentStyle.Smart,
+                    CancellationToken);
+
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
+                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + desiredIndentation.Offset;
+
+                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
+                return indentString;
+            }
+
             /// <summary>
             /// Try to create a CodeAction representing these edits.  Can return <see langword="null"/> in several 
             /// cases, including:

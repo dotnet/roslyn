@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
         private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()

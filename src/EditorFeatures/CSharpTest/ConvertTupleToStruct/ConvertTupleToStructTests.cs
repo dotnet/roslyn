@@ -74,7 +74,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -140,7 +140,7 @@ internal struct NewStruct
         item2 = Item2;
     }
 
-    public static implicit operator (int, int) (NewStruct value)
+    public static implicit operator (int, int)(NewStruct value)
     {
         return (value.Item1, value.Item2);
     }
@@ -206,7 +206,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int, int b) (NewStruct value)
+    public static implicit operator (int, int b)(NewStruct value)
     {
         return (value.Item1, value.b);
     }
@@ -274,7 +274,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -342,7 +342,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -410,7 +410,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -478,7 +478,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -549,7 +549,7 @@ namespace N
             b = this.b;
         }
 
-        public static implicit operator (int a, int b) (NewStruct value)
+        public static implicit operator (int a, int b)(NewStruct value)
         {
             return (value.a, value.b);
         }
@@ -617,7 +617,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (object a, object b) (NewStruct value)
+    public static implicit operator (object a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -683,7 +683,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -751,7 +751,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -831,7 +831,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -903,7 +903,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -975,7 +975,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1055,7 +1055,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1121,7 +1121,7 @@ internal struct NewStruct
         item2 = Item2;
     }
 
-    public static implicit operator (int a, object) (NewStruct value)
+    public static implicit operator (int a, object)(NewStruct value)
     {
         return (value.a, value.Item2);
     }
@@ -1203,7 +1203,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, object b) (NewStruct value)
+    public static implicit operator (int a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1269,7 +1269,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, object b) (NewStruct value)
+    public static implicit operator (int a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1337,7 +1337,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1405,7 +1405,7 @@ internal struct NewStruct<X, Y>
         b = this.b;
     }
 
-    public static implicit operator (List<X> a, Y[] b) (NewStruct<X, Y> value)
+    public static implicit operator (List<X> a, Y[] b)(NewStruct<X, Y> value)
     {
         return (value.a, value.b);
     }
@@ -1484,7 +1484,7 @@ internal struct NewStruct1
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct1 value)
+    public static implicit operator (int a, int b)(NewStruct1 value)
     {
         return (value.a, value.b);
     }
@@ -1550,7 +1550,7 @@ internal struct NewStruct
         a = this.a;
     }
 
-    public static implicit operator (int a, int a) (NewStruct value)
+    public static implicit operator (int a, int a)(NewStruct value)
     {
         return (value.a, value.a);
     }
@@ -1628,7 +1628,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1706,7 +1706,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1784,7 +1784,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1862,7 +1862,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1936,7 +1936,7 @@ internal struct NewStruct
         item2 = Item2;
     }
 
-    public static implicit operator (int, int) (NewStruct value)
+    public static implicit operator (int, int)(NewStruct value)
     {
         return (value.Item1, value.Item2);
     }
@@ -2015,7 +2015,7 @@ internal struct NewStruct
         item2 = Item2;
     }
 
-    public static implicit operator (int Item1, int Item2) (NewStruct value)
+    public static implicit operator (int Item1, int Item2)(NewStruct value)
     {
         return (value.Item1, value.Item2);
     }
@@ -2119,7 +2119,7 @@ internal struct NewStruct<T>
         b = this.b;
     }
 
-    public static implicit operator (T a, int b) (NewStruct<T> value)
+    public static implicit operator (T a, int b)(NewStruct<T> value)
     {
         return (value.a, value.b);
     }
@@ -2221,7 +2221,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2323,7 +2323,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2437,7 +2437,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2581,7 +2581,7 @@ namespace N
             b = this.b;
         }
 
-        public static implicit operator (int a, int b) (NewStruct value)
+        public static implicit operator (int a, int b)(NewStruct value)
         {
             return (value.a, value.b);
         }
@@ -2716,7 +2716,7 @@ public struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2839,7 +2839,7 @@ public struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }

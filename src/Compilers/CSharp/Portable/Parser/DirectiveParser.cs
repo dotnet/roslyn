@@ -320,8 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
                             this.Options.SpecifiedLanguageVersion.ToDisplayString());
                     }
@@ -430,7 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
         {
-            token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            if (isActive)
+            {
+                token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            }
 
             SyntaxToken setting;
 
@@ -438,7 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.EnableKeyword:
                 case SyntaxKind.DisableKeyword:
-                case SyntaxKind.SafeOnlyKeyword:
                 case SyntaxKind.RestoreKeyword:
                     setting = EatToken();
                     break;
@@ -454,7 +455,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
         {
-            pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            if (isActive)
+            {
+                pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            }
 
             bool hasError = false;
             if (this.CurrentToken.ContextualKind == SyntaxKind.WarningKeyword)
@@ -462,25 +466,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var warning = this.EatContextualToken(SyntaxKind.WarningKeyword);
                 SyntaxToken style;
                 if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword ||
-                    this.CurrentToken.Kind == SyntaxKind.EnableKeyword || this.CurrentToken.Kind == SyntaxKind.SafeOnlyKeyword)
+                    this.CurrentToken.Kind == SyntaxKind.EnableKeyword)
                 {
                     style = this.EatToken();
 
-                    if (isActive && (style.Kind == SyntaxKind.EnableKeyword || style.Kind == SyntaxKind.SafeOnlyKeyword))
+                    if (isActive && style.Kind == SyntaxKind.EnableKeyword)
                     {
-                        style = CheckFeatureAvailability(style, MessageID.IDS_FeaturePragmaWarningEnableOrSafeOnly, forceWarning: true);
+                        style = CheckFeatureAvailability(style, MessageID.IDS_FeaturePragmaWarningEnable, forceWarning: true);
                     }
 
                     if (this.CurrentToken.ContextualKind == SyntaxKind.NullableKeyword)
                     {
                         SyntaxToken nullable = this.EatContextualToken(SyntaxKind.NullableKeyword);
                         var end = this.ParseEndOfDirective(hasError || !isActive, afterPragma: true);
-                        return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: nullable, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
-                    }
-                    else if (style.Kind == SyntaxKind.SafeOnlyKeyword)
-                    {
-                        SyntaxToken nullable = this.EatToken(SyntaxKind.NullableKeyword, ErrorCode.WRN_IllegalPPWarningSafeOnly, reportError: isActive);
-                        var end = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
                         return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: nullable, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
                     }
                     else

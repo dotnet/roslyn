@@ -60,5 +60,13 @@ Loop |</MethodBody>, "While", "Until")
 <MethodBody>Do _
 |</MethodBody>, "Until")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>Do _ ' Test
+|</MethodBody>, "Until")
+        End Function
+
     End Class
 End Namespace

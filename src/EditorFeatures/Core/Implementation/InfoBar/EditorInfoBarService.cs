@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [ExportWorkspaceService(typeof(IInfoBarService)), Shared]
     internal class EditorInfoBarService : IInfoBarService
     {
+        [ImportingConstructor]
+        public EditorInfoBarService()
+        {
+        }
+
         public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)
             => ShowInfoBarInGlobalView(message, items);
 

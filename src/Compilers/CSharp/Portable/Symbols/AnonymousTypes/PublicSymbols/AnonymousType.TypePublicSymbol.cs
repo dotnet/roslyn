@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
-                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsReadOnly
+            public sealed override bool IsReadOnly
             {
                 get { return false; }
             }
@@ -312,8 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
+                Debug.Assert(isValueTypeOverrideOpt == null);
+
                 if (ReferenceEquals(this, t2))
                 {
                     return true;

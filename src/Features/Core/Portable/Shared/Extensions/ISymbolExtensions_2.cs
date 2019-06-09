@@ -260,7 +260,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             var parts = new List<SymbolDisplayPart>();
 
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage_colon}\r\n  "));
+            parts.AddLineBreak();
+            parts.AddText(WorkspacesResources.Usage_colon);
+            parts.AddLineBreak();
+            parts.AddText("  ");
 
             var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
             returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;

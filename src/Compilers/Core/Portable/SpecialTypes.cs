@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis
             "System.RuntimeTypeHandle",
             "System.IAsyncResult",
             "System.AsyncCallback",
+            "System.Runtime.CompilerServices.RuntimeFeature",
         };
 
         private readonly static Dictionary<string, SpecialType> s_nameToTypeIdMap;

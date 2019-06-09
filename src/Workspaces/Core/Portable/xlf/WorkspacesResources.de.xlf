@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
+        <source>Adding analyzer config documents is not supported.</source>
+        <target state="new">Adding analyzer config documents is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Beim Lesen der angegebenen Konfigurationsdatei ist ein Fehler aufgetreten: {0}</target>
@@ -10,6 +15,11 @@
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">C#-Dateien</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
+        <source>Changing analyzer config documents is not supported.</source>
+        <target state="new">Changing analyzer config documents is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -34,7 +44,7 @@
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
-        <target state="new">DateTimeKind must be Utc</target>
+        <target state="translated">"DateTimeKind" muss UTC sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_JSON_editor_features">
@@ -117,6 +127,16 @@
         <target state="new">Name expected</target>
         <note />
       </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="new">Naming styles</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_properties_not_allowed">
         <source>Nested properties not allowed</source>
         <target state="new">Nested properties not allowed</target>
@@ -144,12 +164,12 @@
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
         <source>Prefix '{0}' does not match expected prefix '{1}'</source>
-        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <target state="translated">Das Präfix "{0}" entspricht nicht dem erwarteten Präfix "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
-        <target state="new">Prefix '{0}' is not expected</target>
+        <target state="translated">Das Präfix "{0}" wurde nicht erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
@@ -1292,6 +1312,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Entfernen Sie die folgende Zeile, wenn Sie EDITORCONFIG-Einstellungen von höheren Verzeichnissen vererben möchten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
+        <source>Removing analyzer config documents is not supported.</source>
+        <target state="new">Removing analyzer config documents is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
         <source>Strings must start with " not '</source>
         <target state="new">Strings must start with " not '</target>
@@ -1372,6 +1397,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Das Hinzufügen von Projekten wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="new">Symbol specifications</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="new">Syntax error</target>
@@ -1397,9 +1427,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Declare</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
+        <source>Import</source>
+        <target state="new">Import</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
         <source>Qualify</source>
         <target state="new">Qualify</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
+        <source>Type Argument</source>
+        <target state="new">Type Argument</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
@@ -1417,6 +1457,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Unterminated string</target>
         <note />
       </trans-unit>
+      <trans-unit id="ValueUsageInfo_Name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Value_required">
         <source>Value required</source>
         <target state="new">Value required</target>
@@ -1426,36 +1471,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic-Dateien</target>
         <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
-        <source>Import</source>
-        <target state="new">Import</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
-        <source>Type Argument</source>
-        <target state="new">Type Argument</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Name">
-        <source>Name</source>
-        <target state="new">Name</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="new">Read</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="new">Reference</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="new">Write</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
@@ -2362,9 +2377,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">RegEx-Fehler: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
       </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="needs-review-translation">Lesen</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="needs-review-translation">Verweis</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="needs-review-translation">Schreiben</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>
-        <target state="new">Parameter preferences</target>
+        <target state="translated">Einstellungen für Parameter</target>
         <note />
       </trans-unit>
     </body>

@@ -9,5 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionCrawler
     Friend Class VisualBasicDocumentDifferenceService
         Inherits AbstractDocumentDifferenceService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

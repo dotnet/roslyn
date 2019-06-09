@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
     internal class CSharpImportAdder : ImportAdderService
     {
+        [ImportingConstructor]
+        public CSharpImportAdder()
+        {
+        }
+
         protected override INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
         {
             switch (node)

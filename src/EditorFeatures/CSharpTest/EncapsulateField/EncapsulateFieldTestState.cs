@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     typeof(CSharpEncapsulateFieldService),
                     typeof(EditorNotificationServiceFactory),
-                    typeof(DefaultDocumentSupportsFeatureService)));
+                    typeof(DefaultTextBufferSupportsFeatureService)));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {

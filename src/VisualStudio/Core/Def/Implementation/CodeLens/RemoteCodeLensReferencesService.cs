@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService), layer: ServiceLayer.Host), Shared]
     internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
+        [ImportingConstructor]
+        public RemoteCodeLensReferencesService()
+        {
+        }
+
         public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {

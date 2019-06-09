@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -45,6 +46,11 @@ namespace Roslyn.Test.Utilities
         /// Edit and continue is only supported on desktop at the moment.
         /// </summary>
         public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
+
+        /// <summary>
+        /// Mono issues around Default Interface Methods
+        /// </summary>
+        public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -135,18 +141,48 @@ namespace Roslyn.Test.Utilities
 
     public static class ExecutionConditionUtil
     {
+        public static ExecutionArchitecture Architecture => (IntPtr.Size) switch
+        {
+            4 => ExecutionArchitecture.x86,
+            8 => ExecutionArchitecture.x64,
+            _ => throw new InvalidOperationException($"Unrecognized pointer size {IntPtr.Size}")
+        };
+        public static ExecutionConfiguration Configuration =>
+#if DEBUG
+            ExecutionConfiguration.Debug;
+#elif RELEASE
+            ExecutionConfiguration.Release;
+#else
+#error Unsupported Configuration
+#endif
+
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
+        public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
+        public static bool IsMono => MonoHelpers.IsRunningOnMono();
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
+        public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
+    }
+
+    public enum ExecutionArchitecture
+    {
+        x86,
+        x64,
+    }
+
+    public enum ExecutionConfiguration
+    {
+        Debug,
+        Release,
     }
 
     public class x86 : ExecutionCondition
     {
-        public override bool ShouldSkip => IntPtr.Size != 4;
+        public override bool ShouldSkip => ExecutionConditionUtil.Architecture != ExecutionArchitecture.x86;
 
         public override string SkipReason => "Target platform is not x86";
     }
@@ -219,6 +255,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Windows";
     }
 
+    public class WindowsOrLinuxOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on macOS";
+    }
+
     public class ClrOnly : ExecutionCondition
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();
@@ -241,6 +283,12 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono() || !ExecutionConditionUtil.IsDesktop;
         public override string SkipReason => "Test not supported on Mono or CoreCLR";
+    }
+
+    public class MonoOrCoreClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsMonoOrCoreClr;
+        public override string SkipReason => "Test only supported on Mono or CoreClr";
     }
 
     public class NoIOperationValidation : ExecutionCondition

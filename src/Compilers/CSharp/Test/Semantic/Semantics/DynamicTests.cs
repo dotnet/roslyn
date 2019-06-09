@@ -1905,7 +1905,7 @@ unsafe public class C<X>
             var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
             var f = c.GetMember<FieldSymbol>("F");
             var eraser = new DynamicTypeEraser(compilation.GetSpecialType(SpecialType.System_Object));
-            var erasedType = eraser.EraseDynamic(f.Type.TypeSymbol);
+            var erasedType = eraser.EraseDynamic(f.Type);
 
             Assert.Equal("System.Func<A<System.Object, A<System.Object, System.Boolean>.E*[]>.B<X>, System.Collections.Generic.Dictionary<System.Object[], System.Int32>>", erasedType.ToTestDisplayString());
         }
@@ -3774,10 +3774,10 @@ class Program
             var typeObject = comp.GetSpecialType(SpecialType.System_Object);
             var typeGConstructed = typeG.Construct(typeObject, typeObject);
 
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

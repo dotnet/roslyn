@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,7 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new AddConstructorParametersFromMembersCodeRefactoringProvider();
 
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
+
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
@@ -46,10 +52,11 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
@@ -78,14 +85,15 @@ class Program
         this.i = i;
         this.s = s;
     }
-}",
-index: 1);
+}", index: 1, title: string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(int)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
+            // behavior change with 33603, now all constructors offered
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
@@ -123,13 +131,15 @@ class Program
         this.s = s;
         this.b = b;
     }
-}");
+}", index: 1, title: string.Format(FeaturesResources.Add_to_0, "Program(int, string)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
+            // Behavior change with #33603, now all constructors are offered
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
@@ -167,8 +177,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}",
-index: 1);
+}", index: 3, title: string.Format(FeaturesResources.Add_to_0, "Program(int, string)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -641,6 +650,562 @@ class C
     }
 }"
             );
+        }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestConstructorWithNoParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C()
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        this.i = i;
+        Hello = hello;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestDefaultConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|int i;|]
+    int Hello { get; set; }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j|];
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    public C(int i, int j)
+    {
+        this.j = j;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int k|];
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j, int k)
+    {
+        this.j = j;
+        this.k = k;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int |]k;
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j)
+    {
+        this.j = j;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_FirstofThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int l;
+    public C(int i, int l)
+    {
+        this.l = l;
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_SecondOfThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int l;
+    public C(int i)
+    {
+    }
+    public C(int i, int j, int l)
+    {
+        this.l = l;
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 1, title: string.Format(FeaturesResources.Add_to_0, "C(int, int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_ThirdOfThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+
+            var expected =
+@"
+class C
+{
+    int l;
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k, int l)
+    {
+        this.l = l;
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 2, title: string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_FirstOptionalOfThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int l;
+    public C(int i, int l = 0)
+    {
+        this.l = l;
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 3, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_SecondOptionalOfThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j, int l = 0)
+    {
+        this.l = l;
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 4, title: string.Format(FeaturesResources.Add_to_0, "C(int, int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_ThirdOptionalOfThree()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k, int l = 0)
+    {
+        this.l = l;
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 5, title: string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_OneMustBeOptional()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+
+    // index 0 as required
+    // index 2 as optional
+    public C(int i)
+    {
+    }
+
+    // index 3 as optional
+    public C(int i, double j = 0)
+    {
+    }
+
+    // index 1 as required
+    // index 4 as optional
+    public C(int i, double j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|l|];
+
+    // index 0 as required
+    // index 2 as optional
+    public C(int i)
+    {
+    }
+
+    // index 3 as optional
+    public C(int i, double j = 0)
+    {
+    }
+
+    // index 1 as required
+    // index 4 as optional
+    public C(int i, double j, int k, int l)
+    {
+        this.l = l;
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 1, title: string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_OneMustBeOptional2()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+
+    // index 0, and 2 as optional
+    public C(int i)
+    {
+    }
+
+    // index 3 as optional
+    public C(int i, double j = 0)
+    {
+    }
+
+    // index 1, and 4 as optional
+    public C(int i, double j, int k)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|l|];
+
+    // index 0, and 2 as optional
+    public C(int i)
+    {
+    }
+
+    // index 3 as optional
+    public C(int i, double j = 0, int l = 0)
+    {
+        this.l = l;
+    }
+
+    // index 1, and 4 as optional
+    public C(int i, double j, int k)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 3, title: string.Format(FeaturesResources.Add_to_0, "C(int, double)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_AllMustBeOptional()
+        {
+            var source =
+@"
+class C
+{
+    int [|p|];
+    public C(int i = 0)
+    {
+    }
+    public C(double j, int k = 0)
+    {
+    }
+    public C(int l, double m, int n = 0)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|p|];
+    public C(int i = 0, int p = 0)
+    {
+        this.p = p;
+    }
+    public C(double j, int k = 0)
+    {
+    }
+    public C(int l, double m, int n = 0)
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 0, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors_AllMustBeOptional2()
+        {
+            var source =
+@"
+class C
+{
+    int [|p|];
+    public C(int i = 0)
+    {
+    }
+    public C(double j, int k = 0)
+    {
+    }
+    public C(int l, double m, int n = 0)
+    {
+    }
+}";
+            var expected =
+@"
+class C
+{
+    int [|p|];
+    public C(int i = 0)
+    {
+    }
+    public C(double j, int k = 0)
+    {
+    }
+    public C(int l, double m, int n = 0, int p = 0)
+    {
+        this.p = p;
+    }
+}";
+            await TestInRegularAndScriptAsync(source, expected, index: 2, title: string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"));
+        }
+
+        [WorkItem(33623, "https://github.com/dotnet/roslyn/issues/33623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestDeserializationConstructor()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Runtime.Serialization;
+ 
+class C : ISerializable
+{
+    int [|i|];
+
+    private C(SerializationInfo info, StreamingContext context)
+    {
+    }
+}
+");
         }
     }
 }

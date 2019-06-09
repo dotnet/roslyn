@@ -146,19 +146,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public sealed override TypeSymbolWithAnnotations ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
+            get { return TypeWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
+
+        public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public sealed override Symbol AssociatedSymbol
@@ -264,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            return ReturnType.TypeSymbol.GetUseSiteDiagnostic();
+            return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
         #endregion
 

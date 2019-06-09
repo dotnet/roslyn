@@ -35,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
             Return SyntaxFactory.IsCompleteSubmission(tree)
         End Function
 
-        Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(text, s_defaultOptions, cancellationToken:=cancellationToken)
+        Public Overrides Function ParseSubmission(text As SourceText, parseOptions As ParseOptions, cancellationToken As CancellationToken) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(text, If(parseOptions, s_defaultOptions), cancellationToken:=cancellationToken)
         End Function
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private readonly IReadOnlyDictionary<string, string> _features;
+        // Protected for access in CSharpCompilation.WithAdditionalFeatures
+        protected readonly IReadOnlyDictionary<string, string> _features;
 
         public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
@@ -1357,7 +1359,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
-        /// <returns>True when there is no error.</returns>
+        /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
         internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
         {
             bool hasError = false;
@@ -1376,7 +1378,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error)
+                else if (filtered.Severity == DiagnosticSeverity.Error &&
+                         !filtered.IsSuppressed)
                 {
                     hasError = true;
                 }
@@ -2578,7 +2581,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (diagnostics.HasAnyErrors())
+            if (CommonCompiler.HasUnsuppressedErrors(diagnostics))
             {
                 return null;
             }

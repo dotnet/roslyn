@@ -112,9 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var shebangComment = Matcher.Single<SyntaxTrivia>(IsShebangDirectiveTrivia, "#!");
             var singleLineComment = Matcher.Single<SyntaxTrivia>(IsSingleLineCommentTrivia, "//");
             var multiLineComment = Matcher.Single<SyntaxTrivia>(IsMultiLineCommentTrivia, "/**/");
-            var singleLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsSingleLineDocCommentTrivia, "///");
-            var multiLineDocumentationComment = Matcher.Single<SyntaxTrivia>(IsMultiLineDocCommentTrivia, "/** */");
-            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment, singleLineDocumentationComment, multiLineDocumentationComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -133,8 +131,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         public abstract bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
-        public abstract bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
-        public abstract bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         public abstract bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
@@ -435,5 +431,61 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
         protected abstract IDocumentationCommentService DocumentationCommentService { get; }
+
+        public bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes)
+        {
+            if (nodes == null || nodes.IsEmpty())
+            {
+                return false;
+            }
+
+            return SpansPreprocessorDirective(nodes.SelectMany(n => n.DescendantTokens()));
+        }
+
+        /// <summary>
+        /// Determines if there is preprocessor trivia *between* any of the <paramref name="tokens"/>
+        /// provided.  The <paramref name="tokens"/> will be deduped and then ordered by position.
+        /// Specifically, the first token will not have it's leading trivia checked, and the last
+        /// token will not have it's trailing trivia checked.  All other trivia will be checked to
+        /// see if it contains a preprocessor directive.
+        /// </summary>
+        public bool SpansPreprocessorDirective(IEnumerable<SyntaxToken> tokens)
+        {
+            // we want to check all leading trivia of all tokens (except the 
+            // first one), and all trailing trivia of all tokens (except the
+            // last one).
+
+            var first = true;
+            var previousToken = default(SyntaxToken);
+
+            // Allow duplicate nodes/tokens to be passed in.  Also, allow the nodes/tokens
+            // to not be in any particular order when passed in.
+            var orderedTokens = tokens.Distinct().OrderBy(t => t.SpanStart);
+
+            foreach (var token in orderedTokens)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    // check the leading trivia of this token, and the trailing trivia
+                    // of the previous token.
+                    if (SpansPreprocessorDirective(token.LeadingTrivia) ||
+                        SpansPreprocessorDirective(previousToken.TrailingTrivia))
+                    {
+                        return true;
+                    }
+                }
+
+                previousToken = token;
+            }
+
+            return false;
+        }
+
+        private bool SpansPreprocessorDirective(SyntaxTriviaList list)
+            => list.Any(t => IsPreprocessorDirective(t));
     }
 }

@@ -180,19 +180,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _overriddenAccessor.ReturnType;
+                return _overriddenAccessor.ReturnTypeWithAnnotations;
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 

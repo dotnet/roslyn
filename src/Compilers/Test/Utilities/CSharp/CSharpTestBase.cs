@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -52,38 +51,62 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NotNullWhenTrueAttributeDefinition = @"
+        protected const string AllowNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenTrueAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
+    public sealed class AllowNullAttribute : Attribute
     {
-        public NotNullWhenTrueAttribute() { }
+    }
+}";
+
+        protected const string DisallowNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
+    public sealed class DisallowNullAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string MaybeNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
+    public sealed class MaybeNullAttribute : Attribute
+    {
     }
 }
 ";
 
-        protected const string NotNullWhenFalseAttributeDefinition = @"
+        protected const string MaybeNullWhenAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class MaybeNullWhenAttribute : Attribute
     {
-        public NotNullWhenFalseAttribute() { }
+        public MaybeNullWhenAttribute(bool when) { }
     }
 }
 ";
 
-        protected const string EnsuresNotNullAttributeDefinition = @"
+        protected const string NotNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class EnsuresNotNullAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
+    public sealed class NotNullAttribute : Attribute
     {
-        public EnsuresNotNullAttribute() { }
+    }
+}
+";
+
+        protected const string NotNullWhenAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class NotNullWhenAttribute : Attribute
+    {
+        public NotNullWhenAttribute(bool when) { }
     }
 }
 ";
@@ -409,6 +432,17 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string EnumeratorCancellationAttributeType = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class EnumeratorCancellationAttribute : Attribute
+    {
+        public EnumeratorCancellationAttribute() { }
+    }
+}
+";
+
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
             return WithNonNullTypes(options, NullableContextOptions.Enable);
@@ -427,16 +461,6 @@ namespace System.Runtime.CompilerServices
         protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
         {
             return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
-        }
-
-        protected static string NonNullTypesOff()
-        {
-            return "#nullable disable";
-        }
-
-        internal static string NonNullTypesOn()
-        {
-            return "#nullable enable";
         }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
@@ -893,7 +917,7 @@ namespace System.Runtime.CompilerServices
         {
             IEnumerable<MetadataReference> allReferences = RuntimeUtilities.IsCoreClrRuntime
                 ? TargetFrameworkUtil.NetStandard20References
-                : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
+                : TargetFrameworkUtil.Mscorlib461ExtendedReferences;
 
             allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
 
@@ -1685,6 +1709,24 @@ namespace System.Runtime.CompilerServices
                 references,
                 options: compilationOptions ?? TestOptions.ReleaseDll,
                 targetFramework: targetFramework);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
+        }
+
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            SyntaxTree[] testSyntaxes,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            MetadataReference[] references = null,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode
+        {
+            var compilation = CreateCompilation(
+                testSyntaxes,
+                references,
+                options: compilationOptions ?? TestOptions.ReleaseDll,
+                targetFramework: useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 

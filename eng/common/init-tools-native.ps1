@@ -41,8 +41,12 @@ Param (
   [switch] $Force = $False,
   [int] $DownloadRetries = 5,
   [int] $RetryWaitTimeInSeconds = 30,
-  [string] $GlobalJsonFile = "$PSScriptRoot\..\..\global.json"
+  [string] $GlobalJsonFile
 )
+
+if (!$GlobalJsonFile) {
+  $GlobalJsonFile = Join-Path (Get-Item $PSScriptRoot).Parent.Parent.FullName "global.json"
+}
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -98,9 +102,19 @@ try {
       Write-Verbose "Executing '$LocalInstallerCommand'"
       Invoke-Expression "$LocalInstallerCommand"
       if ($LASTEXITCODE -Ne "0") {
-        Write-Error "Execution failed"
-        exit 1
+        $errMsg = "$ToolName installation failed"
+        if ((Get-Variable 'DoNotAbortNativeToolsInstallationOnFailure' -ErrorAction 'SilentlyContinue') -and $DoNotAbortNativeToolsInstallationOnFailure) {
+            Write-Warning $errMsg
+            $toolInstallationFailure = $true
+        } else {
+            Write-Error $errMsg
+            exit 1
+        }
       }
+    }
+
+    if ((Get-Variable 'toolInstallationFailure' -ErrorAction 'SilentlyContinue') -and $toolInstallationFailure) {
+        exit 1
     }
   }
   else {

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -12,7 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpgradeProject : AbstractUpdateProjectTest
     {
-        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -35,6 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
             InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");

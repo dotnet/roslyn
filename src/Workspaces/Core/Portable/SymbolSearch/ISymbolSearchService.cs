@@ -136,6 +136,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
+        [ImportingConstructor]
+        public DefaultSymbolSearchService()
+        {
+        }
+
         public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {

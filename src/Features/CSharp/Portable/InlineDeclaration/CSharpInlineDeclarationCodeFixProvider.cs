@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpInlineDeclarationCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 
@@ -260,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // If they want it for intrinsics, and this is an intrinsic, then use var.
             if (type.IsSpecialType() == true)
             {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+                return options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
             }
 
             // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
+            return options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

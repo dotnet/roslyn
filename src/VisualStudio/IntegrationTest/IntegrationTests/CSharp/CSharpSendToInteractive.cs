@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -16,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
@@ -221,7 +222,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
             VisualStudio.InteractiveWindow.SubmitText("(new MyClass()).MyFunc()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
         }
 
         [WpfFact]
@@ -249,7 +250,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
             VisualStudio.InteractiveWindow.SubmitText("f.Text");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
         }
     }
 }

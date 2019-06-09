@@ -4653,6 +4653,30 @@ class Outer
             Assert.Equal(Nothing, SymbolDisplay.FormatPrimitive(New Object(), quoteStrings:=False, useHexadecimalNumbers:=False))
         End Sub
 
+        <Fact>
+        Public Sub AllowDefaultLiteral()
+            Dim text =
+                <compilation>
+                    <file name="a.vb">
+Class C
+    Sub Method(Optional cancellationToken as CancellationToken = Nothing)
+    End Sub
+End Class
+                    </file>
+                </compilation>
+
+            Dim formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+            Dim formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral)
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+
+            ' Visual Basic doesn't have default expressions, so AllowDefaultLiteral does not change behavior
+            Const ExpectedText As String = "Sub C.Method(cancellationToken As CancellationToken = Nothing)"
+
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithoutAllowDefaultLiteral, ExpectedText)
+            TestSymbolDescription(text, FindSymbol("C.Method"), formatWithAllowDefaultLiteral, ExpectedText)
+        End Sub
+
         <Fact()>
         Public Sub Tuple()
             TestSymbolDescription(

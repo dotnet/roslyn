@@ -43,8 +43,11 @@ parameters:
   # Optional: enable sending telemetry
   enableTelemetry: false
 
-  # Optional: define the helix repo for telemeetry (example: 'dotnet/arcade')
+  # Optional: define the helix repo for telemetry (example: 'dotnet/arcade')
   helixRepo: ''
+
+  # Optional: define the helix type for telemetry (example: 'build/product/')
+  helixType: ''
 
   # Required: name of the job
   name: ''
@@ -87,6 +90,9 @@ jobs:
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
 
   variables:
+  - ${{ if eq(parameters.enableTelemetry, 'true') }}:
+    - name: DOTNET_CLI_TELEMETRY_PROFILE
+      value: '$(Build.Repository.Uri)'
   - ${{ each variable in parameters.variables }}:
     # handle name-value variable syntax
     # example:
@@ -122,6 +128,8 @@ jobs:
       displayName: 'Send Helix Start Telemetry'
       inputs:
         helixRepo: ${{ parameters.helixRepo }}
+        ${{ if ne(parameters.helixType, '') }}:
+          helixType: ${{ parameters.helixType }}
         buildConfig: $(_BuildConfig)
         runAsPublic: ${{ parameters.runAsPublic }}
       continueOnError: ${{ parameters.continueOnError }}
@@ -179,7 +187,7 @@ jobs:
       continueOnError: true
       condition: always()
     
-  - ${{ if and(eq(parameters.enablePublishBuildAssets, true), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - ${{ if and(eq(parameters.enablePublishBuildAssets, true), ne(variables['_PublishUsingPipelines'], 'true'), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - task: CopyFiles@2
       displayName: Gather Asset Manifests
       inputs:

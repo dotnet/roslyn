@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -16,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateEqualsAndGetHashCodeDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicGenerateEqualsAndGetHashCodeDialog))
+        public BasicGenerateEqualsAndGetHashCodeDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicGenerateEqualsAndGetHashCodeDialog))
         {
         }
 
@@ -67,7 +68,7 @@ End Class");
             VisualStudio.Editor.Verify.CodeAction("Generate Equals(object)...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             Dialog_ClickOk();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
             var actualText = VisualStudio.Editor.GetText();
             var expectedText = @"
 Imports TestProj

@@ -163,9 +163,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInInterface()
+        public async Task TestInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"interface I {
     [$$");
         }

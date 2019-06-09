@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// This generates the path to the executable that is directly ran.
-        /// This could be the managed assembly itself (on desktop .net on Windows),
+        /// This could be the managed assembly itself (on desktop .NET on Windows),
         /// or a runtime such as dotnet.
         /// </summary>
         protected sealed override string GenerateFullPathToTool()

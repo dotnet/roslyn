@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal sealed class JsonTree : EmbeddedSyntaxTree<JsonKind, JsonNode, JsonCompilationUnit>
     {
         public JsonTree(
-            ImmutableArray<VirtualChar> text,
+            VirtualCharSequence text,
             JsonCompilationUnit root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics) : base(text, root, diagnostics)
         {

@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         }
 
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedMembers(root, textSpan);
+            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
 
             if (selectedDeclarations.Length > 0)
             {

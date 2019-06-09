@@ -689,7 +689,7 @@ public class D : ITest1
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var s = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal("S", s.ToTestDisplayString());
                 Assert.NotNull(s.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
@@ -778,7 +778,7 @@ public class D
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var s = (NamedTypeSymbol)method.ReturnType;
                 Assert.Equal("S", s.ToTestDisplayString());
 
                 var field = s.GetMember("field");
@@ -2078,9 +2078,24 @@ internal struct InternalStruct
             var refImage = comp.EmitToImageReference(emitRefOnly);
             var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var globalNamespace = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace;
+
             AssertEx.Equal(
-                new[] { "<Module>", "InternalStruct" },
-                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+                new[] { "<Module>", "InternalStruct", "Microsoft", "System" },
+                globalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(new[] { "Microsoft.CodeAnalysis" }, globalNamespace.GetMember<NamespaceSymbol>("Microsoft").GetMembers().Select(m => m.ToDisplayString()));
+            AssertEx.Equal(
+                new[] { "Microsoft.CodeAnalysis.EmbeddedAttribute" },
+                globalNamespace.GetMember<NamespaceSymbol>("Microsoft.CodeAnalysis").GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices" },
+                globalNamespace.GetMember<NamespaceSymbol>("System.Runtime").GetMembers().Select(m => m.ToDisplayString()));
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices.IsReadOnlyAttribute" },
+                globalNamespace.GetMember<NamespaceSymbol>("System.Runtime.CompilerServices").GetMembers().Select(m => m.ToDisplayString()));
 
             AssertEx.Equal(
                 new[] { "System.Int32 InternalStruct.<P>k__BackingField", "InternalStruct..ctor()" },

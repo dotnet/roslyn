@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
@@ -74,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         public void TestSimpleString()
         {
             Test("\"a\"", "['a',[1,2]]");
+        }
+
+        [Fact]
+        public void TestSimpleMultiCharString()
+        {
+            Test("\"abc\"", "['a',[1,2]]['b',[2,3]]['c',[3,4]]");
         }
 
         [Fact]
@@ -258,8 +263,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
         }
 
-        private string ConvertToString(ImmutableArray<VirtualChar> virtualChars)
-            => string.Join("", virtualChars.Select(ConvertToString));
+        private string ConvertToString(VirtualCharSequence virtualChars)
+        {
+            var strings = ArrayBuilder<string>.GetInstance();
+            foreach (var ch in virtualChars)
+            {
+                strings.Add(ConvertToString(ch));
+            }
+
+            return string.Join("", strings.ToImmutableAndFree());
+        }
 
         private string ConvertToString(VirtualChar vc)
             => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";

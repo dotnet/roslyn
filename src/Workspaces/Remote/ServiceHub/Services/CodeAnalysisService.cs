@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider) :
             base(serviceProvider, stream)
         {
-            Rpc.StartListening();
+            StartService();
         }
     }
 }

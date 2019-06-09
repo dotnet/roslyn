@@ -12,7 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         private static IOptionService s_optionService;
         private static OptionStore s_optionStore;
-        private static bool s_needsLoadOnNextActivate = true;
+        private static bool s_needsToUpdateOptionStore = true;
+
+        private bool _needsLoadOnNextActivate = true;
 
         protected abstract AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore);
 
@@ -50,16 +52,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             EnsureOptionPageCreated();
 
-            if (s_needsLoadOnNextActivate)
+            if (s_needsToUpdateOptionStore)
             {
                 // Reset the option store to the current state of the options.
                 s_optionStore.SetOptions(s_optionService.GetOptions());
                 s_optionStore.SetRegisteredOptions(s_optionService.GetRegisteredOptions());
 
-                s_needsLoadOnNextActivate = false;
+                s_needsToUpdateOptionStore = false;
             }
 
-            pageControl.LoadSettings();
+            if (_needsLoadOnNextActivate)
+            {
+                // For pages that don't use option bindings we need to load setting changes.
+                pageControl.OnLoad();
+
+                _needsLoadOnNextActivate = false;
+            }
         }
 
         public override void LoadSettingsFromStorage()
@@ -81,19 +89,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // they may have been changed programmatically. Therefore, we'll set a flag so we load
             // next time
 
-            s_needsLoadOnNextActivate = pageControl != null;
+            // When pageControl is null we know that Activation has not happened for this page.
+            // We only need to update the OptionStore after a cancel or close click (2).
+            s_needsToUpdateOptionStore = pageControl != null;
+
+            // For pages that don't use option bindings we need to load settings when it is
+            // activated next.
+            _needsLoadOnNextActivate = true;
         }
 
         public override void SaveSettingsToStorage()
         {
             EnsureOptionPageCreated();
 
+            // Allow page controls to perist their settings to the option store before updating the
+            // option service.
+            pageControl.OnSave();
+
             // Save the changes that were accumulated in the option store.
-            s_optionService.SetOptions(s_optionStore.GetOptions());
+            var oldOptions = s_optionService.GetOptions();
+            var newOptions = s_optionStore.GetOptions();
+
+            // Must log the option change before setting the new option values via s_optionService,
+            // otherwise oldOptions and newOptions would be identical and nothing will be logged.
+            OptionLogger.Log(oldOptions, newOptions);
+            s_optionService.SetOptions(newOptions);
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated
-            s_needsLoadOnNextActivate = true;
+            s_needsToUpdateOptionStore = true;
+
+            // For pages that don't use option bindings we need to load settings when it is
+            // activated next.
+            _needsLoadOnNextActivate = true;
         }
 
         protected override void OnClosed(EventArgs e)

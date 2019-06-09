@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct LineChange : IEquatable<LineChange>
+    internal readonly struct LineChange : IEquatable<LineChange>
     {
         public readonly int OldLine;
         public readonly int NewLine;

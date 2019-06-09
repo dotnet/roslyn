@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
                    new LocalizableResourceString(

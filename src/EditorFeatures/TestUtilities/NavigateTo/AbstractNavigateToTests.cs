@@ -76,9 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             using (var workspace = SetupWorkspace(
                 content, TestExportProvider.ExportProviderWithCSharpAndVisualBasic, createTrackingService))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
-
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
                 await body(workspace);
             }
         }

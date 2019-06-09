@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
         Public Shared Shadows Instance As New VisualBasicEmbeddedLanguageEditorFeaturesProvider()
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub

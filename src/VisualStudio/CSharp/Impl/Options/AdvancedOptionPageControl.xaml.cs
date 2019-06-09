@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
+            BindTristateToOption(Enable_use_nullable_reference_types, FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)typeParameter1 != null);
             Debug.Assert((object)typeParameter2 != null);
 
-            Func<TypeParameterSymbol, IEnumerable<TypeParameterSymbol>> dependencies = x => x.ConstraintTypesNoUseSiteDiagnostics.Select(c => c.TypeSymbol).OfType<TypeParameterSymbol>();
+            Func<TypeParameterSymbol, IEnumerable<TypeParameterSymbol>> dependencies = x => x.ConstraintTypesNoUseSiteDiagnostics.Select(c => c.Type).OfType<TypeParameterSymbol>();
             return dependencies.TransitiveClosure(typeParameter1).Contains(typeParameter2);
         }
     }

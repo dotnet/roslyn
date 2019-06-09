@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -83,101 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
-            // https://github.com/dotnet/roslyn/issues/30620
-            if (rewrittenReceiver?.Type.SpecialType == SpecialType.System_String &&
-                rewrittenArguments.Length == 1 && rewrittenArguments[0].Type.SpecialType == SpecialType.None)
-            {
-                var F = _factory;
-                var indexLocal = F.StoreToTemp(rewrittenArguments[0], out BoundAssignmentOperator indexAssign);
-                var stringLocal = F.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator stringAssign);
-
-                var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
-                var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__IsFromEnd);
-
-                var argType = rewrittenArguments[0].Type;
-                if (TypeSymbol.Equals(argType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
-                {
-                    // string[Index] is rewritten as:
-                    // index.FromEnd ? s[s.Length - index.Value] : s[index.Value];
-
-                    var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
-
-                    return F.Sequence(
-                        ImmutableArray.Create<LocalSymbol>(
-                            indexLocal.LocalSymbol,
-                            stringLocal.LocalSymbol),
-                        ImmutableArray.Create<BoundExpression>(
-                            indexAssign,
-                            stringAssign),
-                        F.Conditional(
-                            F.Property(indexLocal, indexFromEndSymbol),
-                            F.Indexer(stringLocal, node.Indexer,
-                                F.Binary(
-                                    BinaryOperatorKind.Subtraction,
-                                    F.SpecialType(SpecialType.System_Int32),
-                                    F.Call(stringLocal, F.SpecialMethod(SpecialMember.System_String__Length)),
-                                    indexValueExpr)),
-                            F.Indexer(stringLocal, node.Indexer, indexValueExpr),
-                            F.SpecialType(SpecialType.System_Char)));
-                }
-                else if (TypeSymbol.Equals(argType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
-                {
-                    // string[Range] is translated to:
-                    // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
-                    // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
-                    // string.Substring(start, end - start)
-                    var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
-                    var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
-                    var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
-
-                    var startLocal = F.StoreToTemp(
-                        F.Conditional(
-                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexFromEndSymbol),
-                            F.Binary(
-                                BinaryOperatorKind.Subtraction,
-                                F.SpecialType(SpecialType.System_Int32),
-                                F.Call(stringLocal, F.SpecialMethod(SpecialMember.System_String__Length)),
-                                F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
-                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
-                            F.SpecialType(SpecialType.System_Int32)),
-                        out BoundAssignmentOperator startAssign);
-                    var endLocal = F.StoreToTemp(
-                        F.Conditional(
-                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexFromEndSymbol),
-                            F.Binary(
-                                BinaryOperatorKind.Subtraction,
-                                F.SpecialType(SpecialType.System_Int32),
-                                F.Call(stringLocal, F.SpecialMethod(SpecialMember.System_String__Length)),
-                                F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
-                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol),
-                            F.SpecialType(SpecialType.System_Int32)),
-                        out BoundAssignmentOperator endAssign);
-                    var substringExpr = F.Call(
-                        stringLocal,
-                        F.WellKnownMethod(WellKnownMember.System_String__Substring),
-                        startLocal,
-                        F.Binary(BinaryOperatorKind.Subtraction, F.SpecialType(SpecialType.System_Int32), endLocal, startLocal));
-                    return F.Sequence(
-                        ImmutableArray.Create(
-                            indexLocal.LocalSymbol,
-                            stringLocal.LocalSymbol,
-                            startLocal.LocalSymbol,
-                            endLocal.LocalSymbol),
-                        ImmutableArray.Create<BoundExpression>(
-                            indexAssign,
-                            stringAssign,
-                            startAssign,
-                            endAssign),
-                        substringExpr);
-
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
-
             return MakeIndexerAccess(
                 node.Syntax,
                 rewrittenReceiver,
@@ -249,6 +155,156 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type);
                 }
             }
+        }
+
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        {
+            if (TypeSymbol.Equals(
+                node.Argument.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything))
+            {
+                return VisitIndexPatternIndexerAccess(
+                    node.Syntax,
+                    node.Receiver,
+                    node.LengthOrCountProperty,
+                    (PropertySymbol)node.PatternSymbol,
+                    node.Argument,
+                    isLeftOfAssignment: isLeftOfAssignment);
+            }
+            else
+            {
+                Debug.Assert(TypeSymbol.Equals(
+                    node.Argument.Type,
+                    _compilation.GetWellKnownType(WellKnownType.System_Range),
+                    TypeCompareKind.ConsiderEverything));
+                return VisitRangePatternIndexerAccess(
+                    node.Receiver,
+                    node.LengthOrCountProperty,
+                    (MethodSymbol)node.PatternSymbol,
+                    node.Argument);
+            }
+        }
+
+        private BoundExpression VisitIndexPatternIndexerAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            PropertySymbol lengthOrCountProperty,
+            PropertySymbol intIndexer,
+            BoundExpression argument,
+            bool isLeftOfAssignment)
+        {
+            // Lowered code:
+            // ref var receiver = receiverExpr;
+            // int length = receiver.length;
+            // int index = argument.GetOffset(length);
+            // receiver[index];
+
+            var F = _factory;
+
+            var receiverLocal = F.StoreToTemp(
+                VisitExpression(receiver),
+                out var receiverStore,
+                // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+            var indexLocal = F.StoreToTemp(
+                MakePatternIndexOffsetExpression(argument, lengthLocal),
+                out var indexStore);
+
+            return F.Sequence(
+                ImmutableArray.Create(receiverLocal.LocalSymbol, lengthLocal.LocalSymbol, indexLocal.LocalSymbol),
+                ImmutableArray.Create<BoundExpression>(receiverStore, lengthStore, indexStore),
+                MakeIndexerAccess(
+                    syntax,
+                    receiverLocal,
+                    intIndexer,
+                    ImmutableArray.Create<BoundExpression>(indexLocal),
+                    default,
+                    default,
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    intIndexer.Type,
+                    oldNodeOpt: null,
+                    isLeftOfAssignment));
+        }
+
+        private BoundExpression MakePatternIndexOffsetExpression(BoundExpression unloweredExpr, BoundLocal lengthAccess)
+        {
+            Debug.Assert(TypeSymbol.Equals(
+                unloweredExpr.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything));
+
+            // If the System.Index argument is `^index`, we can replace the
+            // `argument.GetOffset(length)` call with `length - index`
+            var F = _factory;
+
+            if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
+            {
+                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
+            }
+            else
+            {
+                return F.Call(
+                    VisitExpression(unloweredExpr),
+                    WellKnownMember.System_Index__GetOffset,
+                    lengthAccess);
+            }
+        }
+
+        private BoundExpression VisitRangePatternIndexerAccess(
+            BoundExpression receiver,
+            PropertySymbol lengthOrCountProperty,
+            MethodSymbol sliceMethod,
+            BoundExpression rangeArg)
+        {
+            // Lowered code:
+            // var receiver = receiverExpr;
+            // int length = receiver.length;
+            // Range range = argumentExpr;
+            // int start = range.Start.GetOffset(length)
+            // int end = range.End.GetOffset(length)
+            // receiver.Slice(start, end - start)
+
+            var F = _factory;
+
+            var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
+            var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
+            var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
+            var startLocal = F.StoreToTemp(
+                F.Call(
+                    F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
+                    F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                    lengthLocal),
+                out var startStore);
+            var endLocal = F.StoreToTemp(
+                F.Call(
+                    F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
+                    F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                    lengthLocal),
+                out var endStore);
+
+            return F.Sequence(
+                ImmutableArray.Create(
+                    receiverLocal.LocalSymbol,
+                    lengthLocal.LocalSymbol,
+                    rangeLocal.LocalSymbol,
+                    startLocal.LocalSymbol,
+                    endLocal.LocalSymbol),
+                ImmutableArray.Create<BoundExpression>(
+                    receiverStore,
+                    lengthStore,
+                    rangeStore,
+                    startStore,
+                    endStore),
+                F.Call(receiverLocal, sliceMethod, startLocal, F.IntSubtract(endLocal, startLocal)));
         }
     }
 }

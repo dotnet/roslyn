@@ -156,7 +156,7 @@ class C : System.IAsyncDisposable
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInAsyncAnonymousMethod()
         {
             string source = @"
@@ -298,7 +298,7 @@ class C : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInCatchBlock()
         {
             string source = @"
@@ -413,7 +413,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInFinallyBlock()
         {
             string source = @"
@@ -448,7 +448,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestThrowingDisposeAsync()
         {
             string source = @"
@@ -484,7 +484,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using caught message");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestRegularAwaitInFinallyBlock()
         {
             string source = @"
@@ -761,7 +761,7 @@ public class C : Base
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDeclaration()
         {
             string source = @"
@@ -791,7 +791,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestIAsyncDisposableInRegularUsing()
         {
             string source = @"
@@ -871,7 +871,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body Dispose");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestIDisposableInAwaitUsing()
         {
             string source = @"
@@ -921,7 +921,7 @@ class C : System.IDisposable
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicDeclaration_ExplicitInterfaceImplementation()
         {
             string source = @"
@@ -948,7 +948,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicDeclaration()
         {
             string source = @"
@@ -975,7 +975,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithExpression()
         {
             string source = @"
@@ -1001,7 +1001,7 @@ class C : System.IAsyncDisposable
             var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      304 (0x130)
+  // Code size      306 (0x132)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
@@ -1016,140 +1016,140 @@ class C : System.IAsyncDisposable
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_0097
-    IL_000d:  br.s       IL_000f
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  newobj     ""C..ctor()""
-    IL_0016:  stfld      ""C C.<Main>d__0.<>s__1""
-    IL_001b:  ldarg.0
-    IL_001c:  ldnull
-    IL_001d:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_0022:  ldarg.0
-    IL_0023:  ldc.i4.0
-    IL_0024:  stfld      ""int C.<Main>d__0.<>s__3""
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0099
+    IL_0011:  nop
+    IL_0012:  ldarg.0
+    IL_0013:  newobj     ""C..ctor()""
+    IL_0018:  stfld      ""C C.<Main>d__0.<>s__1""
+    IL_001d:  ldarg.0
+    IL_001e:  ldnull
+    IL_001f:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  stfld      ""int C.<Main>d__0.<>s__3""
     .try
     {
-      IL_0029:  nop
-      IL_002a:  ldstr      ""body ""
-      IL_002f:  call       ""void System.Console.Write(string)""
-      IL_0034:  nop
-      IL_0035:  br.s       IL_0037
-      IL_0037:  ldarg.0
-      IL_0038:  ldc.i4.1
-      IL_0039:  stfld      ""int C.<Main>d__0.<>s__3""
-      IL_003e:  leave.s    IL_004a
+      IL_002b:  nop
+      IL_002c:  ldstr      ""body ""
+      IL_0031:  call       ""void System.Console.Write(string)""
+      IL_0036:  nop
+      IL_0037:  br.s       IL_0039
+      IL_0039:  ldarg.0
+      IL_003a:  ldc.i4.1
+      IL_003b:  stfld      ""int C.<Main>d__0.<>s__3""
+      IL_0040:  leave.s    IL_004c
     }
     catch object
     {
-      IL_0040:  stloc.1
-      IL_0041:  ldarg.0
-      IL_0042:  ldloc.1
-      IL_0043:  stfld      ""object C.<Main>d__0.<>s__2""
-      IL_0048:  leave.s    IL_004a
+      IL_0042:  stloc.1
+      IL_0043:  ldarg.0
+      IL_0044:  ldloc.1
+      IL_0045:  stfld      ""object C.<Main>d__0.<>s__2""
+      IL_004a:  leave.s    IL_004c
     }
-    IL_004a:  ldarg.0
-    IL_004b:  ldfld      ""C C.<Main>d__0.<>s__1""
-    IL_0050:  brfalse.s  IL_00bb
-    IL_0052:  ldarg.0
-    IL_0053:  ldfld      ""C C.<Main>d__0.<>s__1""
-    IL_0058:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
-    IL_005d:  stloc.3
-    IL_005e:  ldloca.s   V_3
-    IL_0060:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
-    IL_0065:  stloc.2
-    IL_0066:  ldloca.s   V_2
-    IL_0068:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
-    IL_006d:  brtrue.s   IL_00b3
-    IL_006f:  ldarg.0
-    IL_0070:  ldc.i4.0
-    IL_0071:  dup
-    IL_0072:  stloc.0
-    IL_0073:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0078:  ldarg.0
-    IL_0079:  ldloc.2
-    IL_007a:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
-    IL_007f:  ldarg.0
-    IL_0080:  stloc.s    V_4
-    IL_0082:  ldarg.0
-    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0088:  ldloca.s   V_2
-    IL_008a:  ldloca.s   V_4
-    IL_008c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
-    IL_0091:  nop
-    IL_0092:  leave      IL_012f
-    IL_0097:  ldarg.0
-    IL_0098:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
-    IL_009d:  stloc.2
-    IL_009e:  ldarg.0
-    IL_009f:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
-    IL_00a4:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
-    IL_00aa:  ldarg.0
-    IL_00ab:  ldc.i4.m1
-    IL_00ac:  dup
-    IL_00ad:  stloc.0
-    IL_00ae:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00b3:  ldloca.s   V_2
-    IL_00b5:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
-    IL_00ba:  nop
-    IL_00bb:  ldarg.0
-    IL_00bc:  ldfld      ""object C.<Main>d__0.<>s__2""
-    IL_00c1:  stloc.1
-    IL_00c2:  ldloc.1
-    IL_00c3:  brfalse.s  IL_00e0
-    IL_00c5:  ldloc.1
-    IL_00c6:  isinst     ""System.Exception""
-    IL_00cb:  stloc.s    V_5
-    IL_00cd:  ldloc.s    V_5
-    IL_00cf:  brtrue.s   IL_00d3
-    IL_00d1:  ldloc.1
-    IL_00d2:  throw
-    IL_00d3:  ldloc.s    V_5
-    IL_00d5:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00da:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00df:  nop
-    IL_00e0:  ldarg.0
-    IL_00e1:  ldfld      ""int C.<Main>d__0.<>s__3""
-    IL_00e6:  stloc.s    V_6
-    IL_00e8:  ldloc.s    V_6
-    IL_00ea:  ldc.i4.1
-    IL_00eb:  beq.s      IL_00ef
-    IL_00ed:  br.s       IL_00f1
-    IL_00ef:  leave.s    IL_011b
-    IL_00f1:  ldarg.0
-    IL_00f2:  ldnull
-    IL_00f3:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_00f8:  ldarg.0
-    IL_00f9:  ldnull
-    IL_00fa:  stfld      ""C C.<Main>d__0.<>s__1""
-    IL_00ff:  leave.s    IL_011b
+    IL_004c:  ldarg.0
+    IL_004d:  ldfld      ""C C.<Main>d__0.<>s__1""
+    IL_0052:  brfalse.s  IL_00bd
+    IL_0054:  ldarg.0
+    IL_0055:  ldfld      ""C C.<Main>d__0.<>s__1""
+    IL_005a:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_005f:  stloc.3
+    IL_0060:  ldloca.s   V_3
+    IL_0062:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0067:  stloc.2
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_006f:  brtrue.s   IL_00b5
+    IL_0071:  ldarg.0
+    IL_0072:  ldc.i4.0
+    IL_0073:  dup
+    IL_0074:  stloc.0
+    IL_0075:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_007a:  ldarg.0
+    IL_007b:  ldloc.2
+    IL_007c:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0081:  ldarg.0
+    IL_0082:  stloc.s    V_4
+    IL_0084:  ldarg.0
+    IL_0085:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_008a:  ldloca.s   V_2
+    IL_008c:  ldloca.s   V_4
+    IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0093:  nop
+    IL_0094:  leave      IL_0131
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_009f:  stloc.2
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_00ac:  ldarg.0
+    IL_00ad:  ldc.i4.m1
+    IL_00ae:  dup
+    IL_00af:  stloc.0
+    IL_00b0:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00b5:  ldloca.s   V_2
+    IL_00b7:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_00bc:  nop
+    IL_00bd:  ldarg.0
+    IL_00be:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_00c3:  stloc.1
+    IL_00c4:  ldloc.1
+    IL_00c5:  brfalse.s  IL_00e2
+    IL_00c7:  ldloc.1
+    IL_00c8:  isinst     ""System.Exception""
+    IL_00cd:  stloc.s    V_5
+    IL_00cf:  ldloc.s    V_5
+    IL_00d1:  brtrue.s   IL_00d5
+    IL_00d3:  ldloc.1
+    IL_00d4:  throw
+    IL_00d5:  ldloc.s    V_5
+    IL_00d7:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00dc:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00e1:  nop
+    IL_00e2:  ldarg.0
+    IL_00e3:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloc.s    V_6
+    IL_00ec:  ldc.i4.1
+    IL_00ed:  beq.s      IL_00f1
+    IL_00ef:  br.s       IL_00f3
+    IL_00f1:  leave.s    IL_011d
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldnull
+    IL_00f5:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldnull
+    IL_00fc:  stfld      ""C C.<Main>d__0.<>s__1""
+    IL_0101:  leave.s    IL_011d
   }
   catch System.Exception
   {
-    IL_0101:  stloc.s    V_5
-    IL_0103:  ldarg.0
-    IL_0104:  ldc.i4.s   -2
-    IL_0106:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_010b:  ldarg.0
-    IL_010c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0111:  ldloc.s    V_5
-    IL_0113:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_0118:  nop
-    IL_0119:  leave.s    IL_012f
+    IL_0103:  stloc.s    V_5
+    IL_0105:  ldarg.0
+    IL_0106:  ldc.i4.s   -2
+    IL_0108:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_010d:  ldarg.0
+    IL_010e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0113:  ldloc.s    V_5
+    IL_0115:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_011a:  nop
+    IL_011b:  leave.s    IL_0131
   }
-  IL_011b:  ldarg.0
-  IL_011c:  ldc.i4.s   -2
-  IL_011e:  stfld      ""int C.<Main>d__0.<>1__state""
-  IL_0123:  ldarg.0
-  IL_0124:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_0129:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_012e:  nop
-  IL_012f:  ret
-}
-");
+  IL_011d:  ldarg.0
+  IL_011e:  ldc.i4.s   -2
+  IL_0120:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_0125:  ldarg.0
+  IL_0126:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_012b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0130:  nop
+  IL_0131:  ret
+}");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullExpression()
         {
             string source = @"
@@ -1192,7 +1192,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicExpression()
         {
             string source = @"
@@ -1219,7 +1219,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithStructExpression()
         {
             string source = @"
@@ -1245,7 +1245,7 @@ struct S : System.IAsyncDisposable
             var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
             verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      296 (0x128)
+  // Code size      298 (0x12a)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
@@ -1260,135 +1260,135 @@ struct S : System.IAsyncDisposable
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_0096
-    IL_000d:  br.s       IL_000f
-    IL_000f:  nop
-    IL_0010:  ldarg.0
-    IL_0011:  ldflda     ""S S.<Main>d__0.<>s__1""
-    IL_0016:  initobj    ""S""
-    IL_001c:  ldarg.0
-    IL_001d:  ldnull
-    IL_001e:  stfld      ""object S.<Main>d__0.<>s__2""
-    IL_0023:  ldarg.0
-    IL_0024:  ldc.i4.0
-    IL_0025:  stfld      ""int S.<Main>d__0.<>s__3""
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0098
+    IL_0011:  nop
+    IL_0012:  ldarg.0
+    IL_0013:  ldflda     ""S S.<Main>d__0.<>s__1""
+    IL_0018:  initobj    ""S""
+    IL_001e:  ldarg.0
+    IL_001f:  ldnull
+    IL_0020:  stfld      ""object S.<Main>d__0.<>s__2""
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.0
+    IL_0027:  stfld      ""int S.<Main>d__0.<>s__3""
     .try
     {
-      IL_002a:  nop
-      IL_002b:  ldstr      ""body ""
-      IL_0030:  call       ""void System.Console.Write(string)""
-      IL_0035:  nop
-      IL_0036:  br.s       IL_0038
-      IL_0038:  ldarg.0
-      IL_0039:  ldc.i4.1
-      IL_003a:  stfld      ""int S.<Main>d__0.<>s__3""
-      IL_003f:  leave.s    IL_004b
+      IL_002c:  nop
+      IL_002d:  ldstr      ""body ""
+      IL_0032:  call       ""void System.Console.Write(string)""
+      IL_0037:  nop
+      IL_0038:  br.s       IL_003a
+      IL_003a:  ldarg.0
+      IL_003b:  ldc.i4.1
+      IL_003c:  stfld      ""int S.<Main>d__0.<>s__3""
+      IL_0041:  leave.s    IL_004d
     }
     catch object
     {
-      IL_0041:  stloc.1
-      IL_0042:  ldarg.0
-      IL_0043:  ldloc.1
-      IL_0044:  stfld      ""object S.<Main>d__0.<>s__2""
-      IL_0049:  leave.s    IL_004b
+      IL_0043:  stloc.1
+      IL_0044:  ldarg.0
+      IL_0045:  ldloc.1
+      IL_0046:  stfld      ""object S.<Main>d__0.<>s__2""
+      IL_004b:  leave.s    IL_004d
     }
-    IL_004b:  ldarg.0
-    IL_004c:  ldflda     ""S S.<Main>d__0.<>s__1""
-    IL_0051:  constrained. ""S""
-    IL_0057:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
-    IL_005c:  stloc.3
-    IL_005d:  ldloca.s   V_3
-    IL_005f:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
-    IL_0064:  stloc.2
-    IL_0065:  ldloca.s   V_2
-    IL_0067:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
-    IL_006c:  brtrue.s   IL_00b2
-    IL_006e:  ldarg.0
-    IL_006f:  ldc.i4.0
-    IL_0070:  dup
-    IL_0071:  stloc.0
-    IL_0072:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_0077:  ldarg.0
-    IL_0078:  ldloc.2
-    IL_0079:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
-    IL_007e:  ldarg.0
-    IL_007f:  stloc.s    V_4
-    IL_0081:  ldarg.0
-    IL_0082:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-    IL_0087:  ldloca.s   V_2
-    IL_0089:  ldloca.s   V_4
-    IL_008b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, S.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref S.<Main>d__0)""
-    IL_0090:  nop
-    IL_0091:  leave      IL_0127
-    IL_0096:  ldarg.0
-    IL_0097:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
-    IL_009c:  stloc.2
-    IL_009d:  ldarg.0
-    IL_009e:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
-    IL_00a3:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
-    IL_00a9:  ldarg.0
-    IL_00aa:  ldc.i4.m1
-    IL_00ab:  dup
-    IL_00ac:  stloc.0
-    IL_00ad:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_00b2:  ldloca.s   V_2
-    IL_00b4:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
-    IL_00b9:  nop
-    IL_00ba:  ldarg.0
-    IL_00bb:  ldfld      ""object S.<Main>d__0.<>s__2""
-    IL_00c0:  stloc.1
-    IL_00c1:  ldloc.1
-    IL_00c2:  brfalse.s  IL_00df
-    IL_00c4:  ldloc.1
-    IL_00c5:  isinst     ""System.Exception""
-    IL_00ca:  stloc.s    V_5
-    IL_00cc:  ldloc.s    V_5
-    IL_00ce:  brtrue.s   IL_00d2
-    IL_00d0:  ldloc.1
-    IL_00d1:  throw
-    IL_00d2:  ldloc.s    V_5
-    IL_00d4:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00d9:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00de:  nop
-    IL_00df:  ldarg.0
-    IL_00e0:  ldfld      ""int S.<Main>d__0.<>s__3""
-    IL_00e5:  stloc.s    V_6
-    IL_00e7:  ldloc.s    V_6
-    IL_00e9:  ldc.i4.1
-    IL_00ea:  beq.s      IL_00ee
-    IL_00ec:  br.s       IL_00f0
-    IL_00ee:  leave.s    IL_0113
-    IL_00f0:  ldarg.0
-    IL_00f1:  ldnull
-    IL_00f2:  stfld      ""object S.<Main>d__0.<>s__2""
-    IL_00f7:  leave.s    IL_0113
+    IL_004d:  ldarg.0
+    IL_004e:  ldflda     ""S S.<Main>d__0.<>s__1""
+    IL_0053:  constrained. ""S""
+    IL_0059:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_005e:  stloc.3
+    IL_005f:  ldloca.s   V_3
+    IL_0061:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0066:  stloc.2
+    IL_0067:  ldloca.s   V_2
+    IL_0069:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_006e:  brtrue.s   IL_00b4
+    IL_0070:  ldarg.0
+    IL_0071:  ldc.i4.0
+    IL_0072:  dup
+    IL_0073:  stloc.0
+    IL_0074:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0079:  ldarg.0
+    IL_007a:  ldloc.2
+    IL_007b:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_0080:  ldarg.0
+    IL_0081:  stloc.s    V_4
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_0089:  ldloca.s   V_2
+    IL_008b:  ldloca.s   V_4
+    IL_008d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, S.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref S.<Main>d__0)""
+    IL_0092:  nop
+    IL_0093:  leave      IL_0129
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_009e:  stloc.2
+    IL_009f:  ldarg.0
+    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter S.<Main>d__0.<>u__1""
+    IL_00a5:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldc.i4.m1
+    IL_00ad:  dup
+    IL_00ae:  stloc.0
+    IL_00af:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_00b4:  ldloca.s   V_2
+    IL_00b6:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_00bb:  nop
+    IL_00bc:  ldarg.0
+    IL_00bd:  ldfld      ""object S.<Main>d__0.<>s__2""
+    IL_00c2:  stloc.1
+    IL_00c3:  ldloc.1
+    IL_00c4:  brfalse.s  IL_00e1
+    IL_00c6:  ldloc.1
+    IL_00c7:  isinst     ""System.Exception""
+    IL_00cc:  stloc.s    V_5
+    IL_00ce:  ldloc.s    V_5
+    IL_00d0:  brtrue.s   IL_00d4
+    IL_00d2:  ldloc.1
+    IL_00d3:  throw
+    IL_00d4:  ldloc.s    V_5
+    IL_00d6:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00db:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00e0:  nop
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      ""int S.<Main>d__0.<>s__3""
+    IL_00e7:  stloc.s    V_6
+    IL_00e9:  ldloc.s    V_6
+    IL_00eb:  ldc.i4.1
+    IL_00ec:  beq.s      IL_00f0
+    IL_00ee:  br.s       IL_00f2
+    IL_00f0:  leave.s    IL_0115
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldnull
+    IL_00f4:  stfld      ""object S.<Main>d__0.<>s__2""
+    IL_00f9:  leave.s    IL_0115
   }
   catch System.Exception
   {
-    IL_00f9:  stloc.s    V_5
-    IL_00fb:  ldarg.0
-    IL_00fc:  ldc.i4.s   -2
-    IL_00fe:  stfld      ""int S.<Main>d__0.<>1__state""
-    IL_0103:  ldarg.0
-    IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-    IL_0109:  ldloc.s    V_5
-    IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_0110:  nop
-    IL_0111:  leave.s    IL_0127
+    IL_00fb:  stloc.s    V_5
+    IL_00fd:  ldarg.0
+    IL_00fe:  ldc.i4.s   -2
+    IL_0100:  stfld      ""int S.<Main>d__0.<>1__state""
+    IL_0105:  ldarg.0
+    IL_0106:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+    IL_010b:  ldloc.s    V_5
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0112:  nop
+    IL_0113:  leave.s    IL_0129
   }
-  IL_0113:  ldarg.0
-  IL_0114:  ldc.i4.s   -2
-  IL_0116:  stfld      ""int S.<Main>d__0.<>1__state""
-  IL_011b:  ldarg.0
-  IL_011c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
-  IL_0121:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0126:  nop
-  IL_0127:  ret
-}
-");
+  IL_0115:  ldarg.0
+  IL_0116:  ldc.i4.s   -2
+  IL_0118:  stfld      ""int S.<Main>d__0.<>1__state""
+  IL_011d:  ldarg.0
+  IL_011e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<Main>d__0.<>t__builder""
+  IL_0123:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0128:  nop
+  IL_0129:  ret
+}");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableExpression()
         {
             string source = @"
@@ -1415,7 +1415,7 @@ struct S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullNullableExpression()
         {
             string source = @"
@@ -1478,7 +1478,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResources()
         {
             string source = @"
@@ -1511,7 +1511,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResourcesAndException()
         {
             string source = @"
@@ -1550,7 +1550,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResourcesAndExceptionInSecondResource()
         {
             string source = @"
@@ -1658,7 +1658,7 @@ public class D
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ExtensionMethod()
         {
@@ -1689,7 +1689,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_TwoOverloads()
         {
@@ -1717,7 +1717,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "dispose");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_ExtensionMethod()
         {
@@ -1748,7 +1748,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_InstanceMethod()
         {
@@ -1778,7 +1778,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod()
         {
@@ -1808,7 +1808,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
@@ -1840,7 +1840,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_OptionalParameter()
         {
@@ -1870,7 +1870,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ParamsParameter()
         {
@@ -1900,7 +1900,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningVoid()
         {
@@ -1928,7 +1928,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningInt()
         {
@@ -1955,7 +1955,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_Inaccessible()
         {
@@ -1988,7 +1988,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
         {
@@ -2017,7 +2017,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Awaitable()
         {
@@ -2057,7 +2057,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTask()
         {
@@ -2086,7 +2086,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTaskOfInt()
         {
@@ -2117,7 +2117,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInRegularMethod()
         {
             string source = @"

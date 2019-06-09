@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var options = ScriptOptions.Default.WithWarningLevel(warningLevel);
             Assert.Same(options, options.WithWarningLevel(warningLevel));
         }
-        
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]

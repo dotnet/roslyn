@@ -3676,5 +3676,113 @@ class D
 {
 }", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscore, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
         }
+
+        [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [InlineData("_s", "s")]
+        [InlineData("_S", "s")]
+        [InlineData("m_s", "s")]
+        [InlineData("m_S", "s")]
+        [InlineData("s_s", "s")]
+        [InlineData("t_s", "s")]
+        public async Task GenerateConstructor_ArgumentHasCommonPrefix(string argumentName, string fieldName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+class Program
+{{
+    static void Main(string[] args)
+    {{
+        string {argumentName} = "";
+        new Prog[||]ram({argumentName});
+    }}
+}}",
+$@"
+class Program
+{{
+    private string {fieldName};
+
+    public Program(string {fieldName})
+    {{
+        this.{fieldName} = {fieldName};
+    }}
+
+    static void Main(string[] args)
+    {{
+        string {argumentName} = "";
+        new Program({argumentName});
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithTopLevelNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+class C
+{
+    private string? s;
+
+    public C(string? s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        string? s = null;
+        new C(s);
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWitNestedNullability()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<string?> s;
+        new [|C|](s);
+    }
+}",
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class C
+{
+    private IEnumerable<string?> s;
+
+    public C(IEnumerable<string?> s)
+    {
+        this.s = s;
+    }
+
+    void M()
+    {
+        IEnumerable<string?> s;
+        new C(s);
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+        }
     }
 }

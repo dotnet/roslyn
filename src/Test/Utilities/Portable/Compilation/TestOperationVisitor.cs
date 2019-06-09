@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclaration, operation.Kind);
-            IEnumerable<IOperation> children = operation.Declarators;
+            IEnumerable<IOperation> children = operation.IgnoredDimensions.Concat(operation.Declarators);
             var initializer = operation.Initializer;
 
             if (initializer != null)
@@ -1432,12 +1432,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
             Assert.NotNull(operation.Local);
             Assert.True(operation.Local.IsStatic);
-        }
-
-        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
-        {
-            Assert.Equal(OperationKind.None, operation.Kind);
-            Assert.Same(operation.Operand, operation.Children.Single());
         }
 
         public override void VisitRangeOperation(IRangeOperation operation)

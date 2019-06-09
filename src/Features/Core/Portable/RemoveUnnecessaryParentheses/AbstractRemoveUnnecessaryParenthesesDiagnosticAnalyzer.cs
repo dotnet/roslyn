@@ -48,9 +48,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public sealed override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxNodeKind());
 

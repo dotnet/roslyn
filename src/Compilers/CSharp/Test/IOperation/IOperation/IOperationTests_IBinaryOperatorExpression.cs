@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
+        private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";
+        private const string RangeEndAtSignature = "System.Range System.Range.EndAt(System.Index end)";
+        private const string RangeAllSignature = "System.Range System.Range.All.get";
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VerifyLiftedBinaryOperators1()
@@ -7913,7 +7918,7 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..2')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7937,13 +7942,13 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..^1')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   RightOperand: 
-    IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^1')
+    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7971,7 +7976,7 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..2')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeEndAtSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7999,7 +8004,7 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeStartAtSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8024,7 +8029,7 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeAllSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8055,7 +8060,7 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8079,13 +8084,13 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
       Operand: 
         IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
   RightOperand: 
-    IFromEndIndexOperation (IsLifted) (OperationKind.None, Type: System.Index?) (Syntax: '^end')
+    IUnaryOperation (UnaryOperatorKind.Hat, IsLifted) (OperationKind.Unary, Type: System.Index?) (Syntax: '^end')
       Operand: 
         IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8113,7 +8118,7 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeEndAtSignature, operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8141,7 +8146,7 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
 ";
 
             var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Range..ctor(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
+            Assert.Equal(RangeStartAtSignature, operation.Method.ToTestDisplayString());
         }
     }
 }

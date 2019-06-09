@@ -126,9 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsDirective(SyntaxNode node)
-        {
-            return node is DirectiveTriviaSyntax;
-        }
+            => node is DirectiveTriviaSyntax;
 
         public bool TryGetExternalSourceInfo(SyntaxNode node, out ExternalSourceInfo info)
         {
@@ -1049,6 +1047,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
+        public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
+            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())
@@ -1428,8 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode invocationExpression)
-            => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
@@ -1713,12 +1714,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
 
-        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsSingleLineDocComment();
-
-        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsMultiLineDocComment();
-
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();
 
@@ -1864,8 +1859,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
-            => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+        public ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetFieldsAndPropertiesInSpan(textSpan, allowPartialSelection));
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
@@ -1952,8 +1947,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-
-        public bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes)
-            => nodes.SpansPreprocessorDirective();
     }
 }

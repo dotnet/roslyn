@@ -90,6 +90,90 @@ public class DATest : DATestBase {
 }";
 
         [Fact]
+        [WorkItem(35011, "https://github.com/dotnet/roslyn/issues/35011")]
+        public void SwitchConstantUnreachable()
+        {
+            var src = @"
+class C
+{
+    const string S = ""abc"";
+
+    public static string M1()
+    {
+        switch (S)
+        {
+            case ""abc"":
+                return S;
+        }
+    }
+
+    public static string M2()
+    {
+        const string S2 = S + """";
+        switch (S)
+        {
+            case S2:
+                return S;
+        }
+    }
+
+    public static string M3()
+    {
+        const int I = 11;
+        switch (I)
+        {
+            case 11:
+                return S;
+        }
+    }
+
+    public static string M4()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 1
+            default:
+                return S;
+        }
+    }
+
+    public static string M5()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 2
+        }
+        // error
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+        }
+
+        [Fact]
         public void General()
         {
             var source = prefix + @"

@@ -23,6 +23,8 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal abstract class AbstractSmartTokenFormatterCommandHandler :
         IChainedCommandHandler<ReturnKeyCommandArgs>
     {
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentationService = document.GetLanguageService<IIndentationService>();
             var indentation = indentationService.GetDesiredIndentation(document,
                 currentPosition.GetContainingLine().LineNumber, cancellationToken);
 

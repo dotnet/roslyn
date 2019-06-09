@@ -2009,7 +2009,7 @@ class C<T>
                 var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
                 var method = (MethodSymbol)methodData.Method;
                 var containingType = method.ContainingType;
-                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var returnType = (NamedTypeSymbol)method.ReturnType;
                 // Return type E<T> with type argument T from <>c<T>.
                 Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
@@ -2078,9 +2078,9 @@ class C<T>
 
                 var methodData = testData.GetMethodData("<>x.<>m0<T>()");
                 var method = (MethodSymbol)methodData.Method;
-                var returnType = method.ReturnType;
+                var returnType = method.ReturnTypeWithAnnotations;
                 Assert.Equal(returnType.TypeKind, TypeKind.TypeParameter);
-                Assert.Equal(returnType.TypeSymbol.ContainingSymbol, method);
+                Assert.Equal(returnType.Type.ContainingSymbol, method);
 
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 // The original local of type T from <>m0<T>.
@@ -4745,7 +4745,7 @@ struct S
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("this?.F()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
                 methodData.VerifyIL(
     @"{
   // Code size       25 (0x19)
@@ -4766,7 +4766,7 @@ struct S
                 testData = new CompilationTestData();
                 result = context.CompileExpression("(new C())?.G()?.F()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
 
                 testData = new CompilationTestData();
                 result = context.CompileExpression("G()?.M()", out error, testData);
@@ -5618,7 +5618,7 @@ public class Source
                 var methodData = testData.GetMethodData("<>x.<>m0");
 
                 // Even though the method's return type has a use-site warning, we are able to evaluate the expression.
-                Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.TypeSymbol.GetUseSiteDiagnostic().Code);
+                Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.GetUseSiteDiagnostic().Code);
                 methodData.VerifyIL(@"
 {
   // Code size        6 (0x6)
@@ -6756,17 +6756,11 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       20 (0x14)
-  .maxstack  3
+  // Code size        6 (0x6)
+  .maxstack  1
   .locals init (System.Range V_0) //x
-  IL_0000:  ldc.i4.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000e:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0013:  ret
+  IL_0000:  call       ""System.Range System.Range.All.get""
+  IL_0005:  ret
 }");
         }
 
@@ -6806,16 +6800,13 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       19 (0x13)
-  .maxstack  3
+  // Code size       12 (0xc)
+  .maxstack  1
   .locals init (System.Range V_0) //x
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  ldc.i4.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0012:  ret
+  IL_0006:  call       ""System.Range System.Range.StartAt(System.Index)""
+  IL_000b:  ret
 }");
         }
 
@@ -6855,16 +6846,13 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       19 (0x13)
-  .maxstack  2
+  // Code size       12 (0xc)
+  .maxstack  1
   .locals init (System.Range V_0) //x
-  IL_0000:  ldc.i4.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0007:  ldc.i4.2
-  IL_0008:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0012:  ret
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  call       ""System.Range System.Range.EndAt(System.Index)""
+  IL_000b:  ret
 }");
         }
 

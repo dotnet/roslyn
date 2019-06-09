@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         // All the characters that might potentially trigger formatting when typed
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
+        [ImportingConstructor]
         public CSharpEditorFormattingService()
         {
         }
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public bool SupportsFormatDocument => true;
         public bool SupportsFormatOnPaste => true;
         public bool SupportsFormatSelection => true;
-        public bool SupportsFormatOnReturn => true;
+        public bool SupportsFormatOnReturn => false;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
@@ -125,53 +128,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-        {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn))
-            {
-                return null;
-            }
-
-            // first, find the token user just typed.
-            SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-            if (token.IsMissing)
-            {
-                return null;
-            }
-
-            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
-
-            string text = null;
-            if (IsInvalidToken(token, ref text))
-            {
-                return null;
-            }
-
-            // Check to see if the token is ')' and also the parent is a using statement. If not, bail
-            if (TokenShouldNotFormatOnReturn(token))
-            {
-                return null;
-            }
-
-            // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-            if (changes.Count > 0)
-            {
-                return changes;
-            }
-
-            // if we can't, do normal smart indentation
-            return await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static bool TokenShouldNotFormatOnReturn(SyntaxToken token)
-        {
-            return !token.IsKind(SyntaxKind.CloseParenToken) || !token.Parent.IsKind(SyntaxKind.UsingStatement);
-        }
+        Task<IList<TextChange>> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+            => SpecializedTasks.Default<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
@@ -322,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
         {
-            return new SmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
+            return new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
 
         private async Task<IList<TextChange>> FormatRangeAsync(
@@ -348,13 +309,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var formatter = new SmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
+            var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
             var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes;
         }
 
-        private IEnumerable<AbstractFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
+        private IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
@@ -462,33 +423,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 default:
                     return true;
             }
-        }
-
-        private bool IsInvalidToken(char typedChar, SyntaxToken token)
-        {
-            string text = null;
-            if (IsInvalidToken(token, ref text))
-            {
-                return true;
-            }
-
-            return text[0] != typedChar;
-        }
-
-        private bool IsInvalidToken(SyntaxToken token, ref string text)
-        {
-            if (IsInvalidTokenKind(token))
-            {
-                return true;
-            }
-
-            text = token.ToString();
-            if (text.Length != 1)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private bool IsInvalidTokenKind(SyntaxToken token)

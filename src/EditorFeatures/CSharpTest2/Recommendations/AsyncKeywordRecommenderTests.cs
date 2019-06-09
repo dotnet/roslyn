@@ -37,6 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideInterface()
+        {
+            await VerifyKeywordAsync(@"interface C
+{
+    $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestMethodDeclarationInGlobalStatement1()
         {
             const string text = @"$$";

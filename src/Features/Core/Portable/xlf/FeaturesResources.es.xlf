@@ -4,12 +4,22 @@
     <body>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
-        <target state="new">Add member name</target>
+        <target state="translated">Agregar nombre de miembro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="new">Add optional parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">Agregar un parámetro a “{0}” (y reemplazos/implementaciones)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="new">Add parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -29,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Add_tuple_element_name_0">
         <source>Add tuple element name '{0}'</source>
-        <target state="new">Add tuple element name '{0}'</target>
+        <target state="translated">Agregar el nombre del elemento de tupla "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -39,22 +49,32 @@
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
-        <target state="new">Align wrapped arguments</target>
+        <target state="translated">Alinear argumentos ajustados</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
-        <target state="new">Align wrapped parameters</target>
+        <target state="translated">Alinear parámetros ajustados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
-        <target state="new">Change namespace to '{0}'</target>
+        <target state="translated">Cambiar el espacio de nombres "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_global_namespace">
         <source>Change to global namespace</source>
-        <target state="new">Change to global namespace</target>
+        <target state="translated">Cambiar al espacio de nombres global</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -74,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="translated">Convert to class</target>
+        <target state="translated">Convertir a la clase</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
@@ -84,22 +104,47 @@
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="translated">Convert to struct</target>
+        <target state="translated">Convertir a struct</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="translated">Convert to tuple</target>
+        <target state="translated">Convertir a tupla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
+        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
+        <target state="new">A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_field_0_is_never_disposed">
+        <source>Disposable field '{0}' is never disposed</source>
+        <target state="new">Disposable field '{0}' is never disposed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_fields_should_be_disposed">
+        <source>Disposable fields should be disposed</source>
+        <target state="new">Disposable fields should be disposed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
+        <source>Disposable object created by '{0}' is never disposed</source>
+        <target state="new">Disposable object created by '{0}' is never disposed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dispose_objects_before_losing_scope">
+        <source>Dispose objects before losing scope</source>
+        <target state="new">Dispose objects before losing scope</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
-        <target state="new">Expression value is never used</target>
+        <target state="translated">El valor de la expresión no se utiliza nunca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
-        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <target state="translated">No se pudo analizar el flujo de datos para: {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_formatting">
@@ -117,24 +162,69 @@
         <target state="translated">Aplicando formato al documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="new">Generate parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
-        <target state="new">Indent all arguments</target>
+        <target state="translated">Aplicar sangría a todos los argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
-        <target state="new">Indent all parameters</target>
+        <target state="translated">Aplicar sangría a todos los parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
-        <target state="new">Indent wrapped arguments</target>
+        <target state="translated">Argumentos con la sangría ajustada</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
-        <target state="new">Indent wrapped parameters</target>
+        <target state="translated">Parámetros con la sangría ajustada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="translated">La indexación de direcciones puede ser simplificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="translated">Introducir la sangría</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="translated">Introducir campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="translated">Introducir local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="translated">Introducir la variable de consulta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="translated">Invertir condicional</target>
         <note />
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
@@ -167,49 +257,29 @@
         <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_contents_to_namespace">
+        <source>Move contents to namespace...</source>
+        <target state="new">Move contents to namespace...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
-        <target state="new">Move file to '{0}'</target>
+        <target state="translated">Mover el archivo a "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
-        <target state="new">Move file to project root folder</target>
+        <target state="translated">Mover el archivo a la carpeta raíz del proyecto</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="new">Indexing can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_constant">
-        <source>Introduce constant</source>
-        <target state="new">Introduce constant</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_field">
-        <source>Introduce field</source>
-        <target state="new">Introduce field</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_local">
-        <source>Introduce local</source>
-        <target state="new">Introduce local</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_query_variable">
-        <source>Introduce query variable</source>
-        <target state="new">Introduce query variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Invert_conditional">
-        <source>Invert conditional</source>
-        <target state="new">Invert conditional</target>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to namespace...</source>
+        <target state="new">Move to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -229,22 +299,27 @@
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
         <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <target state="translated">El método privado "{0}" se puede quitar porque nunca se invoca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
         <source>Pull '{0}' up</source>
-        <target state="new">Pull '{0}' up</target>
+        <target state="translated">Extraer "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up_to_1">
         <source>Pull '{0}' up to '{1}'</source>
-        <target state="new">Pull '{0}' up to '{1}'</target>
+        <target state="translated">Extraer "{0}" hasta "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
-        <target state="new">Pull members up to base type...</target>
+        <target state="translated">Extraer miembros hasta el tipo de base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
@@ -254,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="new">Remove redundant assignment</target>
+        <target state="translated">Quitar asignación redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -269,27 +344,27 @@
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
-        <target state="new">Remove unused parameter</target>
+        <target state="translated">Quitar el parámetro no utilizado</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0">
         <source>Remove unused parameter '{0}'</source>
-        <target state="new">Remove unused parameter '{0}'</target>
+        <target state="translated">Retirar el parámetro "{0}" sin usar</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <target state="translated">Quitar el parámetro "{0}" sin usar si no forma parte de una API pública enviada</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">Quitar el parámetro sin usar "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
         <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="new">Remove unused parameter '{0}', its initial value is never used</target>
+        <target state="translated">Eliminar el parámetro "{0}" sin usar, ya que su valor inicial no se utiliza nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
@@ -299,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
-        <target state="new">Replace '{0}' with '{1}' </target>
+        <target state="translated">Reemplazar "{0}" por "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -312,39 +387,64 @@
         <target state="new">Split into nested '{0}' statements</target>
         <note />
       </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="new">Target type matches</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value">
+        <source>Unnecessary assignment of a value</source>
+        <target state="new">Unnecessary assignment of a value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
+        <source>Unnecessary assignment of a value to '{0}'</source>
+        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="new">Unwrap all arguments</target>
+        <target state="translated">Desajustar todos los argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="new">Unwrap all parameters</target>
+        <target state="translated">Desajustar todos los parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
-        <target state="new">Unwrap and indent all arguments</target>
+        <target state="translated">Desajustar todos los argumentos y aplicarles sangría</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="new">Unwrap and indent all parameters</target>
+        <target state="translated">Desajustar todos los parámetros y aplicarles sangría</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="new">Unwrap argument list</target>
+        <target state="translated">Desajustar la lista de argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="new">Unwrap expression</target>
+        <target state="translated">Desajustar la expresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="new">Unwrap parameter list</target>
+        <target state="translated">Desajustar la lista de parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseRecommendedDisposePatternDescription">
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -354,22 +454,22 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="new">Use block body for local functions</target>
+        <target state="translated">Usar el cuerpo de bloques para las funciones locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
-        <target state="new">Use compound assignment</target>
+        <target state="translated">Usar la asignación compuesta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
-        <target state="new">Use discard '_'</target>
+        <target state="translated">Usar opción de descarte "_"</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
-        <target state="new">Use discarded local</target>
+        <target state="translated">Usar el local descartado</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -379,18 +479,33 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+        <target state="translated">Usar el cuerpo de la expresión para las funciones locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
         <source>Use index operator</source>
-        <target state="new">Use index operator</target>
+        <target state="translated">Usar operador de índice</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Utilizar cadenas verbatim interpoladas</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="translated">Usar el operador de intervalo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern">
+        <source>Use recommended dispose pattern</source>
+        <target state="new">Use recommended dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
+        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
+        <target state="new">Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</target>
+        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
@@ -399,57 +514,47 @@
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
-        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
+        <target state="translated">Advertencia: si cambia Cambiar el espacio de nombres puede producir código inválido y cambiar el significado del código.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="new">Use range operator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_0_is_never_used">
-        <source>Value assigned to '{0}' is never used</source>
-        <target state="new">Value assigned to '{0}' is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_symbol_is_never_used">
-        <source>Value assigned to symbol is never used</source>
-        <target state="new">Value assigned to symbol is never used</target>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="new">Wrap every argument</target>
+        <target state="translated">Ajustar todos los argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="new">Wrap every parameter</target>
+        <target state="translated">Ajustar todos los parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="new">Wrap expression</target>
+        <target state="translated">Ajustar la expresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="new">Wrap long argument list</target>
+        <target state="translated">Desajustar la lista larga de argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="new">Wrap long parameter list</target>
+        <target state="translated">Ajustar la lista larga de parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
-        <target state="new">Wrapping</target>
+        <target state="translated">Ajuste</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="new">{0} can be simplified</target>
+        <target state="translated">{0} se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -460,6 +565,11 @@
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">sobrecargas genéricas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source_attribute">
+        <source>in Source (attribute)</source>
+        <target state="new">in Source (attribute)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -665,36 +775,6 @@
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">Implementar interfaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">Cargando contexto de '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">Escriba "#help" para más información.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">Archivo especificado no encontrado: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">Archivo especificado no encontrado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">Buscado en directorio:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">Buscado en directorios:</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -1227,54 +1307,9 @@
         <target state="translated">Generar el método '{1}.{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">Error al crear un proceso remoto para la ejecución de código interactivo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">Error al inicializar el proceso remoto interactivo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Error al intentar conectar con el proceso #{0}, reintentando...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">Error al iniciar el proceso '{0}' (código de salida: {1}) con la salida: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">El proceso de hospedaje terminó con el código de salida {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">Host interactivo no inicializado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">El ensamblado solicitado ya se ha cargado desde '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + adicional {0} {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">No se puede crear el proceso de hospedaje.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -2472,22 +2507,22 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="translated">updating usages in containing member</target>
+        <target state="translated">actualización de los usos en el miembro contenedor</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="translated">updating usages in containing project</target>
+        <target state="translated">actualización de usos en el proyecto contenedor</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="translated">updating usages in containing type</target>
+        <target state="translated">actualización de los usos en el tipo contenedor</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="translated">updating usages in dependent projects</target>
+        <target state="translated">actualización de usos en proyectos dependientes</target>
         <note />
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">

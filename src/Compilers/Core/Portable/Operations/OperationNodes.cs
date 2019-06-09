@@ -13,6 +13,65 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
+    /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
+    /// </summary>
+    internal abstract class BaseNoneOperation : Operation
+    {
+        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
+        {
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal class NoneOperation : BaseNoneOperation
+    {
+        public NoneOperation(ImmutableArray<IOperation> children, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, constantValue, isImplicit)
+        {
+            Children = SetParentOperation(children, this);
+        }
+
+        public override IEnumerable<IOperation> Children { get; }
+    }
+
+    internal abstract class LazyNoneOperation : BaseNoneOperation
+    {
+        private ImmutableArray<IOperation> _lazyChildrenInterlocked;
+
+        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        {
+        }
+
+        protected abstract ImmutableArray<IOperation> GetChildren();
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (_lazyChildrenInterlocked.IsDefault)
+                {
+                    ImmutableArray<IOperation> children = GetChildren();
+                    SetParentOperation(children, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyChildrenInterlocked, children, default);
+                }
+
+                return _lazyChildrenInterlocked;
+            }
+        }
+    }
+
+    /// <summary>
     /// Represents an operation that creates a pointer value by taking the address of a reference.
     /// </summary>
     internal abstract partial class BaseAddressOfOperation : Operation, IAddressOfOperation
@@ -7283,15 +7342,21 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public abstract IVariableInitializerOperation Initializer { get; }
 
+        public abstract ImmutableArray<IOperation> IgnoredDimensions { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                foreach (var dimension in IgnoredDimensions)
+                {
+                    yield return dimension;
+                }
+
                 foreach (var declaration in Declarators)
                 {
                     yield return declaration;
                 }
-
                 if (Initializer != null)
                 {
                     yield return Initializer;
@@ -7312,22 +7377,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class VariableDeclarationOperation : BaseVariableDeclarationOperation
     {
-        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredDimensions, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Declarators = SetParentOperation(declarations, this);
             Initializer = SetParentOperation(initializer, this);
+            IgnoredDimensions = SetParentOperation(ignoredDimensions, this);
         }
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
         public override IVariableInitializerOperation Initializer { get; }
+        public override ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
 
     internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarationOperation
     {
         private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
-
+        private ImmutableArray<IOperation> _lazyIgnoredDimensionsInterlocked;
         public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
@@ -7335,6 +7402,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
         protected abstract IVariableInitializerOperation CreateInitializer();
+        protected abstract ImmutableArray<IOperation> CreateIgnoredDimensions();
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators
         {
@@ -7363,6 +7431,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> IgnoredDimensions
+        {
+            get
+            {
+                if (_lazyIgnoredDimensionsInterlocked.IsDefault)
+                {
+                    ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions();
+                    SetParentOperation(ignoredDimensions, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredDimensionsInterlocked, ignoredDimensions, default);
+                }
+
+                return _lazyIgnoredDimensionsInterlocked;
             }
         }
     }
@@ -9487,80 +9570,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyInitializerInterlocked;
-            }
-        }
-    }
-
-    internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
-    {
-        protected BaseFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-                    base(OperationKind.None, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
-        {
-            IsLifted = isLifted;
-            Symbol = symbol;
-        }
-
-        public abstract IOperation Operand { get; }
-        public bool IsLifted { get; }
-        public IMethodSymbol Symbol { get; }
-
-        public sealed override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                IOperation operand = Operand;
-                if (operand != null)
-                {
-                    yield return operand;
-                }
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFromEndIndexOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFromEndIndexOperation(this, argument);
-        }
-    }
-
-    internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
-    {
-        public FromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol, bool isImplicit) :
-                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-            Operand = Operation.SetParentOperation(operand, this);
-        }
-
-        public override IOperation Operand { get; }
-    }
-
-    internal abstract class LazyFromEndIndexOperation : BaseFromEndIndexOperation
-    {
-        private IOperation _operandInterlocked = s_unset;
-
-        public LazyFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-        }
-
-        protected abstract IOperation CreateOperand();
-
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_operandInterlocked == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _operandInterlocked, operand, s_unset);
-                }
-
-                return _operandInterlocked;
             }
         }
     }

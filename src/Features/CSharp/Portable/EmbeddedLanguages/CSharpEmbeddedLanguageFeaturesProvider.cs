@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
     {
         public static IEmbeddedLanguageFeaturesProvider Instance = new CSharpEmbeddedLanguageFeaturesProvider();
 
+        [ImportingConstructor]
         public CSharpEmbeddedLanguageFeaturesProvider() : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }
