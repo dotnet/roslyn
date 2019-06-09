@@ -2,11 +2,14 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 {
@@ -31,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
             CS1501, CS1503, CS1660, CS1729, CS1739,
             IDEDiagnosticIds.UnboundConstructorId);
 
+        [ImportingConstructor]
+        public CSharpAddParameterCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => AddParameterFixableDiagnosticIds;
 
@@ -39,5 +47,34 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 
         protected override ImmutableArray<string> CannotConvertDiagnosticIds
             => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
+
+        protected override RegisterFixData<ArgumentSyntax> TryGetLanguageSpecificFixInfo(
+            SemanticModel semanticModel,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+        {
+            if (node is ConstructorInitializerSyntax constructorInitializer)
+            {
+                var constructorDeclaration = constructorInitializer.Parent;
+                if (semanticModel.GetDeclaredSymbol(constructorDeclaration, cancellationToken) is IMethodSymbol constructorSymbol)
+                {
+                    var type = constructorSymbol.ContainingType;
+                    if (constructorInitializer.IsKind(SyntaxKind.BaseConstructorInitializer))
+                    {
+                        // Search for fixable constructors in the base class.
+                        type = type?.BaseType;
+                    }
+
+                    if (type != null && type.IsFromSource())
+                    {
+                        var methodCandidates = type.InstanceConstructors;
+                        var arguments = constructorInitializer.ArgumentList.Arguments;
+                        return new RegisterFixData<ArgumentSyntax>(arguments, methodCandidates, isConstructorInitializer: true);
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }

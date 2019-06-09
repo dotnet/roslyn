@@ -358,7 +358,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LateIndexRValue()
             CompileAndVerify(
     <compilation>

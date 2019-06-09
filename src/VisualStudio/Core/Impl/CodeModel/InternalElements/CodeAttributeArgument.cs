@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         internal override bool TryLookupNode(out SyntaxNode node)
         {
             node = null;
-            
+
             var attributeNode = _parentHandle.Value.LookupNode();
             if (attributeNode == null)
             {

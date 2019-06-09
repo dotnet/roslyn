@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -98,13 +99,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
+                var compilation = await GetCompilationAsync(analyzerDriverOpt).ConfigureAwait(false);
+
                 // no cancellation after this point.
                 // any analyzer that doesn't have result will be treated as returned empty set
                 // which means we will remove those from error list
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetProjectState(project.Id);
+
                     await state.SaveAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    stateSet.ComputeCompilationEndAnalyzer(project, compilation);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
@@ -112,6 +117,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            async Task<Compilation> GetCompilationAsync(CompilationWithAnalyzers analyzerDriverOpt)
+            {
+                // we might not have analyzerDriver even if project supports compilation if we are called with
+                // no analyzers. 
+                return analyzerDriverOpt?.Compilation ??
+                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
             }
         }
 
@@ -227,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen();
+            return document.IsOpen() && document.SupportsDiagnostics();
         }
 
         private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
@@ -350,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, Owner.RaiseDiagnosticsUpdated);
+            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, Owner.RaiseDiagnosticsUpdated, forceUpdate: false);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
@@ -358,18 +371,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
             Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
+            // if our old result is from build and we don't have actual data, don't try micro-optimize and always refresh diagnostics.
+            // most of time, we don't actually load or hold the old data in memory from persistent storage due to perf reasons.
+            //
+            // we need this special behavior for errors from build since unlike live errors, we don't know whether errors
+            // from build is for syntax, semantic or others. due to that, we blindly mark them as semantic errors (most common type of errors from build)
+            //
+            // that can sometime cause issues. for example, if the error turns out to be syntax error (live) then we at the end fail to de-dup.
+            // but since this optimization saves us a lot of refresh between live errors analysis we want to disable this only in this condition.
+            var forceUpdate = oldResult.FromBuild && oldResult.IsAggregatedForm;
+
             var oldItems = GetResult(oldResult, kind, document.Id);
             var newItems = GetResult(newResult, kind, document.Id);
 
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents);
+            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, oldItems, newItems, raiseEvents, forceUpdate);
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
-            Action<DiagnosticsUpdatedArgs> raiseEvents)
+            Action<DiagnosticsUpdatedArgs> raiseEvents,
+            bool forceUpdate)
         {
-            if (oldItems.IsEmpty && newItems.IsEmpty)
+            if (!forceUpdate && oldItems.IsEmpty && newItems.IsEmpty)
             {
                 // there is nothing to update
                 return;

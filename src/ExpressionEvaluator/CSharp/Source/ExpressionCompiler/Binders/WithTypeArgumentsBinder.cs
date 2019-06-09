@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
     {
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
         private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
-        internal WithTypeArgumentsBinder(ImmutableArray<TypeSymbol> typeArguments, Binder next)
+        internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
             : base(next)
         {
             Debug.Assert(!typeArguments.IsDefaultOrEmpty);
-            Debug.Assert(typeArguments.All(ta => ta.Kind == SymbolKind.TypeParameter));
+            Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
             _typeArguments = typeArguments;
         }
 
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (_lazyTypeParameterMap == null)
                 {
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
-                    foreach (TypeParameterSymbol tps in _typeArguments)
+                    foreach (var tps in _typeArguments)
                     {
-                        result.Add(tps.Name, tps);
+                        result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
                     }
                     Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var parameter in _typeArguments)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
                     {
-                        result.AddSymbol(parameter, parameter.Name, 0);
+                        result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
                     }
                 }
             }

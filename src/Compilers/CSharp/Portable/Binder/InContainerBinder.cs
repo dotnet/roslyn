@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class InContainerBinder : Binder
     {
         private readonly NamespaceOrTypeSymbol _container;
-        private readonly Func<ConsList<Symbol>, Imports> _computeImports;
+        private readonly Func<ConsList<TypeSymbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
         private QuickAttributeChecker _lazyQuickAttributeChecker;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a binder with given import computation function.
         /// </summary>
-        internal InContainerBinder(Binder next, Func<ConsList<Symbol>, Imports> computeImports)
+        internal InContainerBinder(Binder next, Func<ConsList<TypeSymbol>, Imports> computeImports)
             : base(next)
         {
             Debug.Assert(computeImports != null);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal override Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             Debug.Assert(_lazyImports != null || _computeImports != null, "Have neither imports nor a way to compute them.");
 
@@ -94,6 +94,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _lazyImports;
+        }
+
+        /// <summary>
+        /// Look for a type forwarder for the given type in any referenced assemblies, checking any using namespaces in
+        /// the current imports.
+        /// </summary>
+        /// <param name="name">The metadata name of the (potentially) forwarded type, without qualifiers.</param>
+        /// <param name="qualifierOpt">Will be used to return the namespace of the found forwarder, 
+        /// if any.</param>
+        /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
+        /// <param name="location">Location to report errors on.</param>
+        /// <returns>Returns the Assembly to which the type is forwarded, or null if none is found.</returns>
+        /// <remarks>
+        /// Since this method is intended to be used for error reporting, it stops as soon as it finds
+        /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
+        /// </remarks>
+        protected override AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        {
+            var imports = GetImports(basesBeingResolved: null);
+            foreach (var typeOrNamespace in imports.Usings)
+            {
+                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
+                var result = GetForwardedToAssembly(fullName, diagnostics, location);
+                if (result != null)
+                {
+                    qualifierOpt = typeOrNamespace.NamespaceOrType;
+                    return result;
+                }
+            }
+
+            return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
         internal override ImportChain ImportChain
@@ -160,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (_container?.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsScriptClass; }
         }
 
-        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             var type = _container as NamedTypeSymbol;
             if ((object)type != null)
@@ -203,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (IsScriptClass)
             {
                 // This is the scenario where a `yield return` exists in the script file as a global statement.
                 // This method is to guard against hitting `BuckStopsHereBinder` and crash. 
-                return this.Compilation.GetSpecialType(SpecialType.System_Object);
+                return TypeWithAnnotations.Create(this.Compilation.GetSpecialType(SpecialType.System_Object));
             }
             else
             {
@@ -219,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
 

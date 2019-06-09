@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.CustomModifiers.As<Cci.ICustomModifier>();
+                return this.TypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

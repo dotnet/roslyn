@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             AddRecord(
                 CustomDebugInfoKind.StateMachineTypeName,
                 typeName,
-                (name, builder) => 
+                (name, builder) =>
                 {
                     builder.WriteUTF16(name);
                     builder.WriteInt16(0);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         public void AddUsingGroups(IReadOnlyCollection<int> groupSizes)
         {
             Debug.Assert(groupSizes.Count <= ushort.MaxValue);
-           
+
             // This originally wrote (uint)12, (ushort)1, (ushort)0 in the
             // case where usingCounts was empty, but I'm not sure why.
             if (groupSizes.Count == 0)

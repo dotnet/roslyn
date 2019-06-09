@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports System.Threading
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -15,18 +15,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                                                <Out> bstrList() As String,
                                                <Out> ByVal pcActualItems As IntPtr) As Integer Implements IVBEntryPointProvider.GetFormEntryPointsList
 
-            Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
+            Dim workspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
             Dim hierarchy = CType(pHierarchy, IVsHierarchy)
 
-            Dim projects = visualStudioWorkspace.CurrentSolution.ProjectIds
-            For Each project In projects
-                Dim hostProject = visualStudioWorkspace.GetHostProject(project)
-                If hostProject IsNot Nothing AndAlso hostProject.Hierarchy Is hierarchy Then
-                    Dim vbProject = TryCast(hostProject, VisualBasicProject)
+            For Each projectId In workspace.CurrentSolution.ProjectIds
+                Dim projectHierarchy = workspace.GetHierarchy(projectId)
+                If hierarchy Is projectHierarchy Then
+                    Dim compilation = workspace.CurrentSolution.GetProject(projectId).GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
-                    If vbProject IsNot Nothing Then
-                        vbProject.GetEntryPointsWorker(cItems, bstrList, pcActualItems, findFormsOnly:=True)
-                    End If
+                    VisualBasicProject.GetEntryPointsWorker(compilation, cItems, bstrList, pcActualItems, findFormsOnly:=True)
                 End If
             Next
 

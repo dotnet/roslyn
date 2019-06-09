@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             bool updateController = true)
         {
             AssertIsForeground();
+
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
             // Mark that an async operation has begun.  This way tests know to wait until the
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 async tasks =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
+                    _stopCancellationToken.ThrowIfCancellationRequested();
 
                     if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
                     {

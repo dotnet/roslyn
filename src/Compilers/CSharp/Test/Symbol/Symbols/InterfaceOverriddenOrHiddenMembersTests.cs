@@ -811,7 +811,7 @@ public interface Derived2 : Base
 
         [Fact]
         [WorkItem(667278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667278")]
-        public void FalseIdentificationOfCircularDependancy()
+        public void FalseIdentificationOfCircularDependency()
         {
             var source = @"
 public class ITest : ITest.Test{

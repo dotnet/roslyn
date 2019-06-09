@@ -99,10 +99,10 @@ namespace RunTests
 
                 // Display the current status of the TestRunner.
                 // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
-                ConsoleUtil.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
+                ConsoleUtil.Write($"  {running.Count,2} running, {waiting.Count,2} queued, {completed.Count,2} completed");
                 if (failures > 0)
                 {
-                    ConsoleUtil.Write($", {failures, 2} failures");
+                    ConsoleUtil.Write($", {failures,2} failures");
                 }
                 ConsoleUtil.WriteLine();
 
@@ -160,8 +160,7 @@ namespace RunTests
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var outputLogPath = Path.Combine(_options.LogsDirectory, $"{testResult.DisplayName}.out.log");
-            File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
+            var outputLogPath = Path.Combine(_options.LogFilesOutputDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
             ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
             ConsoleUtil.WriteLine(testResult.ErrorOutput);
@@ -169,6 +168,8 @@ namespace RunTests
             // TODO: Put this in the log and take it off the ConsoleUtil output to keep it simple?
             ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
             ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
+
+            File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {

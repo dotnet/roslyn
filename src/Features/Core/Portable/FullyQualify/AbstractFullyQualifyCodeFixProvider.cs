@@ -15,9 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private const int MaxResults = 3;
 
@@ -27,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         protected AbstractFullyQualifyCodeFixProvider()
         {
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34465
+            return null;
         }
 
         protected abstract bool IgnoreCase { get; }
@@ -178,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static bool IsValidNamedTypeSearchResult(
-            SemanticModel semanticModel, int arity, bool inAttributeContext, 
+            SemanticModel semanticModel, int arity, bool inAttributeContext,
             bool looksGeneric, INamedTypeSymbol searchResult)
         {
             if (arity != 0 && searchResult.GetArity() != arity)
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, this.IgnoreCase), 
+                project, SearchQuery.Create(name, this.IgnoreCase),
                 SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
 
             var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);

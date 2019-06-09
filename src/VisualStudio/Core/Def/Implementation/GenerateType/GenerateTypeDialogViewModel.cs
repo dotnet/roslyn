@@ -288,27 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 {
                     this.FullFilePath = Path.GetFullPath(this.FullFilePath);
                 }
-                catch (ArgumentNullException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (ArgumentException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (SecurityException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (NotSupportedException e)
-                {
-                    SendFailureNotification(e.Message);
-                    return false;
-                }
-                catch (PathTooLongException e)
+                catch (Exception e)
                 {
                     SendFailureNotification(e.Message);
                     return false;
@@ -319,7 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 if (lastIndexOfSeparatorInFullPath != -1)
                 {
                     var fileNameInFullPathInContainers = this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
-                    this.FullFilePath = string.Join("\\", fileNameInFullPathInContainers.Select(str => str.TrimStart()));
+
+                    // Trim spaces of each component of the file name.
+                    // Note that path normalization changed between 4.6.1 and 4.6.2 and GetFullPath no longer trims trailing spaces.
+                    // See https://blogs.msdn.microsoft.com/jeremykuhne/2016/06/21/more-on-new-net-path-handling/
+                    this.FullFilePath = string.Join("\\", fileNameInFullPathInContainers.Select(str => str.Trim()));
                 }
 
                 string projectRootPath = null;
@@ -671,9 +655,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             {
                 if (_areFoldersValidIdentifiers)
                 {
+                    /*
                     var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
                     var project = workspace?.GetHostProject(this.SelectedProject.Id) as AbstractProject;
                     return !(project?.IsWebSite == true);
+                    */
+                    return false;
                 }
 
                 return false;
@@ -763,14 +750,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             _notificationService = notificationService;
 
             this.AccessList = document.Project.Language == LanguageNames.CSharp
-                ? _csharpAccessList 
+                ? _csharpAccessList
                 : _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) 
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString)
                 ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
             this.KindList = document.Project.Language == LanguageNames.CSharp
-                ? _csharpTypeKindList 
+                ? _csharpTypeKindList
                 : _visualBasicTypeKindList;
             this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
                 ? this.KindList.IndexOf(typeKindSelectString) : 0;

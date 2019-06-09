@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                            BranchValue,
                                            ConditionKind,
                                            Ordinal,
-                                           IsReachable, 
+                                           IsReachable,
                                            Region);
                 _statements = null;
                 return block;

@@ -1,70 +1,64 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
     internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> _analyzers;
+        private readonly DiagnosticAnalyzerCategory _category;
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
-            IEmbeddedLanguagesProvider languagesProvider)
+            IEmbeddedLanguageFeaturesProvider languagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
-            var analyzers = ArrayBuilder<IEmbeddedDiagnosticAnalyzer>.GetInstance();
+            var analyzers = ArrayBuilder<AbstractBuiltInCodeStyleDiagnosticAnalyzer>.GetInstance();
 
-            if (languagesProvider != null)
+            var category = default(DiagnosticAnalyzerCategory?);
+            Debug.Assert(languagesProvider.Languages.Length > 0);
+            foreach (var language in languagesProvider.Languages)
             {
-                foreach (var language in languagesProvider.GetEmbeddedLanguages())
+                var analyzer = language.DiagnosticAnalyzer;
+                if (analyzer != null)
                 {
-                    var analyzer = language.DiagnosticAnalyzer;
-                    if (analyzer != null)
-                    {
-                        analyzers.Add(analyzer);
-                        supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
-                    }
+                    analyzers.Add(analyzer);
+                    supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
+
+                    category = category ?? analyzer.GetAnalyzerCategory();
+                    Debug.Assert(category == analyzer.GetAnalyzerCategory(),
+                        "All embedded analyzers must have the same analyzer category.");
                 }
             }
 
+            _category = category.Value;
             _analyzers = analyzers.ToImmutableAndFree();
             this.SupportedDiagnostics = supportedDiagnostics.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+            => _category;
 
         public bool OpenFileOnly(Workspace workspace)
-            => false;
+            => _analyzers.Any(a => a.OpenFileOnly(workspace));
 
         public override void Initialize(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
-        }
-
-        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(
-                context.SemanticModel.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             foreach (var analyzer in _analyzers)
             {
-                analyzer.Analyze(context, optionSet);
+                analyzer.Initialize(context);
             }
         }
     }

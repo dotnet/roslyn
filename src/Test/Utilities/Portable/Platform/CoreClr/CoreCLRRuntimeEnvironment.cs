@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NETCOREAPP2_0
+#if NETCOREAPP2_1
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public ImmutableArray<byte> GetMainPdb() => GetEmitData().MainModulePdb;
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) => 
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) =>
             GetEmitData().GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
 
         public void Verify(Verification verification)

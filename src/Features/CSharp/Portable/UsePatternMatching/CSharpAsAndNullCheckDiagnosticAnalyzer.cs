@@ -24,10 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
                     new LocalizableResourceString(
@@ -145,30 +143,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             //      if (s != null) { ... }
             //
             // It's no longer safe to use pattern-matching because 'field is string s' would never be true.
+            // 
+            // Additionally, also bail out if the assigned local is referenced (i.e. read/write/nameof) up to the point of null check.
+            //      var s = field as string;
+            //      MethodCall(flag: s == null);
+            //      if (s != null) { ... }
+            //
             var asOperand = semanticModel.GetSymbolInfo(asExpression.Left, cancellationToken).Symbol;
-            var symbolName = asOperand?.Name;
-            if (symbolName != null)
+            var localStatementStart = localStatement.SpanStart;
+            var comparisonSpanStart = comparison.SpanStart;
+
+            foreach (var descendentNode in enclosingBlock.DescendantNodes())
             {
-                var localStatementStart = localStatement.SpanStart;
-                var comparisonSpanStart = comparison.SpanStart;
-
-                foreach (var descendentNode in enclosingBlock.DescendantNodes())
+                var descendentNodeSpanStart = descendentNode.SpanStart;
+                if (descendentNodeSpanStart <= localStatementStart)
                 {
-                    var descendentNodeSpanStart = descendentNode.SpanStart;
-                    if (descendentNodeSpanStart <= localStatementStart)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (descendentNodeSpanStart >= comparisonSpanStart)
-                    {
-                        break;
-                    }
+                if (descendentNodeSpanStart >= comparisonSpanStart)
+                {
+                    break;
+                }
 
-                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
-                        identifierName.Identifier.ValueText == symbolName &&
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                {
+                    // Check if this is a 'write' to the asOperand.
+                    if (identifierName.Identifier.ValueText == asOperand?.Name &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
                         identifierName.IsWrittenTo())
+                    {
+                        return;
+                    }
+
+                    // Check is a reference of any sort (i.e. read/write/nameof) to the local.
+                    if (identifierName.Identifier.ValueText == localSymbol.Name)
                     {
                         return;
                     }

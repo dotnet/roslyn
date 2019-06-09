@@ -108,7 +108,7 @@ class C : I<C, object>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var method = type.GetMethod("I<C,System.Object>.M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C", "object");
             };
 
             CompileAndVerify(
@@ -943,17 +943,23 @@ class C
     event D<I<short>> E;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("I<T>", "T", "int").WithLocation(5, 9),
                 // (8,23): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E").WithArguments("I<T>", "T", "short").WithLocation(8, 23),
+                // (5,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     C(I<int> i) { }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "i").WithArguments("I<T>", "T", "int").WithLocation(5, 14),
                 // (6,13): error CS0452: The type 'byte' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<byte> P { get; set; }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "P").WithArguments("I<T>", "T", "byte").WithLocation(6, 13),
-                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (7,29): error CS0452: The type 'float' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "index").WithArguments("I<T>", "T", "float").WithLocation(7, 29),
+                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (8,23): warning CS0067: The event 'C.E' is never used
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(8, 23));
         }
 
@@ -2053,6 +2059,93 @@ class C<T>
         }
 
         [Fact]
+        public void DuplicateConstraintDifferencesOnPartialMethod()
+        {
+            var source =
+@"interface I<T> { }
+partial class C<T>
+{
+    partial void F<U>() where U : T, T, I<T>;
+    partial void F<U>() where U : T, I<T>, I<T> { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     partial void F<U>() where U : T, T, I<T>;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
+                // (5,44): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     partial void F<U>() where U : T, I<T>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(5, 44));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_01()
+        {
+            var source =
+@"interface I { }
+class A { }
+sealed class B { }
+static class S { }
+partial class C<T> where T : S { }
+partial class C<T> where T : S { }
+partial class D<T> where T : A, I { }
+partial class D<T> where T : I, A { }
+partial class D<T> where T : I, A { }
+partial class E<T> where T : B { }
+partial class E<T> where T : I, B { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(5, 30),
+                // (6,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(6, 30),
+                // (7,15): error CS0265: Partial declarations of 'D<T>' have inconsistent constraints for type parameter 'T'
+                // partial class D<T> where T : A, I { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "D").WithArguments("D<T>", "T").WithLocation(7, 15),
+                // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
+                // (9,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(9, 33),
+                // (10,15): error CS0265: Partial declarations of 'E<T>' have inconsistent constraints for type parameter 'T'
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E").WithArguments("E<T>", "T").WithLocation(10, 15),
+                // (10,30): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(10, 30),
+                // (11,33): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : I, B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(11, 33));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_02()
+        {
+            var source =
+@"sealed class A { }
+partial class B<T, U> where T : A where U : T { }
+partial class B<T, U> where T : A { }
+partial class C<T, U> where U : T { }
+partial class C<T, U> where T : A where U : T { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'B<T, U>' have inconsistent constraints for type parameter 'U'
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B").WithArguments("B<T, U>", "U").WithLocation(2, 15),
+                // (2,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(2, 33),
+                // (3,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(3, 33),
+                // (5,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class C<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(5, 33));
+        }
+
+        [Fact]
         public void EffectiveBaseClass01()
         {
             var source =
@@ -3091,9 +3184,12 @@ abstract class A
 }
 class B: A
 {
-    public override I<T> F<T>() { return null; }
+    public override I<U> F<U>() { return null; }
 }";
-            CompileAndVerify(source);
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp);
+            var method = comp.GetMember<MethodSymbol>("B.F");
+            Assert.Equal("I<U> B.F<U>() where U : class", method.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
@@ -3261,7 +3357,7 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
             Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }
@@ -5079,11 +5175,10 @@ class C
         }
 
         /// <summary>
-        /// Redundant System.Object constraints should be removed
-        /// and '.ctor' and System.ValueType constraints should be
+        /// Redundant '.ctor' and System.ValueType constraints should be
         /// removed if 'valuetype' is specified. By contrast, redundant
         /// 'class' constraints should not be removed if explicit class
-        /// constraint is specified.
+        /// constraint is specified. System.Object constraint shouldn't be removed either.
         /// </summary>
         [WorkItem(543335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543335")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -5104,7 +5199,7 @@ class C
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             var @namespace = compilation.GlobalNamespace;
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
-            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V1").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V3").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5150,8 +5245,8 @@ class C
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B2");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5259,10 +5354,6 @@ class C1 : C0
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
         }
 
-        /// <summary>
-        /// Object constraints should be dropped from TypeParameterSymbol.ConstraintTypes
-        /// on import and type substitution.
-        /// </summary>
         [WorkItem(543831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543831")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
@@ -5328,13 +5419,13 @@ class D0 : D<object>
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("I0");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A2");
-            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("I1");
-            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
@@ -5346,9 +5437,9 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
-            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
         }
 
         /// <summary>
@@ -5383,7 +5474,7 @@ class A1 : A<C>
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A0").GetMember<MethodSymbol>("M");
-                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+                CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
@@ -5447,16 +5538,16 @@ class D2 : D<A>
             var compilation = CreateCompilation(source);
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("C0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "ValueType", "ValueType", "ValueType");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
-            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
-            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB");
-            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A");
-            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B");
+            CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M3").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "A", "A", "A", "object");
+            CheckConstraints(type.GetMember<MethodSymbol>("M4").TypeParameters[0], TypeParameterConstraintKind.None, false, true, "B", "B", "B", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D1");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IA");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "IB", "IA");
@@ -5515,12 +5606,24 @@ class B : A
 } 
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"),
-                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public virtual T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
+                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
+                // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T").WithLocation(12, 24),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24),
+                // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         return null; 
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
@@ -6238,17 +6341,13 @@ public struct S
  
 public class E { }
 ";
-
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,5): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "E?").WithArguments("System.Nullable<T>", "T", "E"),
-                // (6,28): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public void Test() {   DoSomething(this.eNullableArr);  }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "DoSomething").WithArguments("System.Nullable<T>", "T", "E"),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 6),
                 // (4,10): warning CS0649: Field 'S.eNullableArr' is never assigned to, and will always have its default value null
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null").WithLocation(4, 10));
         }
 
         [WorkItem(575455, "DevDiv")]

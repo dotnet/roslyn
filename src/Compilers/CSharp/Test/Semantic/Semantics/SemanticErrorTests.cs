@@ -1474,9 +1474,9 @@ class D
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,21): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                // (6,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         int[] arr = new int[m];    // Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new int[m]").WithArguments("bool", "int"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
         }
 
         [Fact]
@@ -2030,40 +2030,42 @@ class C
             var text = @"
 interface I
 {
-    event System.Action E1 { add; } // CS0069 on add
-    event System.Action E2 { remove; } // CS0069 on remove
-    event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
+    event System.Action E1 { add; }
+    event System.Action E2 { remove; }
+    event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (4,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (5,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-                // (6,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (6,35): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-
-                // CONSIDER: dev10 doesn't report these, but we report them in the parser so they're
-                // hard to suppress.
-
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                // (4,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(4, 30),
                 // (4,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
+                // (5,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(5, 30),
                 // (5,36): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(5, 36),
+                // (6,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 30),
                 // (6,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 33),
+                // (6,35): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 35),
                 // (6,41): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 41),
+                // (4,25): error CS0065: 'I.E1': event property must have both add and remove accessors
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I.E1").WithLocation(4, 25),
+                // (5,25): error CS0065: 'I.E2': event property must have both add and remove accessors
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E2").WithArguments("I.E2").WithLocation(5, 25));
         }
 
         [Fact]
@@ -3153,7 +3155,7 @@ class Error
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
+            var typeArgSymbol = constructedMethodSymbol.TypeArgumentsWithAnnotations.Single().Type;
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
@@ -3779,7 +3781,7 @@ class Test
         {
             // See comments in NameCollisionTests for thoughts on this error.
 
-            CreateCompilation(
+            string text =
 @"class C
 {
     static void M(object x)
@@ -3811,13 +3813,33 @@ class Test
     {
         System.Func<int, int> f = q=>q; // 0136
     }
-}
-")
-                .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17),
+                // (30,35): error CS0136: A local or parameter named 'q' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         System.Func<int, int> f = q=>q; // 0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "q").WithArguments("q").WithLocation(30, 35));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         string x = null; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(5, 16),
+                // (9,17): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int y = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(9, 17),
+                // (24,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int value = 0; // CS0136
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(24, 17));
         }
 
         [Fact]
@@ -7801,106 +7823,28 @@ unsafe class C
     I* i;
     C* c;
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                //     object* _object;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
-                // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     string* _string;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
-                // (26,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int?')
-                //     int?* _nullable;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int?*").WithArguments("int?"),
-                // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                //     dynamic* _dynamic;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
-                // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
-                //     D* d;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
-                // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
-                //     I* i;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
-                // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //     C* c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"),
-                // (7,13): warning CS0169: The field 'C._object' is never used
-                //     object* _object;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_object").WithArguments("C._object"),
-                // (8,11): warning CS0169: The field 'C._void' is never used
-                //     void* _void;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_void").WithArguments("C._void"),
-                // (9,11): warning CS0169: The field 'C._bool' is never used
-                //     bool* _bool;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_bool").WithArguments("C._bool"),
-                // (10,11): warning CS0169: The field 'C._char' is never used
-                //     char* _char;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_char").WithArguments("C._char"),
-                // (11,12): warning CS0169: The field 'C._sbyte' is never used
-                //     sbyte* _sbyte;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_sbyte").WithArguments("C._sbyte"),
-                // (12,11): warning CS0169: The field 'C._byte' is never used
-                //     byte* _byte;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_byte").WithArguments("C._byte"),
-                // (13,12): warning CS0169: The field 'C._short' is never used
-                //     short* _short;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_short").WithArguments("C._short"),
-                // (14,13): warning CS0169: The field 'C._ushort' is never used
-                //     ushort* _ushort;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_ushort").WithArguments("C._ushort"),
-                // (15,10): warning CS0169: The field 'C._int' is never used
-                //     int* _int;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_int").WithArguments("C._int"),
-                // (16,11): warning CS0169: The field 'C._uint' is never used
-                //     uint* _uint;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_uint").WithArguments("C._uint"),
-                // (17,11): warning CS0169: The field 'C._long' is never used
-                //     long* _long;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_long").WithArguments("C._long"),
-                // (18,12): warning CS0169: The field 'C._ulong' is never used
-                //     ulong* _ulong;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_ulong").WithArguments("C._ulong"),
-                // (19,14): warning CS0169: The field 'C._decimal' is never used
-                //     decimal* _decimal;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_decimal").WithArguments("C._decimal"),
-                // (20,12): warning CS0169: The field 'C._float' is never used
-                //     float* _float;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_float").WithArguments("C._float"),
-                // (21,13): warning CS0169: The field 'C._double' is never used
-                //     double* _double;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_double").WithArguments("C._double"),
-                // (22,13): warning CS0169: The field 'C._string' is never used
-                //     string* _string;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_string").WithArguments("C._string"),
-                // (23,20): warning CS0169: The field 'C._intptr' is never used
-                //     System.IntPtr* _intptr;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_intptr").WithArguments("C._intptr"),
-                // (24,21): warning CS0169: The field 'C._uintptr' is never used
-                //     System.UIntPtr* _uintptr;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_uintptr").WithArguments("C._uintptr"),
-                // (25,11): warning CS0169: The field 'C._intptr2' is never used
-                //     int** _intptr2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_intptr2").WithArguments("C._intptr2"),
-                // (26,11): warning CS0169: The field 'C._nullable' is never used
-                //     int?* _nullable;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_nullable").WithArguments("C._nullable"),
-                // (27,14): warning CS0169: The field 'C._dynamic' is never used
-                //     dynamic* _dynamic;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "_dynamic").WithArguments("C._dynamic"),
-                // (28,8): warning CS0169: The field 'C.e' is never used
-                //     E* e;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "e").WithArguments("C.e"),
-                // (29,8): warning CS0169: The field 'C.d' is never used
-                //     D* d;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "d").WithArguments("C.d"),
-                // (30,8): warning CS0169: The field 'C.s' is never used
-                //     S* s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("C.s"),
-                // (31,8): warning CS0169: The field 'C.i' is never used
-                //     I* i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i"),
-                // (32,8): warning CS0169: The field 'C.c' is never used
-                //     C* c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C.c"));
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll)
+                .GetDiagnostics()
+                .Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Verify(
+                    // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                    //     object* _object;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
+                    // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                    //     string* _string;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
+                    // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                    //     dynamic* _dynamic;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
+                    // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
+                    //     D* d;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
+                    // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
+                    //     I* i;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
+                    // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                    //     C* c;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"));
         }
 
         [Fact]
@@ -9040,8 +8984,9 @@ enum Number
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,20): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[Number.One][]").WithArguments("Number", "int"));
+                // (6,28): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         var cube = new int[Number.One][];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Number.One").WithArguments("Number", "int").WithLocation(6, 28));
         }
 
         [WorkItem(541718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
@@ -9065,9 +9010,16 @@ class C1
 }
 ";
             CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[x]").WithArguments("double", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[y]").WithArguments("float", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[z]").WithArguments("decimal", "int"));
+                VerifyDiagnostics(
+                    // (7,30): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr4 = new int[x];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("double", "int").WithLocation(7, 30),
+                    // (10,30): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr5 = new int[y];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("float", "int").WithLocation(10, 30),
+                    // (13,30): error CS0266: Cannot implicitly convert type 'decimal' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr6 = new int[z];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("decimal", "int").WithLocation(13, 30));
         }
 
         [Fact]
@@ -15530,7 +15482,7 @@ unsafe class Test
 }
 ";
 
-            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options: TestOptions.UnsafeReleaseExe);
 
             c.VerifyIL("Test.example1()", @"
 {
@@ -15725,9 +15677,9 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (7,22): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int a = 0").WithArguments("int"),
-                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "a").WithArguments("int"));
         }
 
@@ -20179,8 +20131,11 @@ class Test
    }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.WRN_GotoCaseShouldConvert, Line = 13, Column = 13, IsWarning = true } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,13): warning CS0469: The 'goto case' value is not implicitly convertible to type 'char'
+                //             goto case 127;   // CS0469
+                Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 127;").WithArguments("char").WithLocation(13, 13)
+                );
         }
 
         [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
@@ -21269,7 +21224,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
@@ -21882,15 +21837,21 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
+                //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
                 // (24,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                //         default(T4).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4).GetHashCode").WithArguments("T4").WithLocation(24, 9),
                 // (26,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).GetHashCode").WithArguments("T6").WithLocation(26, 9),
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+                );
         }
 
         [Fact]
@@ -21937,7 +21898,7 @@ class C
         default(T4)[1] = o;
     }
 }";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (23,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'A' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(A)[0]").WithArguments("A").WithLocation(23, 13),
                 // (25,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'I' is null
@@ -21958,8 +21919,12 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T1)[1]").WithArguments("T1").WithLocation(35, 9),
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
-                                                                                                    // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T3)[1] = o;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9));
         }
 
         [Fact]
@@ -21979,12 +21944,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -23990,6 +23956,28 @@ class B : System.Attribute {
                 // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
                 // [A(1)]
                 Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                );
+        }
+
+        [Fact]
+        public void ERR_ExpressionTreeContainsSwitchExpression()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+
+public class C
+{
+    public int Test()
+    {
+        Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+        return 1;
+    }
+}";
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
+                // (9,45): error CS8411: An expression tree may not contain a switch expression.
+                //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
         }
     }

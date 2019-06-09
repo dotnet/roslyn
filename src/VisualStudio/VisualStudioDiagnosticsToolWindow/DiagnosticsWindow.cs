@@ -8,25 +8,17 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Hosting.Diagnostics.PerfMargin;
 using Roslyn.Hosting.Diagnostics.RemoteHost;
+using Roslyn.VisualStudio.DiagnosticsWindow.Telemetry;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
-    /// <summary>
-    /// This class implements the tool window exposed by this package and hosts a user control.
-    ///
-    /// In Visual Studio tool windows are composed of a frame (implemented by the shell) and a pane, 
-    /// usually implemented by the package implementer.
-    ///
-    /// This class derives from the ToolWindowPane class provided from the MPF in order to use its 
-    /// implementation of the IVsUIElementPane interface.
-    /// </summary>
     [Guid("b2da68d7-fd1c-491a-a9a0-24f597b9f56c")]
     public class DiagnosticsWindow : ToolWindowPane
     {
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
-        public DiagnosticsWindow() :
+        public DiagnosticsWindow(object context) :
             base(null)
         {
             // Set the window title reading it from the resources.
@@ -54,10 +46,16 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 Content = new PerfMarginPanel()
             };
 
-            var remoteHost = new TabItem()
+            var remoteHostPanel = new TabItem()
             {
                 Header = "Remote",
                 Content = new RemoteHostPanel(workspace)
+            };
+
+            var telemetryPanel = new TabItem()
+            {
+                Header = "Telemetry",
+                Content = new TelemetryPanel()
             };
 
             var tabControl = new TabControl
@@ -66,7 +64,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             };
 
             tabControl.Items.Add(perfMarginPanel);
-            tabControl.Items.Add(remoteHost);
+            tabControl.Items.Add(remoteHostPanel);
+            tabControl.Items.Add(telemetryPanel);
 
             base.Content = tabControl;
         }

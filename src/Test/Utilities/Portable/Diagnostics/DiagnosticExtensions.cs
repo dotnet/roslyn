@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis
             var expectedToolName = compiler.GetToolName();
             var expectedVersion = compiler.GetAssemblyVersion();
             var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
-            var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedFileVersion = compiler.GetCompilerVersion();
             var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{

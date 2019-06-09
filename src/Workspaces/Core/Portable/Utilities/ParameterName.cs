@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
@@ -33,6 +35,23 @@ namespace Microsoft.CodeAnalysis.Utilities
                 // how people actually writing parameters.
                 var trimmed = nameBasedOnArgument.TrimStart('_');
                 BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
+            }
+        }
+
+        public ParameterName(string nameBasedOnArgument, bool isFixed, NamingRule parameterNamingRule)
+        {
+            NameBasedOnArgument = nameBasedOnArgument;
+
+            if (isFixed)
+            {
+                // If the parameter name is fixed, we have to accept it as is.
+                BestNameForParameter = NameBasedOnArgument;
+            }
+            else
+            {
+                // Otherwise, massage it a bit to be a more suitable match for
+                // how people actually writing parameters.
+                BestNameForParameter = parameterNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
             }
         }
 

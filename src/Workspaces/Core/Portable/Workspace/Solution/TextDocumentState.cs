@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     internal partial class TextDocumentState
     {
         protected readonly SolutionServices solutionServices;
-        private readonly DocumentInfo.DocumentAttributes attributes;
 
         /// <summary>
         /// A direct reference to our source text.  This is only kept around in specialized scenarios.
@@ -30,68 +29,73 @@ namespace Microsoft.CodeAnalysis
         /// preserve the same version, otherwise we'll move the version forward).  Because determining
         /// the version depends on comparing text, and because getting the old text may block, we 
         /// do not have the ability to know the version of the document up front, and instead can
-        /// only retrieve is asynchronously through <see cref="textAndVersionSource"/>.
+        /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
         /// </summary> 
         protected readonly SourceText sourceTextOpt;
-        protected ValueSource<TextAndVersion> textAndVersionSource;
+        protected ValueSource<TextAndVersion> TextAndVersionSource { get; }
 
         // Checksums for this solution state
         private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
 
         protected TextDocumentState(
             SolutionServices solutionServices,
+            IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
-            ValueSource<TextAndVersion> textAndVersionSource,
-            ValueSource<DocumentStateChecksums> lazyChecksums)
+            ValueSource<TextAndVersion> textAndVersionSource)
         {
             this.solutionServices = solutionServices;
-            this.attributes = attributes;
             this.sourceTextOpt = sourceTextOpt;
-            this.textAndVersionSource = textAndVersionSource;
+            this.TextAndVersionSource = textAndVersionSource;
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
+            Attributes = attributes;
+            Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
+
+            // This constructor is called whenever we're creating a new TextDocumentState from another
+            // TextDocumentState, and so we populate all the fields from the inputs. We will always create
+            // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
+            // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
+            // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
+        public DocumentInfo.DocumentAttributes Attributes { get; }
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        public IDocumentServiceProvider Services { get; }
+
         public DocumentId Id
         {
-            get { return this.attributes.Id; }
+            get { return Attributes.Id; }
         }
 
         public string FilePath
         {
-            get { return this.attributes.FilePath; }
-        }
-
-        public DocumentInfo.DocumentAttributes Attributes
-        {
-            get { return this.attributes; }
+            get { return Attributes.FilePath; }
         }
 
         public IReadOnlyList<string> Folders
         {
-            get { return this.attributes.Folders; }
+            get { return Attributes.Folders; }
         }
 
         public string Name
         {
-            get { return this.attributes.Name; }
+            get { return this.Attributes.Name; }
         }
 
-        public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
+        public TextDocumentState(DocumentInfo info, SolutionServices services)
+            : this(
+                  services,
+                  info.DocumentServiceProvider,
+                  info.Attributes,
+                  sourceTextOpt: null,
+                  textAndVersionSource: info.TextLoader != null
+                    ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
         {
-            var textSource = info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
-                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
-
-            return new TextDocumentState(
-                solutionServices: services,
-                attributes: info.Attributes,
-                sourceTextOpt: null,
-                textAndVersionSource: textSource,
-                lazyChecksums: null);
         }
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
@@ -134,11 +138,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (ExceptionHelpers.SuppressFailFast())
-                    {
-                        var result = await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                        return result;
-                    }
+                    return await loader.LoadTextAndVersionAsync(services.Workspace, documentId, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -179,11 +179,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (ExceptionHelpers.SuppressFailFast())
-                    {
-                        var result = loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
-                        return result;
-                    }
+                    return loader.LoadTextAndVersionSynchronously(services.Workspace, documentId, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -220,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                var recoverableText = this.textAndVersionSource as RecoverableTextAndVersion;
+                var recoverableText = this.TextAndVersionSource as RecoverableTextAndVersion;
                 if (recoverableText == null)
                 {
                     return null;
@@ -238,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 text = textAndVersion.Text;
                 return true;
@@ -253,12 +249,12 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            if (this.textAndVersionSource is ITextVersionable versionable)
+            if (this.TextAndVersionSource is ITextVersionable versionable)
             {
                 return versionable.TryGetTextVersion(out version);
             }
 
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 version = textAndVersion.Version;
                 return true;
@@ -288,13 +284,13 @@ namespace Microsoft.CodeAnalysis
 
         public SourceText GetTextSynchronously(CancellationToken cancellationToken)
         {
-            var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
+            var textAndVersion = this.TextAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Text;
         }
 
         public VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
         {
-            var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
+            var textAndVersion = this.TextAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Version;
         }
 
@@ -321,12 +317,7 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            return new TextDocumentState(
-                this.solutionServices,
-                this.attributes,
-                sourceTextOpt: null,
-                textAndVersionSource: newTextSource,
-                lazyChecksums: null);
+            return UpdateText(newTextSource, mode, incremental: true);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -355,29 +346,34 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: false)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: false);
 
+            return UpdateText(newTextSource, mode, incremental: false);
+        }
+
+        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        {
             return new TextDocumentState(
                 this.solutionServices,
-                this.attributes,
+                this.Services,
+                this.Attributes,
                 sourceTextOpt: null,
-                textAndVersionSource: newTextSource,
-                lazyChecksums: null);
+                textAndVersionSource: newTextSource);
         }
 
         private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
         {
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion;
             }
             else
             {
-                return await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
         private VersionStamp GetNewerVersion()
         {
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
             {
                 return textAndVersion.Version.GetNewerVersion();
             }
@@ -387,7 +383,7 @@ namespace Microsoft.CodeAnalysis
 
         public virtual async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
-            TextAndVersion textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            TextAndVersion textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
     }

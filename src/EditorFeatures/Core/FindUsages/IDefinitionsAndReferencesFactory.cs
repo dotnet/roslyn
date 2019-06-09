@@ -5,6 +5,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
+        [ImportingConstructor]
+        public DefaultDefinitionsAndReferencesFactory()
+        {
+        }
+
         /// <summary>
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
@@ -49,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(
-                definition, project, includeHiddenLocations, includeClassifiedSpans: false, 
+                definition, project, includeHiddenLocations, includeClassifiedSpans: false,
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             CancellationToken cancellationToken)
         {
             return ToDefinitionItemAsync(definition, project,
-                includeHiddenLocations, includeClassifiedSpans: true, 
+                includeHiddenLocations, includeClassifiedSpans: true,
                 options, cancellationToken);
         }
 
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, nameDisplayParts, project, 
+                            tags, displayParts, nameDisplayParts, project,
                             definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

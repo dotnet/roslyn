@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis
     {
         IEnumerable<string> After { get; }
         IEnumerable<string> Before { get; }
-        string Name { get; }
+        string Name { get; } 
     }
 }

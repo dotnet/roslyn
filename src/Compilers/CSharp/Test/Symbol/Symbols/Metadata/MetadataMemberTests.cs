@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var fullName = "System.Boolean Microsoft.Runtime.Hosting.StrongNameHelpers.StrongNameSignatureGeneration(System.String pwzFilePath, System.String pwzKeyContainer, System.Byte[] bKeyBlob, System.Int32 cbKeyBlob, ref System.IntPtr ppbSignatureBlob, out System.Int32 pcbSignatureBlob)";
             Assert.Equal(fullName, member1.ToTestDisplayString());
-            Assert.Equal(0, member1.TypeArguments.Length);
+            Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member1.TypeParameters.Length);
             Assert.Equal(6, member1.Parameters.Length);
             Assert.Equal("Boolean", member1.ReturnType.Name);
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(member1.ReturnsVoid);
             Assert.False(member2.IsVararg);
 
-            Assert.Equal(0, member1.TypeArguments.Length);
+            Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member2.TypeParameters.Length);
             Assert.Equal(2, member1.Parameters.Length);
             Assert.Equal("Boolean", member2.ReturnType.Name);

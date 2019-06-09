@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Documents;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -21,11 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public DefinitionItemEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                DocumentSpan documentSpan,
                 string documentName,
                 Guid projectGuid,
-                SourceText sourceText)
-                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
+                SourceText lineText,
+                MappedSpanResult mappedSpanResult)
+                : base(context, definitionBucket, documentName, projectGuid, lineText, mappedSpanResult)
             {
             }
 

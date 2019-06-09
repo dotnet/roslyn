@@ -22031,7 +22031,7 @@ Public Partial Class C
     End Sub
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             Dim expectedErrors = <errors><![CDATA[
 BC36716: Visual Basic 15.0 does not support Private Protected.
@@ -23288,8 +23288,10 @@ End Class
             Dim errortyp = DirectCast(typ, ErrorTypeSymbol)
             Assert.Equal(CandidateReason.Ambiguous, errortyp.CandidateReason)
             Assert.Equal(2, errortyp.CandidateSymbols.Length)
-            Assert.True((classB1 = errortyp.CandidateSymbols(0) AndAlso classB2 = errortyp.CandidateSymbols(1)) OrElse
-                        (classB2 = errortyp.CandidateSymbols(0) AndAlso classB1 = errortyp.CandidateSymbols(1)), "should have B1 and B2 in some order")
+            Assert.True((TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything) AndAlso
+                        TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything)) OrElse
+                        (TypeSymbol.Equals(classB2, TryCast(errortyp.CandidateSymbols(0), TypeSymbol), TypeCompareKind.ConsiderEverything) AndAlso
+                        TypeSymbol.Equals(classB1, TryCast(errortyp.CandidateSymbols(1), TypeSymbol), TypeCompareKind.ConsiderEverything)), "should have B1 and B2 in some order")
         End Sub
 
         <Fact()>
@@ -23817,9 +23819,9 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:=False)
 
-            Dim code = 
+            Dim code =
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports TestSpace
@@ -23834,15 +23836,15 @@ End Namespace
     </compilation>
 
             CompileAndVerify(
-                source:= code,
-                references:= { ilReference },
-                expectedOutput:= "TEST VALUE")
+                source:=code,
+                references:={ilReference},
+                expectedOutput:="TEST VALUE")
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
-            Dim userCode = 
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23877,7 +23879,7 @@ End Namespace
 {
 	.assembly extern Destination2
 }"
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23888,12 +23890,12 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
-            
-            Dim userCode = 
+
+            Dim userCode =
     <compilation>
         <file name="a.vb"><![CDATA[
 Namespace ForwardingNamespace
@@ -23945,7 +23947,7 @@ End Namespace
 	.assembly extern Destination2
 }"
 
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:= False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -23956,7 +23958,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
                           ~~~~~~~~~~~~~~~~~~~~~
  ]]></errors>)
         End Sub
-        
+
         <Fact>
         <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
         Public Sub RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
@@ -23971,9 +23973,9 @@ Namespace C
 End Namespace"
 
             Dim referenceC = CreateCompilationWithMscorlib40(
-                source:= codeC,
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "C") .EmitToImageReference()
+                source:=codeC,
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="C").EmitToImageReference()
 
             Dim codeB = "
 Imports C
@@ -23987,10 +23989,10 @@ Namespace B
 End Namespace"
 
             Dim compilationB = CreateCompilationWithMscorlib40(
-                source:= codeB,
-                references:= { referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "B")
+                source:=codeB,
+                references:={referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="B")
 
             Dim referenceB = compilationB.EmitToImageReference()
 
@@ -24006,13 +24008,13 @@ Namespace A
 End Namespace"
 
             Dim compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             compilation.VerifyDiagnostics() ' No Errors
-            
+
             Dim codeC2 = "
 .assembly C { }
 .module CModule.dll
@@ -24027,13 +24029,13 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             compilation = CreateCompilationWithMscorlib40(
-                source:= codeA,
-                references:= { referenceB, referenceC2 },
-                options:= New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                assemblyName:= "A")
+                source:=codeA,
+                references:={referenceB, referenceC2},
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                assemblyName:="A")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC37208: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

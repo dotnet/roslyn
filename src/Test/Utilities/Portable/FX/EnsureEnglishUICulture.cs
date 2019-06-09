@@ -37,11 +37,7 @@ namespace Roslyn.Test.Utilities
                 _threadUICulture = CultureInfo.CurrentUICulture;
                 _needToRestore = true;
 
-#if DNX
                 CultureInfo.CurrentUICulture = preferred;
-#else
-                System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
-#endif
             }
         }
 
@@ -52,11 +48,7 @@ namespace Roslyn.Test.Utilities
             if (_needToRestore && _threadId == Thread.CurrentThread.ManagedThreadId)
             {
                 _needToRestore = false;
-#if DNX
                 CultureInfo.CurrentUICulture = _threadUICulture;
-#else
-                System.Threading.Thread.CurrentThread.CurrentUICulture = _threadUICulture;
-#endif
             }
         }
     }

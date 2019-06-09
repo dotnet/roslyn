@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
                 var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
         public string[] GetCurrentClassifications()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 IClassifier classifier = null;
                 try
@@ -131,6 +131,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
                 }
             });
+
+        public int GetVisibleColumnCount()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
+            });
+        }
 
         public void PlaceCaret(
             string marker,
@@ -211,8 +219,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return bufferPosition.Position;
             });
 
+        public int GetCaretColumn()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
+                var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
+                return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
+            });
+        }
+
         protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveTextView();
                 return action(view);
@@ -221,8 +239,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected void ExecuteOnActiveView(Action<IWpfTextView> action)
             => InvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        protected Action GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
-            => () =>
+        protected Action<CancellationToken> GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
+            => cancellationToken =>
             {
                 var view = GetActiveTextView();
                 action(view);
@@ -231,17 +249,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                var broker = GetComponentModelService<IQuickInfoBroker>();
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
+                var session = broker.GetSession(view);
+                return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
 
         public void VerifyTags(string tagTypeName, int expectedCount)
@@ -318,7 +329,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return await SelectActionsAsync(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
+        public bool ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
             var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
@@ -326,22 +337,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();
-                await lightBulbAction(activeTextView);
+                return await lightBulbAction(activeTextView);
             });
 
             if (blockUntilComplete)
             {
-                task.Join();
+                var result = task.Join();
+                DismissLightBulbSession();
+                return result;
             }
+
+            return true;
         }
 
-        /// <summary>
-        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
-        /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
-
-        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
+        private Func<IWpfTextView, Task<bool>> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
@@ -391,7 +400,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     if (string.IsNullOrEmpty(actionName))
                     {
-                        return;
+                        return false;
                     }
 
                     // Dismiss the lightbulb session as we not invoking the original code fix.
@@ -399,6 +408,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 action.Invoke(CancellationToken.None);
+                return !(action is SuggestedAction suggestedAction)
+                    || suggestedAction.GetTestAccessor().IsApplied;
             };
         }
 
@@ -460,7 +471,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return null;
         }
 
-        public void DismissLightBulbSession()   
+        public void DismissLightBulbSession()
             => ExecuteOnActiveView(view =>
             {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();

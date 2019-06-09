@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             int idx = hash & mask;
 
             var entry = this.entries[idx];
-            if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key)) 
+            if (entry != null && entry.hash == hash && _keyComparer.Equals(entry.key, key))
             {
                 value = entry.value;
                 return true;

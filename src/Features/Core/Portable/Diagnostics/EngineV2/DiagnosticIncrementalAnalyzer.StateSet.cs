@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,10 +22,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // analyzer version this state belong to
             private readonly VersionStamp _analyzerVersion;
-            private readonly AnalyzerTypeData _analyzerTypeData;
+            private readonly AnalyzerStateNames _analyzerStateNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
+
+            // whether this analyzer has compilation end analysis or not
+            // -1 not set, 0 no, 1 yes.
+            private volatile int _compilationEndAnalyzer = -1;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
             {
@@ -35,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _analyzer = analyzer;
                 _errorSourceName = errorSourceName;
 
-                var (analyzerId, version) = _analyzer.GetAnalyzerIdAndVersion();
+                var (_, version) = _analyzer.GetAnalyzerIdAndVersion();
                 _analyzerVersion = version;
-                _analyzerTypeData = AnalyzerTypeData.ForType(_analyzer.GetType());
-                Debug.Assert(_analyzerTypeData.StateName == $"{AnalyzerTypeData.UserDiagnosticsPrefixTableName}_{analyzerId}", "Expected persistence information for analyzer instance to be derived from its type alone.");
+
+                _analyzerStateNames = AnalyzerStateNames.For(_analyzer);
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public string StateName => _analyzerTypeData.StateName;
-            public string SyntaxStateName => _analyzerTypeData.SyntaxStateName;
-            public string SemanticStateName => _analyzerTypeData.SemanticStateName;
-            public string NonLocalStateName => _analyzerTypeData.NonLocalStateName;
+            public string StateName => _analyzerStateNames.StateName;
+            public string SyntaxStateName => _analyzerStateNames.SyntaxStateName;
+            public string SemanticStateName => _analyzerStateNames.SemanticStateName;
+            public string NonLocalStateName => _analyzerStateNames.NonLocalStateName;
 
             public string Language => _language;
             public string ErrorSourceName => _errorSourceName;
@@ -255,15 +257,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            private sealed class AnalyzerTypeData
+            public void ComputeCompilationEndAnalyzer(Project project, Compilation compilation)
             {
-                internal const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
-                private static readonly ConcurrentDictionary<Type, AnalyzerTypeData> s_analyzerTypeData
-                    = new ConcurrentDictionary<Type, AnalyzerTypeData>();
-
-                private AnalyzerTypeData(Type type)
+                if (_compilationEndAnalyzer != -1)
                 {
-                    StateName = UserDiagnosticsPrefixTableName + "_" + type.AssemblyQualifiedName;
+                    return;
+                }
+
+                // running this multiple time is fine
+                var result = _analyzer.IsCompilationEndAnalyzer(project, compilation);
+                if (!result.HasValue)
+                {
+                    // try again next time.
+                    return;
+                }
+
+                _compilationEndAnalyzer = result.Value ? 1 : 0;
+            }
+
+            public bool IsCompilationEndAnalyzer(Project project, Compilation compilation)
+            {
+                ComputeCompilationEndAnalyzer(project, compilation);
+
+                return _compilationEndAnalyzer == 1;
+            }
+
+            private sealed class AnalyzerStateNames
+            {
+                private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
+
+                private static readonly ConcurrentDictionary<string, AnalyzerStateNames> s_analyzerStateNameCache
+                    = new ConcurrentDictionary<string, AnalyzerStateNames>(concurrencyLevel: 2, capacity: 10);
+
+                private AnalyzerStateNames(string assemblyQualifiedName)
+                {
+                    StateName = UserDiagnosticsPrefixTableName + "_" + assemblyQualifiedName;
                     SyntaxStateName = StateName + ".Syntax";
                     SemanticStateName = StateName + ".Semantic";
                     NonLocalStateName = StateName + ".NonLocal";
@@ -279,9 +307,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public string SemanticStateName { get; }
                 public string NonLocalStateName { get; }
 
-                public static AnalyzerTypeData ForType(Type type)
+                public static AnalyzerStateNames For(DiagnosticAnalyzer diagnosticAnalyzer)
                 {
-                    return s_analyzerTypeData.GetOrAdd(type, t => new AnalyzerTypeData(t));
+                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new AnalyzerStateNames(t));
                 }
             }
         }

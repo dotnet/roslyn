@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // caches token information within given formatting span to improve perf
         private readonly List<SyntaxToken> _tokens;
-        private readonly Dictionary<SyntaxToken, int> _tokenToIndexMap;
 
         // caches original trivia info to improve perf
         private readonly TriviaData[] _cachedOriginalTriviaInfo;
@@ -64,12 +63,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // initialize trivia related info
                 _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
-
-                _tokenToIndexMap = new Dictionary<SyntaxToken, int>(this.TokenCount);
-                for (int i = 0; i < this.TokenCount; i++)
-                {
-                    _tokenToIndexMap.Add(_tokens[i], i);
-                }
 
                 // Func Cache
                 _getTriviaData = this.GetTriviaData;
@@ -510,9 +503,51 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetTokenIndexInStream(SyntaxToken token)
         {
-            if (_tokenToIndexMap.TryGetValue(token, out var value))
+            var tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
+            if (tokenIndex < 0)
             {
-                return value;
+                return -1;
+            }
+
+            // Source characters cannot be assigned to multiple tokens. If the token has non-zero width, it will be an
+            // exact match for at most one token.
+            if (!token.FullSpan.IsEmpty)
+            {
+                return _tokens[tokenIndex] == token ? tokenIndex : -1;
+            }
+
+            // Multiple tokens can have empty spans. The binary search operation will return one of them; look forward
+            // and then backward to locate the desired token within the set of one or more zero-width tokens located at
+            // the same position.
+            Debug.Assert(token.FullSpan.IsEmpty);
+            for (var i = tokenIndex; i < _tokens.Count; i++)
+            {
+                if (!_tokens[i].FullSpan.IsEmpty)
+                {
+                    // Current token can't match because the span is different, and future tokens won't match because
+                    // they are lexicographically after the token we are interested in.
+                    break;
+                }
+
+                if (_tokens[i] == token)
+                {
+                    return i;
+                }
+            }
+
+            for (var i = tokenIndex - 1; i >= 0; i--)
+            {
+                if (!_tokens[i].FullSpan.IsEmpty)
+                {
+                    // Current token can't match because the span is different, and future tokens won't match because
+                    // they are lexicographically before the token we are interested in.
+                    break;
+                }
+
+                if (_tokens[i] == token)
+                {
+                    return i;
+                }
             }
 
             return -1;
@@ -523,6 +558,18 @@ namespace Microsoft.CodeAnalysis.Formatting
             get
             {
                 return new Iterator(_tokens);
+            }
+        }
+
+        private sealed class TokenOrderComparer : IComparer<SyntaxToken>
+        {
+            public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
+
+            private TokenOrderComparer() { }
+
+            public int Compare(SyntaxToken x, SyntaxToken y)
+            {
+                return x.FullSpan.CompareTo(y.FullSpan);
             }
         }
     }

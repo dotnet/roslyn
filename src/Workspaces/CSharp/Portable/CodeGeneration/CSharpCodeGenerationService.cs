@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService
     {
         public CSharpCodeGenerationService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ISymbolDeclarationService>(), 
+            : base(languageServices.GetService<ISymbolDeclarationService>(),
                    languageServices.WorkspaceServices.Workspace)
         {
         }
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (newDestinationSymbol?.ContainingType != null)
                 {
                     return await this.AddNamedTypeAsync(
-                        newDocument.Project.Solution, newDestinationSymbol.ContainingType, 
+                        newDocument.Project.Solution, newDestinationSymbol.ContainingType,
                         namedType, options, cancellationToken).ConfigureAwait(false);
                 }
                 else if (newDestinationSymbol?.ContainingNamespace != null)
@@ -671,14 +672,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CodeGenerationOptions options)
         {
-            var newModifierTokens = new List<SyntaxToken>();
+            var newModifierTokens = ArrayBuilder<SyntaxToken>.GetInstance();
             CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, options, Accessibility.NotApplicable);
             if (newModifierTokens.Count == 0)
             {
                 return modifiersList;
             }
 
-            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+            // TODO: Move more APIs to use pooled ArrayBuilder
+            // https://github.com/dotnet/roslyn/issues/34960
+            var list = newModifierTokens.ToList();
+            newModifierTokens.Free();
+            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
                 .ToSyntaxTokenList();
         }
 

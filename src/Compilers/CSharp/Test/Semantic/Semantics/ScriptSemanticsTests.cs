@@ -136,7 +136,7 @@ namespace System.Threading.Tasks {
                 source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
-                references: new MetadataReference[] { TaskFacadeAssembly()});
+                references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -367,7 +367,7 @@ namespace Goo
 
             var global = compilation.GlobalNamespace;
 
-            var goo = global.GetMembers().Single() as NamespaceSymbol;
+            var goo = global.GetMembers("Goo").Single() as NamespaceSymbol;
             Assert.Equal("Goo", goo.Name);
 
             var script = goo.GetTypeMembers("Script").Single();
@@ -397,7 +397,7 @@ G();
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
-            var members = global.GetMembers();
+            var members = global.GetMembers().Where(m => !m.IsImplicitlyDeclared).AsImmutable();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
@@ -1207,7 +1207,7 @@ goto Label;");
             Assert.Equal("WriteLine", node5.Name.ToString());
             Assert.Equal("void System.Console.WriteLine(System.Int32 value)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput:"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1").VerifyDiagnostics();
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
             compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));

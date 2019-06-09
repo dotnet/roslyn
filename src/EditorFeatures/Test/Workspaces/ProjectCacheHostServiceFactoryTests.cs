@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public override HostServices HostServices => _hostServices;
 
             public override Workspace Workspace => _workspace;
-            
+
             public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
             {
                 return ImmutableArray<TLanguageService>.Empty;

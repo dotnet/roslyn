@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    internal struct ForEachLoopOperationInfo
+    internal class ForEachLoopOperationInfo
     {
         /// <summary>
         /// Element type of the collection
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public readonly IConvertibleConversion ElementConversion;
 
-        public readonly Lazy<ImmutableArray<IArgumentOperation>> GetEnumeratorArguments;
-        public readonly Lazy<ImmutableArray<IArgumentOperation>> MoveNextArguments;
-        public readonly Lazy<ImmutableArray<IArgumentOperation>> CurrentArguments;
+        public readonly ImmutableArray<IArgumentOperation> GetEnumeratorArguments;
+        public readonly ImmutableArray<IArgumentOperation> MoveNextArguments;
+        public readonly ImmutableArray<IArgumentOperation> CurrentArguments;
 
         public ForEachLoopOperationInfo(
             ITypeSymbol elementType,
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Operations
             bool knownToImplementIDisposable,
             IConvertibleConversion currentConversion,
             IConvertibleConversion elementConversion,
-            Lazy<ImmutableArray<IArgumentOperation>> getEnumeratorArguments = default,
-            Lazy<ImmutableArray<IArgumentOperation>> moveNextArguments = default,
-            Lazy<ImmutableArray<IArgumentOperation>> currentArguments = default)
+            ImmutableArray<IArgumentOperation> getEnumeratorArguments = default,
+            ImmutableArray<IArgumentOperation> moveNextArguments = default,
+            ImmutableArray<IArgumentOperation> currentArguments = default)
         {
             ElementType = elementType;
             GetEnumeratorMethod = getEnumeratorMethod;

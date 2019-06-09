@@ -35,6 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         ''' </summary>
         Friend Const BC32045 = "BC32045"
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30002, IDEDiagnosticIds.UnboundIdentifierId, BC30451, BC30456, BC32045)
@@ -59,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         End Function
 
         Protected Overrides Function IsGeneric(completionItem As CompletionItem) As Boolean
-            Return completionItem.DisplayText.Contains("(Of")
+            Return completionItem.DisplayTextSuffix.StartsWith("(Of")
         End Function
 
         Protected Overrides Function CreateIdentifier(nameToken As SyntaxToken, newName As String) As SyntaxToken

@@ -119,6 +119,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
 
+            // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+            // by assigning the value of the project's root namespace to it. So various feature can choose to 
+            // use it for their own purpose.
+            // In the future, we might consider officially exposing "default namespace" for VB project 
+            // (e.g. through a <defaultnamespace> msbuild property)
+            var defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace) ?? string.Empty;
+
             var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
             if (string.IsNullOrWhiteSpace(targetFramework))
             {
@@ -131,7 +138,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .ToImmutableArray();
 
             var additionalDocs = project.GetAdditionalFiles()
-                .Select(MakeAdditionalDocumentFileInfo)
+                .Select(MakeNonSourceFileDocumentFileInfo)
+                .ToImmutableArray();
+
+            var analyzerConfigDocs = project.GetEditorConfigFiles()
+                .Select(MakeNonSourceFileDocumentFileInfo)
                 .ToImmutableArray();
 
             return ProjectFileInfo.Create(
@@ -139,10 +150,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.FullPath,
                 outputFilePath,
                 outputRefFilePath,
+                defaultNamespace,
                 targetFramework,
                 commandLineArgs,
                 docs,
                 additionalDocs,
+                analyzerConfigDocs,
                 project.GetProjectReferences().ToImmutableArray(),
                 Log);
         }
@@ -179,7 +192,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
         }
 
-        private DocumentFileInfo MakeAdditionalDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
+        private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
         {
             var filePath = GetDocumentFilePath(documentItem);
             var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
@@ -199,7 +212,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             // TODO (tomat): should we report an error when drive-relative path (e.g. "C:goo.cs") is encountered?
             var absolutePath = FileUtilities.ResolveRelativePath(path, _projectDirectory) ?? path;
-            return Path.GetFullPath(absolutePath);
+            return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
         }
 
         private string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
@@ -234,27 +247,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                var result = documentItem.ItemSpec;
-                if (Path.IsPathRooted(result))
-                {
-                    // If we have an absolute path, there are two possibilities:
-                    result = Path.GetFullPath(result);
+                var filePath = documentItem.ItemSpec;
 
-                    // If the document is within the current project directory (or subdirectory), then the logical path is the relative path 
-                    // from the project's directory.
-                    if (result.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result = result.Substring(projectDirectory.Length);
-                    }
-                    else
-                    {
-                        // if the document lies outside the project's directory (or subdirectory) then place it logically at the root of the project.
-                        // if more than one document ends up with the same logical name then so be it (the workspace will survive.)
-                        return Path.GetFileName(result);
-                    }
+                if (!PathUtilities.IsAbsolute(filePath))
+                {
+                    return filePath;
                 }
 
-                return result;
+                var normalizedPath = FileUtilities.TryNormalizeAbsolutePath(filePath);
+                if (normalizedPath == null)
+                {
+                    return filePath;
+                }
+
+                // If the document is within the current project directory (or subdirectory), then the logical path is the relative path 
+                // from the project's directory.
+                if (normalizedPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    return normalizedPath.Substring(projectDirectory.Length);
+                }
+                else
+                {
+                    // if the document lies outside the project's directory (or subdirectory) then place it logically at the root of the project.
+                    // if more than one document ends up with the same logical name then so be it (the workspace will survive.)
+                    return PathUtilities.GetFileName(normalizedPath);
+                }
             }
         }
 

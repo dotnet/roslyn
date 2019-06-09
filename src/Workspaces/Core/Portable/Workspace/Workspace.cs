@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -50,27 +51,6 @@ namespace Microsoft.CodeAnalysis
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
         private Action<string> _testMessageLogger;
-
-        /// <summary>
-        /// <see cref="OnProjectRemoved"/> takes the <see cref="_serializationLock"/>, but can also
-        /// cause Shared Project IVsHierarchys to notify us that their context hierarchy has
-        /// changed while we are still holding the lock. In response to this, we try to set the new
-        /// active context document for open files, which also tries to take the lock, and we
-        /// deadlock.
-        ///
-        /// For.NET Framework Projects that reference Shared Projects, two things prevent deadlocks
-        /// when projects unload. During solution close, any Shared Projects are disconnected
-        /// before the projects start to unload, so no IVsHierarchy events are fired. During a
-        /// single project unload, we receive notification of the context hierarchy change before
-        /// the project is unloaded, avoiding any IVsHierarchy events if we tell the shared
-        /// hierarchy to set its context hierarchy to what it already is.
-        ///
-        /// Neither of these behaviors are safe to rely on with .NET Standard (CPS) projects, so we
-        /// have to prevent the deadlock ourselves. We do this by remembering if we're already in
-        /// the serialization lock due to project unload, and then not take the lock to update
-        /// document contexts if so (but continuing to lock if it's not during a project unload).
-        /// </summary>
-        private ThreadLocal<bool> _isProjectUnloading = new ThreadLocal<bool>(() => false);
 
         /// <summary>
         /// Constructs a new workspace instance.
@@ -135,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            return new Solution(this, solutionInfo);
+            return new Solution(this, solutionInfo.Attributes);
         }
 
         /// <summary>
@@ -282,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         /// Override this method if you want to do additional work when a document is removed.
         /// Call the base method at the end of your method.
         /// </summary>
-        protected virtual void ClearDocumentData(DocumentId documentId)
+        protected internal virtual void ClearDocumentData(DocumentId documentId)
         {
             this.ClearOpenDocument(documentId);
         }
@@ -432,24 +412,15 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                _isProjectUnloading.Value = true;
+                CheckProjectIsInCurrentSolution(projectId);
+                this.CheckProjectCanBeRemoved(projectId);
 
-                try
-                {
-                    CheckProjectIsInCurrentSolution(projectId);
-                    this.CheckProjectCanBeRemoved(projectId);
+                var oldSolution = this.CurrentSolution;
 
-                    var oldSolution = this.CurrentSolution;
+                this.ClearProjectData(projectId);
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
 
-                    this.ClearProjectData(projectId);
-                    var newSolution = this.SetCurrentSolution(oldSolution.RemoveProject(projectId));
-
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
-                }
-                finally
-                {
-                    _isProjectUnloading.Value = false;
-                }
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
             }
         }
 
@@ -461,20 +432,25 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        /// <summary>
-        /// Call this method when a project's assembly name is changed in the host environment.
-        /// </summary>
-        protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
+        private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> getSolutionWithChangedProject)
         {
             using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectAssemblyName(projectId, assemblyName));
+                var newSolution = this.SetCurrentSolution(getSolutionWithChangedProject(oldSolution));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
+        }
+
+        /// <summary>
+        /// Call this method when a project's assembly name is changed in the host environment.
+        /// </summary>
+        protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectAssemblyName(projectId, assemblyName));
         }
 
         /// <summary>
@@ -482,15 +458,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnOutputFilePathChanged(ProjectId projectId, string outputFilePath)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOutputFilePath(projectId, outputFilePath));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath));
         }
 
         /// <summary>
@@ -498,15 +466,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string outputFilePath)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
         }
 
         /// <summary>
@@ -514,15 +474,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
+        }
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+        /// <summary>
+        /// Call this method when a project's default namespace is changed in the host environment.
+        /// </summary>
+        internal void OnDefaultNamespaceChanged(ProjectId projectId, string defaultNamespace)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
         }
 
         /// <summary>
@@ -530,15 +490,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectCompilationOptions(projectId, options));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOptions(projectId, options));
         }
 
         /// <summary>
@@ -546,15 +498,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectParseOptions(projectId, options));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectParseOptions(projectId, options));
         }
 
         /// <summary>
@@ -562,20 +506,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectDoesNotHaveProjectReference(projectId, projectReference);
 
                 // Can only add this P2P reference if it would not cause a circularity.
                 CheckProjectDoesNotHaveTransitiveProjectReference(projectId, projectReference.ProjectId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddProjectReference(projectId, projectReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                return oldSolution.AddProjectReference(projectId, projectReference);
+            });
         }
 
         /// <summary>
@@ -583,17 +523,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectHasProjectReference(projectId, projectReference);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveProjectReference(projectId, projectReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                return oldSolution.RemoveProjectReference(projectId, projectReference);
+            });
         }
 
         /// <summary>
@@ -601,16 +537,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveMetadataReference(projectId, metadataReference);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddMetadataReference(projectId, metadataReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                return oldSolution.AddMetadataReference(projectId, metadataReference);
+            });
         }
 
         /// <summary>
@@ -618,16 +549,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasMetadataReference(projectId, metadataReference);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveMetadataReference(projectId, metadataReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                return oldSolution.RemoveMetadataReference(projectId, metadataReference);
+            });
         }
 
         /// <summary>
@@ -635,16 +561,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerReference(projectId, analyzerReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                return oldSolution.AddAnalyzerReference(projectId, analyzerReference);
+            });
         }
 
         /// <summary>
@@ -652,16 +573,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (_serializationLock.DisposableWait())
+            this.HandleProjectChange(projectId, oldSolution =>
             {
-                CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
+                return oldSolution.RemoveAnalyzerReference(projectId, analyzerReference);
+            });
+        }
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerReference(projectId, analyzerReference));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+        /// <summary>
+        /// Call this method when status of project has changed to incomplete.
+        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// </summary>
+        // TODO: make it public
+        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithHasAllInformation(projectId, hasAllInformation));
         }
 
         /// <summary>
@@ -735,7 +661,6 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
-            CheckDocumentIsClosed(documentId);
         }
 
         /// <summary>
@@ -760,7 +685,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is changed on disk.
+        /// Call this method when the text of a additional document is changed on disk.
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
@@ -777,22 +702,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+
         /// <summary>
-        /// Call this method when status of project has changed to incomplete.
-        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// Call this method when the text of a analyzer config document is changed on disk.
         /// </summary>
-        // TODO: make it public
-        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckProjectIsInCurrentSolution(projectId);
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
 
-                // if state is different than what we have
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                var newSolution = oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = this.SetCurrentSolution(newSolution);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -856,7 +781,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is updated in the host environment.
+        /// Call this method when the text of an additional document is updated in the host environment.
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
@@ -868,6 +793,22 @@ namespace Microsoft.CodeAnalysis
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false);
+        }
+
+        /// <summary>
+        /// Call this method when the text of an analyzer config document is updated in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
+        {
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
+                (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
         }
 
@@ -967,7 +908,7 @@ namespace Microsoft.CodeAnalysis
                 var documentId = documentInfo.Id;
 
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckDocumentIsNotInCurrentSolution(documentId);
+                CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
@@ -994,6 +935,46 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer config document is added to a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentAdded(DocumentInfo documentInfo)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var documentId = documentInfo.Id;
+
+                CheckProjectIsInCurrentSolution(documentId.ProjectId);
+                CheckAnalyzerConfigDocumentIsNotInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentAdded, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer config document is removed from a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+
+                this.CheckDocumentCanBeRemoved(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearDocumentData(documentId);
+
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerConfigDocument(documentId));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -1187,7 +1168,9 @@ namespace Microsoft.CodeAnalysis
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
+                && !this.CanApplyCompilationOptionChange(
+                    projectChanges.OldProject.CompilationOptions, projectChanges.NewProject.CompilationOptions, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
@@ -1217,7 +1200,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetChangedDocuments(true).Any())
+                && projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
@@ -1235,6 +1218,21 @@ namespace Microsoft.CodeAnalysis
             if (projectChanges.GetChangedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeAdditionalDocument))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_additional_documents_is_not_supported);
+            }
+
+            if (projectChanges.GetAddedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Adding_analyzer_config_documents_is_not_supported);
+            }
+
+            if (projectChanges.GetRemovedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Removing_analyzer_config_documents_is_not_supported);
+            }
+
+            if (projectChanges.GetChangedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Changing_analyzer_config_documents_is_not_supported);
             }
 
             if (projectChanges.GetAddedProjectReferences().Any() && !this.CanApplyChange(ApplyChangesKind.AddProjectReference))
@@ -1266,7 +1264,19 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
+
+            foreach (var documentId in projectChanges.GetChangedDocuments())
+            {
+                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId);
+                if (!document.CanApplyChange())
+                {
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
+                }
+            }
         }
+
+        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+            => false;
 
         protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
@@ -1339,6 +1349,12 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyAdditionalDocumentRemoved(documentId);
             }
 
+            // removed analyzer config documents
+            foreach (var documentId in projectChanges.GetRemovedAnalyzerConfigDocuments())
+            {
+                this.ApplyAnalyzerConfigDocumentRemoved(documentId);
+            }
+
             // added documents
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
@@ -1357,6 +1373,15 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyAdditionalDocumentAdded(info, text);
             }
 
+            // added analyzer config documents
+            foreach (var documentId in projectChanges.GetAddedAnalyzerConfigDocuments())
+            {
+                var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                var info = this.CreateDocumentInfoWithoutText(document);
+                this.ApplyAnalyzerConfigDocumentAdded(info, text);
+            }
+
             // changed documents
             foreach (var documentId in projectChanges.GetChangedDocuments())
             {
@@ -1373,6 +1398,17 @@ namespace Microsoft.CodeAnalysis
                 var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
+
+            // changed analyzer config documents
+            foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
+            {
+                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId);
+                var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+
+                // We don't understand the text of analyzer config documents and so we just replace the entire text.
+                var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
+                this.ApplyAnalyzerConfigDocumentTextChanged(documentId, currentText);
+            }
         }
 
         private void ApplyChangedDocument(
@@ -1380,13 +1416,6 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
-
-            // update info if changed
-            if (newDoc.HasInfoChanged(oldDoc))
-            {
-                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
-                ApplyDocumentInfoChanged(documentId, new DocumentInfo(newDoc.State.Attributes, loader: null));
-            }
 
             // update text if changed
             if (newDoc.HasTextChanged(oldDoc))
@@ -1415,6 +1444,16 @@ namespace Microsoft.CodeAnalysis
                     // So either the new text already knows the individual changes or we do not have a way to compute them.
                     this.ApplyDocumentTextChanged(documentId, newText);
                 }
+            }
+
+            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
+            // so we do this after any text changes have been applied.
+            if (newDoc.HasInfoChanged(oldDoc))
+            {
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(
+                    documentId,
+                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1446,7 +1485,9 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
                 project.IsSubmission,
                 project.State.HostObjectType,
-                project.OutputRefFilePath);
+                project.OutputRefFilePath)
+                .WithDefaultNamespace(project.DefaultNamespace)
+                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
@@ -1652,6 +1693,39 @@ namespace Microsoft.CodeAnalysis
             this.OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveValue);
         }
 
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a new analyzer config document to a project.
+        ///
+        /// Override this method to implement the capability of adding analyzer config documents.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentAdded(info.WithTextLoader(TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()))));
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an analyzer config document from a project.
+        ///
+        /// Override this method to implement the capability of removing analyzer config documents.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentRemoved(documentId);
+        }
+
+        /// <summary>
+        /// This method is called to change the text of an analyzer config document.
+        ///
+        /// Override this method to implement the capability of changing analyzer config document text.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentTextChanged(DocumentId id, SourceText text)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentTextLoaderChanged(id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+        }
+
         #endregion
 
         #region Checks and Asserts
@@ -1723,24 +1797,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void CheckProjectDoesNotHaveTransitiveProjectReference(ProjectId fromProjectId, ProjectId toProjectId)
         {
-            var transitiveReferences = GetTransitiveProjectReferences(toProjectId);
+            var transitiveReferences = this.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(toProjectId);
             if (transitiveReferences.Contains(fromProjectId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
                     this.GetProjectName(fromProjectId), this.GetProjectName(toProjectId)));
             }
-        }
-
-        private ISet<ProjectId> GetTransitiveProjectReferences(ProjectId project, ISet<ProjectId> projects = null)
-        {
-            projects = projects ?? new HashSet<ProjectId>();
-            if (projects.Add(project))
-            {
-                this.CurrentSolution.GetProject(project).ProjectReferences.Do(p => GetTransitiveProjectReferences(p.ProjectId, projects));
-            }
-
-            return projects;
         }
 
         /// <summary>
@@ -1814,6 +1877,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Throws an exception if an analyzer config is not part of the current solution.
+        /// </summary>
+        protected void CheckAnalyzerConfigDocumentIsInCurrentSolution(DocumentId documentId)
+        {
+            if (!this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources._0_is_not_part_of_the_workspace,
+                    this.GetDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
         /// Throws an exception if a document is already part of the current solution.
         /// </summary>
         protected void CheckDocumentIsNotInCurrentSolution(DocumentId documentId)
@@ -1840,6 +1916,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Throws an exception if the analyzer config document is already part of the current solution.
+        /// </summary>
+        protected void CheckAnalyzerConfigDocumentIsNotInCurrentSolution(DocumentId documentId)
+        {
+            if (this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources._0_is_already_part_of_the_workspace,
+                    this.GetAnalyzerConfigDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
         /// Gets the name to use for a project in an error message.
         /// </summary>
         protected virtual string GetProjectName(ProjectId projectId)
@@ -1854,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual string GetDocumentName(DocumentId documentId)
         {
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
             var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
             return name;
         }
@@ -1863,11 +1952,13 @@ namespace Microsoft.CodeAnalysis
         /// Gets the name to use for an additional document in an error message.
         /// </summary>
         protected virtual string GetAdditionalDocumentName(DocumentId documentId)
-        {
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
-            return name;
-        }
+            => GetDocumentName(documentId);
+
+        /// <summary>
+        /// Gets the name to use for an analyzer document in an error message.
+        /// </summary>
+        protected virtual string GetAnalyzerConfigDocumentName(DocumentId documentId)
+            => GetDocumentName(documentId);
 
         #endregion
     }

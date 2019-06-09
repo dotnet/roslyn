@@ -97,7 +97,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ReadOnlyStruct = 78,
         ReadOnlyReferences = 79,
 
-        InsertMethodWithExplicitInterfaceSpecifier = 80,
+        InternalError = 80,
+
+        InsertMethodWithExplicitInterfaceSpecifier = 81,
 
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,

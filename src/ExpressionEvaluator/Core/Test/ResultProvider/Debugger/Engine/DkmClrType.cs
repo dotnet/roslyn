@@ -20,6 +20,16 @@ namespace Microsoft.VisualStudio.Debugger.Clr
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class DkmClrType
     {
+        /// <summary>
+        /// We would accept inherited members for tests purposes comparing to <see cref="TypeHelpers.MemberBindingFlags"/> 
+        /// because an actual VS <see cref="GetEvalAttributes(Type)"/> may return attributes from base types.
+        /// Therefore, we do not check here for <see cref="BindingFlags.DeclaredOnly"/>.
+        /// </summary>
+        private const BindingFlags MemberBindingFlags = BindingFlags.Public |
+                                                         BindingFlags.NonPublic |
+                                                         BindingFlags.Instance |
+                                                         BindingFlags.Static;
+
         private readonly DkmClrModuleInstance _module;
         private readonly DkmClrAppDomain _appDomain;
         private readonly Type _lmrType;
@@ -188,11 +198,10 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 attributes.Add(new DkmClrDebuggerTypeProxyAttribute(new DkmClrType((TypeImpl)proxyType)));
             }
 
-            var members = type.GetMembers(TypeHelpers.MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
+            var members = type.GetMembers(MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
             foreach (var member in members)
             {
-                var attribute = GetBrowsableAttribute(type, member);
-                if (attribute != null)
+                foreach (var attribute in GetBrowsableAttributes(type, member))
                 {
                     attributes.Add(attribute);
                 }
@@ -213,18 +222,20 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return attributes.ToImmutableAndFree();
         }
 
-        private static DkmClrDebuggerBrowsableAttribute GetBrowsableAttribute(Type type, MemberInfo member)
+        private static ReadOnlyCollection<DkmClrDebuggerBrowsableAttribute> GetBrowsableAttributes(Type type, MemberInfo member)
         {
+            var attributes = ArrayBuilder<DkmClrDebuggerBrowsableAttribute>.GetInstance();
             foreach (var attribute in member.GetCustomAttributesData())
             {
                 var data = ((CustomAttributeDataImpl)attribute).CustomAttributeData;
                 if (data.AttributeType == typeof(DebuggerBrowsableAttribute))
                 {
                     var state = (DebuggerBrowsableState)data.ConstructorArguments[0].Value;
-                    return new DkmClrDebuggerBrowsableAttribute(member.Name, ConvertBrowsableState(state));
+                    attributes.Add(new DkmClrDebuggerBrowsableAttribute(member.Name, ConvertBrowsableState(state)));
                 }
             }
-            return null;
+
+            return attributes.ToImmutableAndFree();
         }
 
         private static DkmClrDebuggerBrowsableAttributeState ConvertBrowsableState(DebuggerBrowsableState state)

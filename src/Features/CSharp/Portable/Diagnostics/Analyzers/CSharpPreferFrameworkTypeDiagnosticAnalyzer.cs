@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         ///<remarks>
         /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
         ///</remarks>
-        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node) 
+        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node)
             => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
 
-        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node) 
+        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
             => node.IsInMemberAccessContext() || node.InsideCrefReference();
 
         protected override string GetLanguageName()

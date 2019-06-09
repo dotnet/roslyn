@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             pdbStream.Position = 0;
 
             PdbValidation.ValidateDebugDirectory(
-                peStream, 
-                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
-                pdbPath: compilation.AssemblyName + ".pdb", 
-                hashAlgorithm: default, 
-                hasEmbeddedPdb: false, 
+                peStream,
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null,
+                pdbPath: compilation.AssemblyName + ".pdb",
+                hashAlgorithm: default,
+                hasEmbeddedPdb: false,
                 isDeterministic: false);
         }
 
@@ -227,7 +227,7 @@ d.Do()"
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 32));
             }
 
-             Assert.True(exceptionThrown);
+            Assert.True(exceptionThrown);
         }
 
         [WorkItem(6676, "https://github.com/dotnet/roslyn/issues/6676")]
@@ -827,11 +827,11 @@ i", options);
             catch (CompilationErrorException ex)
             {
                 //  CS8055: Cannot emit debug information for a source text without encoding.
-                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1,1));
+                ex.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, code).WithLocation(1, 1));
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -839,21 +839,21 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -868,7 +868,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
@@ -876,7 +876,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
@@ -898,7 +898,7 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
@@ -921,6 +921,31 @@ i", options);
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
+        }
+
+        [Fact]
+        public void CreateScriptWithFeatureThatIsNotSupportedInTheSelectedLanguageVersion()
+        {
+            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").
+                    WithArguments("default literal", "7.1").
+                    WithLocation(1, 12)
+            );
+        }
+
+        [Fact]
+        public void CreateScriptWithNullableContextWithCSharp8()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
+            );
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

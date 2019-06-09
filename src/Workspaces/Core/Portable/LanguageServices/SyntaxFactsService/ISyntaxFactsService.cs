@@ -31,10 +31,48 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
-        bool IsKeyword(SyntaxToken token);
+
+        /// <summary>
+        /// Returns 'true' if this a 'reserved' keyword for the language.  A 'reserved' keyword is a
+        /// identifier that is always treated as being a special keyword, regardless of where it is
+        /// found in the token stream.  Examples of this are tokens like <see langword="class"/> and
+        /// <see langword="Class"/> in C# and VB respectively.
+        /// 
+        /// Importantly, this does *not* include contextual keywords.  If contextual keywords are
+        /// important for your scenario, use <see cref="IsContextualKeyword"/> or <see
+        /// cref="ISyntaxFactsServiceExtensions.IsReservedOrContextualKeyword"/>.  Also, consider using
+        /// <see cref="ISyntaxFactsServiceExtensions.IsWord"/> if all you need is the ability to know 
+        /// if this is effectively any identifier in the language, regardless of whether the language
+        /// is treating it as a keyword or not.
+        /// </summary>
+        bool IsReservedKeyword(SyntaxToken token);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this a 'contextual' keyword for the language.  A
+        /// 'contextual' keyword is a identifier that is only treated as being a special keyword in
+        /// certain *syntactic* contexts.  Examples of this is 'yield' in C#.  This is only a
+        /// keyword if used as 'yield return' or 'yield break'.  Importantly, identifiers like <see
+        /// langword="var"/>, <see langword="dynamic"/> and <see langword="nameof"/> are *not*
+        /// 'contextual' keywords.  This is because they are not treated as keywords depending on
+        /// the syntactic context around them.  Instead, the language always treats them identifiers
+        /// that have special *semantic* meaning if they end up not binding to an existing symbol.
+        /// 
+        /// Importantly, if <paramref name="token"/> is not in the syntactic construct where the
+        /// language thinks an identifier should be contextually treated as a keyword, then this
+        /// will return <see langword="false"/>.
+        /// 
+        /// Or, in other words, the parser must be able to identify these cases in order to be a
+        /// contextual keyword.  If identification happens afterwards, it's not contextual.
+        /// </summary>
         bool IsContextualKeyword(SyntaxToken token);
+
+        /// <summary>
+        /// The set of identifiers that have special meaning directly after the `#` token in a
+        /// preprocessor directive.  For example `if` or `pragma`.
+        /// </summary>
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);
+
         bool IsLiteral(SyntaxToken token);
         bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
 
@@ -60,9 +98,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
-        bool IsFalseLiteralExpression(SyntaxNode expression);
-        bool IsTrueLiteralExpression(SyntaxNode expression);
-
+        bool IsFalseLiteralExpression(SyntaxNode node);
+        bool IsTrueLiteralExpression(SyntaxNode node);
+        bool IsThisExpression(SyntaxNode node);
+        bool IsBaseExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -118,6 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -131,6 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
+        bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
         bool IsNameOfMemberAccessExpression(SyntaxNode node);
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
@@ -164,19 +205,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
-        SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
-
         void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
-        bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsConditionalAccessExpression(SyntaxNode node);
+        void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull);
 
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
-
-        bool IsIfStatement(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
@@ -190,6 +229,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSimpleArgument(SyntaxNode node);
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
+        bool IsTypeArgumentList(SyntaxNode node);
+        bool IsTypeConstraint(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
@@ -217,6 +258,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
         bool IsStatement(SyntaxNode node);
+        bool IsExecutableStatement(SyntaxNode node);
         bool IsParameter(SyntaxNode node);
         bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);
@@ -276,6 +318,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInNamespaceOrTypeContext(SyntaxNode node);
 
+        bool IsBaseTypeList(SyntaxNode node);
+
         bool IsAnonymousFunction(SyntaxNode n);
 
         bool IsInConstantContext(SyntaxNode node);
@@ -284,9 +328,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        /// <summary>
+        /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
+        /// </summary>
+        bool IsScopeBlock(SyntaxNode node);
+
+        /// <summary>
+        /// A node that contains a list of statements. In C#, this is BlockSyntax and SwitchSectionSyntax.
+        /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
+        /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
         SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
+
+        /// <summary>
+        /// A node that can host a list of statements or a single statement. In addition to
+        /// every "executable block", this also includes C# embedded statement owners.
+        /// </summary>
+        bool IsStatementContainer(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
@@ -309,6 +369,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken ToIdentifierToken(string name);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
+        SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
@@ -340,7 +401,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
-        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        bool IsNameOfSubpattern(SyntaxNode node);
+        bool IsPropertyPatternClause(SyntaxNode node);
+
+        ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
@@ -349,7 +413,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
         void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);

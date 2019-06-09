@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
         public override bool TryGetPreviousHoistedLocalSlotIndex(
-            SyntaxNode currentDeclarator, 
+            SyntaxNode currentDeclarator,
             Cci.ITypeReference currentType,
             SynthesizedLocalKind synthesizedKind,
             LocalDebugId currentId,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             out int slotIndex)
         {
             // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody 
-                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
+            var currentLambdaSyntax = isLambdaBody
+                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax)
                 : lambdaOrLambdaBodySyntax;
 
             // no syntax map 

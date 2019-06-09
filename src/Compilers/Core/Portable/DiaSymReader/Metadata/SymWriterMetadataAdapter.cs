@@ -78,14 +78,14 @@ namespace Microsoft.DiaSymReader
         // "mb" is the token passed to OpenMethod. The token is remembered until the corresponding CloseMethod, which passes it to GetMethodProps.
         // It's opaque for SymWriter.
         public override int GetMethodProps(
-            int methodDef, 
-            [Out] int* declaringTypeDef, 
-            [Out] char* name, 
-            int nameBufferLength, 
-            [Out] int* nameLength, 
+            int methodDef,
+            [Out] int* declaringTypeDef,
+            [Out] char* name,
+            int nameBufferLength,
+            [Out] int* nameLength,
             [Out] MethodAttributes* attributes,
             [Out] byte** signature,
-            [Out] int* signatureLength, 
+            [Out] int* signatureLength,
             [Out] int* relativeVirtualAddress,
             [Out] MethodImplAttributes* implAttributes)
         {

@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         // internal for testing
         internal static void GroupActiveStatementsByInstructionId(
-            Dictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)> instructionMap, 
+            Dictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)> instructionMap,
             IEnumerable<DkmActiveStatement> dkmStatements)
         {
             foreach (var dkmStatement in dkmStatements)
@@ -34,10 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 // MidStatement is set differently for leaf frames and non-leaf frames.
                 // We aggregate it so that if any frame has MidStatement the ActiveStatement is considered partially executed.
-                var frameFlags = 
+                var frameFlags =
                     (isLeaf ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) |
                     (ActiveStatementFlags)(dkmStatement.Flags & DkmActiveStatementFlags.MidStatement);
-                
+
                 var instruction = dkmStatement.InstructionAddress;
 
                 var instructionId = new ActiveInstructionId(
@@ -63,7 +63,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private static LinePositionSpan ToLinePositionSpan(DkmTextSpan span)
-            => new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        // internal for testing
+        internal static LinePositionSpan ToLinePositionSpan(DkmTextSpan span)
+        {
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartLine <= 0 || span.EndLine <= 0)
+            {
+                return default;
+            }
+
+            // C++ produces spans without columns
+            if (span.StartColumn == 0 && span.EndColumn == 0)
+            {
+                return new LinePositionSpan(new LinePosition(span.StartLine - 1, 0), new LinePosition(span.EndLine - 1, 0));
+            }
+
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartColumn <= 0 || span.EndColumn <= 0)
+            {
+                return default;
+            }
+
+            return new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+        }
     }
 }

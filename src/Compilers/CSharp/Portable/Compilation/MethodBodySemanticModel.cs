@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder, 
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder,
                                                        CSharpSyntaxNode syntax, BoundNode boundNode = null)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result =  new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
 
             if (boundNode != null)
             {
@@ -203,6 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             speculativeModel = null;
             return false;
+        }
+
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, out NullableWalker.SnapshotManager snapshotManager)
+        {
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager);
         }
     }
 }

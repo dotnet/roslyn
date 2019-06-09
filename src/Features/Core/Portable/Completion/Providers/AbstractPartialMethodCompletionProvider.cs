@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
+                displayTextSuffix: "",
                 modifiers,
                 line,
                 method,

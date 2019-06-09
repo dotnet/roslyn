@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis
 #if SCRIPTING
                     throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidAssemblyName);
 #else
-                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_assembly_name);
+                    throw new ArgumentException(Editor.EditorFeaturesResources.Invalid_assembly_name);
 #endif
                 }
             }

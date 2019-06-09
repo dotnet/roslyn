@@ -2512,12 +2512,12 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(stringType), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(),
+                    ImmutableArray.Create<TypeWithAnnotations>(),
                     "void object.M1()",
                     "void S.M1(object o)",
                     "void object.M1()",
@@ -2526,7 +2526,7 @@ static class S
                 // Generic method, one type argument.
                 method = type.GetMember<MethodSymbol>("M2");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(intType),
+                    ImmutableArray.Create(TypeWithAnnotations.Create(intType)),
                     "void IEnumerable<int>.M2<int>()",
                     "void S.M2<T>(IEnumerable<T> t)",
                     "void IEnumerable<T>.M2<T>()",
@@ -2535,7 +2535,7 @@ static class S
                 // Generic method, multiple type arguments.
                 method = type.GetMember<MethodSymbol>("M3");
                 CheckExtensionMethod(method,
-                    ImmutableArray.Create<TypeSymbol>(intType, arrayType),
+                    ImmutableArray.Create(TypeWithAnnotations.Create(intType), TypeWithAnnotations.Create(arrayType)),
                     "void string[].M3<int, string[]>(IEnumerable<int> t)",
                     "void S.M3<T, U>(U u, IEnumerable<T> t)",
                     "void U.M3<T, U>(IEnumerable<T> t)",
@@ -2547,7 +2547,7 @@ static class S
 
         private void CheckExtensionMethod(
             MethodSymbol method,
-            ImmutableArray<TypeSymbol> typeArgs,
+            ImmutableArray<TypeWithAnnotations> typeArgs,
             string reducedMethodDescription,
             string reducedFromDescription,
             string constructedFromDescription,

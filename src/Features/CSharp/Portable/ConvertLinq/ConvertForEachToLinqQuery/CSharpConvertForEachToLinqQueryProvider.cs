@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     internal sealed class CSharpConvertForEachToLinqQueryProvider
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForEachToLinqQueryProvider()
+        {
+        }
+
         protected override IConverter<ForEachStatementSyntax, StatementSyntax> CreateDefaultConverter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
             => new DefaultConverter(forEachInfo);
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                 var statement = array[i];
                                 if (!(statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
                                     TryProcessLocalDeclarationStatement(localDeclarationStatement)))
-                                {                                 
+                                {
                                     // If this one is a local function declaration or has an empty initializer, stop processing.
                                     statementsCannotBeConverted = array.Skip(i).ToArray();
                                     break;
@@ -277,8 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                     var yieldStatementsCount = memberDeclarationSyntax.DescendantNodes().OfType<YieldStatementSyntax>()
                         // Exclude yield statements from nested local functions.
-                        .Where(statement => semanticModel.GetEnclosingSymbol(
-                            statement.SpanStart, cancellationToken) == memberDeclarationSymbol).Count();
+                        .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
+                            statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
                     if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block) &&
                         forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)

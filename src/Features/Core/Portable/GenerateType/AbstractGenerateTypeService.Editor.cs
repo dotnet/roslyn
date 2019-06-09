@@ -295,8 +295,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // 1: folders -> if triggered from Dialog
                 // 2: containers -> if triggered not from a Dialog but from QualifiedName
                 // 3: triggering document folder structure -> if triggered not from a Dialog and a SimpleName
-                var adjustedContainer = isDialog 
-                    ? folders 
+                var adjustedContainer = isDialog
+                    ? folders
                     : _state.SimpleName != _state.NameOrMemberAccessExpression
                         ? containers.ToList()
                         : _semanticDocument.Document.Folders.ToList();
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // Generated from the Dialog
                     var containerList = new List<string>();
 
-                    var rootNamespaceOfTheProjectGeneratedInto = 
+                    var rootNamespaceOfTheProjectGeneratedInto =
                         _targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange
                             ? _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim()
                             : _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();

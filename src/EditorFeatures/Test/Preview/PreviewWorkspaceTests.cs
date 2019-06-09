@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var solution = previewWorkspace.CurrentSolution
                                                .AddProject("project", "project.dll", LanguageNames.CSharp)

@@ -310,8 +310,8 @@ End Class
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
-                Await workspaceWaiter.CreateWaitTask()
-                Await navigationBarWaiter.CreateWaitTask()
+                Await workspaceWaiter.CreateExpeditedWaitTask()
+                Await navigationBarWaiter.CreateExpeditedWaitTask()
 
                 Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 

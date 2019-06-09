@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             _lastAccessTimeInMS = Environment.TickCount;
         }
 
-        protected async Task WaitForIdleAsync()
+        protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
             while (true)
             {
@@ -67,7 +67,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // TODO: will safestart/unwarp capture cancellation exception?
                 var timeLeft = BackOffTimeSpanInMS - diffInMS;
-                await Task.Delay(Math.Max(MinimumDelayInMS, timeLeft), this.CancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(MinimumDelayInMS, timeLeft)), CancellationToken).ConfigureAwait(false))
+                {
+                    // The delay terminated early to accommodate a blocking operation. Make sure to delay long
+                    // enough that low priority (on idle) operations get a chance to be triggered.
+                    //
+                    // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
+                    // to avoid live-lock scenarios.
+                    await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken).ConfigureAwait(false);
+                    return;
+                }
             }
         }
 
@@ -88,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     using (this.Listener.BeginAsyncOperation("ProcessAsync"))
                     {
                         // we have items but workspace is busy. wait for idle.
-                        await WaitForIdleAsync().ConfigureAwait(continueOnCapturedContext: false);
+                        await WaitForIdleAsync(Listener).ConfigureAwait(continueOnCapturedContext: false);
 
                         await ExecuteAsync().ConfigureAwait(continueOnCapturedContext: false);
                     }

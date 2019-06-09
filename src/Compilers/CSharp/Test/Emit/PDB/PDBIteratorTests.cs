@@ -2,9 +2,7 @@
 
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -826,8 +824,7 @@ class C
   IL_0041:  nop
   IL_0042:  ldc.i4.0
   IL_0043:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
@@ -1250,8 +1247,7 @@ class C
   IL_0078:  stfld      ""int C.<M>d__0.<>1__state""
   IL_007d:  ldc.i4.0
   IL_007e:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
@@ -1372,7 +1368,6 @@ class C
     </method>
   </methods>
 </symbols>");
-
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
@@ -1614,7 +1609,8 @@ MethodDebugInformation (index: 0x31, size: 40):
 7: nil
 8: nil
 9: nil
-a: nil",
+a: nil
+",
                     writer.ToString());
             }
         }

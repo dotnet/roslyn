@@ -20,12 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public ISyntaxFactsService SyntaxFactsService { get; }
         public ICodeGenerationService CodeGenerator { get; }
         public VisualStudioWorkspace Workspace { get; }
+        public ProjectCodeModelFactory ProjectCodeModelFactory { get; }
 
         public CodeModelState(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
             HostLanguageServices languageServices,
-            VisualStudioWorkspace workspace)
+            VisualStudioWorkspace workspace,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             Debug.Assert(threadingContext != null);
             Debug.Assert(serviceProvider != null);
@@ -37,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             this.CodeModelService = languageServices.GetService<ICodeModelService>();
             this.SyntaxFactsService = languageServices.GetService<ISyntaxFactsService>();
             this.CodeGenerator = languageServices.GetService<ICodeGenerationService>();
+            this.ProjectCodeModelFactory = projectCodeModelFactory;
             this.Workspace = workspace;
         }
     }

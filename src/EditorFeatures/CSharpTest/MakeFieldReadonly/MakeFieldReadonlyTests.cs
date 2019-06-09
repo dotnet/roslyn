@@ -31,7 +31,7 @@ $@"class MyClass
     {accessibility} int[| _goo |];
 }}");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsEvent()
         {
@@ -357,6 +357,56 @@ $@"class MyClass
     int Goo
     {
         get { return _goo; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        public async Task FieldReturnedInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s;
+    }
+}",
+@"class MyClass
+{
+    private readonly string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        public async Task FieldReadInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s.ToUpper();
+    }
+}",
+@"class MyClass
+{
+    private readonly string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s.ToUpper();
     }
 }");
         }
@@ -864,7 +914,9 @@ class MyClass
         public async Task FixAll2()
         {
             await TestInRegularAndScriptAsync(
-@"  partial struct MyClass
+@"  using System;
+
+    partial struct MyClass
     {
         private static Func<int, bool> {|FixAllInDocument:_test1|} = x => x > 0;
         private static Func<int, bool> _test2 = x => x < 0;
@@ -881,7 +933,9 @@ class MyClass
     }
 
     partial struct MyClass { }",
-@"  partial struct MyClass
+@"  using System;
+
+    partial struct MyClass
     {
         private static readonly Func<int, bool> _test1 = x => x > 0;
         private static readonly Func<int, bool> _test2 = x => x < 0;
@@ -1050,6 +1104,17 @@ class MyClass
     void M()
     {
     }
+}");
+        }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"unsafe struct S
+{
+    [|private fixed byte b[8];|]
 }");
         }
     }

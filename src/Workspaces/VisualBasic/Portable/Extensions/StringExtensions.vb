@@ -107,7 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                      SpecialType.System_DateTime,
                      SpecialType.System_Char,
                      SpecialType.System_String,
-                     SpecialType.System_Enum,
                      SpecialType.System_Object
                     Return True
                 Case Else

@@ -129,7 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     {
                         var t = (EventDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        if (t.AccessorList != null)
+                        {
+                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
+                        }
                         var attributes = GetAttributes(t.AttributeLists);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
                         return;
@@ -216,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         blocks.AddRange(GetAttributes(t.AttributeLists));
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
                         blocks.Free();
-                        
+
                         return;
                     }
 

@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId, 
-            Solution solution, 
+            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId,
+            Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false); 
+                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<FinderLocation>.Empty;
 
             var indexerCrefReferences = symbol.IsIndexer
-                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken)
+                ? await FindIndexerCrefReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)
@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var elementAccessExpressions = syntaxRoot.DescendantNodes().Where(syntaxFacts.IsElementAccessExpression);
             var locations = ArrayBuilder<FinderLocation>.GetInstance();
@@ -171,8 +172,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
 
                     var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
+                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, candidateReason: reason)));
                 }
             }
 
@@ -193,6 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
             var indexerMemberCrefs = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
@@ -208,8 +211,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (match.matched)
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
+                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, symbolUsageInfo, candidateReason: match.reason)));
                 }
             }
 

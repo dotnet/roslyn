@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
-
-        // Support for completion items with extra decorative characters in their DisplayText.
-        // This allows bolding and MRU to operate on the "real" display text (without text
-        // decorations). This should be a substring of the corresponding DisplayText.
-        private static string DisplayTextForMatching = nameof(DisplayTextForMatching);
 
         public CompletionHelper(bool isCaseSensitive)
         {
@@ -188,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static bool IsKeywordItem(CompletionItem item)
         {
-            return item.Tags.Contains(CompletionTags.Keyword);
+            return item.Tags.Contains(WellKnownTags.Keyword);
         }
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
@@ -216,14 +211,14 @@ namespace Microsoft.CodeAnalysis.Completion
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
             // language, then we prefer the former.
-            if (item1.DisplayText.Length != item2.DisplayText.Length)
+            if (item1.GetEntireDisplayText().Length != item2.GetEntireDisplayText().Length)
             {
                 var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+                if (item2.GetEntireDisplayText().StartsWith(item1.GetEntireDisplayText(), comparison))
                 {
                     return -1;
                 }
-                else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
+                else if (item1.GetEntireDisplayText().StartsWith(item2.GetEntireDisplayText(), comparison))
                 {
                     return 1;
                 }
@@ -257,8 +252,5 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return 0;
         }
-
-        internal static string GetDisplayTextForMatching(CompletionItem item)
-            => item.Properties.TryGetValue(DisplayTextForMatching, out var displayText) ? displayText : item.DisplayText;
     }
 }

@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Common
 
         public UpdatedEventArgs(object id, Workspace workspace, ProjectId projectId, DocumentId documentId)
         {
-            this.Id = id;
-            this.Workspace = workspace;
-            this.ProjectId = projectId;
-            this.DocumentId = documentId;
+            Id = id;
+            Workspace = workspace;
+            ProjectId = projectId;
+            DocumentId = documentId;
         }
     }
 }

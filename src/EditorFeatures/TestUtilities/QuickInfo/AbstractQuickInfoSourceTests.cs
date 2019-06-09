@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected abstract Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
+            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null);

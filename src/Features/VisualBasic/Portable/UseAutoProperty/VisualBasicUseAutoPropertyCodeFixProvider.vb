@@ -13,11 +13,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     Friend Class VisualBasicUseAutoPropertyCodeFixProvider
         Inherits AbstractUseAutoPropertyCodeFixProvider(Of TypeBlockSyntax, PropertyBlockSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
             Return Nothing
         End Function
 
@@ -29,14 +33,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                                                          isWrittenToOutsideOfConstructor As Boolean,
                                                          cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim statement = propertyDeclaration.PropertyStatement
-            If Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
-                Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
-                statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(True)), PropertyStatementSyntax)
-            End If
+
+            Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
+            Dim canBeReadOnly = Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock)
+
+            statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)), PropertyStatementSyntax)
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
-                statement = statement.WithInitializer(initializer.equalsValue)
+                statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
+                    .WithInitializer(initializer.equalsValue) _
+                    .WithTrailingTrivia(statement.GetTrailingTrivia.Where(Function(x) x.Kind <> SyntaxKind.EndOfLineTrivia)) _
+                    .WithAppendedTrailingTrivia(initializer.equalsValue.GetTrailingTrivia())
             End If
 
             If initializer.asNewClause IsNot Nothing Then

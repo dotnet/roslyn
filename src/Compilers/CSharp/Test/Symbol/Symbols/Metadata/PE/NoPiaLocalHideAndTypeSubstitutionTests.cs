@@ -266,9 +266,9 @@ static class TypeSubstitution
 
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("ExternalAsm1").Single();
             var methodSymbol = classRefLocalType.GetMembers("Scen4").OfType<PropertySymbol>().Single();
-            var missing = methodSymbol.Type;
+            var missing = methodSymbol.TypeWithAnnotations;
 
-            Assert.Equal(canonicalType.ToTestDisplayString(), missing.Name);
+            Assert.Equal(canonicalType.ToTestDisplayString(), missing.Type.Name);
             Assert.Same(canonicalType, localFieldSymbol.Type);
             Assert.IsAssignableFrom<PENamedTypeSymbol>(methodSymbol.Type);
         }

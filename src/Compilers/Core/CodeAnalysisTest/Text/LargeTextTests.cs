@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var newline = Environment.NewLine ;
+            var newline = Environment.NewLine;
             var data = CreateSourceText("goo" + newline + " bar");
             Assert.Equal(2, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: newline.Length, lineText: "goo");

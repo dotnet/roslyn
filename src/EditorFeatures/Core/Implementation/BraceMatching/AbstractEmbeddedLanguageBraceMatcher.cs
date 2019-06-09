@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageEditorFeaturesProvider>();
             if (languagesProvider != null)
             {
-                foreach (var language in languagesProvider.GetEmbeddedLanguages())
+                foreach (var language in languagesProvider.Languages)
                 {
                     var braceMatcher = language.BraceMatcher;
                     if (braceMatcher != null)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                             document, position, cancellationToken).ConfigureAwait(false);
                         if (result != null)
                         {
-                            return new BraceMatchingResult(result.Value.LeftSpan, result.Value.RightSpan);
+                            return result;
                         }
                     }
                 }

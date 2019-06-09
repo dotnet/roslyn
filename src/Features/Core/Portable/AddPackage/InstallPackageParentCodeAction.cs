@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
             // First add the actions to install a specific version.
             codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(
-                installerService, source, packageName, document, 
+                installerService, source, packageName, document,
                 versionOpt: v, includePrerelease: includePrerelease, isLocal: true)));
 
             // Now add the action to install the specific version.
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             bool isLocal)
         {
             return new InstallPackageDirectlyCodeAction(
-                installerService, document, source, packageName, 
+                installerService, document, source, packageName,
                 versionOpt, includePrerelease, isLocal);
         }
     }

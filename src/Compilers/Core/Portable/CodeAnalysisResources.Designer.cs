@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A language name cannot be specified for this option..
+        /// </summary>
+        internal static string A_language_name_cannot_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_cannot_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A language name must be specified for this option..
+        /// </summary>
+        internal static string A_language_name_must_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_must_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Absolute path expected..
         /// </summary>
         internal static string AbsolutePathExpected {
@@ -596,15 +614,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
-        /// </summary>
-        internal static string FlowAnalysisFeatureDisabled {
-            get {
-                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0}.GetMetadata() must return an instance of {1}..
         /// </summary>
         internal static string GetMetadataMustReturnInstance {
@@ -862,6 +871,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidTree {
             get {
                 return ResourceManager.GetString("InvalidTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be an &apos;INamedTypeSymbol&apos; or an &apos;IAssemblySymbol&apos;..
+        /// </summary>
+        internal static string IsSymbolAccessibleBadWithin {
+            get {
+                return ResourceManager.GetString("IsSymbolAccessibleBadWithin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be a symbol from this compilation or some referenced assembly..
+        /// </summary>
+        internal static string IsSymbolAccessibleWrongAssembly {
+            get {
+                return ResourceManager.GetString("IsSymbolAccessibleWrongAssembly", resourceCulture);
             }
         }
         
@@ -1379,6 +1406,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; contains a null descriptor in its &apos;SupportedDiagnostics&apos;..
+        /// </summary>
+        internal static string SupportedDiagnosticsHasNullDescriptor {
+            get {
+                return ResourceManager.GetString("SupportedDiagnosticsHasNullDescriptor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support SourceLink feature: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterDoesNotSupportSourceLink {
@@ -1573,6 +1609,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string WinRTIdentityCantBeRetargetable {
             get {
                 return ResourceManager.GetString("WinRTIdentityCantBeRetargetable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid severity in analyzer config file..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig_Title {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture);
             }
         }
         

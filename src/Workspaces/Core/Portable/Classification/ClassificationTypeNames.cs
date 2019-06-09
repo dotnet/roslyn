@@ -1,19 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Classification
 {
     public static class ClassificationTypeNames
     {
+        /// <summary>
+        /// Additive classifications types supply additional context to other classifications.
+        /// </summary>
+        public static ImmutableArray<string> AdditiveTypeNames { get; } = ImmutableArray.Create(StaticSymbol);
+
         public const string Comment = "comment";
         public const string ExcludedCode = "excluded code";
         public const string Identifier = "identifier";
         public const string Keyword = "keyword";
+        public const string ControlKeyword = "keyword - control";
         public const string NumericLiteral = "number";
         public const string Operator = "operator";
+        public const string OperatorOverloaded = "operator - overloaded";
         public const string PreprocessorKeyword = "preprocessor keyword";
         public const string StringLiteral = "string";
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
+
+        public const string StaticSymbol = "static symbol";
 
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
@@ -37,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string ExtensionMethodName = "extension method name";
         public const string PropertyName = "property name";
         public const string EventName = "event name";
+        public const string NamespaceName = "namespace name";
+        public const string LabelName = "label name";
 
         public const string XmlDocCommentAttributeName = "xml doc comment - attribute name";
         public const string XmlDocCommentAttributeQuotes = "xml doc comment - attribute quotes";

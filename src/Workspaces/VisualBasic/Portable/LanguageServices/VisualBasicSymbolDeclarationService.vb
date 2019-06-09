@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicSymbolDeclarationService
         Implements ISymbolDeclarationService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         ''' <summary>
         ''' Get the declaring syntax node for a Symbol. Unlike the DeclaringSyntaxReferences property,
         ''' this function always returns a block syntax, if there is one.
@@ -55,7 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         begin = DirectCast(parent, EventBlockSyntax).EventStatement
 
                     Case SyntaxKind.VariableDeclarator
-                        begin = node
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
                 End Select
             End If
 

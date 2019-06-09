@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 CancellationToken.None);
         }
 
-        public ExtractInterfaceResult ExtractViaCommand()
+        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
         {
-            return ExtractInterfaceService.ExtractInterface(
+            return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>

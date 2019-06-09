@@ -27,11 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
             if (!TryGetPatternPieces(isExpression,
-                    out var ifStatement, out var localDeclarationStatement, 
+                    out var ifStatement, out var localDeclarationStatement,
                     out var declarator, out var castExpression))
             {
                 return;

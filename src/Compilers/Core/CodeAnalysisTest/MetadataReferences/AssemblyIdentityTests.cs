@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Tests COM call into the CLR to compare identities
-#if NET46
-
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -250,7 +247,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void MetadataConstructor()
         {
-            var id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1, 
+            var id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "en-US", RoPublicKey1,
                 hasPublicKey: true, isRetargetable: true, contentType: AssemblyContentType.Default);
             Assert.Equal("Goo", id.Name);
             Assert.Equal(new Version(1, 2, 3, 4), id.Version);
@@ -263,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // invalid content type:
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: (AssemblyContentType)2);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
             Assert.Equal("", id.CultureName);
@@ -273,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // default Retargetable=No if content type is WinRT
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: true, contentType: AssemblyContentType.WindowsRuntime);
             Assert.Equal("Goo", id.Name);
             Assert.Equal(new Version(1, 2, 3, 4), id.Version);
@@ -286,15 +283,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // invalid culture:
             // The native compiler doesn't enforce that the culture be anything in particular. 
             // AssemblyIdentity should preserve user input even if it is of dubious utility.
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "blah,", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "blah,", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("blah,", id.CultureName);
 
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "*", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "*", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("*", id.CultureName);
 
-            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "neutral", ImmutableArray<byte>.Empty, 
+            id = new AssemblyIdentity(/*noThrow:*/true, "Goo", new Version(1, 2, 3, 4), "neutral", ImmutableArray<byte>.Empty,
                 hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default);
             Assert.Equal("", id.CultureName);
         }
@@ -341,7 +338,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ToAssemblyName_Errors()
         {
             var ai = new AssemblyIdentity("goo", cultureName: "*");
@@ -361,7 +358,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, aiPkt);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsFusion)]
         public void FullKeyAndToken()
         {
             string displayPkt = "Goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1;
@@ -384,4 +381,3 @@ namespace Microsoft.CodeAnalysis.UnitTests
     }
 }
 
-#endif

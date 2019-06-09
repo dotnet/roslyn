@@ -81,12 +81,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             var virtualCaret = session.TextView.GetVirtualCaretPoint(session.SubjectBuffer).Value;
-            Assert.Equal(indentation, virtualCaret.VirtualSpaces);
+            Assert.True(indentation == virtualCaret.VirtualSpaces, $"Expected indentation was {indentation}, but the actual indentation was {virtualCaret.VirtualSpaces}");
 
             if (result != null)
             {
                 Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
             }
+        }
+
+        internal void CheckText(IBraceCompletionSession session, string result)
+        {
+            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
         }
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)

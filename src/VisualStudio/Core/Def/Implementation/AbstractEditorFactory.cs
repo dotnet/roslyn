@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -127,9 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case "Form":
 
                     // We must create the WinForms designer here
-                    const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+                    var loaderName = GetWinFormsLoaderName(vsHierarchy);
+
                     var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
-                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(LoaderName);
+                    var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(loaderName);
 
                     try
                     {
@@ -170,6 +174,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
+        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        {
+            const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
+            const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
+
+            // If this is a netcoreapp3.0 (or newer), we must create the newer WinForms designer.
+            // TODO: This check will eventually move into the WinForms designer itself.
+            if (!vsHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker) ||
+                string.IsNullOrWhiteSpace(targetFrameworkMoniker))
+            {
+                return LoaderName;
+            }
+
+            try
+            {
+                var frameworkName = new FrameworkName(targetFrameworkMoniker);
+
+                if (frameworkName.Identifier == ".NETCoreApp" &&
+                    frameworkName.Version?.Major >= 3)
+                {
+                    return NewLoaderName;
+                }
+            }
+            catch
+            {
+                // Fall back to the old loader name if there are any failures 
+                // while parsing the TFM.
+            }
+
+            return LoaderName;
+        }
+
         public int MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
         {
             pbstrPhysicalView = null;
@@ -206,14 +242,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
             // Is this being added from a template?
-            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
+            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0 &&
+                pHier.TryGetProjectGuid(out var projectGuid))
             {
                 var waitIndicator = _componentModel.GetService<IWaitIndicator>();
                 // TODO(cyrusn): Can this be cancellable?
                 waitIndicator.Wait(
                     "Intellisense",
                     allowCancel: false,
-                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
+                    action: c => FormatDocumentCreatedFromTemplate(projectGuid, pszMkDocument, c.CancellationToken));
             }
 
             return VSConstants.S_OK;
@@ -224,8 +261,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        private void FormatDocumentCreatedFromTemplate(Guid projectGuid, string filePath, CancellationToken cancellationToken)
         {
+            Debug.Assert(projectGuid != Guid.Empty);
+
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
             // This requires us to place it in the correct project.
@@ -236,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var projectId in solution.ProjectIds)
             {
-                if (workspace.GetHierarchy(projectId) == hierarchy)
+                if (workspace.GetProjectGuid(projectId) == projectGuid)
                 {
                     projectIdToAddTo = projectId;
                     break;

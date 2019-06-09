@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
                 // Generate foreach(var (a,b) ... select (a, b))
                 return SyntaxFactory.ForEachVariableStatement(
-                    declaration, 
+                    declaration,
                     CreateQueryExpressionOrLinqInvocation(
-                        tupleForSelectExpression, 
-                        Enumerable.Empty<SyntaxToken>(), 
+                        tupleForSelectExpression,
                         Enumerable.Empty<SyntaxToken>(),
-                        convertToQuery), 
+                        Enumerable.Empty<SyntaxToken>(),
+                        convertToQuery),
                     block);
             }
         }

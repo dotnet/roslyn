@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
@@ -17,11 +18,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.AutomaticLineEnder)>
     <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class AutomaticLineEnderCommandHandler
         Inherits AbstractAutomaticLineEnderCommandHandler
 
         <ImportingConstructor>
-        Friend Sub New(undoRegistry As ITextUndoHistoryRegistry,
+        Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
                        editorOperations As IEditorOperationsFactoryService)
 
             MyBase.New(undoRegistry, editorOperations)

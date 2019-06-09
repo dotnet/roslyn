@@ -2323,8 +2323,8 @@ class C
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var typeInfo = model.GetSymbolInfo(expr);
-            // lowest bound node with associated syntax is being picked up here ... fine for now.
-            Assert.Equal("System.IO.StreamReader", typeInfo.Symbol.ToTestDisplayString());
+            // the type info uses the type inferred for the first declared local
+            Assert.Equal("System.IO.StreamWriter", typeInfo.Symbol.ToTestDisplayString());
         }
 
         [WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")]
@@ -3239,7 +3239,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => method.Parameters[0].Type == method.Parameters[1].Type).Single();
+            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].Type, method.Parameters[1].Type, TypeCompareKind.ConsiderEverything2)).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);
@@ -3324,7 +3324,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3390,7 +3390,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -4240,7 +4240,7 @@ class C
             var syntax = tree.GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf().OfType<OmittedTypeArgumentSyntax>().Single();
 
             var info = model.GetSpeculativeTypeInfo(syntax.SpanStart, syntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Equal(default(TypeInfo), info);
+            Assert.Equal(TypeInfo.None, info);
         }
 
         [WorkItem(546266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546266")]
@@ -4677,9 +4677,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4722,9 +4722,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -5915,6 +5915,60 @@ class C
             }
 
             Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
+
+        [Fact]
+        [WorkItem(34984, "https://github.com/dotnet/roslyn/issues/34984")]
+        public void ConversionIsExplicit_UnsetConversionKind()
+        {
+            var source =
+@"class C1
+{
+}
+
+class C2
+{
+    public void M() 
+    {
+        var c = new C1();
+        foreach (string item in c.Items)
+        {
+        }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var foreachSyntaxNode = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var foreachSymbolInfo = model.GetForEachStatementInfo(foreachSyntaxNode);
+
+            Assert.Equal(Conversion.UnsetConversion, foreachSymbolInfo.CurrentConversion);
+            Assert.True(foreachSymbolInfo.CurrentConversion.Exists);
+            Assert.False(foreachSymbolInfo.CurrentConversion.IsImplicit);
+        }
+
+        [Fact, WorkItem(29933, "https://github.com/dotnet/roslyn/issues/29933")]
+        public void SpeculativelyBindBaseInXmlDoc()
+        {
+            var text = @"
+class C
+{
+    /// <summary> </summary>
+    static void M() { }
+}
+";
+
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var position = text.IndexOf(">", StringComparison.Ordinal);
+            var syntax = SyntaxFactory.ParseExpression("base");
+
+            var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.NotReferencable, info.CandidateReason);
         }
     }
 }

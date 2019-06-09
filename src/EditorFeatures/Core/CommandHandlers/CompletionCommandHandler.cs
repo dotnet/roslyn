@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.Completion)]
-    [Order(After = PredefinedCommandHandlerNames.SignatureHelp,
+    [Order(After = PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion,
            Before = PredefinedCommandHandlerNames.DocumentationComments)]
     internal sealed class CompletionCommandHandler : AbstractCompletionCommandHandler
     {

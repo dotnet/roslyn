@@ -120,6 +120,9 @@
   <data name="Duplicate_project_discovered_and_skipped_0" xml:space="preserve">
     <value>Duplicate project discovered and skipped: {0}</value>
   </data>
+  <data name="Found_project_reference_without_a_matching_metadata_reference_0" xml:space="preserve">
+    <value>Found project reference without a matching metadata reference: {0}</value>
+  </data>
   <data name="Found_project_with_the_same_file_path_and_output_path_as_another_project_0" xml:space="preserve">
     <value>Found project with the same file path and output path as another project: {0}</value>
   </data>
@@ -131,5 +134,8 @@
   </data>
   <data name="Project_does_not_contain_0_target" xml:space="preserve">
     <value>Project does not contain '{0}' target.</value>
+  </data>
+  <data name="Unresolved_metadata_reference_removed_from_project_0" xml:space="preserve">
+    <value>Unresolved metadata reference removed from project: {0}</value>
   </data>
 </root>

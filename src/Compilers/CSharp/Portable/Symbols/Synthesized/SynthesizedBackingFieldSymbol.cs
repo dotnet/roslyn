@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-            => _property.Type;
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            => _property.TypeWithAnnotations;
 
         internal override bool HasPointerType
             => _property.HasPointerType;
@@ -97,9 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
             => _name;
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-            => ImmutableArray<CustomModifier>.Empty;
 
         internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
             => null;

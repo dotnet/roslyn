@@ -1636,7 +1636,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1794,7 +1794,7 @@ End Class
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000004">
@@ -1846,7 +1846,7 @@ End Class
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000004">
@@ -1904,7 +1904,7 @@ End Class
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000005">
@@ -1929,7 +1929,7 @@ End Class
         ''' <summary>
         ''' Preserve locals for method added after initial compilation.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PreserveLocalSlots_NewMethod()
             Dim sources0 = <compilation>
                                <file><![CDATA[
@@ -1993,7 +1993,7 @@ End Class
             diff2.VerifyPdb({&H06000002UI},
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method token="0x6000002">
@@ -4764,7 +4764,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>

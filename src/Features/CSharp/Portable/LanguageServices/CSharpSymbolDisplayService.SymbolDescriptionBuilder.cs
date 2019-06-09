@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -28,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeConstantValue)
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
+
+            private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
 
             public SymbolDescriptionBuilder(
                 ISymbolDisplayService displayService,
@@ -200,6 +204,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
+
+            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers => s_minimallyQualifiedFormatWithConstantsAndModifiers;
         }
     }
 }

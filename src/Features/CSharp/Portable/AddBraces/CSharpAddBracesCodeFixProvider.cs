@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
     internal sealed class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds 
+        [ImportingConstructor]
+        public CSharpAddBracesCodeFixProvider()
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;

@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
     internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseThrowExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
 
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(
-                Func<CancellationToken, Task<Document>> createChangedDocument) 
+                Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_throw_expression, createChangedDocument)
             {
             }

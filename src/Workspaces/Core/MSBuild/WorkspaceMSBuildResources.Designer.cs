@@ -70,6 +70,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Found project reference without a matching metadata reference: {0}.
+        /// </summary>
+        internal static string Found_project_reference_without_a_matching_metadata_reference_0 {
+            get {
+                return ResourceManager.GetString("Found_project_reference_without_a_matching_metadata_reference_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found project with the same file path and output path as another project: {0}.
         /// </summary>
         internal static string Found_project_with_the_same_file_path_and_output_path_as_another_project_0 {
@@ -102,6 +111,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Project_does_not_contain_0_target {
             get {
                 return ResourceManager.GetString("Project_does_not_contain_0_target", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unresolved metadata reference removed from project: {0}.
+        /// </summary>
+        internal static string Unresolved_metadata_reference_removed_from_project_0 {
+            get {
+                return ResourceManager.GetString("Unresolved_metadata_reference_removed_from_project_0", resourceCulture);
             }
         }
     }

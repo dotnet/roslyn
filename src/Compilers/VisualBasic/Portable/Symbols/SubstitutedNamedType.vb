@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Given a member from the original type of this type, substitute into it and get the corresponding member in this type.
         Friend Function GetMemberForDefinition(member As Symbol) As Symbol
             Debug.Assert(member.IsDefinition)
-            Debug.Assert(member.ContainingType = Me.OriginalDefinition)
+            Debug.Assert(TypeSymbol.Equals(member.ContainingType, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything))
 
             Return SubstituteTypeParametersInMember(member)
         End Function

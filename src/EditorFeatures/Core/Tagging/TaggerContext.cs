@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             tagSpans.Add(tag);
         }
 
+        public void ClearTags()
+        {
+            tagSpans.Clear();
+        }
+
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful 
         /// when the tagger decides to tag a different span than the entire file.  If a sub-span

@@ -1247,7 +1247,7 @@ public interface I7
 
             Assert.NotEqual(SymbolKind.ErrorType, varI7_Bar.ReturnType.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Bar.ReturnType).TypeArguments()[0].Kind);
-            Assert.Equal("System.Collections.Generic.List<I1>", varI7_Bar.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.List<I1>", varI7_Bar.ReturnTypeWithAnnotations.ToTestDisplayString());
 
             var varI1 = varC_Pia1.SourceModule.GlobalNamespace.GetTypeMembers("I1").Single();
 

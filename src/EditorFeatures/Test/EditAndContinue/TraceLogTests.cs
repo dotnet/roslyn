@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
             log.Write("e");
             log.Write("f");
 
-            AssertEx.Equal(new[] 
+            AssertEx.Equal(new[]
             {
                 "f",
                 "b 1 x 3",
                 "c",
                 "d <null> <null>",
                 "e"
-            }, log.GetEntries().Select(e => e.ToString()));
+            }, log.GetTestAccessor().Entries.Select(e => e.ToString()));
         }
     }
 }

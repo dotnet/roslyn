@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -35,7 +36,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected async Task TestDiagnosticsAsync(
+            string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var diagnostics = await GetDiagnosticsAsync(workspace, parameters).ConfigureAwait(false);
+
+                // Special case for single diagnostic reported with annotated span.
+                if (expected.Length == 1 && !expected[0].HasLocation)
+                {
+                    var hostDocumentsWithAnnotations = workspace.Documents.Where(d => d.SelectedSpans.Any());
+                    if (hostDocumentsWithAnnotations.Count() == 1)
+                    {
+                        var expectedSpan = hostDocumentsWithAnnotations.Single().SelectedSpans.Single();
+
+                        Assert.Equal(1, diagnostics.Count());
+                        var diagnostic = diagnostics.Single();
+
+                        var actualSpan = diagnostic.Location.SourceSpan;
+                        Assert.Equal(expectedSpan, actualSpan);
+
+                        Assert.Equal(expected[0].Code, diagnostic.Id);
+                        return;
+                    }
+                }
+
+                DiagnosticExtensions.Verify(diagnostics, expected);
+            }
+        }
+
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);
@@ -119,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             IEnumerable<Diagnostic> diagnostics,
-            DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
@@ -134,12 +164,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             FixAllScope? scope = GetFixAllScope(annotation);
             return await GetDiagnosticAndFixesAsync(
-                diagnostics, provider, fixer, testDriver, document, span, scope, index);
+                diagnostics, fixer, testDriver, document, span, scope, index);
         }
 
         private async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToinvoke)> GetDiagnosticAndFixesAsync(
             IEnumerable<Diagnostic> diagnostics,
-            DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
@@ -162,20 +191,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
-                if (fixes.Count > 0)
-                {
-                    break;
-                }
             }
 
             var actions = fixes.SelectAsArray(f => f.Action);
-            if (actions.Length == 1)
-            {
-                if (actions[0] is TopLevelSuppressionCodeAction suppressionAction)
-                {
-                    actions = suppressionAction.NestedCodeActions;
-                }
-            }
+
+            actions = actions.SelectMany(a => a is TopLevelSuppressionCodeAction
+                ? a.NestedCodeActions
+                : ImmutableArray.Create(a)).ToImmutableArray();
 
             actions = MassageActions(actions);
 
@@ -194,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.NotNull(fixAllProvider);
 
                 var fixAllState = GetFixAllState(
-                    fixAllProvider, diagnostics, provider, fixer, testDriver,
-                    document, scope.Value, equivalenceKey);
+                    fixAllProvider, diagnostics, fixer, testDriver, document,
+                    scope.Value, equivalenceKey);
                 var fixAllContext = fixAllState.CreateFixAllContext(new ProgressTracker(), CancellationToken.None);
                 var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
@@ -231,7 +253,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static FixAllState GetFixAllState(
             FixAllProvider fixAllProvider,
             IEnumerable<Diagnostic> diagnostics,
-            DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
@@ -249,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var diagnostic = diagnostics.First();
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-            var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(provider, testDriver, diagnosticIds);
+            var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
                 ? new FixAllState(fixAllProvider, document, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
@@ -378,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 {
                     oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
-                        conflictSpans: ImmutableArray<TextSpan>.Empty, 
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
@@ -402,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }

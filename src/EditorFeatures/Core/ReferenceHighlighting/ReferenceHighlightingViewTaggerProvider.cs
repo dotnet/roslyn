@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -171,11 +173,20 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 return;
             }
 
-            foreach (var span in documentHighlights.HighlightSpans)
+            try
             {
-                var tag = GetTag(span);
-                context.AddTag(new TagSpan<NavigableHighlightTag>(
-                    textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                foreach (var span in documentHighlights.HighlightSpans)
+                {
+                    var tag = GetTag(span);
+                    context.AddTag(new TagSpan<NavigableHighlightTag>(
+                        textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // report NFW and continue.
+                // also, rather than return partial results, return nothing
+                context.ClearTags();
             }
         }
 

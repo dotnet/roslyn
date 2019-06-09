@@ -10,12 +10,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAnonymousTypeToTupleCodeFixProvider)), Shared]
-    internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider 
+    internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider
         : AbstractConvertAnonymousTypeToTupleCodeFixProvider<
             ExpressionSyntax,
             TupleExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertAnonymousTypeToTupleCodeFixProvider()
+        {
+        }
+
         protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
             => SyntaxFactory.TupleExpression(
                     SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),

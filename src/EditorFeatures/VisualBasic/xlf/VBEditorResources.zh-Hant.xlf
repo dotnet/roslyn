@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="translated">新增</target>
+        <target state="translated">新建</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
@@ -85,11 +85,6 @@
       <trans-unit id="Visual_Basic_Pretty_List">
         <source>Visual Basic Pretty List</source>
         <target state="translated">Visual Basic 美化清單</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;多項類型&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="not_supported">

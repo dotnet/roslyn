@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class MakeFieldReadonlyDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public MakeFieldReadonlyDiagnosticAnalyzer()
             : base(
@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -107,7 +105,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         !symbol.IsConst &&
                         !symbol.IsImplicitlyDeclared &&
                         symbol.Locations.Length == 1 &&
-                        !IsMutableValueType(symbol.Type);
+                        symbol.Type.IsMutableValueType() == false &&
+                        !symbol.IsFixedSizeBuffer;
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
@@ -151,57 +150,46 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             });
         }
 
-
-        private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            var optionSet = options.GetDocumentOptionSetAsync(field.Locations[0].SourceTree, cancellationToken).GetAwaiter().GetResult();
-            return optionSet?.GetOption(CodeStyleOptions.PreferReadonly, field.Language);
-        }
-
         private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
         {
-            // Field writes: assignment, increment/decrement or field passed by ref.
-            var isFieldAssignemnt = fieldReference.Parent is IAssignmentOperation assignmentOperation &&
-                assignmentOperation.Target == fieldReference;
-            if (isFieldAssignemnt ||
-                fieldReference.Parent is IIncrementOrDecrementOperation ||
-                fieldReference.Parent is IArgumentOperation argumentOperation && argumentOperation.Parameter.RefKind != RefKind.None ||
-                IsInLeftOfDeconstructionAssignment(fieldReference))
+            // Check if the underlying member is being written or a writable reference to the member is taken.
+            var valueUsageInfo = fieldReference.GetValueUsageInfo();
+            if (!valueUsageInfo.IsWrittenTo())
             {
-                // Writes to fields inside constructor are ignored, except for the below cases:
-                //  1. Instance reference of an instance field being written is not the instance being initialized by the constructor.
-                //  2. Field is being written inside a lambda or local function.
-
-                // Check if we are in the constructor of the containing type of the written field.
-                var isInConstructor = owningSymbol.IsConstructor();
-                var isInStaticConstructor = owningSymbol.IsStaticConstructor();
-                var field = fieldReference.Field;
-                if ((isInConstructor || isInStaticConstructor) &&
-                    field.ContainingType == owningSymbol.ContainingType)
-                {
-                    // For instance fields, ensure that the instance reference is being initialized by the constructor.
-                    var instanceFieldWrittenInCtor = isInConstructor &&
-                        fieldReference.Instance?.Kind == OperationKind.InstanceReference &&
-                        (!isFieldAssignemnt || fieldReference.Parent.Parent?.Kind != OperationKind.ObjectOrCollectionInitializer);
-
-                    // For static fields, ensure that we are in the static constructor.
-                    var staticFieldWrittenInStaticCtor = isInStaticConstructor && field.IsStatic;
-
-                    if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
-                    {
-                        // Finally, ensure that the write is not inside a lambda or local function.
-                        if (!IsInAnonymousFunctionOrLocalFunction(fieldReference))
-                        {
-                            // It is safe to ignore this write.
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
+                return false;
             }
 
-            return false;
+            // Writes to fields inside constructor are ignored, except for the below cases:
+            //  1. Instance reference of an instance field being written is not the instance being initialized by the constructor.
+            //  2. Field is being written inside a lambda or local function.
+
+            // Check if we are in the constructor of the containing type of the written field.
+            var isInConstructor = owningSymbol.IsConstructor();
+            var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+            var field = fieldReference.Field;
+            if ((isInConstructor || isInStaticConstructor) &&
+                field.ContainingType == owningSymbol.ContainingType)
+            {
+                // For instance fields, ensure that the instance reference is being initialized by the constructor.
+                var instanceFieldWrittenInCtor = isInConstructor &&
+                    fieldReference.Instance?.Kind == OperationKind.InstanceReference &&
+                    !fieldReference.IsTargetOfObjectMemberInitializer();
+
+                // For static fields, ensure that we are in the static constructor.
+                var staticFieldWrittenInStaticCtor = isInStaticConstructor && field.IsStatic;
+
+                if (instanceFieldWrittenInCtor || staticFieldWrittenInStaticCtor)
+                {
+                    // Finally, ensure that the write is not inside a lambda or local function.
+                    if (!IsInAnonymousFunctionOrLocalFunction(fieldReference))
+                    {
+                        // It is safe to ignore this write.
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static bool IsInAnonymousFunctionOrLocalFunction(IOperation operation)
@@ -222,51 +210,10 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
-        private static bool IsInLeftOfDeconstructionAssignment(IOperation operation)
+        private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            var previousOperation = operation;
-            operation = operation.Parent;
-
-            while (operation != null)
-            {
-                switch (operation.Kind)
-                {
-                    case OperationKind.DeconstructionAssignment:
-                        var deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
-                        return deconstructionAssignment.Target == previousOperation;
-
-                    case OperationKind.Tuple:
-                    case OperationKind.Conversion:
-                    case OperationKind.Parenthesized:
-                        previousOperation = operation;
-                        operation = operation.Parent;
-                        continue;
-
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsMutableValueType(ITypeSymbol type)
-        {
-            if (type.TypeKind != TypeKind.Struct)
-            {
-                return false;
-            }
-
-            foreach (var member in type.GetMembers())
-            {
-                if (member is IFieldSymbol fieldSymbol &&
-                    !(fieldSymbol.IsConst || fieldSymbol.IsReadOnly || fieldSymbol.IsStatic))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            var optionSet = options.GetDocumentOptionSetAsync(field.Locations[0].SourceTree, cancellationToken).GetAwaiter().GetResult();
+            return optionSet?.GetOption(CodeStyleOptions.PreferReadonly, field.Language);
         }
     }
 }

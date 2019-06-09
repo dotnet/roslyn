@@ -2,12 +2,31 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class DisableKeywordRecommenderTests : KeywordRecommenderTests
     {
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        public async Task TestAfterNullable()
+        {
+            await VerifyKeywordAsync(@"#nullable $$");
+        }
+
+        [Fact]
+        [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
+        public async Task TestNotAfterNullableAndNewline()
+        {
+            await VerifyAbsenceAsync(@"
+#nullable 
+$$
+");
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {

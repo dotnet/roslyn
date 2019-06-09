@@ -15,12 +15,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     [UseExportProvider]
-    public partial class WorkspaceTests
+    public partial class WorkspaceTests : TestBase
     {
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                                     .GetExportedValue<AsynchronousOperationListenerProvider>()
                                     .GetWaiter(FeatureAttribute.Workspace);
 
-            await workspaceWaiter.CreateWaitTask();
+            await workspaceWaiter.CreateExpeditedWaitTask();
         }
 
         [Fact]
@@ -404,9 +405,10 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                Assert.Throws<ArgumentException>(() => workspace.OnDocumentRemoved(document.Id));
+                workspace.OnDocumentRemoved(document.Id);
 
-                workspace.CloseDocument(document.Id);
+                Assert.Empty(workspace.CurrentSolution.Projects.Single().Documents);
+
                 workspace.OnProjectRemoved(project1.Id);
             }
         }
@@ -853,6 +855,32 @@ class D { }
         }
 
         [Fact]
+        public async Task TestAnalyzerConfigFile_Properties()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var document = new TestHostDocument("public class C { }");
+                var analyzerConfigDoc = new TestHostDocument("root = true");
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+
+                workspace.AddTestProject(project1);
+
+                var project = workspace.CurrentSolution.Projects.Single();
+
+                Assert.Equal(1, project.Documents.Count());
+                Assert.Equal(1, project.AnalyzerConfigDocuments.Count());
+                Assert.Equal(1, project.State.AnalyzerConfigDocumentIds.Count());
+
+                var doc = project.GetDocument(analyzerConfigDoc.Id);
+                Assert.Null(doc);
+
+                var analyzerConfigDocument = project.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
+
+                Assert.Equal("root = true", (await analyzerConfigDocument.GetTextAsync()).ToString());
+            }
+        }
+
+        [Fact]
         public async Task TestAdditionalFile_DocumentChanged()
         {
             using (var workspace = CreateWorkspace())
@@ -887,6 +915,41 @@ class D { }
         }
 
         [Fact]
+        public async Task TestAnalyzerConfigFile_DocumentChanged()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var startText = @"root = true";
+                var newText = @"root = false";
+                var document = new TestHostDocument("public class C { }");
+                var analyzerConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+                var analyzerConfigDoc = new TestHostDocument(startText, filePath: analyzerConfigPath);
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+
+                workspace.AddTestProject(project1);
+                var buffer = analyzerConfigDoc.GetTextBuffer();
+                workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+
+                var project = workspace.CurrentSolution.Projects.Single();
+                var oldVersion = await project.GetSemanticVersionAsync();
+
+                // fork the solution to introduce a change.
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = oldSolution.WithAnalyzerConfigDocumentText(analyzerConfigDoc.Id, SourceText.From(newText));
+                workspace.TryApplyChanges(newSolution);
+
+                var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
+
+                // new text should have been pushed into buffer
+                Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
+
+                // Text changes are considered top level changes and they change the project's semantic version.
+                Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
+                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
+            }
+        }
+
+        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
         public async Task TestAdditionalFile_OpenClose()
         {
             using (var workspace = CreateWorkspace())
@@ -904,15 +967,54 @@ class D { }
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
-                // We don't have a GetOpenAdditionalDocumentIds since we don't need it. But make sure additional documents
-                // don't creep into OpenDocumentIds (Bug: 1087470)
-                Assert.Empty(workspace.GetOpenDocumentIds());
+                // Make sure that additional documents are included in GetOpenDocumentIds.
+                var openDocumentIds = workspace.GetOpenDocumentIds();
+                Assert.Single(openDocumentIds);
+                Assert.Equal(additionalDoc.Id, openDocumentIds.Single());
 
                 workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+
+                // Make sure that closed additional documents are not include in GetOpenDocumentIds.
+                Assert.Empty(workspace.GetOpenDocumentIds());
 
                 // Reopen and close to make sure we are not leaking anything.
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
                 workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+                Assert.Empty(workspace.GetOpenDocumentIds());
+            }
+        }
+
+        [Fact]
+        public async Task TestAnalyzerConfigFile_OpenClose()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var startText = @"root = true";
+                var document = new TestHostDocument("public class C { }");
+                var analyzerConfigDoc = new TestHostDocument(startText);
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+
+                workspace.AddTestProject(project1);
+                var buffer = analyzerConfigDoc.GetTextBuffer();
+                var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
+                var text = await doc.GetTextAsync(CancellationToken.None);
+                var version = await doc.GetTextVersionAsync(CancellationToken.None);
+
+                workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+
+                // Make sure that analyzer config documents are included in GetOpenDocumentIds.
+                var openDocumentIds = workspace.GetOpenDocumentIds();
+                Assert.Single(openDocumentIds);
+                Assert.Equal(analyzerConfigDoc.Id, openDocumentIds.Single());
+
+                workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+
+                // Make sure that closed analyzer config documents are not include in GetOpenDocumentIds.
+                Assert.Empty(workspace.GetOpenDocumentIds());
+
+                // Reopen and close to make sure we are not leaking anything.
+                workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+                workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
                 Assert.Empty(workspace.GetOpenDocumentIds());
             }
         }
@@ -956,6 +1058,44 @@ class D { }
         }
 
         [Fact]
+        public void TestAnalyzerConfigFile_AddRemove()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var startText = @"root = true";
+                var document = new TestHostDocument("public class C { }");
+                var analyzerConfigDoc = new TestHostDocument(startText, "original.config");
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+                workspace.AddTestProject(project1);
+
+                var project = workspace.CurrentSolution.Projects.Single();
+
+                // fork the solution to introduce a change.
+                var newDocId = DocumentId.CreateNewId(project.Id);
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = oldSolution.AddAnalyzerConfigDocument(newDocId, "app.config", SourceText.From("text"));
+
+                var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
+
+                workspace.TryApplyChanges(newSolution);
+
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
+                Assert.Equal(2, workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Count());
+
+                // Now remove the newly added document
+
+                oldSolution = workspace.CurrentSolution;
+                newSolution = oldSolution.RemoveAnalyzerConfigDocument(newDocId);
+
+                workspace.TryApplyChanges(newSolution);
+
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Count());
+                Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Single().Name);
+            }
+        }
+
+        [Fact]
         public void TestAdditionalFile_AddRemove_FromProject()
         {
             using (var workspace = CreateWorkspace())
@@ -982,6 +1122,79 @@ class D { }
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Count());
                 Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Single().Name);
+            }
+        }
+
+        [Fact]
+        public void TestAnalyzerConfigFile_AddRemove_FromProject()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                var startText = @"root = true";
+                var document = new TestHostDocument("public class C { }");
+                var analyzerConfigDoc = new TestHostDocument(startText, "original.config");
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+                workspace.AddTestProject(project1);
+
+                var project = workspace.CurrentSolution.Projects.Single();
+
+                // fork the solution to introduce a change.
+                var doc = project.AddAnalyzerConfigDocument("app.config", SourceText.From("text"));
+                workspace.TryApplyChanges(doc.Project.Solution);
+
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
+                Assert.Equal(2, workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Count());
+
+                // Now remove the newly added document
+                project = workspace.CurrentSolution.Projects.Single();
+                workspace.TryApplyChanges(project.RemoveAnalyzerConfigDocument(doc.Id).Solution);
+
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
+                Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Count());
+                Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AnalyzerConfigDocuments.Single().Name);
+            }
+        }
+
+        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        public void TestAdditionalFile_GetDocumentIdsWithFilePath()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                const string docFilePath = "filePath1", additionalDocFilePath = "filePath2";
+                var document = new TestHostDocument("public class C { }", filePath: docFilePath);
+                var additionalDoc = new TestHostDocument(@"<setting value = ""goo""", filePath: additionalDocFilePath);
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+                workspace.AddTestProject(project1);
+
+                var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(document.Id, documentIdsWithFilePath.Single());
+
+                documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(additionalDocFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(additionalDoc.Id, documentIdsWithFilePath.Single());
+            }
+        }
+
+        [Fact]
+        public void TestAnalyzerConfigFile_GetDocumentIdsWithFilePath()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                const string docFilePath = "filePath1";
+                var document = new TestHostDocument("public class C { }", filePath: docFilePath);
+                var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+                var analyzerConfigDoc = new TestHostDocument(@"root = true", filePath: analyzerConfigDocFilePath);
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+                workspace.AddTestProject(project1);
+
+                var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(document.Id, documentIdsWithFilePath.Single());
+
+                documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(analyzerConfigDocFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(analyzerConfigDoc.Id, documentIdsWithFilePath.Single());
             }
         }
 
@@ -1029,6 +1242,28 @@ class D { }
                 Assert.Equal(updatedText, (await eventArgs[0].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
                 Assert.Equal(updatedText, (await eventArgs[1].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
             }
+        }
+
+        [Fact, WorkItem(31928, "https://github.com/dotnet/roslyn/issues/31928")]
+        public void TestVersionStamp_Local()
+        {
+            // only Utc is allowed
+            Assert.Throws<ArgumentException>(() => VersionStamp.Create(DateTime.Now));
+        }
+
+        [Fact]
+        public void TestVersionStamp_Default()
+        {
+            var version1 = VersionStamp.Create(default);
+            var version2 = VersionStamp.Create(default);
+
+            var version3 = version1.GetNewerVersion(version2);
+            Assert.Equal(version3, version2);
+
+            var version4 = version1.GetNewerVersion();
+            var version5 = version4.GetNewerVersion(version3);
+
+            Assert.Equal(version5, version4);
         }
     }
 }

@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() 
+        [ImportingConstructor]
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider()
             : this(pickMembersService: null)
         {
         }
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             var actions = CreateActions(
-                document, textSpan, containingType, 
+                document, textSpan, containingType,
                 viableMembers, pickMembersOptions.ToImmutableAndFree(),
                 hasEquals, hasGetHashCode,
                 withDialog: true);
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode, cancellationToken))
             {
-                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: false, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
                     info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                             info.ContainingType, out var hasEquals, out var hasGetHashCode);
 
                         return CreateActions(
-                            document, textSpan, info.ContainingType, 
+                            document, textSpan, info.ContainingType,
                             info.SelectedMembers, ImmutableArray<PickMembersOption>.Empty,
                             hasEquals, hasGetHashCode, withDialog: false);
                     }
@@ -217,13 +218,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
             }
             else if (!hasEquals)
             {
-                result.Add(CreateCodeAction(document, textSpan, containingType, 
+                result.Add(CreateCodeAction(document, textSpan, containingType,
                     selectedMembers, pickMembersOptions,
                     generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
             }
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private CodeAction CreateCodeAction(
-            Document document, TextSpan textSpan, INamedTypeSymbol containingType, 
+            Document document, TextSpan textSpan, INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> pickMembersOptions,
             bool generateEquals, bool generateGetHashCode, bool withDialog)
         {

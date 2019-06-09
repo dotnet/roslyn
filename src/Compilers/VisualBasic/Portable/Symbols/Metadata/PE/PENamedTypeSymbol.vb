@@ -505,15 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             EnsureNestedTypesAreLoaded()
             EnsureNonTypeMembersAreLoaded()
 
-            Dim result = _lazyMembers.Flatten()
-
-#If DEBUG Then
-            ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return result.DeOrder()
-#Else
-            Return result
-#End If
+            Return _lazyMembers.Flatten().ConditionallyDeOrder()
         End Function
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)

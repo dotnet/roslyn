@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
-        {
-            return CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
-        }
+            => CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
 
         protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
         {
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }

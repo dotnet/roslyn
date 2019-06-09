@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 {
     internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<
-        TMemberAccessExpressionSyntax> 
+        TMemberAccessExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var diagnostic = context.Diagnostics[0];
 
             context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(), 
+                GetTitle(),
                 c => this.FixAsync(document, diagnostic, c),
                 IDEDiagnosticIds.RemoveQualificationDiagnosticId), context.Diagnostics);
 

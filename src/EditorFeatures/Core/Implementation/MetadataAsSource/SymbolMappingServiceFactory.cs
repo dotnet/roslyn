@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
     [Shared]
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public SymbolMappingServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new SymbolMappingService();

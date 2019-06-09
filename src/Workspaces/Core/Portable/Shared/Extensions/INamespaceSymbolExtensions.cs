@@ -79,6 +79,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static IEnumerable<INamespaceSymbol> GetAllNamespaces(
+            this INamespaceSymbol namespaceSymbol,
+            CancellationToken cancellationToken)
+        {
+            var stack = new Stack<INamespaceSymbol>();
+            stack.Push(namespaceSymbol);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+                if (current is INamespaceSymbol childNamespace)
+                {
+                    stack.Push(childNamespace.GetNamespaceMembers());
+                    yield return childNamespace;
+                }
+            }
+        }
+
         public static IEnumerable<INamedTypeSymbol> GetAllTypes(
             this IEnumerable<INamespaceSymbol> namespaceSymbols,
             CancellationToken cancellationToken)
@@ -158,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Assume that any namespace in our own assembly is accessible to us.  This saves a
                 // lot of cpu time checking namespaces.
-                if (constituent.ContainingAssembly == assembly)
+                if (Equals(constituent.ContainingAssembly, assembly))
                 {
                     return true;
                 }

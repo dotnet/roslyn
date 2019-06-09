@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
-            this DkmClrRuntimeInstance runtime, 
-            DkmClrAppDomain appDomain, 
+            this DkmClrRuntimeInstance runtime,
+            DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
             // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.

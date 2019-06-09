@@ -657,7 +657,7 @@ class Test
             void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var assemblyName = module.ContainingAssembly.Name;
 
@@ -741,7 +741,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
@@ -788,7 +788,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attributes = type.GetAttributes();
 
@@ -991,7 +991,7 @@ namespace System
         private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
-            Assert.True(peType.IsByRefLikeType);
+            Assert.True(peType.IsRefLikeType);
 
             // there is no [Obsolete] or [IsByRef] attribute returned
             Assert.Empty(peType.GetAttributes());

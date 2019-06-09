@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal struct JsonLexer
     {
-        public readonly ImmutableArray<VirtualChar> Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public JsonLexer(ImmutableArray<VirtualChar> text) : this()
+        public JsonLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }
@@ -29,17 +29,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             ? Text[Position]
             : new VirtualChar((char)0, span: default);
 
-        public ImmutableArray<VirtualChar> GetCharsToCurrentPosition(int start)
-        {
-            var end = Position;
-            var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
-            for (var i = start; i < end; i++)
-            {
-                result.Add(Text[i]);
-            }
+        public VirtualCharSequence GetCharsToCurrentPosition(int start)
+            => GetSubSequence(start, Position);
 
-            return result.ToImmutableAndFree();
-        }
+        public VirtualCharSequence GetSubSequence(int start, int end)
+            => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public JsonToken ScanNextToken()
         {
@@ -47,8 +41,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (Position == Text.Length)
             {
                 return CreateToken(
-                    JsonKind.EndOfFile, leadingTrivia, 
-                    ImmutableArray<VirtualChar>.Empty, ImmutableArray<JsonTrivia>.Empty);
+                    JsonKind.EndOfFile, leadingTrivia,
+                    VirtualCharSequence.Empty, ImmutableArray<JsonTrivia>.Empty);
             }
 
             var (chars, kind, diagnostic) = ScanNextTokenWorker();
@@ -70,14 +64,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // Standard tokens.
             switch (ch)
             {
-                case '{': case '}':
-                case '[': case ']':
-                case '(': case ')':
-                case ',': case ':': 
-                case '\'': case '"':
+                case '{':
+                case '}':
+                case '[':
+                case ']':
+                case '(':
+                case ')':
+                case ',':
+                case ':':
+                case '\'':
+                case '"':
                     return true;
 
-                case ' ': case '\t': case '/': case '\r': case '\n':
+                case ' ':
+                case '\t':
+                case '/':
+                case '\r':
+                case '\n':
                     // trivia cases
                     return true;
             }
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return false;
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
             switch (this.CurrentChar)
@@ -105,7 +108,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 case ',': return ScanSingleCharToken(JsonKind.CommaToken);
                 case ':': return ScanSingleCharToken(JsonKind.ColonToken);
 
-                case '\'': case '"':
+                case '\'':
+                case '"':
                     return ScanString();
 
                 // It would be tempting to try to scan out numbers here.  However, numbers are
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanString()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
             var openChar = this.CurrentChar.Char;
@@ -225,7 +229,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                    (c >= 'a' && c <= 'f');
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanText()
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanText()
         {
             var start = Position;
 
@@ -238,9 +242,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
+        private (VirtualCharSequence, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
         {
-            var chars = ImmutableArray.Create(this.CurrentChar);
+            var chars = this.Text.GetSubSequence(new TextSpan(this.Position, 1));
             Position++;
             return (chars, kind, null);
         }
@@ -335,7 +339,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var start = Position;
             Position += 2;
 
-            while (Position < Text.Length && 
+            while (Position < Text.Length &&
                    this.CurrentChar is var ch &&
                    ch != '\r' && ch != '\n')
             {
@@ -403,7 +407,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonTrivia? ScanWhitespace()
         {
             var start = Position;
-            while (Position < Text.Length && 
+            while (Position < Text.Length &&
                    char.IsWhiteSpace(this.CurrentChar))
             {
                 Position++;

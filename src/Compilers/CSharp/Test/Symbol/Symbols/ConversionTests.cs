@@ -1129,10 +1129,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case default(Convertible): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18),
-                // (8,40): warning CS0162: Unreachable code detected
-                //             case default(Convertible): return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(8, 40)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(Convertible)").WithLocation(8, 18)
                 );
         }
 
@@ -1162,10 +1159,7 @@ class Convertible
             CreateCompilation(source).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case c: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18),
-                // (9,21): warning CS0162: Unreachable code detected
-                //             case c: return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "c").WithLocation(9, 18)
                 );
         }
 
@@ -1197,7 +1191,7 @@ class C
     }
 }";
             CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var d = new ConvertibleToIDisposable()").WithArguments("ConvertibleToIDisposable"));
         }
 
@@ -1804,7 +1798,7 @@ public class Test
             var method = (MethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), method.ContainingType);
-            Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Byte, method.ParameterTypesWithAnnotations.Single().SpecialType);
         }
 
         [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
@@ -1838,7 +1832,7 @@ public struct C
             var method = (MethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), method.ContainingType);
-            Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Byte, method.ParameterTypesWithAnnotations.Single().SpecialType);
         }
 
         [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
