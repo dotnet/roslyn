@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing
@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
         {
             private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter;
             private readonly SemanticModel _semanticModel;
+            private readonly OptionSet _optionSet;
             private readonly CancellationToken _cancellationToken;
 
-            public Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken)
+            public Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
                 _semanticModel = semanticModel;
+                _optionSet = optionSet;
                 _cancellationToken = cancellationToken;
             }
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
                 var organizers = _nodeToOrganizersGetter(node);
                 foreach (var organizer in organizers)
                 {
-                    node = organizer.OrganizeNode(_semanticModel, node, _cancellationToken);
+                    node = organizer.OrganizeNode(_semanticModel, _optionSet, node, _cancellationToken);
                 }
 
                 return node;

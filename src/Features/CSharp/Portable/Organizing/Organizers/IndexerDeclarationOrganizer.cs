@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
@@ -17,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 
         protected override IndexerDeclarationSyntax Organize(
             IndexerDeclarationSyntax syntax,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             return syntax.Update(
                 attributeLists: syntax.AttributeLists,
-                modifiers: ModifiersOrganizer.Organize(syntax.Modifiers),
+                modifiers: ModifiersOrganizer.ForCodeStyle(optionSet).Organize(syntax.Modifiers),
                 type: syntax.Type,
                 explicitInterfaceSpecifier: syntax.ExplicitInterfaceSpecifier,
                 thisKeyword: syntax.ThisKeyword,

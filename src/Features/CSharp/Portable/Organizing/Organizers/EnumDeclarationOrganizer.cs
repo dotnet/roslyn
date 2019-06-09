@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
@@ -17,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 
         protected override EnumDeclarationSyntax Organize(
             EnumDeclarationSyntax syntax,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             return syntax.Update(
                 syntax.AttributeLists,
-                ModifiersOrganizer.Organize(syntax.Modifiers),
+                ModifiersOrganizer.ForCodeStyle(optionSet).Organize(syntax.Modifiers),
                 syntax.EnumKeyword,
                 syntax.Identifier,
                 syntax.BaseList,

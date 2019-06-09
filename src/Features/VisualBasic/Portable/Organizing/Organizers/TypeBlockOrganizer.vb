@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Organizing.Organizers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
         End Sub
 
         Protected Overrides Function Organize(typeBlock As TypeBlockSyntax,
+                                              optionSet As OptionSet,
                                               cancellationToken As CancellationToken) As TypeBlockSyntax
             Dim members = MemberDeclarationsOrganizer.Organize(typeBlock.Members, cancellationToken)
             Return typeBlock.WithMembers(members)

@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
@@ -17,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 
         protected override MethodDeclarationSyntax Organize(
             MethodDeclarationSyntax syntax,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             return syntax.Update(
                 attributeLists: syntax.AttributeLists,
-                modifiers: ModifiersOrganizer.Organize(syntax.Modifiers),
+                modifiers: ModifiersOrganizer.ForCodeStyle(optionSet).Organize(syntax.Modifiers),
                 returnType: syntax.ReturnType,
                 explicitInterfaceSpecifier: syntax.ExplicitInterfaceSpecifier,
                 identifier: syntax.Identifier,

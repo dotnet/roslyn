@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Organizing.Organizers
 {
@@ -16,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
         /// <summary>
         /// organize given node
         /// </summary>
-        SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default);
+        SyntaxNode OrganizeNode(SemanticModel semanticModel, OptionSet optionSet, SyntaxNode node, CancellationToken cancellationToken = default);
     }
 }
