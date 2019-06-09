@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IVsReferenceManager _referenceManager;
 
         [Import]
-        private readonly AnalyzerItemsTracker _tracker = null;
+        private AnalyzerItemsTracker _tracker = null;
 
         [ImportingConstructor]
         public AnalyzerReferenceManager(
