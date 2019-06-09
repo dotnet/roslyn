@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = container;
 
             TypeMap.Empty.WithAlphaRename(underlyingMethod, this, out _typeParameters);
-            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArguments);
+            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
         }
 
         public override bool IsTupleMethod
@@ -112,19 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _underlyingMethod.ReturnType;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return _underlyingMethod.ReturnTypeCustomModifiers;
+                return _underlyingMethod.ReturnTypeWithAnnotations;
             }
         }
 
@@ -136,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -199,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && _underlyingMethod.ConstructedFrom == other._underlyingMethod.ConstructedFrom;
         }
     }
 }

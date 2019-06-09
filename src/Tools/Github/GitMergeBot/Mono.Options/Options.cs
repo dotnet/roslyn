@@ -1,4 +1,4 @@
-//
+﻿//
 // Options.cs
 //
 // Authors:
@@ -111,7 +111,7 @@
 // type:
 //
 //  var p = new OptionSet () {
-//    { "foo=", (Foo f) => Console.WriteLine (f.ToString ()) },
+//    { "goo=", (Goo f) => Console.WriteLine (f.ToString ()) },
 //  };
 //
 // Random other tidbits:

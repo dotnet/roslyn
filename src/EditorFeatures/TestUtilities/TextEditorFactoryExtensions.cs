@@ -15,7 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static DisposableTextView CreateDisposableTextView(this ITextEditorFactoryService textEditorFactory, ITextBuffer buffer)
         {
-            return new DisposableTextView(textEditorFactory.CreateTextView(buffer));
+            // Every default role but outlining. Starting in 15.2, the editor
+            // OutliningManager imports JoinableTaskContext in a way that's 
+            // difficult to satisfy in our unit tests. Since we don't directly
+            // depend on it, just disable it
+            var roles = textEditorFactory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
+                PredefinedTextViewRoles.Document,
+                PredefinedTextViewRoles.Editable,
+                PredefinedTextViewRoles.Interactive,
+                PredefinedTextViewRoles.Zoomable);
+
+            return new DisposableTextView(textEditorFactory.CreateTextView(buffer, roles));
         }
     }
 

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
         End Function
 
-        Private Function CreateTreeText(initial As String) As String
+        Private Shared Function CreateTreeText(initial As String) As String
             Return "
 Class X
     Sub M()
@@ -88,6 +88,59 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
         Public Async Function TestTypeCharacter() As Task
             Await TestFixOneAsync("&H1e5UL", "&B111100101UL", Refactoring.ChangeBase2)
+        End Function
+
+        <WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestPreserveTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"Class X
+    Sub M()
+        Dim x As Integer() =
+        {
+            [||]&H1, &H2
+        }
+    End Sub
+End Class",
+"Class X
+    Sub M()
+        Dim x As Integer() =
+        {
+            &B1, &H2
+        }
+    End Sub
+End Class", index:=Refactoring.ChangeBase2)
+        End Function
+
+        <WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestCaretPositionAtTheEnd() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = 42[||]
+End Class",
+"Class C
+    Dim a As Integer = &B101010
+End Class", index:=Refactoring.ChangeBase1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestSelectionMatchesToken() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = [|42|]
+End Class",
+"Class C
+    Dim a As Integer = &B101010
+End Class", index:=Refactoring.ChangeBase1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestSelectionDoesntMatchToken() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = [|42 * 2|]
+End Class")
         End Function
     End Class
 End Namespace

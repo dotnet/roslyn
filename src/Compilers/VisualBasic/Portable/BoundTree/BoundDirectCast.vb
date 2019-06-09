@@ -33,6 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.New(syntax, operand, conversionKind, suppressVirtualCalls:=False, constantValueOpt:=constantValueOpt, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
 
+        Public Overrides ReadOnly Property ExplicitCastInCode As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
 #If DEBUG Then
         Private Sub Validate()
             ValidateConstantValue()

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.Completion
         public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
         {
+            return GetWordSpan(text, position, isWordStartCharacter, isWordCharacter, alwaysExtendEndSpan: false);
+        }
+
+        public static TextSpan GetWordSpan(SourceText text, int position,
+            Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
+        {
             int start = position;
             while (start > 0 && isWordStartCharacter(text[start - 1]))
             {
@@ -36,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // "overwrite" the text. Useful for correcting misspellings or just replacing unwanted
             // code with new code.
             int end = position;
-            if (start != position)
+            if (start != position || alwaysExtendEndSpan)
             {
                 while (end < text.Length && isWordCharacter(text[end]))
                 {
@@ -94,13 +100,12 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var symbol = symbols[0];
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
@@ -115,9 +120,8 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case SymbolKind.Method:
                 case SymbolKind.NamedType:
-                    if (symbols.Count > 1)
+                    if (overloadCount > 0)
                     {
-                        var overloadCount = symbols.Count - 1;
                         var isGeneric = symbol.GetArity() > 0;
 
                         textContentBuilder.AddSpace();
@@ -135,14 +139,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
             AddDocumentationPart(textContentBuilder, symbol, semanticModel, position, formatter, cancellationToken);
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out var parts))
             {
-                textContentBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
+                textContentBuilder.AddRange(parts);
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     textContentBuilder.AddLineBreak();
@@ -158,6 +161,12 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionDescription.Create(textContentBuilder.AsImmutable());
+        }
+
+        public static Task<CompletionDescription> CreateDescriptionAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+        {
+            return CreateDescriptionAsync(workspace, semanticModel, position, symbols[0], overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
         }
 
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)

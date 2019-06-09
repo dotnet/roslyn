@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            Func<SyntaxNode, bool> predicate = n =>
+            bool predicate(SyntaxNode n)
             {
                 if (n is BaseMethodDeclarationSyntax ||
                     n is AccessorDeclarationSyntax ||
@@ -82,14 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return true;
                 }
 
-                var constructorInitializer = n as ConstructorInitializerSyntax;
-                if (constructorInitializer != null)
+                if (n is ConstructorInitializerSyntax constructorInitializer)
                 {
                     return constructorInitializer.ContainsInArgument(node.Span);
                 }
 
                 return false;
-            };
+            }
 
             if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
             {
@@ -262,11 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public static bool IsExpression(this SyntaxNode node)
         {
             return node is ExpressionSyntax;
-        }
-
-        public static bool IsErrorType(this ITypeSymbol type)
-        {
-            return type == null || type.Kind == SymbolKind.ErrorType;
         }
 
         public static bool IsObjectType(this ITypeSymbol type)

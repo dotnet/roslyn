@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -7,19 +7,20 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
+    <[UseExportProvider]>
     Public Class ExtractInterfaceViewModelTests
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsSameAsPassedIn() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -44,7 +45,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -58,7 +59,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -76,7 +77,7 @@ namespace Outer
     {
         class $$MyClass
         {
-            public void Foo()
+            public void Goo()
             {
             }
         }
@@ -96,7 +97,7 @@ namespace Outer
     {
         class $$MyClass<X, Y>
         {
-            public void Foo(X x, Y y)
+            public void Goo(X x, Y y)
             {
             }
         }
@@ -118,7 +119,7 @@ namespace Ns
 {
     class C$$
     {
-        public void Foo()
+        public void Goo()
         {
         }
     }
@@ -135,7 +136,7 @@ namespace Ns
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -149,7 +150,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -170,7 +171,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -192,7 +193,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 public class C$$
 {
-    public void Foo() { }
+    public void Goo() { }
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IC")
@@ -206,7 +207,7 @@ public class C$$
             Dim markup = <Text><![CDATA[
 public class C$$
 {
-    public void Foo() { }
+    public void Goo() { }
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IC")
@@ -221,7 +222,7 @@ public class C$$
             Dim markup = <Text><![CDATA[
 public class C$$
 {
-    public void Foo() { }
+    public void Goo() { }
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IC")
@@ -235,7 +236,7 @@ public class C$$
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -256,7 +257,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -271,7 +272,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 
@@ -291,7 +292,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -306,7 +307,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -322,7 +323,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -338,7 +339,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -354,7 +355,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -370,7 +371,7 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 class $$MyClass
 {
-    public void Foo()
+    public void Goo()
     {
     }
 }"]]></Text>
@@ -387,13 +388,13 @@ class $$MyClass
 using System;
 class $$MyClass
 {
-    public void Foo<T>(T t, System.Diagnostics.CorrelationManager v, ref int w, Nullable<System.Int32> x = 7, string y = "hi", params int[] z)
+    public void Goo<T>(T t, System.Diagnostics.CorrelationManager v, ref int w, Nullable<System.Int32> x = 7, string y = "hi", params int[] z)
     {
     }
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal("Foo<T>(T, CorrelationManager, ref int, [int?], [string], params int[])", viewModel.MemberContainers.Single().MemberName)
+            Assert.Equal("Goo<T>(T, CorrelationManager, ref int, [int?], [string], params int[])", viewModel.MemberContainers.Single().MemberName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -402,7 +403,7 @@ class $$MyClass
 using System;
 class $$MyClass
 {
-    public int Foo
+    public int Goo
     {
         get { return 5; }
         set { }
@@ -410,7 +411,7 @@ class $$MyClass
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
-            Assert.Equal("Foo", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
+            Assert.Equal("Goo", viewModel.MemberContainers.Where(Function(c) c.MemberSymbol.IsKind(SymbolKind.Property)).Single().MemberName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
@@ -431,20 +432,20 @@ class $$MyClass
             Dim markup = <Text><![CDATA[
 public class $$MyClass
 {
-    public void Foo(string s) { }
-    public void Foo(int i) { }
-    public void Foo(int i, string s) { }
-    public void Foo() { }
-    public void Foo(int i, int i2) { }
+    public void Goo(string s) { }
+    public void Goo(int i) { }
+    public void Goo(int i, string s) { }
+    public void Goo() { }
+    public void Goo(int i, int i2) { }
 }"]]></Text>
 
             Dim viewModel = Await GetViewModelAsync(markup, LanguageNames.CSharp, "IMyClass")
             Assert.Equal(5, viewModel.MemberContainers.Count)
-            Assert.Equal("Foo()", viewModel.MemberContainers.ElementAt(0).MemberName)
-            Assert.Equal("Foo(int)", viewModel.MemberContainers.ElementAt(1).MemberName)
-            Assert.Equal("Foo(int, int)", viewModel.MemberContainers.ElementAt(2).MemberName)
-            Assert.Equal("Foo(int, string)", viewModel.MemberContainers.ElementAt(3).MemberName)
-            Assert.Equal("Foo(string)", viewModel.MemberContainers.ElementAt(4).MemberName)
+            Assert.Equal("Goo()", viewModel.MemberContainers.ElementAt(0).MemberName)
+            Assert.Equal("Goo(int)", viewModel.MemberContainers.ElementAt(1).MemberName)
+            Assert.Equal("Goo(int, int)", viewModel.MemberContainers.ElementAt(2).MemberName)
+            Assert.Equal("Goo(int, string)", viewModel.MemberContainers.ElementAt(3).MemberName)
+            Assert.Equal("Goo(string)", viewModel.MemberContainers.ElementAt(4).MemberName)
         End Function
 
         Private Async Function GetViewModelAsync(markup As XElement,

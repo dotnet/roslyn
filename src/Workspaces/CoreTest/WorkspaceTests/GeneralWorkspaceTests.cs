@@ -8,7 +8,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class GeneralWorkspaceTests : WorkspaceTestBase
+    [UseExportProvider]
+    public class GeneralWorkspaceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
                 Assert.Null(originalDoc.FilePath);
 
-                var newPath = @"\foo\TestDocument.cs";
+                var newPath = @"\goo\TestDocument.cs";
                 var changedDoc = originalDoc.WithFilePath(newPath);
                 Assert.Equal(newPath, changedDoc.FilePath);
 

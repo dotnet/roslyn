@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Threading;
-using Roslyn.Utilities;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SerializableBytesTests
     {
         [Fact]
-        public void ReadableStreamTestReadAByteAtATime()
+        public async Task ReadableStreamTestReadAByteAtATime()
         {
             using (var expected = new MemoryStream())
             {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 expected.Position = 0;
-                using (var stream = SerializableBytes.CreateReadableStream(expected, CancellationToken.None))
+                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
                 {
                     Assert.Equal(expected.Length, stream.Length);
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadableStreamTestReadChunks()
+        public async Task ReadableStreamTestReadChunks()
         {
             using (var expected = new MemoryStream())
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 expected.Position = 0;
-                using (var stream = SerializableBytes.CreateReadableStream(expected, CancellationToken.None))
+                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
                 {
                     Assert.Equal(expected.Length, stream.Length);
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadableStreamTestReadRandomBytes()
+        public async Task ReadableStreamTestReadRandomBytes()
         {
             using (var expected = new MemoryStream())
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 expected.Position = 0;
-                using (var stream = SerializableBytes.CreateReadableStream(expected, CancellationToken.None))
+                using (var stream = await SerializableBytes.CreateReadableStreamAsync(expected, CancellationToken.None))
                 {
                     Assert.Equal(expected.Length, stream.Length);
 

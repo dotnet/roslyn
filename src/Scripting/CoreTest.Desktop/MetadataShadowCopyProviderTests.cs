@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     // TODO: clean up and move to portable tests
 
-    public class MetadataShadowCopyProviderTests : TestBase, IDisposable
+    public class MetadataShadowCopyProviderTests : TestBase
     {
         private readonly MetadataShadowCopyProvider _provider;
 
@@ -47,27 +47,27 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
         public void Errors()
         {
             Assert.Throws<ArgumentNullException>(() => _provider.NeedsShadowCopy(null));
-            Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy("c:foo.dll"));
+            Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy("c:goo.dll"));
             Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy("bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.NeedsShadowCopy(@"../bar.dll"));
 
             Assert.Throws<ArgumentNullException>(() => _provider.SuppressShadowCopy(null));
-            Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy("c:foo.dll"));
+            Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy("c:goo.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy("bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"../bar.dll"));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\foo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadataShadowCopy(null, MetadataImageKind.Assembly));
-            Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("c:foo.dll", MetadataImageKind.Assembly));
+            Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("c:goo.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy("bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"\bar.dll", MetadataImageKind.Assembly));
             Assert.Throws<ArgumentException>(() => _provider.GetMetadataShadowCopy(@"../bar.dll", MetadataImageKind.Assembly));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(@"c:\foo.dll", (MetadataImageKind)Byte.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadata(@"c:\goo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadata(null, MetadataImageKind.Assembly));
-            Assert.Throws<ArgumentException>(() => _provider.GetMetadata("c:foo.dll", MetadataImageKind.Assembly));
+            Assert.Throws<ArgumentException>(() => _provider.GetMetadata("c:goo.dll", MetadataImageKind.Assembly));
         }
 
         [Fact]
@@ -195,12 +195,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
             // This needs to be in different folder from referencesdir to cause the other code path 
             // to be triggered for NeedsShadowCopy method
-            var dir2 = Path.GetTempPath();
-            string dll2 = Path.Combine(dir2, "a2.dll");
-            File.WriteAllBytes(dll2, TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
+            var dir2 = Temp.CreateDirectory();
+            var dll2 = dir2.CreateFile("a2.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
 
             Assert.Equal(1, _provider.CacheSize);
-            var sc3a = _provider.GetMetadataShadowCopy(dll2, MetadataImageKind.Module);
+            var sc3a = _provider.GetMetadataShadowCopy(dll2.Path, MetadataImageKind.Module);
             Assert.Equal(2, _provider.CacheSize);
         }
 

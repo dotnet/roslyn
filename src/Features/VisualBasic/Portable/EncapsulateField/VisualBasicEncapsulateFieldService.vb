@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
     <ExportLanguageService(GetType(AbstractEncapsulateFieldService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEncapsulateFieldService
         Inherits AbstractEncapsulateFieldService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Async Function RewriteFieldNameAndAccessibility(originalFieldName As String,
                                                         makePrivate As Boolean,

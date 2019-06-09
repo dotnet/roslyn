@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -19,7 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public const string ColumnName = "suppressionstate";
         private static readonly string[] s_defaultFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable, ServicesVSResources.Suppressed };
-        private static readonly string[] s_defaultCheckedFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable };
+
+        [ImportingConstructor]
+        public SuppressionStateColumnDefinition()
+        {
+        }
 
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Suppression_State;
@@ -32,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static void SetDefaultFilter(IWpfTableControl tableControl)
         {
             // We want only the active diagnostics to show up in the error list by default.
-            var suppressionStateColumn = tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) as SuppressionStateColumnDefinition;
-            if (suppressionStateColumn != null)
+            if (tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) is SuppressionStateColumnDefinition suppressionStateColumn)
             {
                 tableControl.SetFilter(ColumnName, new ColumnHashSetFilter(suppressionStateColumn, excluded: ServicesVSResources.Suppressed));
             }

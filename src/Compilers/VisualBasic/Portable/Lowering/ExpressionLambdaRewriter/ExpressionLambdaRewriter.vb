@@ -7,6 +7,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -306,7 +307,7 @@ lSelect:
         Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
             Try
                 Return VisitExpressionWithoutStackGuard(node)
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 Throw New BoundTreeVisitor.CancelledByStackGuardException(ex, node)
             End Try
         End Function

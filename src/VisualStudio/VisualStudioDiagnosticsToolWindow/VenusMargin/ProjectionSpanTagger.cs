@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,11 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     internal class ProjectionSpanTaggerProvider : IViewTaggerProvider
     {
         public const string PropertyName = "Projection Tags";
+
+        [ImportingConstructor]
+        public ProjectionSpanTaggerProvider()
+        {
+        }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
@@ -49,8 +54,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
             public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                List<Span> allSpans;
-                if (!_textView.Properties.TryGetProperty(PropertyName, out allSpans))
+                if (!_textView.Properties.TryGetProperty(PropertyName, out List<Span> allSpans))
                 {
                     return null;
                 }

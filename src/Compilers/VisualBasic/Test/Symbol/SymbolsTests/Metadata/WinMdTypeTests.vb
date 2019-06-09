@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
                     End Class
                 </file>
            </compilation>
-            Dim comp = CreateWinRtCompilation(source)
+            Dim comp = CreateCompilationWithWinRt(source)
             Dim winmdlib = comp.ExternalReferences(0)
             Dim winmdNS = comp.GetReferencedAssemblySymbol(winmdlib)
 
@@ -63,7 +63,7 @@ End Class
                    ]]></file>
            </compilation>
 
-            Dim comp = CreateWinRtCompilation(source).AddReferences(AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference())
+            Dim comp = CreateCompilationWithWinRt(source).AddReferences(AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference())
 
             CompileAndVerify(comp, symbolValidator:=Sub(m)
                                                         Dim [module] = DirectCast(m, PEModuleSymbol)

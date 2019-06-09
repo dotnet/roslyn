@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Private ReadOnly _fxReferences As ImmutableArray(Of PortableExecutableReference)
 
         Friend Shared ReadOnly Instance As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
-            ImmutableArray.Create(TestReferences.NetFx.v4_0_30316_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core))
+            ImmutableArray.Create(TestReferences.NetFx.v4_0_30319_17626.mscorlib, TestReferences.NetFx.v4_0_30319.System, TestReferences.NetFx.v4_0_30319.System_Core))
 
         Friend Shared ReadOnly Instance40 As VisualBasicEditAndContinueTestHelpers = New VisualBasicEditAndContinueTestHelpers(
             ImmutableArray.Create(TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System_Core))

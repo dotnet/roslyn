@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitType), Shared]
     internal class UseImplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseImplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId);
 
@@ -26,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -38,14 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-
-                var implicitType = SyntaxFactory.IdentifierName("var")
-                                                .WithTriviaFrom(node);
-
-                editor.ReplaceNode(node, implicitType);
+                ReplaceTypeWithVar(editor, node);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
+        }
+
+        internal static void ReplaceTypeWithVar(SyntaxEditor editor, SyntaxNode node)
+        {
+            var implicitType = SyntaxFactory.IdentifierName("var")
+                                            .WithTriviaFrom(node);
+
+            editor.ReplaceNode(node, implicitType);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

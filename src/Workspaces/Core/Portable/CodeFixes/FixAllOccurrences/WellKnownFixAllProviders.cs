@@ -22,14 +22,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// operations present within these fixes are ignored.
         /// </remarks>
         public static FixAllProvider BatchFixer => BatchFixAllProvider.Instance;
-
-        /// <summary>
-        /// Default batch fix all provider for simplification fixers which only add Simplifier annotations to documents.
-        /// This provider batches all the simplifier annotation actions within a document into a single code action,
-        /// instead of creating separate code actions for each added annotation.
-        /// This fixer supports fixes for the following fix all scopes:
-        /// <see cref="FixAllScope.Document"/>, <see cref="FixAllScope.Project"/> and <see cref="FixAllScope.Solution"/>.
-        /// </summary>
-        internal static FixAllProvider BatchSimplificationFixer => BatchSimplificationFixAllProvider.Instance;
     }
 }

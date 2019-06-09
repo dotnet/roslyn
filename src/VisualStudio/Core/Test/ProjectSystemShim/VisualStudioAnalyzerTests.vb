@@ -1,24 +1,29 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
+    <UseExportProvider>
     Public Class VisualStudioAnalyzerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using analyzer = New VisualStudioAnalyzer("C:\Foo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
-                Dim reference1 = analyzer.GetReference()
-                Dim reference2 = analyzer.GetReference()
+            Using workspace = New TestWorkspace()
+                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", Nothing, Nothing, workspace, Nothing)
+                    Dim reference1 = analyzer.GetReference()
+                    Dim reference2 = analyzer.GetReference()
 
-                Assert.True(Object.ReferenceEquals(reference1, reference2))
+                    Assert.True(Object.ReferenceEquals(reference1, reference2))
+                End Using
             End Using
         End Sub
 
@@ -31,15 +36,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-            Using analyzer = New VisualStudioAnalyzer(file, New MockVsFileChangeEx(), hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, New MockAnalyzerAssemblyLoader(), LanguageNames.VisualBasic)
-                Dim reference = analyzer.GetReference()
-                reference.GetAnalyzers(LanguageNames.VisualBasic)
+            Using workspace = New TestWorkspace()
+                Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), workspace, LanguageNames.VisualBasic)
+                    Dim reference = analyzer.GetReference()
+                    reference.GetAnalyzers(LanguageNames.VisualBasic)
 
-                RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                End Using
+
+                IO.File.Delete(file)
             End Using
-
-            IO.File.Delete(file)
         End Sub
 
         Private Class EventHandlers

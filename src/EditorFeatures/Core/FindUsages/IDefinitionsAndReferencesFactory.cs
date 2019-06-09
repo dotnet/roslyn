@@ -5,13 +5,16 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -24,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory)), Shared]
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
+        [ImportingConstructor]
+        public DefaultDefinitionsAndReferencesFactory()
+        {
+        }
+
         /// <summary>
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
@@ -39,33 +47,36 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     {
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
-            Solution solution,
+            Project project,
             bool includeHiddenLocations)
         {
             // Because we're passing in 'false' for 'includeClassifiedSpans', this won't ever have
             // to actually do async work.  This is because the only asynchrony is when we are trying
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
-            return ToDefinitionItemAsync(definition, solution, includeHiddenLocations,
-                includeClassifiedSpans: false, cancellationToken: CancellationToken.None).Result;
+            return ToDefinitionItemAsync(
+                definition, project, includeHiddenLocations, includeClassifiedSpans: false,
+                options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
-            Solution solution,
+            Project project,
             bool includeHiddenLocations,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(definition, solution,
-                includeHiddenLocations, includeClassifiedSpans: true, cancellationToken: cancellationToken);
+            return ToDefinitionItemAsync(definition, project,
+                includeHiddenLocations, includeClassifiedSpans: true,
+                options, cancellationToken);
         }
-
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
-            Solution solution,
+            Project project,
             bool includeHiddenLocations,
             bool includeClassifiedSpans,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // Ensure we're working with the original definition for the symbol. I.e. When we're 
@@ -81,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
-                showMetadataSymbolsWithoutReferences: false);
+                options, showMetadataSymbolsWithoutReferences: false);
 
             var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
 
@@ -97,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, nameDisplayParts, solution, 
+                            tags, displayParts, nameDisplayParts, project,
                             definition, properties, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
@@ -108,12 +119,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             continue;
                         }
 
-                        var document = solution.GetDocument(location.SourceTree);
+                        var document = project.Solution.GetDocument(location.SourceTree);
                         if (document != null)
                         {
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
-                                : await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                                     document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
@@ -179,10 +190,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
 
-            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.ImplementAbstractClass
                 context.Diagnostics);
         }
 
-        // internal for testing purposes.
-        internal static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
+        private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName)
         {
             return FeaturesResources.Implement_Abstract_Class + ";" +
                 assemblyName + ";" +

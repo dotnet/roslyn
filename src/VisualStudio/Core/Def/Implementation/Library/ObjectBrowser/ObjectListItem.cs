@@ -8,6 +8,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract class ObjectListItem
     {
         private readonly ProjectId _projectId;

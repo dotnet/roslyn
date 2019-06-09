@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -96,14 +97,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         {
             var initial =
 @"class C {
-    public void Foo() {}     
+    public void Goo() {}     
     public event EventHandler MyEvent;
 }";
 
             var final =
 @"class C {
     public event EventHandler MyEvent;
-    public void Foo() {}     
+    public void Goo() {}     
 }";
             await CheckAsync(initial, final);
         }
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         {
             var initial =
 @"class C  {
-    public void Foo() {}     
+    public void Goo() {}     
     public event EventHandler Event
     {
         remove { }
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         add { }
     }
 
-    public void Foo() {}     
+    public void Goo() {}     
 }";
             await CheckAsync(initial, final);
         }
@@ -142,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         {
             var initial =
 @"class C  {
-    public void Foo() {}     
-    public static int operator +(Foo<T> a, int b)
+    public void Goo() {}     
+    public static int operator +(Goo<T> a, int b)
     {
         return 1;
     }
@@ -151,11 +152,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
             var final =
 @"class C  {
-    public static int operator +(Foo<T> a, int b)
+    public static int operator +(Goo<T> a, int b)
     {
         return 1;
     }
-    public void Foo() {}     
+    public void Goo() {}     
 }";
             await CheckAsync(initial, final);
         }
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         {
             var initial =
 @"class C  {
-    public void Foo() {}     
+    public void Goo() {}     
     public T this[int i]
     {
         get
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         }
     }
 
-    public void Foo() {}     
+    public void Goo() {}     
 }";
             await CheckAsync(initial, final);
         }
@@ -198,15 +199,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         {
             var initial =
 @"class C  {
-    public ~Foo() {}        
+    public ~Goo() {}        
     enum Days {Sat, Sun};        
-    public Foo() {}  
+    public Goo() {}  
 }";
 
             var final =
 @"class C  {
-    public ~Foo() {}        
-    public Foo() {}  
+    public Goo() {}  
+    public ~Goo() {}        
     enum Days {Sat, Sun};        
 }";
             await CheckAsync(initial, final);
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"class C  {}
 interface I
 {
-   void Foo();
+   void Goo();
    int Property { get; set; }
    event EventHandler Event;
 }";
@@ -230,7 +231,7 @@ interface I
 {
    event EventHandler Event;
    int Property { get; set; }
-   void Foo();
+   void Goo();
 }";
             await CheckAsync(initial, final);
         }
@@ -1075,15 +1076,16 @@ interface I
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
                         {
-                            object $$foo;
+                            object $$goo;
                         }
                     </Submission>
                 </Workspace> "),
@@ -1095,22 +1097,13 @@ interface I
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new OrganizeDocumentCommandHandler(workspace.GetService<Host.IWaitIndicator>());
-                var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                };
+                var handler = new OrganizeDocumentCommandHandler();
 
-                var state = handler.GetCommandState(new Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
-                delegatedToNext = false;
+                var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
+                Assert.True(state.IsUnspecified);
 
-                state = handler.GetCommandState(new Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+                state = handler.GetCommandState(new OrganizeDocumentCommandArgs(textView, textView.TextBuffer));
+                Assert.True(state.IsUnspecified);
             }
         }
     }

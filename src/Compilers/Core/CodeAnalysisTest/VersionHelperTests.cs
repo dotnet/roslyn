@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var now = DateTime.Now;
             int days, seconds;
-            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+            VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
             var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(3, 2, 65535, 65535));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            Assert.Equal(days, version.Build); 
+            Assert.Equal(days, version.Build);
             Assert.Equal(seconds, version.Revision);
 
             version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(1, 2, 3, 65535));
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var expected = new Version(0, 0, 0, 0);
             Version version;
             Assert.False(VersionHelper.TryParse("", out version));
-            Assert.Equal(expected,version);
+            Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse(null, out version));
             Assert.Equal(expected, version);
             Assert.False(VersionHelper.TryParse("a", out version));

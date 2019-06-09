@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class FromKeywordRecommenderTests
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterFromTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Foo From |</ClassDeclaration>, "From")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoneAfterWith2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Foo With |</ClassDeclaration>, "From")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -170,11 +170,11 @@ Imports System.Linq
  
 Module Program
     Sub Main(args As String())
-        Dim y = New Foo() |
+        Dim y = New Goo() |
     End Sub
 End Module
  
-Class Foo
+Class Goo
 End Class
                        </File>
 
@@ -215,6 +215,22 @@ Class C
 End Class</File>, "From")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<File>Imports System.Collections.Generic
+                                             
+Class C
+    Implements IEnumerable(Of Integer)
+
+    Public Sub Add(i As Integer)
+    End Sub
+
+    Dim b = New C _ ' Test
+|
+End Class</File>, "From")
+        End Function
+
         <WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromForTypeInheritingCollectionInitializerPatternTest() As Task
@@ -238,7 +254,7 @@ Public Class DerivedSupportsAdd
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class
@@ -271,7 +287,7 @@ Public Class DerivedSupportsAdd
 End Class
 
 Class Program
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class
@@ -302,7 +318,7 @@ End Class
 Public Class DerivedSupportsAdd
     Inherits SupportsAdd
 
-    Sub Foo()
+    Sub Goo()
         Dim x = New DerivedSupportsAdd |
     End Sub
 End Class</File>

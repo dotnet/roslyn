@@ -15,19 +15,24 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal class PopulateSwitchCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds 
+        [ImportingConstructor]
+        public PopulateSwitchCodeFixProvider()
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         FeaturesResources.Add_default_case,
-                        c => FixAsync(document, diagnostic, 
+                        c => FixAsync(document, diagnostic,
                             addCases: false, addDefaultCase: true,
                             cancellationToken: c)),
                     context.Diagnostics);
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     context.Diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> FixAsync(
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         private void FixOneDiagnostic(
-            Document document, SyntaxEditor editor, 
+            Document document, SyntaxEditor editor,
             SemanticModel model, Diagnostic diagnostic,
             bool addCases, bool addDefaultCase,
             bool onlyOneDiagnostic,
@@ -124,8 +129,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(cancellationToken);
-            var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-            var switchStatement = (ISwitchStatement)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
+            var switchStatement = (ISwitchOperation)model.GetOperation(switchNode, cancellationToken);
             var enumType = switchStatement.Value.Type;
 
             var generator = editor.Generator;
@@ -191,7 +195,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             switchNode = newSwitchNode;
         }
 
-        private int InsertPosition(ISwitchStatement switchStatement)
+        private int InsertPosition(ISwitchOperation switchStatement)
         {
             // If the last section has a default label, then we want to be above that.
             // Otherwise, we just get inserted at the end.
@@ -210,16 +214,16 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         }
 
         protected override Task FixAllAsync(
-            Document document, 
-            ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, 
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
             // If the user is performing a fix-all, then fix up all the issues we see. i.e.
             // add missing cases and missing 'default' cases for any switches we reported an
             // issue on.
-            return FixWithEditorAsync(document, editor, diagnostics, 
-                addCases: true, addDefaultCase: true, 
+            return FixWithEditorAsync(document, editor, diagnostics,
+                addCases: true, addDefaultCase: true,
                 cancellationToken: cancellationToken);
         }
 

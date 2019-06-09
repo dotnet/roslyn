@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 
 namespace Roslyn.Utilities
 {
@@ -34,7 +32,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
         private static readonly List<Type> s_types = new List<Type>();
-        private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
+        private static readonly List<Func<ObjectReader, IObjectWritable>> s_typeReaders = new List<Func<ObjectReader, IObjectWritable>>();
 
         /// <summary>
         /// Gets an immutable copy of the state of this binder.  This copy does not need to be
@@ -53,7 +51,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
+        public static void RegisterTypeReader(Type type, Func<ObjectReader, IObjectWritable> typeReader)
         {
             lock (s_gate)
             {

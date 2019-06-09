@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
@@ -89,26 +90,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerDisplay_ParseSimpleMemberName()
         {
-            Test_ParseSimpleMemberName("foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("foo  ", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo   ", name: "foo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo  ", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo   ", name: "goo", callable: false, nq: false);
 
-            Test_ParseSimpleMemberName("foo()", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName("\nfoo (\r\n)", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName(" foo ( \t) ", name: "foo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("goo()", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("\ngoo (\r\n)", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName(" goo ( \t) ", name: "goo", callable: true, nq: false);
 
-            Test_ParseSimpleMemberName("foo,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo  ,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(),nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   ,nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   , nq", name: "foo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("goo,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo  ,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(),nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   ,nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   , nq", name: "goo", callable: true, nq: true);
 
-            Test_ParseSimpleMemberName("foo,  nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(,nq", name: "foo(", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo),nq", name: "foo)", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ( ,nq", name: "foo (", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ) ,nq", name: "foo )", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo,  nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(,nq", name: "goo(", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo),nq", name: "goo)", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ( ,nq", name: "goo (", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ) ,nq", name: "goo )", callable: false, nq: true);
 
             Test_ParseSimpleMemberName(",nq", name: "", callable: false, nq: true);
             Test_ParseSimpleMemberName("  ,nq", name: "", callable: false, nq: true);
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10816")]
         public void DebuggerProxy_Recursive()
         {
             string str;
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             // TODO: better overflow handling
-            Assert.Equal("!<Stack overflow while evaluating object>", str);
+            Assert.Equal(ScriptingResources.StackOverflowWhileEvaluating, str);
         }
 
         [Fact]
@@ -675,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void DebuggerProxy_FrameworkTypes_Lazy()
         {
             var obj = new Lazy<int[]>(() => new int[] { 1, 2 }, LazyThreadSafetyMode.None);
@@ -707,11 +708,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        public void TaskMethod()
+        private void TaskMethod()
         {
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new System.Threading.Tasks.Task(TaskMethod);
@@ -753,17 +754,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new DiagnosticBag();
             obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_AbstractAndExtern, "bar"), NoLocation.Singleton);
-            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "foo"), NoLocation.Singleton);
+            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "goo"), NoLocation.Singleton);
 
             using (new EnsureEnglishUICulture())
             {
                 var str = s_formatter.FormatObject(obj, SingleLineOptions);
-                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier }", str);
+                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier }", str);
 
                 str = s_formatter.FormatObject(obj, SeparateLinesOptions);
                 AssertMembers(str, "DiagnosticBag(Count = 2)",
                      ": error CS0180: 'bar' cannot be both extern and abstract",
-                     ": error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier"
+                     ": error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier"
                 );
             }
         }

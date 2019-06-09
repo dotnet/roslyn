@@ -30,11 +30,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newDocument = await DetermineNewDocumentAsync(item, text, cancellationToken).ConfigureAwait(false);
-
+            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -58,46 +56,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Collapse(newText, changes.ToList());
+            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
 
             return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
         }
 
-        private TextChange Collapse(SourceText newText, List<TextChange> changes)
+        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            if (changes.Count == 0)
-            {
-                return new TextChange(new TextSpan(0, 0), "");
-            }
-            else if (changes.Count == 1)
-            {
-                return changes[0];
-            }
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            // The span we want to replace goes from the start of the first span to the end of
-            // the  last span.
-            var totalOldSpan = TextSpan.FromBounds(changes.First().Span.Start, changes.Last().Span.End);
-
-            // We figure out the text we're replacing with by actually just figuring out the
-            // new span in the newText and grabbing the text out of that.  The newSpan will
-            // start from the same position as the oldSpan, but it's length will be the old
-            // span's length + all the deltas we accumulate through each text change.  i.e.
-            // if the first change adds 2 characters and the second change adds 4, then 
-            // the newSpan will be 2+4=6 characters longer than the old span.
-            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
-            var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
-
-            return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
-        }
-
-        private async Task<Document> DetermineNewDocumentAsync(CompletionItem completionItem, SourceText sourceText, CancellationToken cancellationToken)
-        {
             // The span we're going to replace
-            var line = sourceText.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
-
-            //var sourceText = textSnapshot.AsText();
-            var document = sourceText.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(document);
+            var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
 
             // Annotate the line we care about so we can find it after adding usings
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -106,20 +75,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             document = document.WithSyntaxRoot(annotatedRoot);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
+            if (memberContainingDocument == null)
+            {
+                // Generating the new document failed because we somehow couldn't resolve
+                // the underlying symbol's SymbolKey. At this point, we won't be able to 
+                // make any changes, so just return the document we started with.
+                return document;
+            }
 
             var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
 
-            var finalText = insertionRoot.GetText(sourceText.Encoding).Replace(destinationSpan, insertionText.Trim());
+            var finalText = insertionRoot.GetText(text.Encoding)
+                .Replace(destinationSpan, insertionText.Trim());
 
             document = document.WithText(finalText);
             var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GenerateMemberAndUsingsAsync(
@@ -132,10 +109,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var codeGenService = document.GetLanguageService<ICodeGenerationService>();
 
             // Resolve member and type in our new, forked, solution
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
-            var overriddenMember = symbols.First();
+            var overriddenMember = symbols.FirstOrDefault();
+
+            if (overriddenMember == null)
+            {
+                // Unfortunately, SymbolKey resolution failed. Bail.
+                return null;
+            }
 
             // CodeGenerationOptions containing before and after
             var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
@@ -146,15 +129,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document memberContainingDocument = null;
             if (generatedMember.Kind == SymbolKind.Method)
             {
-                memberContainingDocument = codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Property)
             {
-                memberContainingDocument = codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Event)
             {
-                memberContainingDocument = codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
             }
 
             return memberContainingDocument;
@@ -166,9 +149,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // In order to produce to correct undo stack, completion lets the commit
                 // character enter the buffer. That means we can get ambiguity.
-                // partial class C { partial void foo() }
-                // partial class C { partial foo($$
-                // Committing with the open paren will create a second, ambiguous foo.
+                // partial class C { partial void goo() }
+                // partial class C { partial goo($$
+                // Committing with the open paren will create a second, ambiguous goo.
                 // We'll try to prefer the symbol whose declaration doesn't intersect our position
                 var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
                 if (nonIntersectingMember != null)
@@ -191,15 +174,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // DevDiv 958235: 
             //
-            // void foo()
+            // void goo()
             // {
             // }
             // override $$
             //
-            // If our text edit includes the trailing trivia of the close brace of foo(),
+            // If our text edit includes the trailing trivia of the close brace of goo(),
             // that token will be reconstructed. The ensuing tree diff will then count
             // the { } as replaced even though we didn't want it to. If the user
-            // has collapsed the outline for foo, that means we'll edit the outlined 
+            // has collapsed the outline for goo, that means we'll edit the outlined 
             // region and weird stuff will happen. Therefore, we'll start with the first
             // token on the line in order to leave the token and its trivia alone.
             var firstToken = insertionRoot.FindToken(line.GetFirstNonWhitespacePosition().Value);
@@ -244,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: s_commitRules, 
+                commitCharacterRules: s_commitRules,
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 

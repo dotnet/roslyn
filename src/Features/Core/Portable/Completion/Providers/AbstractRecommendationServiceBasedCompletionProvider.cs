@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 options,
                 cancellationToken).ConfigureAwait(false);
 
-            // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
-            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
+            // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also ignore nullability for purposes of preselection
+            // -- if a method is returning a string? but we've inferred we're assigning to a string or vice versa we'll still count those as the same.
+            return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s), AllNullabilityIgnoringSymbolComparer.Instance) && !IsInstrinsic(s));
         }
 
         private ITypeSymbol GetSymbolType(ISymbol symbol)
@@ -58,19 +59,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(string displayText, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            string displayText, string displayTextSuffix, string insertionText,
+            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
-            if (preselect)
+            if (context.IsRightSideOfNumericType)
+            {
+                rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
+            }
+            else if (preselect)
             {
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 symbols: symbols,
                 rules: rules,
                 contextPosition: context.Position,
@@ -116,10 +124,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var info in totalSymbols)
             {
-                var bestSymbols = info.Item3.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                var bestSymbols = info.symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
                 if (bestSymbols.Any())
                 {
-                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.Item2.SemanticModel, cancellationToken).ConfigureAwait(false);
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }
 

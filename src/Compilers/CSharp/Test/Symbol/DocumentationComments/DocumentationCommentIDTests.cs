@@ -21,7 +21,7 @@ using A = System.String;
 
 class C { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
@@ -39,7 +39,7 @@ class C
     C[] f;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
             var symbol = field.Type;
             Assert.Equal(SymbolKind.ArrayType, symbol.Kind);
@@ -54,7 +54,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.SourceAssembly;
             Assert.Equal(SymbolKind.Assembly, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
@@ -69,7 +69,7 @@ class C
     dynamic f;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
             var symbol = field.Type;
             Assert.Equal(SymbolKind.DynamicType, symbol.Kind);
@@ -84,9 +84,9 @@ class C : M.N.O
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var symbol = type.BaseType;
+            var symbol = type.BaseType();
             Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
             Assert.Equal("!:M.N.O", symbol.GetDocumentationCommentId());
         }
@@ -100,7 +100,7 @@ class C
     event System.Action E;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
             Assert.Equal(SymbolKind.Event, symbol.Kind);
             Assert.Equal("E:C.E", symbol.GetDocumentationCommentId());
@@ -115,7 +115,7 @@ class C
     int f;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
             Assert.Equal(SymbolKind.Field, symbol.Kind);
             Assert.Equal("F:C.f", symbol.GetDocumentationCommentId());
@@ -134,7 +134,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<GotoStatementSyntax>().Single().Expression;
@@ -155,7 +155,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -175,7 +175,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             Assert.Equal(SymbolKind.Method, symbol.Kind);
             Assert.Equal("M:C.M", symbol.GetDocumentationCommentId());
@@ -189,7 +189,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.SourceModule;
             Assert.Equal(SymbolKind.NetModule, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
@@ -203,7 +203,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(SymbolKind.NamedType, symbol.Kind);
             Assert.Equal("T:C", symbol.GetDocumentationCommentId());
@@ -217,7 +217,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamespaceSymbol>("System");
             Assert.Equal(SymbolKind.Namespace, symbol.Kind);
             Assert.Equal("N:System", symbol.GetDocumentationCommentId());
@@ -231,7 +231,7 @@ class C
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace;
             Assert.Equal(SymbolKind.Namespace, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
@@ -248,7 +248,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
             Assert.Equal(SymbolKind.Parameter, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
@@ -263,7 +263,7 @@ class C
     unsafe int* f;
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
             var symbol = field.Type;
             Assert.Equal(SymbolKind.PointerType, symbol.Kind);
@@ -279,7 +279,7 @@ class C
     int P { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PropertySymbol>("P");
             Assert.Equal(SymbolKind.Property, symbol.Kind);
             Assert.Equal("P:C.P", symbol.GetDocumentationCommentId());
@@ -299,7 +299,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<FromClauseSyntax>().Single();
@@ -316,7 +316,7 @@ class C<T>
 {
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var symbol = type.TypeParameters.Single();
             Assert.Equal(SymbolKind.TypeParameter, symbol.Kind);
@@ -342,7 +342,7 @@ class C<T> : I<T>
     event System.Action I<T>.E { add { } remove { } }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMembersUnordered().OfType<MethodSymbol>().Single(m => m.MethodKind == MethodKind.ExplicitInterfaceImplementation);
             var property = type.GetMembersUnordered().OfType<PropertySymbol>().Single();
@@ -362,7 +362,7 @@ class C
     void M2(int x, __arglist) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method1 = type.GetMember<MethodSymbol>("M1");
             var method2 = type.GetMember<MethodSymbol>("M2");
@@ -388,7 +388,7 @@ class A<TA1, TA2>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var method = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<NamedTypeSymbol>("B").GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             Assert.Equal("M:A`2.B`2.C`2.M``2(`0,`1,`2,`3,`4,`5,``0,``1)", method.GetDocumentationCommentId());
         }

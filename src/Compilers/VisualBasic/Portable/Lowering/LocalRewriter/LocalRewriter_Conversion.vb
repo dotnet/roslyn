@@ -1,19 +1,32 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
 
             If Not _inExpressionLambda AndAlso Conversions.IsIdentityConversion(node.ConversionKind) Then
-                Return Visit(node.Operand)
+
+                Dim result = DirectCast(Visit(node.Operand), BoundExpression)
+
+                If node.ExplicitCastInCode AndAlso IsFloatingPointExpressionOfUnknownPrecision(result) Then
+                    ' To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
+                    ' It means that explicit casts to CDbl() or CSng() should be preserved on the node.
+                    ' If original conversion has become something else with unknown precision, add an explicit identity cast.
+                    result = node.Update(
+                        result,
+                        ConversionKind.Identity,
+                        checked:=False,
+                        explicitCastInCode:=True,
+                        constantValueOpt:=node.ConstantValueOpt,
+                        extendedInfoOpt:=node.ExtendedInfoOpt,
+                        type:=node.Type)
+                End If
+
+                Return result
             End If
 
             If node.Operand.Kind = BoundKind.UserDefinedConversion Then
@@ -99,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf (node.ConversionKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
 
-            ElseIf (node.ConversionKind And (ConversionKind.Tuple Or ConversionKind.Nullable)) = conversionKind.Tuple Then
+            ElseIf (node.ConversionKind And (ConversionKind.Tuple Or ConversionKind.Nullable)) = ConversionKind.Tuple Then
                 returnValue = RewriteTupleConversion(node)
 
             Else
@@ -113,6 +126,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return returnValue
         End Function
 
+        Private Shared Function IsFloatingPointExpressionOfUnknownPrecision(rewrittenNode As BoundExpression) As Boolean
+            If rewrittenNode Is Nothing Then
+                Return False
+            End If
+
+            ' Note: no special handling for node having a constant value because it cannot reach here
+
+            Dim specialType = rewrittenNode.Type.SpecialType
+            If specialType <> SpecialType.System_Double AndAlso specialType <> SpecialType.System_Single Then
+                Return False
+            End If
+
+            Select Case rewrittenNode.Kind
+                ' ECMA-335   I.12.1.3 Handling of floating-point data types.
+                '    ... the value might be retained in the internal representation
+                '   for future use, if it is reloaded from the storage location without having been modified ...
+                '
+                ' Unfortunately, the above means that precision is not guaranteed even when loading from storage.
+                '
+                ' Case BoundKind.FieldAccess
+                ' Case BoundKind.ArrayAccess
+                '    Return True
+
+                Case BoundKind.Sequence
+                    Dim sequence = DirectCast(rewrittenNode, BoundSequence)
+                    Return IsFloatingPointExpressionOfUnknownPrecision(sequence.ValueOpt)
+
+                Case BoundKind.Conversion
+                    ' lowered conversions have definite precision unless they are implicit identity casts
+                    Dim conversion = DirectCast(rewrittenNode, BoundConversion)
+                    Return conversion.ConversionKind = ConversionKind.Identity AndAlso Not conversion.ExplicitCastInCode
+            End Select
+
+            ' it is a float/double expression and we have no idea ...
+            Return True
+        End Function
+
         Private Function RewriteTupleConversion(node As BoundConversion) As BoundExpression
             Dim syntax = node.Syntax
             Dim rewrittenOperand = VisitExpression(node.Operand)
@@ -124,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function MakeTupleConversion(syntax As SyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, convertedElements As BoundConvertedTupleElements) As BoundExpression
             If destinationType.IsSameTypeIgnoringAll(rewrittenOperand.Type) Then
                 'binder keeps some tuple conversions just for the purpose of semantic model
-                'otherwisw they are as good as identity conversions
+                'otherwise they are as good as identity conversions
 
                 Return rewrittenOperand
             End If
@@ -710,6 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       Nothing,
                                                                       operatorCall.ReceiverOpt,
                                                                       ImmutableArray.Create(inputToOperatorMethod),
+                                                                      Nothing,
                                                                       operatorCall.ConstantValueOpt,
                                                                       isLValue:=operatorCall.IsLValue,
                                                                       suppressObjectClone:=operatorCall.SuppressObjectClone,
@@ -1244,19 +1295,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteFloatingToIntegralConversion(node As BoundConversion, typeFrom As TypeSymbol, underlyingTypeTo As TypeSymbol) As BoundExpression
             Debug.Assert(typeFrom.IsFloatingType() AndAlso underlyingTypeTo.IsIntegralType())
+            Debug.Assert(Not _inExpressionLambda)
             Dim result As BoundExpression = node
+            Dim operand = node.Operand
 
-            Dim mathRound As MethodSymbol
+            If operand.Kind = BoundKind.Call Then
+                Dim callOperand = DirectCast(operand, BoundCall)
+                If IsFloatingTruncation(callOperand) Then
+                    ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
+                    Return New BoundConversion(node.Syntax, callOperand.Arguments(0), node.ConversionKind, node.Checked, node.ExplicitCastInCode, node.Type)
+                ElseIf ReturnsWholeNumberDouble(callOperand) Then
+                    ' CInt(Math.Floor(number)) and the like can omit rounding the result of Floor, which is already a whole number
+                    Return node
+                End If
+            End If
+
             ' Call Math.Round method to enforce VB style rounding.
-
             Const memberId As WellKnownMember = WellKnownMember.System_Math__RoundDouble
-            mathRound = DirectCast(Compilation.GetWellKnownTypeMember(memberId), MethodSymbol)
+            Dim mathRound As MethodSymbol = DirectCast(Compilation.GetWellKnownTypeMember(memberId), MethodSymbol)
 
             If Not ReportMissingOrBadRuntimeHelper(node, memberId, mathRound) Then
                 ' If we got here and passed badness check, it should be safe to assume that we have 
                 ' a "good" symbol for Double type
-
-                Dim operand = node.Operand
 
 #If DEBUG Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -1282,6 +1342,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return result
+        End Function
+
+        ''' <summary>
+        ''' Is this a floating-point operation that results in a whole number, rendering a following rounding operation redundant?
+        ''' </summary>
+        Private Function ReturnsWholeNumberDouble(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Ceiling".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__CeilingDouble)
+            ElseIf "Floor".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__FloorDouble)
+            ElseIf "Round".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)
+            ElseIf "Int".Equals(methodName) Then
+                Select Case node.Type.SpecialType
+                    Case SpecialType.System_Single
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__IntSingle)
+                    Case SpecialType.System_Double
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble)
+                    Case Else
+                        Return False
+                End Select
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Is this a floating-point truncation operation that would be redundant if followed by a truncation to an integral type?
+        ''' </summary>
+        Private Function IsFloatingTruncation(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Fix".Equals(methodName) Then
+                Select Case node.Type.SpecialType
+                    Case SpecialType.System_Single
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle)
+                    Case SpecialType.System_Double
+                        Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble)
+                    Case Else
+                        Return False
+                End Select
+            ElseIf "Truncate".Equals(methodName) Then
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__TruncateDouble)
+            End If
+
+            Return False
         End Function
 
 #End Region

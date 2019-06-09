@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -68,15 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return synthesizedGlobalMethod.ContainingPrivateImplementationDetailsType;
             }
 
-            if (!this.IsDefinition)
-            {
-                PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-                return moduleBeingBuilt.Translate(this.ContainingType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                  diagnostics: context.Diagnostics);
-            }
+            NamedTypeSymbol containingType = this.ContainingType;
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            return this.ContainingType;
+            return moduleBeingBuilt.Translate(containingType,
+                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                diagnostics: context.Diagnostics,
+                needDeclaration: this.IsDefinition);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind == RefKind.Ref;
+                return this.RefKind.IsManagedReference();
             }
         }
 
@@ -243,9 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(((Cci.IMethodReference)this).AsGenericMethodInstanceReference != null);
 
-            foreach (var arg in this.TypeArguments)
+            foreach (var arg in this.TypeArgumentsWithAnnotations)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.Type,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }
@@ -570,23 +570,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
-        {
-            get
-            {
-                return GetReturnValueCustomAttributesToEmit();
-            }
-        }
-
-        private IEnumerable<CSharpAttributeData> GetReturnValueCustomAttributesToEmit()
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
 
-            ImmutableArray<CSharpAttributeData> userDefined;
+            ImmutableArray<CSharpAttributeData> userDefined = this.GetReturnTypeAttributes();
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
-
-            userDefined = this.GetReturnTypeAttributes();
-            this.AddSynthesizedReturnTypeAttributes(ref synthesized);
+            this.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.

@@ -11,6 +11,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];
-                if ((object)property.Type != null && property.Type.SpecialType == SpecialType.System_String &&
+                if (property.TypeWithAnnotations.HasType && property.Type.SpecialType == SpecialType.System_String &&
                     property.DeclaredAccessibility == Accessibility.Public && property.GetMemberArity() == 0 &&
                     (object)property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public)
                 {

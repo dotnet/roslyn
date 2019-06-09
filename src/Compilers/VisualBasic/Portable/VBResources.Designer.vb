@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBResources", GetType(VBResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -1369,6 +1368,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument &apos;{0}&apos; is used out-of-position but is followed by an unnamed argument.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadNonTrailingNamedArgument() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadNonTrailingNamedArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Nullable types are not allowed in conditional compilation expressions..
         '''</summary>
         Friend ReadOnly Property ERR_BadNullTypeInCCExpression() As String
@@ -1784,7 +1792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        '''  Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         '''</summary>
         Friend ReadOnly Property ERR_CannotEmbedWithoutPdb() As String
             Get
@@ -2365,6 +2373,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ComClassReservedDispIdZero1() As String
             Get
                 Return ResourceManager.GetString("ERR_ComClassReservedDispIdZero1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
+        '''</summary>
+        Friend ReadOnly Property ERR_CommentsAfterLineContinuationNotAvailable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CommentsAfterLineContinuationNotAvailable1", resourceCulture)
             End Get
         End Property
         
@@ -3027,7 +3044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, or &apos;Protected Friend&apos; can be specified..
+        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; can be specified..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicateAccessCategoryUsed() As String
             Get
@@ -4251,11 +4268,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Named argument expected..
+        '''  Looks up a localized string similar to Named argument expected. Please use language version {0} or greater to use non-trailing named arguments..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedNamedArgument() As String
             Get
                 Return ResourceManager.GetString("ERR_ExpectedNamedArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Named argument expected..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedNamedArgumentInAttributeList() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedNamedArgumentInAttributeList", resourceCulture)
             End Get
         End Property
         
@@ -5153,7 +5179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be nullable or a reference type..
+        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be a nullable value type, a reference type, or an unconstrained generic type..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalCondTypeInIIF() As String
             Get
@@ -5919,6 +5945,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1}) from assembly &apos;{2}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidDebugInfo() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Invalid debug information format: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_InvalidDebugInformationFormat() As String
@@ -6077,6 +6112,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidHandles() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidHandles", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid hash algorithm name: &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidHashAlgorithmName() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidHashAlgorithmName", resourceCulture)
             End Get
         End Property
         
@@ -6775,7 +6819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Line continuation character &apos;_&apos; must be preceded by at least one white space and must be the last character on the line..
+        '''  Looks up a localized string similar to The line continuation character &apos;_&apos; must be preceded by at least one white space and it must be followed by a comment or the &apos;_&apos; must be the last character on the line..
         '''</summary>
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
@@ -7387,6 +7431,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type parameter &apos;{0}&apos; can only have one constraint that is a class..
         '''</summary>
         Friend ReadOnly Property ERR_MultipleClassConstraints1() As String
@@ -7617,6 +7670,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NamedArgAlsoOmitted3() As String
             Get
                 Return ResourceManager.GetString("ERR_NamedArgAlsoOmitted3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation..
+        '''</summary>
+        Friend ReadOnly Property ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation() As String
+            Get
+                Return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation", resourceCulture)
             End Get
         End Property
         
@@ -8116,6 +8178,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoNetModuleOutputWhenRefOutOrRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Member &apos;{0}&apos; cannot be initialized in an object initializer expression because it is not a field or property..
         '''</summary>
         Friend ReadOnly Property ERR_NonFieldPropertyAggrMemberInit1() As String
@@ -8184,6 +8255,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoPIAAttributeMissing2() As String
             Get
                 Return ResourceManager.GetString("ERR_NoPIAAttributeMissing2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Do not use refout when using refonly..
+        '''</summary>
+        Friend ReadOnly Property ERR_NoRefOutWhenRefOnly() As String
+            Get
+                Return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture)
             End Get
         End Property
         
@@ -10037,11 +10117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        '''  Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         '''</summary>
-        Friend ReadOnly Property ERR_SourceLinkRequiresPortablePdb() As String
+        Friend ReadOnly Property ERR_SourceLinkRequiresPdb() As String
             Get
-                Return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture)
+                Return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture)
             End Get
         End Property
         
@@ -10235,7 +10315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos; or &apos;Protected Friend&apos;..
+        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_StructureCantUseProtected() As String
             Get
@@ -11479,6 +11559,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is declared in multiple referenced assemblies: &apos;{1}&apos; and &apos;{2}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_ValueTupleResolutionAmbiguous3() As String
+            Get
+                Return ResourceManager.GetString("ERR_ValueTupleResolutionAmbiguous3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
         '''</summary>
         Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError1() As String
@@ -11974,6 +12063,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to comments after line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CommentsAfterLineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CommentsAfterLineContinuation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to digit separators.
         '''</summary>
         Friend ReadOnly Property FEATURE_DigitSeparators() As String
@@ -12001,11 +12099,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to iterators.
         '''</summary>
         Friend ReadOnly Property FEATURE_Iterators() As String
             Get
                 Return ResourceManager.GetString("FEATURE_Iterators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to leading digit separator.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LeadingDigitSeparator() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LeadingDigitSeparator", resourceCulture)
             End Get
         End Property
         
@@ -12073,6 +12189,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Private Protected.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PrivateProtected() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PrivateProtected", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to readonly auto-implemented properties.
         '''</summary>
         Friend ReadOnly Property FEATURE_ReadonlyAutoProperties() As String
@@ -12127,6 +12252,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to unconstrained type parameters in binary conditional expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInConditional() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInConditional", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning directives.
         '''</summary>
         Friend ReadOnly Property FEATURE_WarningDirectives() As String
@@ -12156,9 +12290,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>
-        Friend ReadOnly Property FTL_InputFileNameTooLong() As String
+        Friend ReadOnly Property FTL_InvalidInputFileName() As String
             Get
-                Return ResourceManager.GetString("FTL_InputFileNameTooLong", resourceCulture)
+                Return ResourceManager.GetString("FTL_InvalidInputFileName", resourceCulture)
             End Get
         End Property
         
@@ -12208,6 +12342,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic argument.
+        '''</summary>
+        Friend ReadOnly Property IArgumentIsNotVisualBasicArgument() As String
+            Get
+                Return ResourceManager.GetString("IArgumentIsNotVisualBasicArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic compound assignment operation.
+        '''</summary>
+        Friend ReadOnly Property ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment() As String
+            Get
+                Return ResourceManager.GetString("ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic conversion expression.
+        '''</summary>
+        Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String
+            Get
+                Return ResourceManager.GetString("IConversionExpressionIsNotVisualBasicConversion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to IdentifierSyntax not within syntax tree.
         '''</summary>
         Friend ReadOnly Property IdentifierSyntaxNotWithinSyntaxTree() As String
@@ -12222,6 +12383,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property IDS_FunctionReturnType() As String
             Get
                 Return ResourceManager.GetString("IDS_FunctionReturnType", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Supported language versions:.
+        '''</summary>
+        Friend ReadOnly Property IDS_LangVersions() As String
+            Get
+                Return ResourceManager.GetString("IDS_LangVersions", resourceCulture)
             End Get
         End Property
         
@@ -12301,13 +12471,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  Looks up a localized string similar to                   Visual Basic Compiler Options
         '''
         '''                                  - OUTPUT FILE -
-        '''/out:&lt;file&gt;                       Specifies the output file name.
-        '''/target:exe                       Create a console application (default). 
-        '''                                  (Short form: /t)
-        '''/target:winexe                    Create a Windows application.
-        '''/target:library                   Create a library assembly.
-        '''/target:module                    Create a module that can be added to an 
-        '''             [rest of string was truncated]&quot;;.
+        '''-out:&lt;file&gt;                       Specifies the output file name.
+        '''-target:exe                       Create a console application (default).
+        '''                                  (Short form: -t)
+        '''-target:winexe                    Create a Windows application.
+        '''-target:library                   Create a library assembly.
+        '''-target:module                    Create a module that can be added to an
+        '''               [rest of string was truncated]&quot;;.
         '''</summary>
         Friend ReadOnly Property IDS_VBCHelp() As String
             Get

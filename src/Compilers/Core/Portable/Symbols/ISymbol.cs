@@ -39,12 +39,18 @@ namespace Microsoft.CodeAnalysis
         /// Gets the name of a symbol as it appears in metadata. Most of the time, this
         /// is the same as the Name property, with the following exceptions:
         /// <list type="number">
-        /// <item> The metadata name of generic types includes the "`1", "`2" etc. suffix that
+        /// <item>
+        /// <description>The metadata name of generic types includes the "`1", "`2" etc. suffix that
         /// indicates the number of type parameters (it does not include, however, names of
-        /// containing types or namespaces). </item>
-        /// <item> The metadata name of explicit interface names have spaces removed, compared to
-        /// the name property. </item>
-        /// <item> The length of names is limited to not exceed metadata restrictions. </item>
+        /// containing types or namespaces). </description>
+        /// </item>
+        /// <item>
+        /// <description>The metadata name of explicit interface names have spaces removed, compared to
+        /// the name property.</description>
+        /// </item>
+        /// <item>
+        /// <description>The length of names is limited to not exceed metadata restrictions.</description>
+        /// </item>
         /// </list>
         /// </summary>
         string MetadataName { get; }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,17 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 {
+    internal enum InterfaceDestination
+    {
+        CurrentFile,
+        NewFile
+    };
+
     internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
     {
         private readonly ISyntaxFactsService _syntaxFactsService;
@@ -127,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 if (SetProperty(ref _interfaceName, value))
                 {
                     FileName = string.Format("{0}{1}", value.Trim(), _fileExtension);
-                    NotifyPropertyChanged("GeneratedName");
+                    NotifyPropertyChanged(nameof(GeneratedName));
                 }
             }
         }
@@ -151,13 +158,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             set { SetProperty(ref _fileName, value); }
         }
 
+        private InterfaceDestination _destination = InterfaceDestination.NewFile;
+        public InterfaceDestination Destination
+        {
+            get { return _destination; }
+            set
+            {
+                if (SetProperty(ref _destination, value))
+                {
+                    NotifyPropertyChanged(nameof(FileNameEnabled));
+                }
+            }
+        }
+
+        public bool FileNameEnabled => Destination == InterfaceDestination.NewFile;
+
         internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
         {
             private readonly IGlyphService _glyphService;
 
             public ISymbol MemberSymbol { get; }
 
-            private static SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+            private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
@@ -165,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
             {
-                this.MemberSymbol = symbol;
+                MemberSymbol = symbol;
                 _glyphService = glyphService;
                 _isChecked = true;
             }

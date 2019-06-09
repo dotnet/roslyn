@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class SmartIndentProvider : ISmartIndentProvider
     {
+        [ImportingConstructor]
+        public SmartIndentProvider()
+        {
+        }
+
         public ISmartIndent CreateSmartIndent(ITextView textView)
         {
             if (textView == null)

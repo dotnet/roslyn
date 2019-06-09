@@ -1,21 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public class SyntacticTaggerTests
     {
         [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19822"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestTagsChangedForEntireFile()
         {
             var code =
@@ -32,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                     subjectBuffer,
                     workspace.GetService<IForegroundNotificationService>(),
-                    AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                    AsynchronousOperationListenerProvider.NullListener,
                     null,
-                    new SyntacticClassificationTaggerProvider(null, null, null));
+                    new SyntacticClassificationTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), null, null, null));
 
                 // Capture the expected value before the await, in case it changes.
                 var expectedLength = subjectBuffer.CurrentSnapshot.Length;

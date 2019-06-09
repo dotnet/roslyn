@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

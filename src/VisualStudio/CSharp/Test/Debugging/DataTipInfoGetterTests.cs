@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
@@ -14,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class DataTipInfoGetterTests
     {
         private async Task TestAsync(string markup, string expectedText = null)
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|Sys$$tem|].Console.WriteLine(args);
   }
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System$$.Console|].WriteLine(args);
   }
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System.$$Console|].WriteLine(args);
   }
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System.Con$$sole|].WriteLine(args);
   }
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System.Console.Wri$$teLine|](args);
   }
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System.Console.WriteLine|]$$(args);
   }
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     System.Console.WriteLine($$[|args|]);
   }
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|System.Console.WriteLine|](args$$);
   }
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|va$$r|] v = 0;
   }
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     [|in$$t|] i = 0;
   }
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int [|$$i|] = 0;
   }
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = [|4$$2|];
   }
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestNoDataTipAsync(
 @"class C
 {
-  void Foo()
+  void Goo()
   {
     int i = 42;
   }$$
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-  void Foo(int [|$$i|])
+  void Goo(int [|$$i|])
   {
   }
 }");
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         try
         {
@@ -323,7 +325,7 @@ static class Static
             await TestAsync(
 @"class C
 {
-  void Foo(string[] args)
+  void Goo(string[] args)
   {
     foreach (string [|$$s|] in args)
     {
@@ -341,12 +343,12 @@ static class Static
 {
     class C
     {
-        public int [|$$foo|] { get; private set; } // hover over me
+        public int [|$$goo|] { get; private set; } // hover over me
         public C()
         {
-            this.foo = 1;
+            this.goo = 1;
         }
-        public int Foo()
+        public int Goo()
         {
             return 2; // breakpoint here
         }
@@ -355,7 +357,7 @@ static class Static
     {
         static void Main(string[] args)
         {
-            new C().Foo();
+            new C().Goo();
         }
     }
 }
@@ -368,7 +370,7 @@ static class Static
             await TestAsync( // From
 @"class C
 {
-    object Foo(string[] args)
+    object Goo(string[] args)
     {
         return from [|$$a|] in args select a;
     }
@@ -376,7 +378,7 @@ static class Static
             await TestAsync( // Let
 @"class C
 {
-    object Foo(string[] args)
+    object Goo(string[] args)
     {
         return from a in args let [|$$b|] = ""END"" select a + b;
     }
@@ -384,7 +386,7 @@ static class Static
             await TestAsync( // Join
 @"class C
 {
-    object Foo(string[] args)
+    object Goo(string[] args)
     {
         return from a in args join [|$$b|] in args on a equals b;
     }
@@ -392,7 +394,7 @@ static class Static
             await TestAsync( // Join Into
 @"class C
 {
-    object Foo(string[] args)
+    object Goo(string[] args)
     {
         return from a in args join b in args on a equals b into [|$$c|];
     }
@@ -400,7 +402,7 @@ static class Static
             await TestAsync( // Continuation
 @"class C
 {
-    object Foo(string[] args)
+    object Goo(string[] args)
     {
         return from a in args select a into [|$$b|] from c in b select c;
     }

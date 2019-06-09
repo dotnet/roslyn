@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     await CollectChecksumChildrenAsync(checksums, projectChecksumObject.Documents, cancellationToken).ConfigureAwait(false);
                     await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
+                    await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
                 }
 
                 await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
@@ -112,18 +113,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             foreach (var checksumOrCollection in checksumOrCollections)
             {
-                var checksum = checksumOrCollection as Checksum;
-                if (checksum != null)
+                switch (checksumOrCollection)
                 {
-                    AddIfNeeded(checksums, checksum);
-                    continue;
-                }
-
-                var checksumCollection = checksumOrCollection as ChecksumCollection;
-                if (checksumCollection != null)
-                {
-                    AddIfNeeded(checksums, checksumCollection);
-                    continue;
+                    case Checksum checksum:
+                        AddIfNeeded(checksums, checksum);
+                        continue;
+                    case ChecksumCollection checksumCollection:
+                        AddIfNeeded(checksums, checksumCollection);
+                        continue;
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);

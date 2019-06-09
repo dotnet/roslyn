@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -15,15 +16,15 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPageFeatureManagerFeaturesIdString)]
     internal class InternalFeaturesOnOffPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), serviceProvider);
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), optionStore);
         }
 
         internal class InternalFeaturesOptionsControl : InternalOptionsControl
         {
-            public InternalFeaturesOptionsControl(string featureOptionName, IServiceProvider serviceProvider)
-                : base(featureOptionName, serviceProvider)
+            public InternalFeaturesOptionsControl(string featureOptionName, OptionStore optionStore)
+                : base(featureOptionName, optionStore)
             {
             }
 
@@ -46,10 +47,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
                 // add OOP feature options
                 var oopFeatureGroup = new StackPanel();
-
-                AddOption(oopFeatureGroup, NavigateToOptions.OutOfProcessAllowed, nameof(NavigateToOptions));
-                AddOption(oopFeatureGroup, SymbolFinderOptions.OutOfProcessAllowed, nameof(SymbolFinderOptions));
-                AddOption(oopFeatureGroup, SymbolSearchOptions.OutOfProcessAllowed, nameof(SymbolSearchOptions));
 
                 panel.Children.Add(oopFeatureGroup);
 

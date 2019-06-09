@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.BaseToken = default(SyntaxToken);
+            this.BaseToken = default;
             this.TextSpan = textSpan;
 
             this.Option = option;
@@ -61,5 +61,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         public bool IsRelativeIndentation { get; }
         public int IndentationDeltaOrPosition { get; }
+
+#if DEBUG
+        public override string ToString()
+            => $"Indent {TextSpan} from '{StartToken}' to '{EndToken}', by {IndentationDeltaOrPosition}, with base token '{BaseToken}'";
+#endif
     }
 }

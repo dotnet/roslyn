@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var nts = t as NamedTypeSymbol;
             Assert.NotEqual(null, nts);
             Assert.Equal(1, nts.Arity);
-            return nts.TypeArguments[0];
+            return nts.TypeArguments()[0];
         }
 
         [Fact]
@@ -45,11 +46,11 @@ public class Top : A<E> { // base is A<E>
   public class BF : B<F> {} // base is A<E>.B<F>
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var at = global.GetTypeMembers("A", 1).Single(); // A<T>
             var t = at.TypeParameters[0];
-            Assert.Equal(t, TypeArg(at.GetTypeMembers("TBox", 0).Single().BaseType));
+            Assert.Equal(t, TypeArg(at.GetTypeMembers("TBox", 0).Single().BaseType()));
             var atbu = at.GetTypeMembers("B", 1).Single(); // A<T>.B<U>
             var u = atbu.TypeParameters[0];
             var c = atbu.GetTypeMembers("C", 0).Single(); // A<T>.B<U>.C
@@ -60,13 +61,13 @@ public class Top : A<E> { // base is A<E>
             var e = global.GetTypeMembers("E", 0).Single(); // E
             var f = global.GetTypeMembers("F", 0).Single(); // F
             var top = global.GetTypeMembers("Top", 0).Single(); // Top
-            var ae = top.BaseType; // A<E>
+            var ae = top.BaseType(); // A<E>
             Assert.Equal(at, ae.OriginalDefinition);
             Assert.Equal(at, at.ConstructedFrom);
             Assert.Equal(e, TypeArg(ae));
             var bf = top.GetTypeMembers("BF", 0).Single(); // Top.BF
             Assert.Equal(top, bf.ContainingType);
-            var aebf = bf.BaseType;
+            var aebf = bf.BaseType();
             Assert.Equal(f, TypeArg(aebf));
             Assert.Equal(ae, aebf.ContainingType);
             var aebfc = aebf.GetTypeMembers("C", 0).Single(); // A<E>.B<F>.C
@@ -74,8 +75,8 @@ public class Top : A<E> { // base is A<E>
             Assert.NotEqual(c, aebfc.ConstructedFrom);
             Assert.Equal(f, TypeArg(aebfc.ContainingType));
             Assert.Equal(e, TypeArg(aebfc.ContainingType.ContainingType));
-            Assert.Equal(e, TypeArg(aebfc.GetTypeMembers("TBox", 0).Single().BaseType));
-            Assert.Equal(f, TypeArg(aebfc.GetTypeMembers("UBox", 0).Single().BaseType)); // exercises alpha-renaming.
+            Assert.Equal(e, TypeArg(aebfc.GetTypeMembers("TBox", 0).Single().BaseType()));
+            Assert.Equal(f, TypeArg(aebfc.GetTypeMembers("UBox", 0).Single().BaseType())); // exercises alpha-renaming.
             Assert.Equal(aebfc, DeepConstruct(c, ImmutableArray.Create<TypeSymbol>(e, f))); // exercise DeepConstruct
         }
 
@@ -89,7 +90,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(t => TypeWithAnnotations.Create(t))).SubstituteNamedType(type);
         }
 
         [Fact]
@@ -103,13 +104,13 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
             var neti = field.Type as NamedTypeSymbol;
-            Assert.Equal(SpecialType.System_Int32, neti.TypeArguments[0].SpecialType);
+            Assert.Equal(SpecialType.System_Int32, neti.TypeArguments()[0].SpecialType);
         }
 
         [Fact]
@@ -127,7 +128,7 @@ class C1<C1T1, C1T2>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
@@ -148,9 +149,9 @@ class C1<C1T1, C1T2>
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>.C3<System.Int32, System.Byte>", c1OfByteChar_c2OfIntInt_c3OfIntByte.ToTestDisplayString());
 
             var v1 = c1OfByteChar_c2OfIntInt_c3OfIntByte.GetMembers().OfType<FieldSymbol>().First();
-            var type = v1.Type;
+            var type = v1.TypeWithAnnotations;
 
-            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.ToTestDisplayString());
+            Assert.Equal("C1<System.Int32, System.Byte>.C2<System.Byte, System.Byte>.C3<System.Char, System.Byte>", type.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -169,7 +170,7 @@ class C1<C1T1, C1T2>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);

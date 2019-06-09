@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
-            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax, 
+            TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TVariableDeclaratorSyntax,
             Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -113,6 +114,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
+                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetObjectCreationType(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
+                {
+                    break;
+                }
+
                 // Don't offer this fix if the value we're initializing is itself referenced
                 // on the RHS of the assignment.  For example:
                 //
@@ -159,9 +166,28 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
-                    statement, leftMemberAccess, rightExpression));
+                    statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
             }
         }
+
+        private static bool IsExplicitlyImplemented(
+            INamedTypeSymbol classOrStructType,
+            ISymbol member,
+            out ISymbol typeMember)
+        {
+            if (member != null && member.ContainingType.IsInterfaceType())
+            {
+                typeMember = classOrStructType?.FindImplementationForInterfaceMember(member);
+                return typeMember is IPropertySymbol property &&
+                    property.ExplicitInterfaceImplementations.Length > 0 &&
+                    property.DeclaredAccessibility == Accessibility.Private;
+            }
+
+            typeMember = member;
+            return false;
+        }
+
+        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {
@@ -196,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
     }
 
-    internal struct Match<
+    internal readonly struct Match<
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,
@@ -209,15 +235,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         public readonly TAssignmentStatementSyntax Statement;
         public readonly TMemberAccessExpressionSyntax MemberAccessExpression;
         public readonly TExpressionSyntax Initializer;
+        public readonly string MemberName;
 
         public Match(
             TAssignmentStatementSyntax statement,
             TMemberAccessExpressionSyntax memberAccessExpression,
-            TExpressionSyntax initializer)
+            TExpressionSyntax initializer,
+            string memberName)
         {
             Statement = statement;
             MemberAccessExpression = memberAccessExpression;
             Initializer = initializer;
+            MemberName = memberName;
         }
     }
 }

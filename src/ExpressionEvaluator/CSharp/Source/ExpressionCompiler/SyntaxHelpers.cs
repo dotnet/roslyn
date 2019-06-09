@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class SyntaxHelpers
     {
+        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion);
+
         /// <summary>
         /// Parse expression. Returns null if there are any errors.
         /// </summary>
@@ -194,11 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return expression.MakeDebuggerExpression(source);
         }
 
-        static readonly CSharpParseOptions s_CSharpParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
-
         private static InternalSyntax.ExpressionSyntax ParseDebuggerExpressionInternal(SourceText source, bool consumeFullText)
         {
-            using (var lexer = new InternalSyntax.Lexer(source, s_CSharpParseOptions, allowPreprocessorDirectives: false))
+            using (var lexer = new InternalSyntax.Lexer(source, ParseOptions, allowPreprocessorDirectives: false))
             {
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
                 {
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static StatementSyntax ParseDebuggerStatement(string text)
         {
             var source = SourceText.From(text);
-            using (var lexer = new InternalSyntax.Lexer(source, s_CSharpParseOptions))
+            using (var lexer = new InternalSyntax.Lexer(source, ParseOptions))
             {
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax))
                 {
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static SyntaxTree CreateSyntaxTree(this InternalSyntax.CSharpSyntaxNode root, SourceText text)
         {
-            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text);
+            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text, ParseOptions);
         }
 
         private static ExpressionSyntax MakeDebuggerExpression(this InternalSyntax.ExpressionSyntax expression, SourceText text)
@@ -306,8 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static NameSyntax PrependExternAlias(IdentifierNameSyntax externAliasSyntax, NameSyntax nameSyntax)
         {
-            var qualifiedNameSyntax = nameSyntax as QualifiedNameSyntax;
-            if (qualifiedNameSyntax != null)
+            if (nameSyntax is QualifiedNameSyntax qualifiedNameSyntax)
             {
                 return SyntaxFactory.QualifiedName(
                     PrependExternAlias(externAliasSyntax, qualifiedNameSyntax.Left),

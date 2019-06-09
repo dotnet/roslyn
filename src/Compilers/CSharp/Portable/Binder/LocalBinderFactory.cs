@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// The LocalBinderFactory is used to build up the map of all Binders within a method body, and the associated
     /// CSharpSyntaxNode. To do so it traverses all the statements, handling blocks and other
-    /// statements that create scopes. For efficiency reasons, it does not traverse into
+    /// statements that create scopes. For efficiency reasons, it does not traverse into all
     /// expressions. This means that blocks within lambdas and queries are not created. 
     /// Blocks within lambdas are bound by their own LocalBinderFactory when they are 
     /// analyzed.
@@ -46,16 +47,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void VisitRankSpecifiers(TypeSyntax type, Binder enclosing)
+        {
+            type.VisitRankSpecifiers((rankSpecifier, args) =>
+            {
+                foreach (var size in rankSpecifier.Sizes)
+                {
+                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    {
+                        args.localBinderFactory.Visit(size, args.binder);
+                    }
+                }
+            }, (localBinderFactory: this, binder: enclosing));
+        }
+
         // methodsWithYields will contain all function-declaration-like CSharpSyntaxNodes with yield statements contained within them.
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
         public static SmallDictionary<SyntaxNode, Binder> BuildMap(
-            Symbol containingMemberOrLambda, 
-            SyntaxNode syntax, 
-            Binder enclosing, 
+            Symbol containingMemberOrLambda,
+            SyntaxNode syntax,
+            Binder enclosing,
             ArrayBuilder<SyntaxNode> methodsWithYields,
-            Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+            Action<Binder, SyntaxNode> binderUpdatedHandler = null)
         {
             var builder = new LocalBinderFactory(containingMemberOrLambda, syntax, enclosing, methodsWithYields);
 
@@ -65,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 enclosing = new ExpressionVariableBinder(syntax, enclosing);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, syntax);
+                    binderUpdatedHandler(enclosing, syntax);
                 }
 
                 builder.AddToMap(syntax, enclosing);
@@ -78,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode embeddedScopeDesignator;
                 enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);
 
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, embeddedScopeDesignator);
+                    binderUpdatedHandler(enclosing, embeddedScopeDesignator);
                 }
 
                 if (embeddedScopeDesignator != null)
@@ -92,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((object)rootBinderAdjusterOpt != null)
+                if ((object)binderUpdatedHandler != null)
                 {
-                    enclosing = rootBinderAdjusterOpt(enclosing, null);
+                    binderUpdatedHandler(enclosing, null);
                 }
 
                 builder.Visit((CSharpSyntaxNode)syntax, enclosing);
@@ -133,32 +148,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
+            AddToMap(node, enclosing);
+
+            Visit(node.Initializer, enclosing);
+            Visit(node.Body, enclosing);
+            Visit(node.ExpressionBody, enclosing);
         }
 
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitAccessorDeclaration(AccessorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
@@ -194,12 +219,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
-            var body = (CSharpSyntaxNode)node.Body ?? node.ExpressionBody;
+            bool oldSawYield = _sawYield;
+            Symbol oldMethod = _containingMemberOrLambda;
+            Binder binder = _enclosing;
+            LocalFunctionSymbol match = FindLocalFunction(node, _enclosing);
+
+            if ((object)match != null)
+            {
+                _containingMemberOrLambda = match;
+
+                binder = match.IsGenericMethod
+                    ? new WithMethodTypeParametersBinder(match, _enclosing)
+                    : _enclosing;
+
+                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                binder = new InMethodBinder(match, binder);
+            }
+
+            BlockSyntax blockBody = node.Body;
+            if (blockBody != null)
+            {
+                _sawYield = false;
+                Visit(blockBody, binder);
+
+                if (_sawYield)
+                {
+                    _methodsWithYields.Add(blockBody);
+                }
+            }
+
+            ArrowExpressionClauseSyntax arrowBody = node.ExpressionBody;
+            if (arrowBody != null)
+            {
+                _sawYield = false;
+                Visit(arrowBody, binder);
+                Debug.Assert(!_sawYield);
+            }
+
+            _containingMemberOrLambda = oldMethod;
+            _sawYield = oldSawYield;
+        }
+
+        private static LocalFunctionSymbol FindLocalFunction(LocalFunctionStatementSyntax node, Binder enclosing)
+        {
             LocalFunctionSymbol match = null;
             // Don't use LookupLocalFunction because it recurses up the tree, as it
             // should be defined in the directly enclosing block (see note below)
 
-            Binder possibleScopeBinder = _enclosing;
+            Binder possibleScopeBinder = enclosing;
             while (possibleScopeBinder != null && !possibleScopeBinder.IsLocalFunctionsScopeBinder)
             {
                 possibleScopeBinder = possibleScopeBinder.Next;
@@ -216,44 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool oldSawYield = _sawYield;
-            _sawYield = false;
-
-            if (match != null)
-            {
-                var oldMethod = _containingMemberOrLambda;
-                _containingMemberOrLambda = match;
-
-                if (body != null)
-                {
-                    Binder binder = match.IsGenericMethod
-                        ? new WithMethodTypeParametersBinder(match, _enclosing)
-                        : _enclosing;
-
-                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
-
-                    Visit(body, new InMethodBinder(match, binder));
-                }
-
-                _containingMemberOrLambda = oldMethod;
-            }
-            else
-            {
-                // The enclosing block should have found this node and created a LocalFunctionMethodSymbol
-                // The code that does so is in LocalScopeBinder.BuildLocalFunctions
-
-                if (body != null)
-                {
-                    // do our best to attempt to bind
-                    Visit(body);
-                }
-            }
-
-            if (_sawYield)
-            {
-                _methodsWithYields.Add(body);
-            }
-            _sawYield = oldSawYield;
+            return match;
         }
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
@@ -277,30 +307,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.ArgumentList?.Arguments.Count > 0)
             {
-                foreach (var argument in node.ArgumentList.Arguments)
+                foreach (AttributeArgumentSyntax argument in node.ArgumentList.Arguments)
                 {
                     Visit(argument.Expression, attrBinder);
                 }
             }
         }
 
-        public override void VisitArgumentList(ArgumentListSyntax node)
+        public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
         {
-            if (_root == node)
-            {
-                // We are supposed to get here only for constructor initializers
-                Debug.Assert(node.Parent is ConstructorInitializerSyntax);
-                var argBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, argBinder);
+            var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            AddToMap(node, binder);
 
-                foreach (var arg in node.Arguments)
-                {
-                    Visit(arg.Expression, argBinder);
-                }
-            }
-            else
+            if (node.ArgumentList != null)
             {
-                base.VisitArgumentList(node);
+                if (_root == node)
+                {
+                    binder = new ExpressionVariableBinder(node.ArgumentList, binder);
+                    AddToMap(node.ArgumentList, binder);
+                }
+
+                Visit(node.ArgumentList, binder);
             }
         }
 
@@ -353,6 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                VisitRankSpecifiers(declarationSyntax.Type, usingBinder);
+
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
                     Visit(declarator, usingBinder);
@@ -388,20 +417,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
-            var declaration = node.Declaration;
+            VariableDeclarationSyntax declaration = node.Declaration;
             if (declaration != null)
             {
-                foreach (var variable in declaration.Variables)
+                VisitRankSpecifiers(declaration.Type, binder);
+
+                foreach (VariableDeclaratorSyntax variable in declaration.Variables)
                 {
                     Visit(variable, binder);
                 }
             }
             else
             {
-                foreach (var initializer in node.Initializers)
+                foreach (ExpressionSyntax initializer in node.Initializers)
                 {
                     Visit(initializer, binder);
-                } 
+                }
             }
 
             ExpressionSyntax condition = node.Condition;
@@ -417,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var incrementorsBinder = new ExpressionListVariableBinder(incrementors, binder);
                 AddToMap(incrementors.First(), incrementorsBinder);
-                foreach (var incrementor in incrementors)
+                foreach (ExpressionSyntax incrementor in incrementors)
                 {
                     Visit(incrementor, incrementorsBinder);
                 }
@@ -452,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
-            var binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
             AddToMap(node, binder);
 
             Visit(node.Block, binder);
@@ -460,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitUnsafeStatement(UnsafeStatementSyntax node)
         {
-            var binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
             AddToMap(node, binder);
 
             Visit(node.Block, binder); // This will create the block binder for the block.
@@ -474,6 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Declaration != null)
             {
+                VisitRankSpecifiers(node.Declaration.Type, binder);
+
                 foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
                 {
                     Visit(declarator, binder);
@@ -491,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression, lockBinder);
 
             StatementSyntax statement = node.Statement;
-            var statementBinder = lockBinder.WithAdditionalFlags(BinderFlags.InLockBody);
+            Binder statementBinder = lockBinder.WithAdditionalFlags(BinderFlags.InLockBody);
             if (statementBinder != lockBinder)
             {
                 AddToMap(statement, statementBinder);
@@ -520,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var patternBinder = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, patternBinder);
 
-            foreach (var label in node.Labels)
+            foreach (SwitchLabelSyntax label in node.Labels)
             {
                 switch (label.Kind())
                 {
@@ -546,6 +579,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (StatementSyntax statement in node.Statements)
             {
                 Visit(statement, patternBinder);
+            }
+        }
+
+        public override void VisitSwitchExpression(SwitchExpressionSyntax node)
+        {
+            var switchExpressionBinder = new SwitchExpressionBinder(node, _enclosing);
+            AddToMap(node, switchExpressionBinder);
+            Visit(node.GoverningExpression, switchExpressionBinder);
+            foreach (SwitchExpressionArmSyntax arm in node.Arms)
+            {
+                var armScopeBinder = new ExpressionVariableBinder(arm, switchExpressionBinder);
+                var armBinder = new SwitchExpressionArmBinder(arm, armScopeBinder, switchExpressionBinder);
+                AddToMap(arm, armBinder);
+                Visit(arm.Pattern, armBinder);
+                if (arm.WhenClause != null)
+                {
+                    Visit(arm.WhenClause, armBinder);
+                }
+
+                Visit(arm.Expression, armBinder);
             }
         }
 
@@ -581,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.Block, _enclosing);
             }
 
-            foreach (var c in node.Catches)
+            foreach (CatchClauseSyntax c in node.Catches)
             {
                 Visit(c, _enclosing);
             }
@@ -600,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Filter != null)
             {
-                var filterBinder = clauseBinder.WithAdditionalFlags(BinderFlags.InCatchFilter);
+                Binder filterBinder = clauseBinder.WithAdditionalFlags(BinderFlags.InCatchFilter);
                 AddToMap(node.Filter, filterBinder);
                 Visit(node.Filter, filterBinder);
             }
@@ -654,7 +707,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            foreach (var decl in node.Declaration.Variables)
+            VisitRankSpecifiers(node.Declaration.Type, _enclosing);
+
+            foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {
                 Visit(decl);
             }
@@ -716,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.
-            Debug.Assert(node.CanHaveAssociatedLocalBinder() || 
+            Debug.Assert(node.CanHaveAssociatedLocalBinder() ||
                 (node == _root && node is ExpressionSyntax));
 
             // Cleverness: for some nodes (e.g. lock), we want to specify a binder flag that
@@ -801,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitQueryBody(QueryBodySyntax node)
         {
-            foreach (var clause in node.Clauses)
+            foreach (QueryClauseSyntax clause in node.Clauses)
             {
                 if (clause.Kind() == SyntaxKind.JoinClause)
                 {

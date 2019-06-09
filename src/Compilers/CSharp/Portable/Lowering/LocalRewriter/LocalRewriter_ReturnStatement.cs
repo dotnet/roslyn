@@ -24,13 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (!node.WasCompilerGenerated ||
                  (node.ExpressionOpt != null ?
                         IsLambdaOrExpressionBodiedMember :
-                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentMethod?.IsAsync == false))))
+                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false))))
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
-            }
-            else if (node.WasCompilerGenerated && _factory.CurrentMethod?.IsAsync == true)
-            {
-                rewritten = new BoundSequencePoint(null, rewritten);
             }
 
             return rewritten;
@@ -40,14 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _factory.CurrentMethod;
+                var method = _factory.CurrentFunction;
                 if (method is LambdaSymbol)
                 {
                     return true;
                 }
 
                 return
-                    (method as SourceMethodSymbol)?.IsExpressionBodied ??
+                    (method as SourceMemberMethodSymbol)?.IsExpressionBodied ??
                     (method as LocalFunctionSymbol)?.IsExpressionBodied ?? false;
             }
         }

@@ -89,7 +89,7 @@ Process.GetCurrentProcess()");
                 ContinueWith("using static System.Environment;").
                 ContinueWith("int x; x = 1;").
                 ContinueWith("using static System.Math;").
-                ContinueWith("int foo(int a) { return a + 1; } ");
+                ContinueWith("int goo(int a) { return a + 1; } ");
 
 #if false
             Assert.True(session.executionState.submissions.Length >= 2, "Expected two submissions");
@@ -105,7 +105,7 @@ Process.GetCurrentProcess()");
             s = s.ContinueWith("Environment.Version");
             Assert.Equal(Environment.Version, s.Result.ReturnValue);
 
-            s = s.ContinueWith("foo(x)");
+            s = s.ContinueWith("goo(x)");
             Assert.Equal(2, s.Result.ReturnValue);
 
             s = s.ContinueWith("Sin(0)");
@@ -159,7 +159,7 @@ new System.Data.DataSet()
         {
             var options = ScriptOptions.Default.
                 WithMetadataResolver(new TestMetadataReferenceResolver(
-                    pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\foo\bar"),
+                    pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\goo\bar"),
                     files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
             var script = CSharpScript.Create(@"
@@ -459,7 +459,7 @@ c1 = c2;
             var badTypeRef = MetadataReference.CreateFromImage(badTypeBytes.AsImmutableOrNull());
 
             // TODO: enable this with our AssemblyLoader:
-            ResolveEventHandler handler = (_, args) =>
+            Assembly handler(object _, ResolveEventArgs args)
             {
                 if (args.Name.StartsWith("b,", StringComparison.Ordinal))
                 {
@@ -467,7 +467,7 @@ c1 = c2;
                 }
 
                 return null;
-            };
+            }
 
             AppDomain.CurrentDomain.AssemblyResolve += handler;
             try

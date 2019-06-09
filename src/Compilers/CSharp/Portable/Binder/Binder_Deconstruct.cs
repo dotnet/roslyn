@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        internal BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, bool resultIsUsedOverride = false)
         {
             var left = node.Left;
             var right = node.Right;
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
-            var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression);
+            var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression, resultIsUsedOverride);
             if (declaration != null)
             {
                 // only allowed at the top level, or in a for loop
@@ -73,10 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="deconstruction">The deconstruction operation</param>
         /// <param name="left">The left (tuple) operand</param>
-        /// <param name="right">The right (deconstrucible) operand</param>
+        /// <param name="right">The right (deconstructable) operand</param>
         /// <param name="diagnostics">Where to report diagnostics</param>
         /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
+        /// <param name="resultIsUsedOverride">The expression evaluator needs to bind deconstructions (both assignments and declarations) as expression-statements
+        ///     and still access the returned value</param>
         /// <param name="rightPlaceholder"></param>
         /// <returns></returns>
         internal BoundDeconstructionAssignmentOperator BindDeconstruction(
@@ -86,17 +88,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ref DeclarationExpressionSyntax declaration,
             ref ExpressionSyntax expression,
+            bool resultIsUsedOverride = false,
             BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.HasNestedVariables);
 
-            BoundExpression boundRight = rightPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
-            boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, diagnostics);
+            var deconstructionDiagnostics = new DiagnosticBag();
+            BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
+            boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
 
-            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, diagnostics);
+            bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
+            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
             DeconstructionVariable.FreeDeconstructionVariables(locals.NestedVariables);
 
+            diagnostics.AddRange(deconstructionDiagnostics);
             return assignment;
         }
 
@@ -105,20 +111,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         ExpressionSyntax left,
                                                         BoundExpression boundRHS,
                                                         ArrayBuilder<DeconstructionVariable> checkedVariables,
+                                                        bool resultIsUsed,
                                                         DiagnosticBag diagnostics)
         {
+            uint rightEscape = GetValEscape(boundRHS, this.LocalScopeDepth);
+
             if ((object)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
                 // we could still not infer a type for the RHS
-                FailRemainingInferences(checkedVariables, diagnostics);
+                FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
                 var voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
                 var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
-                            DeconstructionVariablesAsTuple(node, checkedVariables, diagnostics, hasErrors: true),
-                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
+                            DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
+                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false, conversionGroupOpt: null,
                                 constantValueOpt: null, type: type, hasErrors: true),
+                            resultIsUsed,
                             voidType,
                             hasErrors: true);
             }
@@ -132,10 +142,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     checkedVariables,
                                     out conversion);
 
-            FailRemainingInferences(checkedVariables, diagnostics);
+            if (conversion.Method != null)
+            {
+                CheckImplicitThisCopyInReadOnlyMember(boundRHS, conversion.Method, diagnostics);
+            }
 
-            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, hasErrors);
+            FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
+
+            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type;
+
+            uint leftEscape = GetBroadestValEscape(lhsTuple, this.LocalScopeDepth);
+            boundRHS = ValidateEscape(boundRHS, leftEscape, isByRef: false, diagnostics: diagnostics);
 
             var boundConversion = new BoundConversion(
                 boundRHS.Syntax,
@@ -143,12 +161,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: false,
                 explicitCastInCode: false,
+                conversionGroupOpt: null,
                 constantValueOpt: null,
                 type: returnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
 
-            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, returnType);
+            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, resultIsUsed, returnType);
+        }
+
+        private static bool IsDeconstructionResultUsed(ExpressionSyntax left)
+        {
+            var parent = left.Parent;
+            if (parent is null || parent.Kind() == SyntaxKind.ForEachVariableStatement)
+            {
+                return false;
+            }
+
+            Debug.Assert(parent.Kind() == SyntaxKind.SimpleAssignmentExpression);
+
+            var grandParent = parent.Parent;
+            if (grandParent is null)
+            {
+                return false;
+            }
+
+            switch (grandParent.Kind())
+            {
+                case SyntaxKind.ExpressionStatement:
+                    return ((ExpressionStatementSyntax)grandParent).Expression != parent;
+
+                case SyntaxKind.ForStatement:
+                    // Incrementors and Initializers don't have to produce a value
+                    var loop = (ForStatementSyntax)grandParent;
+                    return !loop.Incrementors.Contains(parent) && !loop.Initializers.Contains(parent);
+
+                default:
+                    return true;
+            }
         }
 
         /// <summary>When boundRHS is a tuple literal, fix it up by inferring its types.</summary>
@@ -159,7 +209,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Let's fix the literal up by figuring out its type
                 // For declarations, that means merging type information from the LHS and RHS
                 // For assignments, only the LHS side matters since it is necessarily typed
-                TypeSymbol mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, Compilation, diagnostics);
+
+                // If we already have diagnostics at this point, it is not worth collecting likely duplicate diagnostics from making the merged type
+                bool hadErrors = diagnostics.HasAnyErrors();
+                TypeSymbol mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, Compilation, hadErrors ? null : diagnostics);
                 if ((object)mergedTupleType != null)
                 {
                     boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
@@ -189,16 +242,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
         {
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
             ImmutableArray<TypeSymbol> tupleOrDeconstructedTypes;
             conversion = Conversion.Deconstruction;
 
             // Figure out the deconstruct method (if one is required) and determine the types we get from the RHS at this level
-            var deconstructInfo = default(DeconstructionInfo);
+            var deconstructMethod = default(DeconstructMethodInfo);
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-                tupleOrDeconstructedTypes = type.TupleElementTypes;
+                tupleOrDeconstructedTypes = type.TupleElementTypesWithAnnotations.SelectAsArray(TypeMap.AsTypeSymbol);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
 
                 if (variables.Count != tupleOrDeconstructedTypes.Length)
@@ -209,17 +262,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, type);
-                var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
-                    inputPlaceholder, rightSyntax, diagnostics, out outPlaceholders);
+                if (variables.Count < 2)
+                {
+                    Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, syntax);
+                    return false;
+                }
+
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, this.LocalScopeDepth, type);
+                BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
+                    inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _);
 
                 if (deconstructInvocation.HasAnyErrors)
                 {
                     return false;
                 }
 
-                deconstructInfo = new DeconstructionInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
+                deconstructMethod = new DeconstructMethodInfo(deconstructInvocation, inputPlaceholder, outPlaceholders);
 
                 tupleOrDeconstructedTypes = outPlaceholders.SelectAsArray(p => p.Type);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
@@ -258,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(nestedConversion);
             }
 
-            conversion = new Conversion(ConversionKind.Deconstruction, deconstructInfo, nestedConversions.ToImmutableAndFree());
+            conversion = new Conversion(ConversionKind.Deconstruction, deconstructMethod, nestedConversions.ToImmutableAndFree());
 
             return !hasErrors;
         }
@@ -292,13 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructionVariablePendingInference:
                     {
                         var pending = (DeconstructionVariablePendingInference)expression;
-                        return pending.SetInferredType(type, this, diagnostics);
+                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(type), this, diagnostics);
                     }
                 case BoundKind.DiscardExpression:
                     {
                         var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object)pending.Type == null);
-                        return pending.SetInferredType(type);
+                        return pending.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(type));
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -307,8 +365,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Find any deconstruction locals that are still pending inference and fail their inference.
+        /// Set the safe-to-escape scope for all deconstruction locals.
         /// </summary>
-        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics)
+        private void FailRemainingInferencesAndSetValEscape(ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics,
+            uint rhsValEscape)
         {
             int count = variables.Count;
             for (int i = 0; i < count; i++)
@@ -316,15 +376,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (variable.HasNestedVariables)
                 {
-                    FailRemainingInferences(variable.NestedVariables, diagnostics);
+                    FailRemainingInferencesAndSetValEscape(variable.NestedVariables, diagnostics, rhsValEscape);
                 }
                 else
                 {
                     switch (variable.Single.Kind)
                     {
+                        case BoundKind.Local:
+                            var local = (BoundLocal)variable.Single;
+                            if (local.DeclarationKind != BoundLocalDeclarationKind.None)
+                            {
+                                ((SourceLocalSymbol)local.LocalSymbol).SetValEscape(rhsValEscape);
+                            }
+                            break;
                         case BoundKind.DeconstructionVariablePendingInference:
-                            BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
-                            variables[i] = new DeconstructionVariable(local, local.Syntax);
+                            BoundExpression errorLocal = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
+                            variables[i] = new DeconstructionVariable(errorLocal, errorLocal.Syntax);
                             break;
                         case BoundKind.DiscardExpression:
                             var pending = (BoundDiscardExpression)variable.Single;
@@ -346,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Holds the variables on the LHS of a deconstruction as a tree of bound expressions.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        internal class DeconstructionVariable
+        internal sealed class DeconstructionVariable
         {
             internal readonly BoundExpression Single;
             internal readonly ArrayBuilder<DeconstructionVariable> NestedVariables;
@@ -370,16 +437,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
             {
-                foreach (var v in variables)
-                {
-                    if (v.HasNestedVariables)
-                    {
-                        FreeDeconstructionVariables(v.NestedVariables);
-                    }
-                }
-
-                variables.Free();
+                variables.FreeAll(v => v.NestedVariables);
             }
+
             private string GetDebuggerDisplay()
             {
                 if (Single != null)
@@ -400,7 +460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int leftLength = lhsVariables.Count;
             int rightLength = rhsLiteral.Arguments.Length;
 
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(leftLength);
+            var typesWithAnnotationsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(leftLength);
+            var locationsBuilder = ArrayBuilder<Location>.GetInstance(leftLength);
             for (int i = 0; i < rightLength; i++)
             {
                 BoundExpression element = rhsLiteral.Arguments[i];
@@ -440,76 +501,81 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                typesBuilder.Add(mergedType);
+                typesWithAnnotationsBuilder.Add(TypeWithAnnotations.Create(mergedType));
+                locationsBuilder.Add(element.Syntax.Location);
             }
 
-            if (typesBuilder.Any(t => t == null))
+            if (typesWithAnnotationsBuilder.Any(t => !t.HasType))
             {
-                typesBuilder.Free();
+                typesWithAnnotationsBuilder.Free();
+                locationsBuilder.Free();
                 return null;
             }
 
             // The tuple created here is not identical to the one created by
             // DeconstructionVariablesAsTuple. It represents a smaller
             // tree of types used for figuring out natural types in tuple literal.
-            // Therefore, we do not check constraints here as it would report errors
-            // that are already reported later. DeconstructionVariablesAsTuple
-            // constructs the final tuple type and checks constraints.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
-                elementTypes: typesBuilder.ToImmutableAndFree(),
-                elementLocations: default(ImmutableArray<Location>),
+                elementTypesWithAnnotations: typesWithAnnotationsBuilder.ToImmutableAndFree(),
+                elementLocations: locationsBuilder.ToImmutableAndFree(),
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
                 diagnostics: diagnostics,
-                shouldCheckConstraints: false,
-                errorPositions: default(ImmutableArray<bool>));
+                shouldCheckConstraints: true,
+                includeNullability: false,
+                errorPositions: default(ImmutableArray<bool>),
+                syntax: syntax);
         }
 
-        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
+        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+            DiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var typesWithAnnotationsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
             var namesBuilder = ArrayBuilder<string>.GetInstance(count);
+
             foreach (var variable in variables)
             {
+                BoundExpression value;
                 if (variable.HasNestedVariables)
                 {
-                    var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, hasErrors);
-                    valuesBuilder.Add(nestedTuple);
-                    typesBuilder.Add(nestedTuple.Type);
+                    value = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, ignoreDiagnosticsFromTuple);
                     namesBuilder.Add(null);
                 }
                 else
                 {
-                    var single = variable.Single;
-                    valuesBuilder.Add(single);
-                    typesBuilder.Add(single.Type);
-                    namesBuilder.Add(ExtractDeconstructResultElementName(single));
+                    value = variable.Single;
+                    namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
+                valuesBuilder.Add(value);
+                typesWithAnnotationsBuilder.Add(TypeWithAnnotations.Create(value.Type));
                 locationsBuilder.Add(variable.Syntax.Location);
             }
+            ImmutableArray<BoundExpression> arguments = valuesBuilder.ToImmutableAndFree();
 
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-            RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref namesBuilder, uniqueFieldNames);
             uniqueFieldNames.Free();
-            ImmutableArray<string> tupleNames = namesBuilder.ToImmutableAndFree();
 
+            ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
+            ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
-            var inferredPositions = tupleNames.SelectAsArray(n => n != null);
 
-            var type = TupleTypeSymbol.Create(syntax.Location,
-                typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+            var type = TupleTypeSymbol.Create(
+                syntax.Location,
+                typesWithAnnotationsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
-                shouldCheckConstraints: !hasErrors,
-                errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>),
-                syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
+                shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
+                includeNullability: false,
+                errorPositions: disallowInferredNames ? inferredPositions : default,
+                syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments, type);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>
@@ -527,21 +593,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Find the Deconstruct method for the expression on the right, that will fit the number of assignable variables on the left.
         /// Returns an invocation expression if the Deconstruct method is found.
         ///     If so, it outputs placeholders that were coerced to the output types of the resolved Deconstruct method.
-        /// The overload resolution is similar to writing `receiver.Deconstruct(out var x1, out var x2, ...)`.
+        /// The overload resolution is similar to writing <c>receiver.Deconstruct(out var x1, out var x2, ...)</c>.
         /// </summary>
         private BoundExpression MakeDeconstructInvocationExpression(
-                                    int numCheckedVariables, BoundExpression receiver, SyntaxNode rightSyntax,
-                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
+            int numCheckedVariables,
+            BoundExpression receiver,
+            SyntaxNode rightSyntax,
+            DiagnosticBag diagnostics,
+            out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
+            out bool anyApplicableCandidates)
         {
+            anyApplicableCandidates = false;
             var receiverSyntax = (CSharpSyntaxNode)receiver.Syntax;
-            if (numCheckedVariables < 2)
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
-                outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
-
-                return BadExpression(receiverSyntax, receiver);
-            }
-
             if (receiver.Type.IsDynamic())
             {
                 Error(diagnostics, ErrorCode.ERR_CannotDeconstructDynamic, rightSyntax);
@@ -563,11 +626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     outVars.Add(variable);
                 }
 
-                const string methodName = "Deconstruct";
+                const string methodName = WellKnownMemberNames.DeconstructMethodName;
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
-                                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbol>),
-                                        invoked: true, diagnostics: diagnostics);
+                                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
+                                        typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
+                                        invoked: true, indexed: false, diagnostics: diagnostics);
 
                 memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
                 memberAccess.WasCompilerGenerated = true;
@@ -582,22 +646,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
-                                            rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                                            allowUnexpandedForm: true);
+                    rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
+                    allowUnexpandedForm: true, anyApplicableCandidates: out anyApplicableCandidates);
 
                 result.WasCompilerGenerated = true;
 
-                if (result.HasErrors && !receiver.HasAnyErrors)
+                if (!anyApplicableCandidates)
                 {
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
-                // Verify all the parameters (except "this" for extension methods) are out parameters
-                if (result.Kind != BoundKind.Call)
-                {
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
-                }
-
+                // Verify all the parameters (except "this" for extension methods) are out parameters.
+                // This prevents, for example, an unused params parameter after the out parameters.
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
                 for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
@@ -632,9 +692,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, DiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
         {
-            Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
-            outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
+            if (!receiver.Type.IsErrorType())
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type, numParameters);
+            }
 
+            outPlaceholders = default;
             return BadExpression(rightSyntax, childNode);
         }
 
@@ -663,8 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
-                        TypeSymbol declType = BindVariableType(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
-                        Debug.Assert(isVar == ((object)declType == null));
+                        var declType = BindVariableTypeWithAnnotations(component.Designation, diagnostics, component.Type, ref isConst, out isVar, out alias);
+                        Debug.Assert(isVar == !declType.HasType);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
                             // An explicit is not allowed with a parenthesized designation
@@ -691,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     var boundVariable = BindExpression(node, diagnostics, invoked: false, indexed: false);
-                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
+                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignable, diagnostics);
                     if (expression == null && checkedVariable.Kind != BoundKind.DiscardExpression)
                     {
                         expression = node;
@@ -702,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private DeconstructionVariable BindDeconstructionVariables(
-            TypeSymbol declType,
+            TypeWithAnnotations declTypeWithAnnotations,
             VariableDesignationSyntax node,
             CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics)
@@ -712,12 +775,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, syntax, diagnostics), syntax);
+                        return new DeconstructionVariable(BindDeconstructionVariable(declTypeWithAnnotations, single, syntax, diagnostics), syntax);
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
                         var discarded = (DiscardDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardExpression(syntax, declType), syntax);
+                        return new DeconstructionVariable(BindDiscardExpression(syntax, declTypeWithAnnotations), syntax);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -725,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionVariables(declType, n, n, diagnostics));
+                            builder.Add(BindDeconstructionVariables(declTypeWithAnnotations, n, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, syntax);
                     }
@@ -736,9 +799,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundDiscardExpression BindDiscardExpression(
             SyntaxNode syntax,
-            TypeSymbol declType)
+            TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declType);
+            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
         }
 
         /// <summary>
@@ -747,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Otherwise returns a DeconstructionVariablePendingInference when the type is implicit.
         /// </summary>
         private BoundExpression BindDeconstructionVariable(
-            TypeSymbol declType,
+            TypeWithAnnotations declTypeWithAnnotations,
             SingleVariableDesignationSyntax designation,
             CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics)
@@ -762,9 +825,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // might own nested scope.
                 var hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if ((object)declType != null)
+                if (declTypeWithAnnotations.HasType)
                 {
-                    return new BoundLocal(syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType, hasErrors: hasErrors);
+                    return new BoundLocal(syntax, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declTypeWithAnnotations.Type, hasErrors: hasErrors);
                 }
 
                 return new DeconstructionVariablePendingInference(syntax, localSymbol, receiverOpt: null);
@@ -782,16 +845,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,
                                             wasCompilerGenerated: true);
 
-            if ((object)declType != null)
+            if (declTypeWithAnnotations.HasType)
             {
-                TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
-                Debug.Assert(declType == fieldType);
+                var fieldType = field.GetFieldType(this.FieldsBeingBound);
+                Debug.Assert(TypeSymbol.Equals(declTypeWithAnnotations.Type, fieldType.Type, TypeCompareKind.ConsiderEverything2));
                 return new BoundFieldAccess(syntax,
                                             receiver,
                                             field,
                                             constantValueOpt: null,
                                             resultKind: LookupResultKind.Viable,
-                                            type: fieldType);
+                                            isDeclaration: true,
+                                            type: fieldType.Type);
             }
 
             return new DeconstructionVariablePendingInference(syntax, field, receiver);

@@ -1,18 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(ISolutionExplorerWorkspaceProvider))]
     internal class SolutionExplorerWorkspaceProvider : ISolutionExplorerWorkspaceProvider
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
-        public SolutionExplorerWorkspaceProvider(VisualStudioWorkspaceImpl workspace)
+        public SolutionExplorerWorkspaceProvider(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;
         }

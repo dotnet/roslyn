@@ -2,9 +2,8 @@
 
 using System.Diagnostics;
 using System.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Collections
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     /// <summary>
     /// The usage is:

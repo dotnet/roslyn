@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
+        [ImportingConstructor]
+        public CSharpRenameConflictLanguageService()
+        {
+        }
         #region "Annotation"
 
         public SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
@@ -156,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // a previous node, we'll handle it accordingly.
                 if (shouldComplexifyNode)
                 {
-                    _skipRenameForComplexification += shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification++;
                     result = base.Visit(node);
-                    _skipRenameForComplexification -= shouldComplexifyNode ? 1 : 0;
+                    _skipRenameForComplexification--;
                     result = Complexify(node, result);
                 }
                 else
@@ -215,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     isRenameLocation ||
                     token.ValueText == _replacementText ||
                     isOldText ||
-                    _possibleNameConflicts.Contains(token.ValueText);
+                    _possibleNameConflicts.Contains(token.ValueText) ||
+                    IsPossiblyDestructorConflict(token, _replacementText);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -228,6 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newToken;
+            }
+
+            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            {
+                return _replacementText == "Finalize" &&
+                    token.IsKind(SyntaxKind.IdentifierToken) &&
+                    token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
@@ -343,9 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
-                    if (symbols.Count() == 1)
+                    if (symbols.Length == 1)
                     {
-                        var symbol = symbols.Single();
+                        var symbol = symbols[0];
 
                         if (symbol.IsConstructor())
                         {
@@ -391,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         isNamespaceDeclarationReference = true;
                     }
 
-                    var isMemberGroupReference = _semanticFactsService.IsNameOfContext(_semanticModel, token.Span.Start, _cancellationToken);
+                    var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
 
                     var renameAnnotation =
                             new RenameActionAnnotation(
@@ -455,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     break;
                 }
 
-                if (identifierToken != default(SyntaxToken) && !_annotatedIdentifierTokens.Contains(identifierToken))
+                if (identifierToken != default && !_annotatedIdentifierTokens.Contains(identifierToken))
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
                     IEnumerable<ISymbol> symbols = null;
@@ -530,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
 
                         if (symbol != null && _renamedSymbol.Kind != SymbolKind.Local && _renamedSymbol.Kind != SymbolKind.RangeVariable &&
-                            (symbol == _renamedSymbol || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol.GetSymbolKey(), _renamedSymbol.GetSymbolKey())))
+                            (Equals(symbol, _renamedSymbol) || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol.GetSymbolKey(), _renamedSymbol.GetSymbolKey())))
                         {
                             return true;
                         }
@@ -805,19 +818,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     renamedSymbol.Kind == SymbolKind.RangeVariable)
                 {
                     var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                     var visitor = new LocalConflictVisitor(token);
-                    visitor.Visit(methodDeclaration);
+
+                    visitor.Visit(memberDeclaration);
                     conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+
+                    // If this is a parameter symbol for a partial method definition, be sure we visited 
+                    // the implementation part's body.
+                    if (renamedSymbol is IParameterSymbol renamedParameterSymbol &&
+                        renamedSymbol.ContainingSymbol is IMethodSymbol methodSymbol &&
+                        methodSymbol.PartialImplementationPart != null)
+                    {
+                        var matchingParameterSymbol = methodSymbol.PartialImplementationPart.Parameters[renamedParameterSymbol.Ordinal];
+
+                        token = matchingParameterSymbol.Locations.Single().FindToken(cancellationToken);
+                        memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                        visitor = new LocalConflictVisitor(token);
+                        visitor.Visit(memberDeclaration);
+                        conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+                    }
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Label)
                 {
                     var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                     var visitor = new LabelConflictVisitor(token);
-                    visitor.Visit(methodDeclaration);
+
+                    visitor.Visit(memberDeclaration);
                     conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Method)
@@ -966,10 +994,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // Handle renaming of symbols used for foreach
             bool implicitReferencesMightConflict = renameSymbol.Kind == SymbolKind.Property &&
                                                 string.Compare(renameSymbol.Name, "Current", StringComparison.OrdinalIgnoreCase) == 0;
-            implicitReferencesMightConflict = implicitReferencesMightConflict ||
-                                                (renameSymbol.Kind == SymbolKind.Method &&
-                                                    (string.Compare(renameSymbol.Name, "MoveNext", StringComparison.OrdinalIgnoreCase) == 0 ||
-                                                    string.Compare(renameSymbol.Name, "GetEnumerator", StringComparison.OrdinalIgnoreCase) == 0));
+
+            implicitReferencesMightConflict =
+                implicitReferencesMightConflict ||
+                    (renameSymbol.Kind == SymbolKind.Method &&
+                        (string.Compare(renameSymbol.Name, WellKnownMemberNames.MoveNextMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.GetEnumeratorMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.GetAwaiter, StringComparison.OrdinalIgnoreCase) == 0 ||
+                        string.Compare(renameSymbol.Name, WellKnownMemberNames.DeconstructMethodName, StringComparison.OrdinalIgnoreCase) == 0));
 
             // TODO: handle Dispose for using statement and Add methods for collection initializers.
 
@@ -986,6 +1018,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         {
                             case SyntaxKind.ForEachKeyword:
                                 return ImmutableArray.Create(((CommonForEachStatementSyntax)token.Parent).Expression.GetLocation());
+                            case SyntaxKind.AwaitKeyword:
+                                return ImmutableArray.Create(token.GetLocation());
+                        }
+
+                        if (token.Parent.IsInDeconstructionLeft(out var deconstructionLeft))
+                        {
+                            return ImmutableArray.Create(deconstructionLeft.GetLocation());
                         }
                     }
                 }

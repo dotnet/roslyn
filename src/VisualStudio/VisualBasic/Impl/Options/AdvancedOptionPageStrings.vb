@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -15,11 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_ClosedFileDiagnostics As String
-            Get
-                Return BasicVSResources.Enable_full_solution_analysis
-            End Get
-        End Property
+        Public ReadOnly Property Option_Analysis As String =
+            ServicesVSResources.Analysis
+
+        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
+            ServicesVSResources.Enable_full_solution_analysis
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.When_generating_properties
 
         Public ReadOnly Property Option_prefer_auto_properties As String =
-            ServicesVSResources.prefer_auto_properties
+            ServicesVSResources.codegen_prefer_auto_properties
 
         Public ReadOnly Property Option_prefer_throwing_properties As String =
             ServicesVSResources.prefer_throwing_properties
@@ -167,9 +167,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
 
+        Public ReadOnly Property Option_Fading As String = ServicesVSResources.Fading
+        Public ReadOnly Property Option_Fade_out_unused_imports As String = BasicVSResources.Fade_out_unused_imports
+
         Public ReadOnly Property Option_Performance As String
             Get
                 Return BasicVSResources.Performance
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
+            Get
+                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
             End Get
         End Property
 
@@ -179,28 +188,40 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_Import_Directives As String
-            Get
-                Return BasicVSResources.Import_Directives
-            End Get
-        End Property
+        Public ReadOnly Property Option_Import_Directives As String =
+            BasicVSResources.Import_Directives
 
-        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String
-            Get
-                Return BasicVSResources.Place_System_directives_first_when_sorting_imports
-            End Get
-        End Property
+        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String =
+            BasicVSResources.Place_System_directives_first_when_sorting_imports
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
-            End Get
-        End Property
+        Public ReadOnly Property Option_SeparateImportGroups As String =
+            BasicVSResources.Separate_import_directive_groups
 
-        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String
-            Get
-                Return BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String =
+            BasicVSResources.Suggest_imports_for_types_in_reference_assemblies
+
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
+            BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
+
+        Public ReadOnly Property Option_Regular_Expressions As String =
+            ServicesVSResources.Regular_Expressions
+
+        Public ReadOnly Property Option_Colorize_regular_expressions As String =
+            ServicesVSResources.Colorize_regular_expressions
+
+        Public ReadOnly Property Option_Report_invalid_regular_expressions As String =
+            ServicesVSResources.Report_invalid_regular_expressions
+
+        Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
+            ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
+
+        Public ReadOnly Property Option_Classifications As String =
+            ServicesVSResources.Classifications
+
+        Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
     End Module
 End Namespace

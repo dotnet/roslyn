@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public IList<RefKind> ParameterRefKinds { get; private set; }
             public ImmutableArray<ITypeSymbol> ParameterTypes { get; private set; }
 
-            public IMethodSymbol DelegatedConstructorOpt { get; private set; }
-
             public SyntaxToken Token { get; private set; }
 
             public bool IsConstructorInitializerGeneration { get; private set; }
@@ -70,13 +68,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 else if (service.IsSimpleNameGeneration(document, node, cancellationToken))
                 {
                     if (!await TryInitializeSimpleNameGenerationAsync(service, document, node, cancellationToken).ConfigureAwait(false))
-                    {
-                        return false;
-                    }
-                }
-                else if (service.IsClassDeclarationGeneration(document, node, cancellationToken))
-                {
-                    if (!await TryInitializeClassDeclarationGenerationAsync(service, document, node, cancellationToken).ConfigureAwait(false))
                     {
                         return false;
                     }
@@ -192,25 +183,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     return false;
                 }
-
-                return await TryDetermineTypeToGenerateInAsync(document, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task<bool> TryInitializeClassDeclarationGenerationAsync(
-                TService service,
-                SemanticDocument document,
-                SyntaxNode simpleName,
-                CancellationToken cancellationToken)
-            {
-                if (service.TryInitializeClassDeclarationGenerationState(document, simpleName, cancellationToken,
-                    out var token, out var constructor, out var typeToGenerateIn))
-                {
-                    this.Token = token;
-                    this.DelegatedConstructorOpt = constructor;
-                    this.ParameterTypes = constructor.Parameters.Select(p => p.Type).ToImmutableArray();
-                    this.ParameterRefKinds = constructor.Parameters.Select(p => p.RefKind).ToList();
-                }
-                cancellationToken.ThrowIfCancellationRequested();
 
                 return await TryDetermineTypeToGenerateInAsync(document, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var spaceTrivia = SyntaxTriviaListBuilder.Create().Add(SyntaxFactory.Whitespace(" ")).ToList();
             var emptyTrivia = SyntaxTriviaListBuilder.Create().ToList();
 
-            var name = "foo";
+            var name = "goo";
             var xmlStartElement = SyntaxFactory.XmlElementStartTag(
                 SyntaxFactory.Token(spaceTrivia, SyntaxKind.LessThanToken, default(SyntaxTriviaList)),
                 SyntaxFactory.XmlName(null,
@@ -46,33 +46,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.GreaterThanToken, spaceTrivia));
 
             var xmlElement = SyntaxFactory.XmlElement(xmlStartElement, default(SyntaxList<XmlNodeSyntax>), xmlEndElement);
-            Assert.Equal(" <foo> </foo> ", xmlElement.ToFullString());
-            Assert.Equal("<foo> </foo>", xmlElement.ToString());
+            Assert.Equal(" <goo> </goo> ", xmlElement.ToFullString());
+            Assert.Equal("<goo> </goo>", xmlElement.ToString());
 
             var docComment = SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia).WithContent(new SyntaxList<XmlNodeSyntax>(xmlElement));
-            Assert.Equal(" <foo> </foo> ", docComment.ToFullString());
-            // Assert.Equal("<foo> </foo>", docComment.GetText());
+            Assert.Equal(" <goo> </goo> ", docComment.ToFullString());
+            // Assert.Equal("<goo> </goo>", docComment.GetText());
             var child = (XmlElementSyntax)docComment.ChildNodesAndTokens()[0];
-            Assert.Equal(" <foo> </foo> ", child.ToFullString());
-            Assert.Equal("<foo> </foo>", child.ToString());
-            Assert.Equal(" <foo> ", child.StartTag.ToFullString());
-            Assert.Equal("<foo>", child.StartTag.ToString());
+            Assert.Equal(" <goo> </goo> ", child.ToFullString());
+            Assert.Equal("<goo> </goo>", child.ToString());
+            Assert.Equal(" <goo> ", child.StartTag.ToFullString());
+            Assert.Equal("<goo>", child.StartTag.ToString());
 
             var sTrivia = SyntaxFactory.Trivia(docComment);
             Assert.NotEqual(default(SyntaxTrivia), sTrivia);
             var ident = SyntaxFactory.Identifier(SyntaxTriviaList.Create(sTrivia), "banana", spaceTrivia);
 
-            Assert.Equal(" <foo> </foo> banana ", ident.ToFullString());
+            Assert.Equal(" <goo> </goo> banana ", ident.ToFullString());
             Assert.Equal("banana", ident.ToString());
-            Assert.Equal(" <foo> </foo> ", ident.LeadingTrivia[0].ToFullString());
-            // Assert.Equal("<foo> </foo>", ident.LeadingTrivia[0].GetText());
+            Assert.Equal(" <goo> </goo> ", ident.LeadingTrivia[0].ToFullString());
+            // Assert.Equal("<goo> </goo>", ident.LeadingTrivia[0].GetText());
 
             var identExpr = SyntaxFactory.IdentifierName(ident);
 
             // make sure FindLeaf digs into the structured trivia.
             var result = identExpr.FindToken(3, true);
             Assert.Equal(SyntaxKind.IdentifierToken, result.Kind());
-            Assert.Equal("foo", result.ToString());
+            Assert.Equal("goo", result.ToString());
 
             var trResult = identExpr.FindTrivia(6, SyntaxTrivia.Any);
             Assert.Equal(SyntaxKind.WhitespaceTrivia, trResult.Kind());
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
 #r ""ref0""
-#define Foo
+#define Goo
 #r ""ref1""
 #r ""ref2""
 using Blah;
@@ -183,7 +183,7 @@ class Program
         [Fact]
         public void TestTriviaList_getItemFailures()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(" class foo {}");
+            var tree = SyntaxFactory.ParseSyntaxTree(" class goo {}");
 
             var trivia = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia();
             var t1 = trivia[0];

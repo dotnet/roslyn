@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -94,8 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             object parentInstance = ComAggregate.GetManagedObject<object>(parentObject);
             Debug.Assert(!Marshal.IsComObject(parentInstance), "We should have a pure managed object!");
 
-            var container = parentInstance as ICodeElementContainer<T>;
-            if (container != null)
+            if (parentInstance is ICodeElementContainer<T> container)
             {
                 return container.GetCollection();
             }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// CS1624: The body of 'x' cannot be an iterator block because 'y' is not an iterator interface type
         /// </summary>
         private const string CS1624 = nameof(CS1624);
+
+        [ImportingConstructor]
+        public CSharpChangeToIEnumerableCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

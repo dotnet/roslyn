@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -529,7 +530,8 @@ class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
+        var list1 = new List<int>(() =>
+        {
             var list2 = new List<int>
             {
                 2
@@ -567,7 +569,8 @@ class C
     {
         var list1 = new List<int>
         {
-            () => {
+            () =>
+            {
                 var list2 = new List<int>
                 {
                     2
@@ -589,7 +592,7 @@ class C
     void M()
     {
         var c = [||]new List<int>();
-        c.Add(1); // Foo
+        c.Add(1); // Goo
         c.Add(2); // Bar
     }
 }",
@@ -601,12 +604,11 @@ class C
     {
         var c = new List<int>
         {
-            1, // Foo
+            1, // Goo
             2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -632,14 +634,8 @@ class C
     {
         var c = new Dictionary<int, string>
         {
-            {
-                1,
-                ""x""
-            },
-            {
-                2,
-                ""y""
-            }
+            { 1, ""x"" },
+            { 2, ""y"" }
         };
     }
 }");
@@ -652,7 +648,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -666,7 +662,7 @@ public class Foo
 }",
 @"using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public static void Bar()
     {
@@ -853,7 +849,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         dynamic body = [||]new ExpandoObject();
         body[0] = new ExpandoObject();
@@ -869,7 +865,7 @@ class C
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -889,7 +885,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -902,7 +898,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -913,7 +909,7 @@ public class Foo
         };
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
@@ -924,7 +920,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -936,7 +932,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -957,7 +953,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -969,7 +965,7 @@ public class Foo
 @"
 using System.Collections.Generic;
 
-public class Foo
+public class Goo
 {
     public void M()
     {
@@ -979,6 +975,62 @@ public class Foo
             (lastItem += 5)
         };
     }
+}");
+        }
+
+        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestKeepBlankLinesAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void Main()
+    {
+        var list = [||]new List<int>();
+        list.Add(1);
+
+        int horse = 1;
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void Main()
+    {
+        var list = new List<int>
+        {
+            1
+        };
+
+        int horse = 1;
+    }
+}");
+        }
+
+        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingWithExplicitImplementedAddMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Dynamic;
+
+public class Goo
+{
+    public void M()
+    {
+        IDictionary<string, object> obj = [||]new ExpandoObject();
+        obj.Add(""string"", ""v"");
+        obj.Add(""int"", 1);
+        obj.Add("" object"", new { X = 1, Y = 2 });
+        }
 }");
         }
     }

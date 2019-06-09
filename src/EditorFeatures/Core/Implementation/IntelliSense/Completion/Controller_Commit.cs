@@ -7,9 +7,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -18,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private CompletionProvider GetCompletionProvider(CompletionItem item)
         {
-            var completionService = this.GetCompletionService() as CompletionServiceWithProviders;
-            if (completionService != null)
+            if (this.GetCompletionService() is CompletionServiceWithProviders completionService)
             {
                 return completionService.GetProvider(item);
             }
@@ -68,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
-                if (provider != null)
+                if (GetCompletionProvider(item) is ICustomCommitCompletionProvider provider)
                 {
                     provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }
@@ -105,21 +107,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     Contract.ThrowIfNull(completionService, nameof(completionService));
 
                     completionChange = completionService.GetChangeAsync(
-                        triggerDocument, item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        triggerDocument, item, model.OriginalList.Span, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var textChange = completionChange.TextChange;
 
                     var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    var adjustedNewText = AdjustForVirtualSpace(textChange);
+                    var adjustedNewText = AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
                     var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
+
+                    // The immediate window is always marked read-only and the language service is
+                    // responsible for asking the buffer to make itself writable. We'll have to do that for
+                    // commit, so we need to drag the IVsTextLines around, too.
+                    // We have to ask the buffer to make itself writable, if it isn't already
+                    uint immediateWindowBufferUpdateCookie = 0;
+                    if (_isImmediateWindow)
+                    {
+                        immediateWindowBufferUpdateCookie = ((IDebuggerTextView)TextView).StartBufferUpdate();
+                    }
 
                     // Now actually make the text change to the document.
                     using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
                     {
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
-                        textEdit.Apply();
+                        textEdit.ApplyAndLogExceptions();
+                    }
+
+                    if (_isImmediateWindow)
+                    {
+                        ((IDebuggerTextView)TextView).EndBufferUpdate(immediateWindowBufferUpdateCookie);
                     }
 
                     // If the completion change requested a new position for the caret to go,
@@ -151,16 +168,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         nextHandler();
                     }
 
+                    if (item.Rules.FormatOnCommit)
+                    {
+                        var spanToFormat = triggerSnapshotSpan.TranslateTo(
+                            this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                        var document = this.GetDocument();
+                        var formattingService = document?.GetLanguageService<IEditorFormattingService>();
+
+                        if (formattingService != null)
+                        {
+                            var changes = formattingService.GetFormattingChangesAsync(
+                                document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                        }
+                    }
+
                     // If the insertion is long enough, the caret will scroll out of the visible area.
                     // Re-center the view.
                     this.TextView.Caret.EnsureVisible();
                 }
 
                 transaction.Complete();
+                Logger.Log(FunctionId.Intellisense_Completion_Commit, KeyValueLogMessage.NoProperty);
             }
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.DisplayText);
+        }
+
+        private static string AdjustForVirtualSpace(TextChange textChange, ITextView textView, IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            var newText = textChange.NewText;
+
+            var caretPoint = textView.Caret.Position.BufferPosition;
+            var virtualCaretPoint = textView.Caret.Position.VirtualBufferPosition;
+
+            if (textChange.Span.IsEmpty &&
+                textChange.Span.Start == caretPoint &&
+                virtualCaretPoint.IsInVirtualSpace)
+            {
+                // They're in virtual space and the text change is specified against the cursor
+                // position that isn't in virtual space.  In this case, add the virtual spaces to the
+                // thing we're adding.
+                var editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
+                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
+                return whitespace + newText;
+            }
+
+            return newText;
         }
 
         private void SetCaretPosition(int desiredCaretPosition)
@@ -204,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         textEdit.Replace(change.NewSpan, change.OldText);
                     }
 
-                    textEdit.Apply();
+                    textEdit.ApplyAndLogExceptions();
                 }
             }
         }
@@ -218,28 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 yield return version;
                 version = version.Next;
             }
-        }
-
-        private string AdjustForVirtualSpace(TextChange textChange)
-        {
-            var newText = textChange.NewText;
-
-            var caretPoint = this.TextView.Caret.Position.BufferPosition;
-            var virtualCaretPoint = this.TextView.Caret.Position.VirtualBufferPosition;
-
-            if (textChange.Span.IsEmpty &&
-                textChange.Span.Start == caretPoint &&
-                virtualCaretPoint.IsInVirtualSpace)
-            {
-                // They're in virtual space and the text change is specified against the cursor
-                // position that isn't in virtual space.  In this case, add the virtual spaces to the
-                // thing we're adding.
-                var editorOperations = _editorOperationsFactoryService.GetEditorOperations(this.TextView);
-                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
-                return whitespace + newText;
-            }
-
-            return newText;
         }
     }
 }

@@ -7,11 +7,12 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class OpenDocumentTracker<T>
+    internal class OpenDocumentTracker<TItem>
+        where TItem : TableItem
     {
         private readonly object _gate = new object();
-        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>>();
+        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
+            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>>();
 
         private readonly Workspace _workspace;
 
@@ -23,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<T> snapshot)
+        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<TItem> snapshot)
         {
             lock (_gate)
             {
                 if (!_map.TryGetValue(documentId, out var secondMap))
                 {
-                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>();
+                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>();
                     _map.Add(documentId, secondMap);
                 }
 
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     oldSnapshot.StopTracking();
                 }
 
-                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<T>>(snapshot);
+                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<TItem>>(snapshot);
             }
         }
 

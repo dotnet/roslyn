@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -35,72 +37,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+                {
+                    return;
+                }
+
+                var token = syntaxTree
+                    .FindTokenOnLeftOfPosition(position, cancellationToken)
+                    .GetPreviousTokenIfTouchingWord(position);
+
+                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                {
+                    return;
+                }
+
+                var argumentList = token.Parent as BaseArgumentListSyntax;
+                if (argumentList == null)
+                {
+                    return;
+                }
+
+                var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
+                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
+                if (parameterLists == null)
+                {
+                    return;
+                }
+
+                var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
+                parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
+
+                var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
+                                                          .Where(p => !existingNamedParameters.Contains(p.Name))
+                                                          .Distinct(this);
+
+                if (!unspecifiedParameters.Any())
+                {
+                    return;
+                }
+
+                // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                // See https://github.com/dotnet/roslyn/issues/20657
+                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+                if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
+                {
+                    context.IsExclusive = true;
+                }
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var workspace = document.Project.Solution.Workspace;
+
+                foreach (var parameter in unspecifiedParameters)
+                {
+                    // Note: the filter text does not include the ':'.  We want to ensure that if 
+                    // the user types the name exactly (up to the colon) that it is selected as an
+                    // exact match.
+                    var escapedName = parameter.Name.ToIdentifierToken().ToString();
+
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: escapedName,
+                        displayTextSuffix: ColonString,
+                        symbols: ImmutableArray.Create(parameter),
+                        rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
+                        contextPosition: token.SpanStart,
+                        filterText: escapedName));
+                }
             }
-
-            var token = syntaxTree
-                .FindTokenOnLeftOfPosition(position, cancellationToken)
-                .GetPreviousTokenIfTouchingWord(position);
-
-            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return;
-            }
-
-            var argumentList = token.Parent as BaseArgumentListSyntax;
-            if (argumentList == null)
-            {
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
-            var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
-            if (parameterLists == null)
-            {
-                return;
-            }
-
-            var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
-            parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
-
-            var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
-                                                      .Where(p => !existingNamedParameters.Contains(p.Name))
-                                                      .Distinct(this);
-
-            if (!unspecifiedParameters.Any())
-            {
-                return;
-            }
-
-            if (token.IsMandatoryNamedParameterPosition())
-            {
-                context.IsExclusive = true;
-            }
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var workspace = document.Project.Solution.Workspace;
-
-            foreach (var parameter in unspecifiedParameters)
-            {
-                // Note: the filter text does not include the ':'.  We want to ensure that if 
-                // the user types the name exactly (up to the colon) that it is selected as an
-                // exact match.
-                var escapedName = parameter.Name.ToIdentifierToken().ToString();
-
-                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: escapedName + ColonString,
-                    symbols: ImmutableArray.Create(parameter),
-                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
-                    contextPosition: token.SpanStart,
-                    filterText: escapedName));
+                // nop
             }
         }
 
@@ -243,7 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                // Do not insert colon on <Tab> so that user can complete out a variable name that does not currently exist.
+                // ch == null is to support the old completion only.
+                // Do not insert an extra colon if colon has been explicitly typed.
+                (ch == null || ch == '\t' || ch == ':') ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
         }
     }
 }

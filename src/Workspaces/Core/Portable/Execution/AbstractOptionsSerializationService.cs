@@ -7,6 +7,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteBoolean(options.Deterministic);
             writer.WriteBoolean(options.PublicSign);
 
+            writer.WriteByte((byte)options.MetadataImportOptions);
+
             // REVIEW: What should I do with these. we probably need to implement either out own one
             //         or somehow share these as service....
             //
@@ -94,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Execution
             out bool concurrentBuild,
             out bool deterministic,
             out bool publicSign,
+            out MetadataImportOptions metadataImportOptions,
             out XmlReferenceResolver xmlReferenceResolver,
             out SourceReferenceResolver sourceReferenceResolver,
             out MetadataReferenceResolver metadataReferenceResolver,
@@ -141,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = (ReportDiagnostic)reader.ReadInt32();
 
-                    specificDiagnosticOptionsList.Add(KeyValuePair.Create(key, value));
+                    specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
@@ -150,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Execution
             concurrentBuild = reader.ReadBoolean();
             deterministic = reader.ReadBoolean();
             publicSign = reader.ReadBoolean();
+
+            metadataImportOptions = (MetadataImportOptions)reader.ReadByte();
 
             // REVIEW: What should I do with these. are these service required when compilation is built ourselves, not through
             //         compiler.
@@ -205,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var key = reader.ReadString();
                     var value = reader.ReadString();
 
-                    featuresList.Add(KeyValuePair.Create(key, value));
+                    featuresList.Add(KeyValuePairUtil.Create(key, value));
                 }
             }
 
@@ -221,16 +227,26 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.QualifyPropertyAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.QualifyMethodAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.QualifyEventAccess, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferAutoProperties, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferCoalesceExpression, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferCollectionInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferExplicitTupleNames, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferDeconstructedVariableDeclaration, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferNullPropagation, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.RequireAccessibilityModifiers, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.ArithmeticBinaryParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.RelationalBinaryParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.OtherBinaryParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.OtherParentheses, writer, cancellationToken);
             WriteOptionTo(options, language, SimplificationOptions.NamingPreferences, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.PreferReadonly, writer, cancellationToken);
         }
 
         protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
@@ -241,16 +257,26 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyPropertyAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyMethodAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.QualifyEventAccess, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferAutoProperties, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCoalesceExpression, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferCollectionInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferExplicitTupleNames, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInlinedVariableDeclaration, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferDeconstructedVariableDeclaration, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferNullPropagation, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.RequireAccessibilityModifiers, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.ArithmeticBinaryParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.RelationalBinaryParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.OtherBinaryParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.OtherParentheses, reader, cancellationToken);
             options = ReadOptionFrom(options, language, SimplificationOptions.NamingPreferences, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.PreferReadonly, reader, cancellationToken);
             return options;
         }
 

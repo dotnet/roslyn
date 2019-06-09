@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         private const double EpsilonDistance = 0.00001;
         private const double MatchingDistance1 = 0.25;
         private const double MatchingDistance2 = 0.5;
+        private const double MatchingDistance3 = 0.75;
         private const double MaxDistance = 1.0;
 
         private readonly TreeComparer<TNode> _comparer;
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             ComputeMatchForLabel(s1, s2, tiedToAncestor, EpsilonDistance);     // almost exact match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance1);   // ok match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance2);   // ok match
+            ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance3);   // ok match
             ComputeMatchForLabel(s1, s2, tiedToAncestor, MaxDistance);         // any match
         }
 
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // Find node2 that matches node1 the best, i.e. has minimal distance.
 
                 double bestDistance = MaxDistance * 2;
-                TNode bestMatch = default(TNode);
+                TNode bestMatch = default;
                 bool matched = false;
                 int i2;
                 for (i2 = firstNonMatch2; i2 < count2; i2++)

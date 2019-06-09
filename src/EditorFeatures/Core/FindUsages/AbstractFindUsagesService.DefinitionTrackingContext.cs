@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _underlyingContext = underlyingContext;
             }
 
-            public CancellationToken CancellationToken 
+            public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;
 
             public Task ReportMessageAsync(string message)

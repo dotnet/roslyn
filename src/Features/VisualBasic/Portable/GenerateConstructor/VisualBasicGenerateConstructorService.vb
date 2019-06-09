@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Utilities
@@ -14,15 +15,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
-        Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax) As String
-            Return semanticModel.GenerateNameForArgument(argument)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
+            Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
 
         Protected Overrides Function GenerateParameterNames(
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
-                Optional reservedNames As IList(Of String) = Nothing) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames)
+                reservedNames As IList(Of String),
+                parameterNamingRule As NamingRule,
+                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(
@@ -153,33 +160,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
-        Protected Overrides Function IsClassDeclarationGeneration(document As SemanticDocument,
-                                                                  node As SyntaxNode,
-                                                                  cancellationToken As CancellationToken) As Boolean
-            Return TypeOf node Is ClassBlockSyntax
-        End Function
-
-        Protected Overrides Function TryInitializeClassDeclarationGenerationState(
-                document As SemanticDocument,
-                classDeclaration As SyntaxNode,
-                cancellationToken As CancellationToken,
-                ByRef token As SyntaxToken,
-                ByRef delegatedConstructor As IMethodSymbol,
-                ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
-            Dim semanticModel = document.SemanticModel
-            Dim classBlock = DirectCast(classDeclaration, ClassBlockSyntax)
-            Dim classSymbol = semanticModel.GetDeclaredSymbol(classBlock.BlockStatement, cancellationToken)
-            Dim constructor = classSymbol?.BaseType?.Constructors.FirstOrDefault(Function(c) IsSymbolAccessible(c, document))
-            If constructor Is Nothing Then
-                Return False
-            End If
-
-            typeToGenerateIn = classSymbol
-            delegatedConstructor = constructor
-            token = classBlock.BlockStatement.Identifier
-            Return True
-        End Function
-
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         Friend Overrides Function GetDelegatingConstructor(state As State,
@@ -218,8 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 Dim speculativeModel As SemanticModel = Nothing
                 If document.SemanticModel.TryGetSpeculativeSemanticModel(invocationStatement.SpanStart, newInvocationStatement, speculativeModel) Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newInvocation, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    Dim delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
+
+                    If (delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression)) Then
+                        Return delegatingConstructor
+                    End If
+
+                    Return If(CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken), delegatingConstructor, Nothing)
                 End If
             Else
                 Dim oldNode = oldToken.Parent _
@@ -229,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then
@@ -274,6 +260,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
             Dim newArguments = oldArgumentList.Arguments.Take(argumentCount)
             Return SyntaxFactory.ArgumentList(New SeparatedSyntaxList(Of ArgumentSyntax)().AddRange(newArguments))
+        End Function
+
+        Protected Overrides Function GetCurrentConstructor(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As IMethodSymbol
+            Return semanticModel.GetDeclaredSymbol(token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetDelegatedConstructor(semanticModel As SemanticModel, constructor As IMethodSymbol, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim constructorStatements = constructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
+            If (constructorStatements.IsEmpty()) Then
+                Return Nothing
+            End If
+            Dim constructorInitializerSyntax = constructorStatements(0)
+            Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
+            If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
+                Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
+            End If
+            Return Nothing
         End Function
     End Class
 End Namespace

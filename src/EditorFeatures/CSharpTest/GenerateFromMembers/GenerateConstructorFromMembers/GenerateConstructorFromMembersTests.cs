@@ -1,12 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,7 +35,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -56,9 +58,9 @@ class Z
 {
     int a;
 
-    public Z(int a) => this . a = a ;
+    public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -77,9 +79,9 @@ class Z
 {
     int a;
 
-    public Z(int a) => this . a = a ;
+    public Z(int a{|Navigation:)|} => this.a = a;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -100,13 +102,13 @@ class Z
     int a;
     int b;
 
-    public Z(int a, int b)
+    public Z(int a, int b{|Navigation:)|}
     {
-        this . a = a ;
-        this . b = b ;
+        this.a = a;
+        this.b = b;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -127,11 +129,106 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToExcludedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;[|
+    string b;
+    string c;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    string c;
+
+    public Z(string b, string c{|Navigation:)|}
+    {
+        this.b = b;
+        this.c = c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_VerticalSelectionUpToMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }[|
+    int a;
+    string b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    void Foo() { }
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultipleFields_SelectionIncludingClassOpeningBrace()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+
+class Z
+[|{
+    int a;
+    string b;|]
 }");
         }
 
@@ -163,7 +260,7 @@ class Z
         this.a = a;
     }
 
-    public Z(string b)
+    public Z(string b{|Navigation:)|}
     {
         this.b = b;
     }
@@ -198,7 +295,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -234,7 +331,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -270,7 +367,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b) : this(a)
+    public Z(int a, string b{|Navigation:)|} : this(a)
     {
         this.b = b;
     }
@@ -294,7 +391,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -313,7 +410,7 @@ class Z
 }",
 @"class Z
 {
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         A = a;
         B = b;
@@ -335,7 +432,7 @@ class Z
 }",
 @"class Z
 {
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.A = a;
         this.B = b;
@@ -362,7 +459,7 @@ struct S
 {
     int i;
 
-    public S(int i)
+    public S(int i{|Navigation:)|}
     {
         this.i = i;
     }
@@ -370,7 +467,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestStruct1()
+        public async Task TestStructInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -383,12 +480,37 @@ struct S
 
 struct S
 {
-    public S(int i) : this()
+    public S(int i{|Navigation:)|}
     {
         this.i = i;
     }
 
     int i { get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestStructNotInitializingAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+struct S
+{
+    [|int i { get => f; set => f = value; }|]
+    int j { get; set; }
+}",
+@"using System.Collections.Generic;
+
+struct S
+{
+    public S(int i{|Navigation:)|} : this()
+    {
+        this.i = i;
+    }
+
+    int i { get => f; set => f = value; }
+    int j { get; set; }
 }");
         }
 
@@ -412,7 +534,7 @@ struct S
 
     int y;
 
-    public S(int y) : this()
+    public S(int y{|Navigation:)|} : this()
     {
         this.y = y;
     }
@@ -439,7 +561,7 @@ struct S
 
     int y;
 
-    public S(int i) : this()
+    public S(int i{|Navigation:)|} : this()
     {
         this.i = i;
     }
@@ -462,7 +584,7 @@ class Program<T>
 {
     int i;
 
-    public Program(int i)
+    public Program(int i{|Navigation:)|}
     {
         this.i = i;
     }
@@ -534,7 +656,7 @@ index: 1);
 {
     int yield;
 
-    public Program(int yield)
+    public Program(int yield{|Navigation:)|}
     {
         this.yield = yield;
     }
@@ -577,7 +699,7 @@ class Z
 {
     (int, string) a;
 
-    public Z((int, string) a)
+    public Z((int, string) a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -597,7 +719,7 @@ class Z
 {
     int _field;
 
-    public Program(int field)
+    public Program(int field{|Navigation:)|}
     {
         _field = field;
     }
@@ -617,7 +739,7 @@ class Z
 {
     int _field;
 
-    public Program(int field)
+    public Program(int field{|Navigation:)|}
     {
         this._field = field;
     }
@@ -637,7 +759,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
 }",
 @"abstract class Contribution
 {
-    public Contribution(string title, int number)
+    protected Contribution(string title, int number{|Navigation:)|}
     {
         Title = title;
         Number = number;
@@ -679,7 +801,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -703,7 +825,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -741,7 +863,7 @@ class Z
 {
     int a;
 
-    public Z()
+    public Z({|Navigation:)|}
     {
     }
 }",
@@ -767,7 +889,7 @@ class Z
     int a;
     string b;
 
-    public Z(string b, int a)
+    public Z(string b, int a{|Navigation:)|}
     {
         this.b = b;
         this.a = a;
@@ -799,13 +921,13 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b ?? throw new ArgumentNullException(nameof(b));
     }
 }",
-chosenSymbols: new string[] { "a", "b" }, 
+chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true);
         }
 
@@ -832,7 +954,82 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
+    {
+        if (b is null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        this.a = a;
+        this.b = b;
+    }
+}",
+chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(options:
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int? b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int? b;
+
+    public Z(int a, int? b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
+chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(options:
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks_CSharp6()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
     {
         if (b == null)
         {
@@ -845,8 +1042,9 @@ class Z
 }",
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
-parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+parameters: new TestParameters(
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
+    options: Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -897,6 +1095,308 @@ class Z
     }
 
     public void N() { }
+}");
+        }
+
+        [WorkItem(21067, "https://github.com/dotnet/roslyn/pull/21067")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestFinalCaretPosition()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
+        public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C 
+{
+    [|public int Prop { get; set; }|]
+}",
+@"abstract class C 
+{
+    protected C(int prop{|Navigation:)|}
+    {
+        Prop = prop;
+    }
+
+    public int Prop { get; set; }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
+        }
+
+        [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestWithDialogNoBackingField()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int F { get; set; }
+    [||]
+}",
+@"
+class Program
+{
+    public int F { get; set; }
+
+    public Program(int f{|Navigation:)|}
+    {
+        F = f;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestWithDialogNoIndexer()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int this[int index] { get => 0; set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int this[int index] { get => 0; set { } }
+
+    public Program(int p{|Navigation:)|}
+    {
+        P = p;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogSetterOnlyProperty()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+    [||]
+}",
+@"
+class Program
+{
+    public int P { get => 0; set { } }
+    public int S { set { } }
+
+    public Program(int p, int s{|Navigation:)|}
+    {
+        P = p;
+        S = s;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|];
+}",
+@"class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|]bcdefg;
+}",
+@"class Z
+{
+    int abcdefg;
+
+    public Z(int abcdefg{|Navigation:)|}
+    {
+        this.abcdefg = abcdefg;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int abcdef[|g|];
+}",
+@"class Z
+{
+    int abcdefg;
+
+    public Z(int abcdefg{|Navigation:)|}
+    {
+        this.abcdefg = abcdefg;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionBeforeIdentifier()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int [||]a;
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionAfterIdentifier()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a[||];
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionIdentifierNotSelected()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    in[|t|] a;
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionIdentifierNotSelected2()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a [|= 3|];
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a;
+    int b|];
+}",
+@"class Z
+{
+    int a;
+    int b;
+
+    public Z(int a, int b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a = 2;
+    int|] b;
+}",
+@"class Z
+{
+    int a = 2;
+    int b;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|] = 2, b = 3;
+}",
+@"class Z
+{
+    int a = 2, b = 3;
+
+    public Z(int a, int b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection4()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a = [|2|], b = 3;
 }");
         }
     }

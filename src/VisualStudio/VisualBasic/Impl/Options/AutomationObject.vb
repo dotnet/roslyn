@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -15,9 +16,9 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As Workspace
+        Private ReadOnly _workspace As CodeAnalysis.Workspace
 
-        Friend Sub New(workspace As Workspace)
+        Friend Sub New(workspace As CodeAnalysis.Workspace)
             _workspace = workspace
         End Sub
 
@@ -252,12 +253,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_PreferInferredTupleNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredTupleNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferInferredAnonymousTypeMemberNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, value)
+            End Set
+        End Property
+
         Public Property Style_PreferExplicitTupleNames As String
             Get
                 Return GetXmlOption(CodeStyleOptions.PreferExplicitTupleNames)
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferReadonly As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferReadonly)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferReadonly, value)
             End Set
         End Property
 
@@ -285,6 +313,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As Boolean)
                 SetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, value)
+            End Set
+        End Property
+
+        Public Property Option_ShowItemsFromUnimportedNamespaces As Integer
+            Get
+                Return GetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces)
+            End Get
+            Set(value As Integer)
+                SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value)
             End Set
         End Property
 

@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out assemblyPath, pdbPath: out pdbPath);
+            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
             Assert.NotNull(assemblyPath);
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);
@@ -23,15 +21,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static string GetIlasmPath()
         {
-            if (CoreClrShim.AssemblyLoadContext.Type == null)
+            if (ExecutionConditionUtil.IsWindowsDesktop)
             {
                 return Path.Combine(
-                    Path.GetDirectoryName(CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly)),
+                    Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
                     "ilasm.exe");
             }
             else
             {
-                return Path.Combine(AppContext.BaseDirectory, "ilasm");
+                var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
+
+                var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
+                string path = null;
+#if DEBUG
+                const string configuration = "Debug";
+#else
+                const string configuration = "Release";
+#endif
+
+                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILTools", configuration, ilasmExeName)))
+                {
+                    directory = Path.GetDirectoryName(directory);
+                }
+
+                if (directory == null)
+                {
+                    throw new NotSupportedException("Unable to find CoreCLR ilasm tool. Has the Microsoft.NETCore.ILAsm package been published to /artifacts/tools?");
+                }
+
+                return path;
             }
         }
 
@@ -86,22 +104,13 @@ $@".assembly '{sourceFileName}' {{}}
                     pdbPath = null;
                 }
 
-                var program = IlasmPath;
-                if (MonoHelpers.IsRunningOnMono())
-                {
-                    arguments = string.Format("{0} {1}", IlasmPath, arguments);
-                    arguments = arguments.Replace("\"", "");
-                    arguments = arguments.Replace("=", ":");
-                    program = "mono";
-                }
-
-                var result = ProcessUtilities.Run(program, arguments);
+                var result = ProcessUtilities.Run(IlasmPath, arguments);
 
                 if (result.ContainsErrors)
                 {
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        program + " " + arguments + Environment.NewLine +
+                        IlasmPath + " " + arguments + Environment.NewLine +
                         result,
                         nameof(declarations));
                 }

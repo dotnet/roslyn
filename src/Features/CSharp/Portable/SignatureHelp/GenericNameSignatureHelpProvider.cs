@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("GenericNameSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public GenericNameSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '<' || ch == ',';
@@ -45,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return true;
             }
 
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             return false;
         }
 
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
                        .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
@@ -122,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
                 Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
@@ -245,6 +250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 if (typeParam.HasReferenceTypeConstraint)
                 {
                     parts.Add(Keyword(SyntaxKind.ClassKeyword));
+                    needComma = true;
+                }
+                else if (typeParam.HasUnmanagedTypeConstraint)
+                {
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
                     needComma = true;
                 }
                 else if (typeParam.HasValueTypeConstraint)

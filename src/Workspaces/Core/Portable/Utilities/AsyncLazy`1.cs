@@ -171,13 +171,19 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // If the value is already available, return it immediately
+            if (TryGetValue(out T value))
+            {
+                return value;
+            }
 
             Request request = null;
             AsynchronousComputationToStart? newAsynchronousComputation = null;
@@ -297,7 +303,14 @@ namespace Roslyn.Utilities
             // Optimization: if we're already cancelled, do not pass go
             if (cancellationToken.IsCancellationRequested)
             {
-                return new Task<T>(() => default(T), cancellationToken);
+                return Task.FromCanceled<T>(cancellationToken);
+            }
+
+            // Avoid taking the lock if a cached value is available
+            var cachedResult = _cachedResult;
+            if (cachedResult != null)
+            {
+                return cachedResult;
             }
 
             Request request;
@@ -442,7 +455,7 @@ namespace Roslyn.Utilities
 
                 // The computation is complete, so get all requests to complete and null out the list. We'll create another one
                 // later if it's needed
-                requestsToComplete = _requests ?? SpecializedCollections.EmptyEnumerable<Request>();
+                requestsToComplete = _requests ?? (IEnumerable<Request>)Array.Empty<Request>();
                 _requests = null;
 
                 // The computations are done

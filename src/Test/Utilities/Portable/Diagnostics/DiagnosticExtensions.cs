@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -161,8 +162,7 @@ namespace Microsoft.CodeAnalysis
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out var diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis
             bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
-            ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out var diagnostics);
             return diagnostics;
         }
 
@@ -227,8 +226,8 @@ namespace Microsoft.CodeAnalysis
                 c = (TCompilation)c.WithOptions(c.Options.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics));
             }
 
-            Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
+            var analyzerManager = new AnalyzerManager(analyzersArray);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out var newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
 
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Given a set of compiler or <see cref="IDiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
+        /// Given a set of compiler or <see cref="DiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
         /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
         /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
         /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
@@ -254,7 +253,6 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// <paramref name="continueOnError"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis
             var expectedToolName = compiler.GetToolName();
             var expectedVersion = compiler.GetAssemblyVersion();
             var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
-            var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedFileVersion = compiler.GetCompilerVersion();
             var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{
@@ -371,6 +369,12 @@ namespace Microsoft.CodeAnalysis
 
             retVal = e.Severity.ToString() + " " + e.Id + ": " + e.GetMessage(CultureInfo.CurrentCulture);
             return retVal;
+        }
+
+        public static string ToString(this Diagnostic d, IFormatProvider formatProvider)
+        {
+            IFormattable formattable = d;
+            return formattable.ToString(null, formatProvider);
         }
     }
 }

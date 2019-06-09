@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -37,10 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal virtual bool CanScheduleToStack
-        {
-            get { return !IsConst && !IsPinned; }
-        }
+        internal virtual bool CanScheduleToStack => !IsConst && !IsPinned;
 
         internal abstract SyntaxToken IdentifierToken
         {
@@ -48,12 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this local.
+        /// Gets the type of this local along with its annotations.
         /// </summary>
-        public abstract TypeSymbol Type
+        public abstract TypeWithAnnotations TypeWithAnnotations
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the type of this local.
+        /// </summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// WARN WARN WARN: If you access this via the semantic model, things will break (since the initializer may not have been bound).
@@ -255,7 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
 
-        internal virtual bool IsWritable
+        /// <summary>
+        /// Describes whether this represents a modifiable variable. Note that
+        /// this refers to the variable, not the underlying value, so if this
+        /// variable is a ref-local, the writability refers to ref-assignment,
+        /// not assignment to the underlying storage.
+        /// </summary>
+        internal virtual bool IsWritableVariable
         {
             get
             {
@@ -320,21 +330,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
-        public bool IsRef => RefKind == RefKind.Ref;
+        public bool IsRef => RefKind != RefKind.None;
 
-        internal abstract RefKind RefKind
+        public abstract RefKind RefKind
         {
             get;
         }
 
-        internal virtual bool IsReturnable
-        {
-            get
-            {
-                // by default all locals are returnable
-                return true;
-            }
-        }
+        /// <summary>
+        /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
+        /// Makes sense only for locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint RefEscapeScope { get; }
+
+        /// <summary>
+        /// Returns the scope to which values of a local can "escape" via ordinary assignments
+        /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint ValEscapeScope { get; }
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the
@@ -358,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.Type;
             }
         }
+
+        CodeAnalysis.NullableAnnotation ILocalSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         bool ILocalSymbol.IsFunctionValue
         {

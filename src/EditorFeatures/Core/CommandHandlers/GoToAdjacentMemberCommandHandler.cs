@@ -5,78 +5,107 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToAdjacentMember, ContentTypeNames.RoslynContentType)]
-    internal class GoToAdjacentMemberCommandHandler : ICommandHandler<GoToAdjacentMemberCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
+    internal class GoToAdjacentMemberCommandHandler :
+        VSCommanding.ICommandHandler<GoToNextMemberCommandArgs>,
+        VSCommanding.ICommandHandler<GoToPreviousMemberCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IOutliningManagerService _outliningManagerService;
 
+        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
+
         [ImportingConstructor]
-        public GoToAdjacentMemberCommandHandler(IWaitIndicator waitIndicator, IOutliningManagerService outliningManagerService)
+        public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
         {
-            _waitIndicator = waitIndicator;
             _outliningManagerService = outliningManagerService;
         }
 
-        public CommandState GetCommandState(GoToAdjacentMemberCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(GoToNextMemberCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            return IsAvailable(document, caretPoint) ? CommandState.Available : nextHandler();
+            return GetCommandStateImpl(args);
         }
 
-        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint)
+        public bool ExecuteCommand(GoToNextMemberCommandArgs args, CommandExecutionContext context)
         {
+            return ExecuteCommandImpl(args, gotoNextMember: true, context);
+        }
+
+        public VSCommanding.CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
+        {
+            return GetCommandStateImpl(args);
+        }
+
+        public bool ExecuteCommand(GoToPreviousMemberCommandArgs args, CommandExecutionContext context)
+        {
+            return ExecuteCommandImpl(args, gotoNextMember: false, context);
+        }
+
+        private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
+        {
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
+            {
+                return VSCommanding.CommandState.Unspecified;
+            }
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document?.SupportsSyntaxTree != true)
+            {
+                return VSCommanding.CommandState.Unspecified;
+            }
+
+            return VSCommanding.CommandState.Available;
+        }
+
+        private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
+        {
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
+            {
+                return false;
+            }
+
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {
                 return false;
             }
 
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(document) == true;
-        }
-
-        public void ExecuteCommand(GoToAdjacentMemberCommandArgs args, Action nextHandler)
-        {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(document, caretPoint))
-            {
-                nextHandler();
-                return;
-            }
-
             int? targetPosition = null;
-            var waitResult = _waitIndicator.Wait(EditorFeaturesResources.Navigating, allowCancel: true, action: waitContext =>
-            {
-                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, args.Direction == NavigateDirection.Down, waitContext.CancellationToken);
-                targetPosition = task.WaitAndGetResult(waitContext.CancellationToken);
-            });
 
-            if (waitResult == WaitIndicatorResult.Canceled || targetPosition == null)
+            using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
             {
-                return;
+                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
+                targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);
             }
 
-            args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
+            if (targetPosition != null)
+            {
+                args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
+            }
+
+            return true;
         }
 
         /// <summary>

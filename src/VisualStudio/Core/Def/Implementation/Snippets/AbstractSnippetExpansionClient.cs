@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
@@ -46,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         internal IVsExpansionSession ExpansionSession;
 
-        public AbstractSnippetExpansionClient(Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+        public AbstractSnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            : base(threadingContext)
         {
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
@@ -104,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
-            
+
             SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
 
             if (isFullSnippetFormat)
@@ -142,13 +141,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     return;
                 }
 
-                TextView.TextSnapshot.GetLineAndColumn(endSpanInSurfaceBuffer.Start.Position, out var endLine, out var endColumn);
+                TextView.TextSnapshot.GetLineAndCharacter(endSpanInSurfaceBuffer.Start.Position, out var endLine, out var endChar);
                 ExpansionSession.SetEndSpan(new VsTextSpan
                 {
                     iStartLine = endLine,
-                    iStartIndex = endColumn,
+                    iStartIndex = endChar,
                     iEndLine = endLine,
-                    iEndIndex = endColumn
+                    iEndIndex = endChar
                 });
             }
         }
@@ -567,14 +566,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var containedDocument = vsWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+            var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
             if (containedDocument == null)
             {
                 return false;
             }
 
-            var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost as IVsContainedLanguageHostInternal;
-            if (containedLanguageHost != null)
+            if (containedDocument.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
             {
                 foreach (var importClause in memberImportsNamespaces)
                 {
@@ -619,7 +617,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            subjectBufferSpan = default(SnapshotSpan);
+            subjectBufferSpan = default;
             return false;
         }
 
@@ -634,7 +632,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            span = default(SnapshotSpan);
+            span = default;
             return false;
         }
     }

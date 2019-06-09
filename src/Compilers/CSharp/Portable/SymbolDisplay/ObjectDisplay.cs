@@ -3,14 +3,14 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Text;
-using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Displays a value in the C# style.
     /// </summary>
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the Formatter project and we don't want it to be public there.
     /// </remarks>
     /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObjectDisplay"/>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     internal static class ObjectDisplay
     {
         /// <summary>
@@ -133,20 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value ? "true" : "false";
         }
 
-        private static bool TryReplaceQuote(char c, char quote, out string replaceWith)
-        {
-            Debug.Assert(quote == '"' || quote == '\'');
-
-            if (c == quote)
-            {
-                replaceWith = "\\" + c;
-                return true;
-            }
-
-            replaceWith = null;
-            return false;
-        }
-
         /// <summary>
         /// Returns true if the character should be replaced and sets
         /// <paramref name="replaceWith"/> to the replacement text.
@@ -190,13 +176,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            if (NeedsEscaping(CharUnicodeInfo.GetUnicodeCategory(c)))
+            {
+                replaceWith = "\\u" + ((int)c).ToString("x4");
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool NeedsEscaping(UnicodeCategory category)
+        {
+            switch (category)
             {
                 case UnicodeCategory.Control:
                 case UnicodeCategory.OtherNotAssigned:
                 case UnicodeCategory.ParagraphSeparator:
                 case UnicodeCategory.LineSeparator:
-                    replaceWith = "\\u" + ((int)c).ToString("x4");
+                case UnicodeCategory.Surrogate:
                     return true;
                 default:
                     return false;
@@ -238,10 +235,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(quote);
             }
 
-            foreach (var c in value)
+            for (int i = 0; i < value.Length; i++)
             {
-                string replaceWith;
-                if (escapeNonPrintable && TryReplaceChar(c, out replaceWith))
+                char c = value[i];
+                if (escapeNonPrintable && CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
+                {
+                    var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
+                    if (category == UnicodeCategory.Surrogate)
+                    {
+                        // an unpaired surrogate
+                        builder.Append("\\u" + ((int)c).ToString("x4"));
+                    }
+                    else if (NeedsEscaping(category))
+                    {
+                        // a surrogate pair that needs to be escaped
+                        var unicode = char.ConvertToUtf32(value, i);
+                        builder.Append("\\U" + unicode.ToString("x8"));
+                        i++; // skip the already-encoded second surrogate of the pair
+                    }
+                    else
+                    {
+                        // copy a printable surrogate pair directly
+                        builder.Append(c);
+                        builder.Append(value[++i]);
+                    }
+                }
+                else if (escapeNonPrintable && TryReplaceChar(c, out var replaceWith))
                 {
                     builder.Append(replaceWith);
                 }

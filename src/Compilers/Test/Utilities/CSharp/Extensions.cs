@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -256,12 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static string[] GetFieldNamesAndTypes(this ModuleSymbol module, string qualifiedTypeName)
         {
             var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(qualifiedTypeName);
-            return type.GetMembers().OfType<FieldSymbol>().Select(f => f.Name + ": " + f.Type).ToArray();
+            return type.GetMembers().OfType<FieldSymbol>().Select(f => f.Name + ": " + f.TypeWithAnnotations).ToArray();
         }
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, NamedTypeSymbol c)
         {
-            return @this.GetAttributes().Where(a => a.AttributeClass == c);
+            return @this.GetAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything2));
         }
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, string namespaceName, string typeName)
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, NamedTypeSymbol c)
         {
-            return @this.GetAttributes().Where(a => a.AttributeClass == c).First();
+            return @this.GetAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything2)).First();
         }
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, string namespaceName, string typeName)
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return expected.Equals(arg.Value);
                 case TypedConstantKind.Type:
                     var typeSym = arg.Value as TypeSymbol;
-                    if (typeSym == null)
+                    if ((object)typeSym == null)
                     {
                         return false;
                     }
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return false;
                 }
                 var expArgs = expType.GetGenericArguments();
-                var actArgs = namedType.TypeArguments;
+                var actArgs = namedType.TypeArguments();
                 if (!(expArgs.Count() == actArgs.Length))
                 {
                     return false;
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return false;
                 }
-                if (!IsEqual(arySym.BaseType, expType.GetTypeInfo().BaseType))
+                if (!IsEqual(arySym.BaseType(), expType.GetTypeInfo().BaseType))
                 {
                     return false;
                 }
@@ -457,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Contains(accessor, propertyOrEvent.ContainingType.GetMembers(accessor.Name));
 
-            var propertyOrEventType = propertyOrEvent.GetTypeOrReturnType();
+            var propertyOrEventType = propertyOrEvent.GetTypeOrReturnType().Type;
             switch (accessor.MethodKind)
             {
                 case MethodKind.EventAdd:
@@ -552,5 +553,30 @@ internal static class Extensions
         }
 
         return (Symbol)model.GetDeclaredSymbol(declaration, cancellationToken);
+    }
+
+    public static NamedTypeSymbol BaseType(this TypeSymbol symbol)
+    {
+        return symbol.BaseTypeNoUseSiteDiagnostics;
+    }
+
+    public static ImmutableArray<NamedTypeSymbol> Interfaces(this TypeSymbol symbol)
+    {
+        return symbol.InterfacesNoUseSiteDiagnostics();
+    }
+
+    public static ImmutableArray<NamedTypeSymbol> AllInterfaces(this TypeSymbol symbol)
+    {
+        return symbol.AllInterfacesNoUseSiteDiagnostics;
+    }
+
+    public static ImmutableArray<TypeSymbol> TypeArguments(this NamedTypeSymbol symbol)
+    {
+        return TypeMap.AsTypeSymbols(symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+    }
+
+    public static ImmutableArray<TypeSymbol> ConstraintTypes(this TypeParameterSymbol symbol)
+    {
+        return TypeMap.AsTypeSymbols(symbol.ConstraintTypesNoUseSiteDiagnostics);
     }
 }

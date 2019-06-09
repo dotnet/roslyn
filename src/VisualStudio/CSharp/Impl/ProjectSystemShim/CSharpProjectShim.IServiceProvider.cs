@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 
@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     {
         public int QueryService(ref Guid guidService, ref Guid riid, out IntPtr ppvObject)
         {
-            var serviceProvider = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)ServiceProvider;
+            var serviceProvider = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)_serviceProvider;
             return serviceProvider.QueryService(ref guidService, ref riid, out ppvObject);
         }
     }

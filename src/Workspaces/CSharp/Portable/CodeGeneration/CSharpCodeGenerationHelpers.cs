@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
-            IList<SyntaxToken> tokens,
+            ArrayBuilder<SyntaxToken> tokens,
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
@@ -53,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.Internal:
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
                     break;
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TSyntaxNode node,
             ISymbol symbol,
             CodeGenerationOptions options,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             where TSyntaxNode : SyntaxNode
         {
             if (!options.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))

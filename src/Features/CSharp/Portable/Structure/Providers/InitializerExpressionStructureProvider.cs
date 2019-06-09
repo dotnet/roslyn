@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class InitializerExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InitializerExpressionSyntax>
     {
         protected override void CollectBlockSpans(
-            InitializerExpressionSyntax node, 
+            InitializerExpressionSyntax node,
             ArrayBuilder<BlockSpan> spans,
             OptionSet options,
             CancellationToken cancellationToken)

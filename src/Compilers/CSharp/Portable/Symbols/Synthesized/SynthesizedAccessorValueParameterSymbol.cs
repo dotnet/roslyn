@@ -15,24 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
     {
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
-
-        public SynthesizedAccessorValueParameterSymbol(SourceMethodSymbol accessor, TypeSymbol paramType, int ordinal, ImmutableArray<CustomModifier> customModifiers)
+        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
                    defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)
         {
-            _customModifiers = customModifiers;
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _customModifiers;
-            }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -51,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override IAttributeTargetSymbol AttributeOwner
         {
-            get { return (SourceMethodSymbol)this.ContainingSymbol; }
+            get { return (SourceMemberMethodSymbol)this.ContainingSymbol; }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             // Bind the attributes on the accessor's attribute syntax list with "param" target specifier.
-            var accessor = (SourceMethodSymbol)this.ContainingSymbol;
+            var accessor = (SourceMemberMethodSymbol)this.ContainingSymbol;
             return accessor.GetAttributeDeclarations();
         }
     }

@@ -1,14 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -94,7 +92,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -125,7 +123,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b) => b != true;
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -151,11 +149,11 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b)
     {
-        return b != 
-            true;
+        return b !=
+                    true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -185,7 +183,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 */true;
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -215,7 +213,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 "";
     }
 }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
         }
 
         [WorkItem(540796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
@@ -304,7 +302,8 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x => {
+        del q = x =>
+        {
             goto label2;
             return {|Rename:NewMethod|}(x);
         };
@@ -446,11 +445,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => 0, z, z);
+        Goo([|x => 0|], y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -460,7 +459,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+        Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -468,11 +467,9 @@ class Program
         return x => 0;
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
-}",
-
-ignoreTrivia: false);
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+}");
         }
 
         [WorkItem(529841, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -487,11 +484,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => { return 0; }, z, z);
+        Goo([|x => 0|], y => { return 0; }, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -501,7 +498,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+        Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -509,11 +506,9 @@ class Program
         return x => 0;
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
-}",
-
-ignoreTrivia: false);
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+}");
         }
 
         [WorkItem(530709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
@@ -754,9 +749,7 @@ parseOptions: Options.Regular);
         obj2 = new Construct();
         obj2.Do();
     }
-}",
-
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -806,9 +799,7 @@ ignoreTrivia: false);
         obj3 = new Construct();
         obj3.Do();
     }
-}",
-
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
@@ -855,9 +846,7 @@ ignoreTrivia: false);
         obj2.Do();
         obj3.Do();
     }
-}",
-
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1261,8 +1250,7 @@ class Program
     {
         r = M1(out /*out*/  /*int*/ y /*y*/) + M2(3 is int {|Conflict:z|});
     }
-} ",
-ignoreTrivia: false);
+} ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -1291,6 +1279,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 
@@ -1331,6 +1320,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 
@@ -1397,7 +1387,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         [|var v = (string)null;
 
@@ -1414,7 +1404,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         var v = {|Rename:NewMethod|}(i);
 
@@ -1433,7 +1423,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1445,7 +1435,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         [|var v = (string)null;
 
@@ -1462,7 +1452,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         string v = {|Rename:NewMethod|}(i);
 
@@ -1481,7 +1471,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
@@ -1530,10 +1520,10 @@ class C
     public static void Main(string[] args)
     {
         bool Local() => args == null;
-        {|Rename:NewMethod|}();
+        {|Rename:NewMethod|}(args);
     }
 
-    private static void NewMethod()
+    private static void NewMethod(string[] args)
     {
         {|Warning:Local();|}
     }
@@ -1577,16 +1567,16 @@ class C
     public static void Main()
     {
         void Local()
-        {
+        {|Warning:{
             {|Rename:NewMethod|}();
-        }
+        }|}
         Local();
     }
 
     private static void NewMethod()
     {
-        {|Warning:int x = 0;
-        x++;|}
+        int x = 0;
+        x++;
     }
 }");
         }
@@ -1619,14 +1609,15 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Rename:NewMethod|}();
+                v = {|Rename:NewMethod|}(v, i);
             }
         }
     }
 
-    private static void NewMethod()
+    private static int NewMethod(int v, int i)
     {
-        {|Warning:v = v + i|};
+        {|Warning:v = v + i;|}
+        return v;
     }
 }");
         }
@@ -1659,14 +1650,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                v = {|Rename:NewMethod|}();
+                {|Warning:v = {|Rename:NewMethod|}(v, i)|};
             }
         }
     }
 
-    private static int NewMethod()
+    private static int NewMethod(int v, int i)
     {
-        {|Warning:return v + i|};
+        return v + i;
     }
 }");
         }
@@ -1699,14 +1690,14 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                i = {|Rename:NewMethod|}();
+                {|Warning:i = {|Rename:NewMethod|}(ref v, i)|};
             }
         }
     }
 
-    private static int NewMethod()
+    private static int NewMethod(ref int v, int i)
     {
-        {|Warning:return v = v + i;|}
+        return v = v + i;
     }
 }");
         }
@@ -1921,6 +1912,189 @@ class Program
         return (a, b: 2);
     }
 }", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDeconstruction4()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        [|var (x, y) = (1, 2);|]
+        System.Console.Write(x + y);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int x, y;
+        {|Rename:NewMethod|}(out x, out y);
+        System.Console.Write(x + y);
+    }
+
+    private static void NewMethod(out int x, out int y)
+    {
+        var (x, y) = (1, 2);
+    }
+}", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDeconstruction5()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        [|(var x, var y) = (1, 2);|]
+        System.Console.Write(x + y);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int x, y;
+        {|Rename:NewMethod|}(out x, out y);
+        System.Console.Write(x + y);
+    }
+
+    private static void NewMethod(out int x, out int y)
+    {
+        (x, y) = (1, 2);
+    }
+}", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestIndexExpression()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}", TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Index NewMethod()
+    {
+        return ^1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Empty()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Left()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return ..1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Right()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestRangeExpression_Both()
+        {
+            await TestInRegularAndScriptAsync(TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}", TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine({|Rename:NewMethod|}());
+    }
+
+    private static System.Range NewMethod()
+    {
+        return 1..2;
+    }
+}");
         }
     }
 }

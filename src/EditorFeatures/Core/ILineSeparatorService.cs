@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ILineSeparatorService : ILanguageService
     {
-        Task<IEnumerable<TextSpan>> GetLineSeparatorsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IEnumerable<TextSpan>> GetLineSeparatorsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: ImmutableArray<int>.Empty,
                         resultKind: LookupResultKind.Viable,
+                        binderOpt: null,
                         type: objectType)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectType)
                     { WasCompilerGenerated = true },
                     thisReference,
-                    RefKind.None,
+                    false,
                     thisReference.Type)
                 { WasCompilerGenerated = true })
             { WasCompilerGenerated = true });
@@ -120,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     objectType),
                                 Conversion.ExplicitReference,
                                 false,
-                                true,
+                                explicitCastInCode: true,
+                                conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
                                 hostObjectField.Type
                             ),
@@ -148,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 { WasCompilerGenerated = true },
                                 Conversion.ExplicitReference,
                                 false,
-                                true,
+                                explicitCastInCode: true,
+                                conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
                                 targetScriptType
                             ),
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Construct a body for an auto-property accessor (updating or returning the backing field).
         /// </summary>
-        internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMethodSymbol accessor)
+        internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMemberMethodSymbol accessor)
         {
             Debug.Assert(accessor.MethodKind == MethodKind.PropertyGet || accessor.MethodKind == MethodKind.PropertySet);
 
@@ -418,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numTemps; i++)
             {
-                tmps[i] = new SynthesizedLocal(accessor, delegateType, SynthesizedLocalKind.LoweringTemp);
+                tmps[i] = new SynthesizedLocal(accessor, TypeWithAnnotations.Create(delegateType), SynthesizedLocalKind.LoweringTemp);
                 boundTmps[i] = new BoundLocal(syntax, tmps[i], null, delegateType);
             }
 
@@ -532,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method.ContainingType)
                         { WasCompilerGenerated = true },
                         baseTypeFinalize))
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
 
                 if (syntax.Kind() == SyntaxKind.Block)
                 {

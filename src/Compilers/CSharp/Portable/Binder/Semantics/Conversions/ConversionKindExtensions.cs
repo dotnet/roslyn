@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversionKind)
             {
                 case ConversionKind.NoConversion:
+                case ConversionKind.UnsetConversionKind:
                     return false;
 
                 case ConversionKind.Identity:
@@ -42,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullToPointer:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.Deconstruction:
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:

@@ -182,12 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return null;
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// type slot.
         /// 
         /// Sometimes we will return the original definition of the intended symbol.  For example, if we see 
-        /// <![CDATA[IFoo<int>]]> and we have an IFoo with a different arity or accessibility 
-        /// (e.g. <![CDATA[IFoo<int>]]> was constructed from an error symbol based on <![CDATA[IFoo<T>]]>), 
-        /// then we'll return <![CDATA[IFoo<T>]]>, rather than trying to construct a corresponding closed
+        /// <![CDATA[IGoo<int>]]> and we have an IGoo with a different arity or accessibility 
+        /// (e.g. <![CDATA[IGoo<int>]]> was constructed from an error symbol based on <![CDATA[IGoo<T>]]>), 
+        /// then we'll return <![CDATA[IGoo<T>]]>, rather than trying to construct a corresponding closed
         /// type (which may not be difficult/possible in the case of nested types or mismatched arities).
         /// 
         /// NOTE: Any non-null type symbol returned is guaranteed not to be an error type.
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return commonTypeKind;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return
-                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison) :
+                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison, isValueTypeOverrideOpt) :
                  (object)this.ContainingSymbol == null ? (object)other.ContainingSymbol == null : this.ContainingSymbol.Equals(other.ContainingSymbol)) &&
                 this.Name == other.Name && this.Arity == other.Arity;
         }

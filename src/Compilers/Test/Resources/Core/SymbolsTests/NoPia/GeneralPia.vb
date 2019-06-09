@@ -10,51 +10,51 @@ Imports System.Runtime.InteropServices
 
 Namespace SomeNamespace
     Public Structure NoAttributesStructure
-        Public Foo1 As Integer
-        Public Foo2 As Integer
+        Public Goo1 As Integer
+        Public Goo2 As Integer
     End Structure
 End Namespace
 
 Public Enum NoAttributesEnum
-    Foo1
-    Foo2
+    Goo1
+    Goo2
 End Enum
 
 Public Delegate Sub NoAttributesDelegate(ByVal x As String, ByVal y As Object)
 
 <Guid("ee3c2bee-9dfb-4d1c-91de-4cd32ff13302")> _
-Public Enum FooEnum
-    Foo1
+Public Enum GooEnum
+    Goo1
     __
-    Foo2
+    Goo2
     列挙識別子
     [Enum]
     COM
 End Enum
 
 <Guid("63370d76-3395-4560-92fd-b69ccfdaf461")> _
-Public Structure FooStruct
+Public Structure GooStruct
     Public [Structure] As Integer
 
     Public NET As Decimal
 
     Public 構造メンバー As String
     
-    Public Foo3 As Object()
+    Public Goo3 As Object()
 
-    Public Foo4 As Double()
+    Public Goo4 As Double()
 End Structure
 
-'Public Structure FooPrivateStruct
-'    Public Foo1 As Integer
-'    Private Foo2 As Long
+'Public Structure GooPrivateStruct
+'    Public Goo1 As Integer
+'    Private Goo2 As Long
 'End Structure
     
-'Public Structure FooSharedStruct
+'Public Structure GooSharedStruct
 '    Public Shared Field1 As Integer = 4
 'End Structure
 
-Public Structure FooConstStruct
+Public Structure GooConstStruct
     Public Const Field1 As String = "2"
 End Structure
 
@@ -62,7 +62,7 @@ End Structure
 <ComImport()> _
 <InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)> _
 Public Interface ISubFuncProp
-    Sub Foo(ByVal p As Integer)
+    Sub Goo(ByVal p As Integer)
 
     Function Bar() As String
 
@@ -104,14 +104,14 @@ Namespace Parameters
     <Guid("bedd42c1-d023-4f53-8bfd-7c0b9de3aac7")> _
     <ComImport()> _
     Public Interface IByRef
-        Function Foo(ByRef p1 As IA, ByRef p2 As IB, ByRef p3 As IC, ByRef p4 As Integer, ByRef p5 As Object) As ID
+        Function Goo(ByRef p1 As IA, ByRef p2 As IB, ByRef p3 As IC, ByRef p4 As Integer, ByRef p5 As Object) As ID
         Sub Bar(Optional ByRef p1 As IA = Nothing, Optional ByRef p2 As String() = Nothing, Optional ByRef p3 As Double() = Nothing)
     End Interface
 
     <Guid("1313c178-13f6-4450-8360-cf50d751a0f4")> _
     <ComImport()> _
     Public Interface IOptionalParam
-        Function Foo(Optional ByVal p1 As IA = Nothing, Optional ByVal p2 As IB = Nothing, Optional ByVal p3 As IC = Nothing, Optional ByVal p4 As Integer = 5, Optional ByVal p5 As Object = Nothing) As ID
+        Function Goo(Optional ByVal p1 As IA = Nothing, Optional ByVal p2 As IB = Nothing, Optional ByVal p3 As IC = Nothing, Optional ByVal p4 As Integer = 5, Optional ByVal p5 As Object = Nothing) As ID
         Sub Bar(ByVal p1 As IA, ByVal p2 As String(), ByVal p3 As Double())
     End Interface
 End Namespace
@@ -230,7 +230,7 @@ Namespace InheritanceConflict
     <Guid("76a62998-7740-4ebd-a09f-e401ffff5c8c")> _
     <ComImport()> _
     Public Interface IBase
-        Sub Foo()
+        Sub Goo()
         Function Bar() As Integer
     
         Sub ConflictMethod(ByVal x As Integer)
@@ -244,7 +244,7 @@ Namespace InheritanceConflict
     Public Interface IDerived
         Inherits IBase
         ' IBase methods
-        Shadows Sub Foo()
+        Shadows Sub Goo()
         Shadows Function Bar() As Integer
             
         Shadows Sub ConflictMethod(ByVal x As Integer)
@@ -267,7 +267,7 @@ Namespace LateBound
     <Guid("43f3a25e-fccb-4b92-adc1-2fe84c922125")> _
     <ComImport()> _
     Public Interface INoPIAInterface
-        Function Foo(ByVal x As INoPIAInterface) As String
+        Function Goo(ByVal x As INoPIAInterface) As String
         Function Bar(ByVal x As Integer, ByVal y As Integer) As String
         Function Moo() As Integer
     End Interface
@@ -318,7 +318,7 @@ Namespace NoPIACopyAttributes
     End Interface
 
     <UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet:=CharSet.Auto), CLSCompliant(True), SomeOtherAttribute()>
-    Public Delegate Sub Foo()
+    Public Delegate Sub Goo()
 
     <Guid("7b072a0e-065c-4266-89f4-bdb0de8df3b5")> _
     <ComImport()> _
@@ -331,7 +331,7 @@ Namespace NoPIACopyAttributes
     <ComEventInterface(GetType(IHasAllSupportedAttributesEvent), GetType(Integer)), CLSCompliant(True)> _
     Public Interface IHasAllSupportedAttributes_Event
 
-        Event Scenario14 As Foo
+        Event Scenario14 As Goo
 
     End Interface
 
@@ -425,7 +425,7 @@ Namespace [Overloads]
     <ComImport()> _
     <Guid("f618f410-0331-487d-ade1-bd46289d9fe1")> _
     Public Interface IBase
-        Sub Foo()
+        Sub Goo()
         Function Bar() As Integer
     End Interface
 
@@ -433,10 +433,10 @@ Namespace [Overloads]
     <Guid("984c80ba-2aec-4abf-afdd-c2bce69daa83")> _
     Public Interface IDerived
         Inherits IBase
-        Shadows Sub Foo()
+        Shadows Sub Goo()
         Shadows Function Bar() As Integer
 
-        Shadows Function Foo(ByVal x As Integer) As <MarshalAs(UnmanagedType.LPStr, SizeConst:=10)> String
+        Shadows Function Goo(ByVal x As Integer) As <MarshalAs(UnmanagedType.LPStr, SizeConst:=10)> String
     End Interface
 
     <ComImport()> _
@@ -614,7 +614,7 @@ Namespace VTableGap
     <ComImport()> _
     <CoClass(GetType(IComplicatedVTableImpl))> _
     Public Interface IComplicatedVTable
-        Default Property Foo(<MarshalAs(UnmanagedType.Bool)> ByVal index As Integer) As <MarshalAs(UnmanagedType.LPStr)> String
+        Default Property Goo(<MarshalAs(UnmanagedType.Bool)> ByVal index As Integer) As <MarshalAs(UnmanagedType.LPStr)> String
         Sub M1(<Out()> ByRef x As Integer)
         Function M2() As IScen1
         Property P1() As IScen2
@@ -668,7 +668,7 @@ Namespace LackingAttributes
     End Interface
     
     Public Interface INoAttributes
-        Sub Foo(ByVal p As Integer)
+        Sub Goo(ByVal p As Integer)
     
         Function Bar() As String
     
@@ -677,7 +677,7 @@ Namespace LackingAttributes
     
     <ComImport()> _
     Public Interface IComImportButNoGuid
-        Sub Foo(ByVal p As Integer)
+        Sub Goo(ByVal p As Integer)
     
         Function Bar() As String
     

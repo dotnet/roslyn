@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateEventDeclaration(@event, GetDestination(destination), options);
 
             var members = Insert(destination.Members, declaration, options, availableIndices,
-                after: list => AfterMember(list, declaration), 
+                after: list => AfterMember(list, declaration),
                 before: list => BeforeMember(list, declaration));
 
             // Find the best place to put the field.  It should go after the last field if we already
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static MemberDeclarationSyntax GenerateEventFieldDeclaration(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 AddAnnotationsTo(@event,
                     SyntaxFactory.EventFieldDeclaration(
                         AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
-            return AddCleanupAnnotationsTo(SyntaxFactory.EventDeclaration(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(SyntaxFactory.EventDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), options),
                 modifiers: GenerateModifiers(@event, destination, options),
                 type: @event.Type.GenerateTypeSyntax(),
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return AddAnnotationsTo(accessor, SyntaxFactory.AccessorDeclaration(kind)
                                 .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                                .WithSemicolonToken(hasBody ? default(SyntaxToken) : SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                                .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
         }
 
         private static BlockSyntax GenerateBlock(IMethodSymbol accessor)
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             // Most modifiers not allowed if we're an explicit impl.
             if (!@event.ExplicitInterfaceImplementations.Any())
@@ -196,6 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (@event.IsStatic)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
+                    // An event is readonly if its accessors are readonly.
+                    // If one accessor is readonly and the other one is not,
+                    // the event is malformed and cannot be properly displayed.
+                    // See https://github.com/dotnet/roslyn/issues/34213
+                    if (@event.AddMethod?.IsReadOnly == true)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }
 
                     if (@event.IsAbstract)
@@ -215,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private static void MarkReachableFrom(ArrayBuilder<BasicBlock> reachableBlocks, BasicBlock block)
         {
-        tryAgain:
+tryAgain:
 
             if (block != null && block.Reachability == Reachability.NotReachable)
             {

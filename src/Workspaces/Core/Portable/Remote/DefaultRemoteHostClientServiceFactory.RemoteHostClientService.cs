@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -31,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 _lazyInstance = CreateNewLazyRemoteHostClient();
             }
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
+            public bool IsEnabled()
             {
-                return TryGetRemoteHostClientAsync(cancellationToken);
+                return !(_lazyInstance is null);
             }
 
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
             {
-                var instance = await GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var instance = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (instance == null)
                 {
                     return;

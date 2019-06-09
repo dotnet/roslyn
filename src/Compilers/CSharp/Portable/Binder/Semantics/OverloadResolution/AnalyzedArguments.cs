@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // Note: instances of this object are pooled
     internal sealed class AnalyzedArguments
     {
         public readonly ArrayBuilder<BoundExpression> Arguments;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (count == 0)
             {
-                return default(ImmutableArray<string>);
+                return default;
             }
 
             var builder = ArrayBuilder<string>.GetInstance(this.Names.Count);
@@ -124,6 +125,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnalyzedArguments GetInstance()
         {
             return Pool.Allocate();
+        }
+
+        public static AnalyzedArguments GetInstance(AnalyzedArguments original)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(original.Arguments);
+            instance.Names.AddRange(original.Names);
+            instance.RefKinds.AddRange(original.RefKinds);
+            instance.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
+            instance._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
+            return instance;
         }
 
         public void Free()

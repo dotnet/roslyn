@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -95,9 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public sealed override ImmutableArray<TypeSymbol> TypeArguments
+            public sealed override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
+            public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -115,10 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<MethodSymbol>.Empty; }
             }
 
-            public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
-            }
+            // methods on classes are never 'readonly'
+            internal sealed override bool IsDeclaredReadOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {
@@ -155,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
-                base.AddSynthesizedAttributes(compilationState, ref attributes);
+                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected SyntheticBoundNodeFactory CreateBoundNodeFactory(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 var F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethod = this;
+                F.CurrentFunction = this;
                 return F;
             }
 

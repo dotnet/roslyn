@@ -3,8 +3,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
 
@@ -12,6 +10,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        /// <summary>
+        /// Bound nodes with fields that aren't declared in BoundNodes.xml should use `SkipShallowClone="true"` and override <see cref="ShallowClone"/>.
+        /// Note that ShallowClone is not fully implemented (it throws for some nodes at the moment).
+        /// </summary>
+        protected abstract BoundExpression ShallowClone();
+
+        internal BoundExpression WithSuppression(bool suppress = true)
+        {
+            if (this.IsSuppressed == suppress)
+            {
+                return this;
+            }
+
+            // There is no scenario where suppression goes away
+            Debug.Assert(suppress || !this.IsSuppressed);
+
+            var result = ShallowClone();
+            result.IsSuppressed = suppress;
+            return result;
+        }
+
         public virtual ConstantValue ConstantValue
         {
             get
@@ -48,6 +67,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        public new NullabilityInfo TopLevelNullability
+        {
+            get => base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
+        }
+    }
+
+    internal partial class BoundPassByCopy
+    {
+        public override ConstantValue ConstantValue
+        {
+            get
+            {
+                Debug.Assert(Expression.ConstantValue == null);
+                return null;
+            }
+        }
+
+        public override Symbol ExpressionSymbol
+        {
+            get
+            {
+                return Expression.ExpressionSymbol;
+            }
+        }
     }
 
     internal partial class BoundCall
@@ -61,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this call's method was chosen. 
+        /// The set of method symbols from which this call's method was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -112,19 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
-        {
-        }
-
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
-            : this(syntax, localSymbol, false, constantValueOpt, type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+            return this.Update(localSymbol, this.DeclarationKind, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
@@ -157,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of indexer symbols from which this call's indexer was chosen. 
+        /// The set of indexer symbols from which this call's indexer was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best indexer.
         /// </summary>
@@ -166,6 +206,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; private set; }
+
+        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration)
+        {
+            if (useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration)
+            {
+                var result = new BoundIndexerAccess(
+                   this.Syntax,
+                   this.ReceiverOpt,
+                   this.Indexer,
+                   this.Arguments,
+                   this.ArgumentNamesOpt,
+                   this.ArgumentRefKindsOpt,
+                   this.Expanded,
+                   this.ArgsToParamsOpt,
+                   this.BinderOpt,
+                   useSetterForDefaultArgumentGeneration,
+                   this.Type,
+                   this.HasErrors)
+                {
+                    WasCompilerGenerated = this.WasCompilerGenerated,
+                    OriginalIndexersOpt = this.OriginalIndexersOpt
+                };
+
+                return result;
+            }
+
+            return this;
+        }
 
         public override LookupResultKind ResultKind
         {
@@ -221,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -240,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -264,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -283,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -302,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -349,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this conversion's method was chosen. 
+        /// The set of method symbols from which this conversion's method was chosen.
         /// Only kept in the tree if the conversion was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -371,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         internal bool ConversionHasSideEffects()
         {
-            // only some intrinsic conversions are side effect free 
+            // only some intrinsic conversions are side effect free
             // the only side effect of an intrinsic conversion is a throw when we fail to convert.
             // and some intrinsic conversion always succeed
             switch (this.ConversionKind)
@@ -386,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     return false;
 
-                // unchecked numeric conversion does not throw 
+                // unchecked numeric conversion does not throw
                 case ConversionKind.ExplicitNumeric:
                     return this.Checked;
             }
@@ -412,18 +480,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
-            BoundExpression newInitializerExpression,
+            ImmutableArray<RefKind> newRefKinds,
+            BoundObjectInitializerExpressionBase newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
             return Update(
                 constructor: Constructor,
                 arguments: newArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
-                argumentRefKindsOpt: ArgumentRefKindsOpt,
+                argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
+                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -530,14 +600,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.MemberSymbol;
             }
-        }
-    }
-
-    internal partial class BoundAwaitExpression : BoundExpression
-    {
-        internal bool IsDynamic
-        {
-            get { return (object)this.GetResult == null; }
         }
     }
 

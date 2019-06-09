@@ -1,34 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.VisualStudio.Text
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
+    <[UseExportProvider]>
     Public Class NavigationBarControllerTests
-        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)).WithPart(GetType(WorkspaceWaiter)))
-
-        <[Shared]>
-        <Export(GetType(IAsynchronousOperationListener))>
-        <Export(GetType(IAsynchronousOperationWaiter))>
-        <Export(GetType(NavigationBarWaiter))>
-        <Feature(FeatureAttribute.NavigationBar)>
-        Private Class NavigationBarWaiter
-            Inherits AsynchronousOperationListener
-        End Class
-
-        <[Shared]>
-        <Export(GetType(IAsynchronousOperationListener))>
-        <Export(GetType(IAsynchronousOperationWaiter))>
-        <Export(GetType(NavigationBarWaiter))>
-        <Feature(FeatureAttribute.Workspace)>
-        Private Class WorkspaceWaiter
-            Inherits AsynchronousOperationListener
-        End Class
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Sub TestDoNotRecomputeAfterFullRecompute()
             Using workspace = TestWorkspace.Create(
@@ -62,14 +42,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24754"), Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>{|Document:class C { $$ }|}</Document>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument}, LanguageNames.CSharp)
@@ -85,8 +65,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
-                Await waiters.WaitAllAsync()
+                Dim provider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
+                Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.True(presentItemsCalled)
             End Using
@@ -112,7 +92,7 @@ class C
                     <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                         <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -170,7 +150,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -226,7 +206,7 @@ class C
                     <Project Language="C#" CommonReferences="true" AssemblyName="CProj">
                         <Document IsLinkFile="true" LinkAssemblyName="BProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"AProj", "BProj", "CProj"}
@@ -265,7 +245,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VB-Proj1">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"VBProj", "VB-Proj1"}
@@ -302,7 +282,7 @@ Class C
 End Class
                         </Document>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim document = workspace.Documents.Single()
 
@@ -326,9 +306,15 @@ End Class
 
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")
 
-                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask()
-                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask()
-                Await workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter).WaitAllAsync()
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
+                Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
+                Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
+
+                Await workspaceWaiter.CreateExpeditedWaitTask()
+                Await navigationBarWaiter.CreateExpeditedWaitTask()
+
+                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
+
                 Assert.Equal("VBProj2", projectName)
             End Using
         End Function

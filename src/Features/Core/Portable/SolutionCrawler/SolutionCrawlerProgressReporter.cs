@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly SimpleTaskQueue _eventQueue;
             private readonly EventMap _eventMap;
 
+            // this is to reduce number of times we report progress on same file. this is purely for perf
+            private string _lastReportedFilePath;
+
             private int _count;
 
             public SolutionCrawlerProgressReporter(IAsynchronousOperationListener listener)
@@ -45,29 +48,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public event EventHandler Started
+            public event EventHandler<ProgressData> ProgressChanged
             {
                 add
                 {
-                    _eventMap.AddEventHandler(nameof(Started), value);
+                    _eventMap.AddEventHandler(nameof(ProgressChanged), value);
                 }
 
                 remove
                 {
-                    _eventMap.RemoveEventHandler(nameof(Started), value);
-                }
-            }
-
-            public event EventHandler Stopped
-            {
-                add
-                {
-                    _eventMap.AddEventHandler(nameof(Stopped), value);
-                }
-
-                remove
-                {
-                    _eventMap.RemoveEventHandler(nameof(Stopped), value);
+                    _eventMap.RemoveEventHandler(nameof(ProgressChanged), value);
                 }
             }
 
@@ -75,47 +65,63 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
+                    _lastReportedFilePath = null;
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
-                    return RaiseStarted().CompletesAsyncOperation(asyncToken);
+                    var progressData = new ProgressData(ProgressStatus.Started, filePathOpt: null);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task Stop()
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
+                    _lastReportedFilePath = null;
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
-                    return RaiseStopped().CompletesAsyncOperation(asyncToken);
+                    var progressData = new ProgressData(ProgressStatus.Stoped, filePathOpt: null);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
-            private Task RaiseStarted()
+            public Task Update(string filePath)
             {
-                return RaiseEvent(nameof(Started));
+                if (_count > 0)
+                {
+                    if (_lastReportedFilePath == filePath)
+                    {
+                        // don't report same file multiple times
+                        return Task.CompletedTask;
+                    }
+
+                    _lastReportedFilePath = filePath;
+
+                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportUpdate");
+                    var progressData = new ProgressData(ProgressStatus.Updated, filePath);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
+                }
+
+                return Task.CompletedTask;
             }
 
-            private Task RaiseStopped()
-            {
-                return RaiseEvent(nameof(Stopped));
-            }
-
-            private Task RaiseEvent(string eventName)
+            private Task RaiseEvent(string eventName, ProgressData progressData)
             {
                 // this method name doesn't have Async since it should work as async void.
-                var ev = _eventMap.GetEventHandlers<EventHandler>(eventName);
+                var ev = _eventMap.GetEventHandlers<EventHandler<ProgressData>>(eventName);
                 if (ev.HasHandlers)
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
+                        ev.RaiseEvent(handler => handler(this, progressData));
                     });
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -128,13 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool InProgress => false;
 
-            public event EventHandler Started
-            {
-                add { }
-                remove { }
-            }
-
-            public event EventHandler Stopped
+            public event EventHandler<ProgressData> ProgressChanged
             {
                 add { }
                 remove { }

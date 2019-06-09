@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
-            : this(languageVersion, 
-                  documentationMode, 
+            : this(languageVersion,
+                  documentationMode,
                   kind,
                   preprocessorSymbols.ToImmutableArrayOrEmpty(),
                   ImmutableDictionary<string, string>.Empty)
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            IEnumerable<string> preprocessorSymbols,
+            ImmutableArray<string> preprocessorSymbols,
             IReadOnlyDictionary<string, string> features)
             : base(kind, documentationMode)
         {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             features: other.Features)
         {
         }
-        
+
         public override string Language => LanguageNames.CSharp;
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadLanguageVersion, LanguageVersion.ToString()));
             }
-            
+
             if (!PreprocessorSymbols.IsDefaultOrEmpty)
             {
                 foreach (var symbol in PreprocessorSymbols)

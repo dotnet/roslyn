@@ -9,6 +9,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -120,7 +121,7 @@ namespace Microsoft.Cci
             if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
                 encoder.AddRecord(
-                    CustomDebugInfoKind.EditAndContinueLocalSlotMap, 
+                    CustomDebugInfoKind.EditAndContinueLocalSlotMap,
                     debugInfo,
                     (info, builder) => info.SerializeLocalSlots(builder));
             }
@@ -133,7 +134,7 @@ namespace Microsoft.Cci
                     (info, builder) => info.SerializeLambdaMap(builder));
             }
         }
-        
+
         private static ArrayBuilder<T> GetLocalInfoToSerialize<T>(
             IMethodBody methodBody,
             Func<ILocalDefinition, bool> filter,
@@ -141,21 +142,21 @@ namespace Microsoft.Cci
         {
             ArrayBuilder<T> builder = null;
 
-            foreach (var local in methodBody.LocalVariables)
-            {
-                Debug.Assert(local.SlotIndex >= 0);
-                if (filter(local))
-                {
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<T>.GetInstance();
-                    }
-                    builder.Add(getInfo(default(LocalScope), local));
-                }
-            }
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
+                foreach (var local in currentScope.Variables)
+                {
+                    Debug.Assert(local.SlotIndex >= 0);
+                    if (filter(local))
+                    {
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<T>.GetInstance();
+                        }
+                        builder.Add(getInfo(default(LocalScope), local));
+                    }
+                }
+
                 foreach (var localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);

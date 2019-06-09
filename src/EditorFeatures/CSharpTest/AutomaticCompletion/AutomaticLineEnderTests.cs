@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -534,16 +535,16 @@ $$", @"         using
         {
             Test(@"class C
 {
-    void foo()
+    void goo()
     {
-        foo(); //comment
+        goo(); //comment
         $$
     }
 }", @"class C
 {
-    void foo()
+    void goo()
     {
-        foo()$$ //comment
+        goo()$$ //comment
     }
 }");
         }
@@ -566,16 +567,16 @@ $$", @"         using
         {
             Test(@"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo();
+        return goo();
         $$
     }
 }", @"class Program
 {
-    object foo(object o)
+    object goo(object o)
     {
-        return foo($$)
+        return goo($$)
     }
 }", completionActive: true);
         }
@@ -845,12 +846,11 @@ $$
             return () => { };
         }
 
-        internal override ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)
         {
-            return new AutomaticLineEnderCommandHandler(waitIndicator, undoRegistry, editorOperations);
+            return new AutomaticLineEnderCommandHandler(undoRegistry, editorOperations);
         }
     }
 }

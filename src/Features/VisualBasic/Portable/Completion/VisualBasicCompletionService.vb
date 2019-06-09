@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -10,11 +10,18 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Tags
+Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicCompletionServiceFactory
         Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
@@ -38,13 +45,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CrefCompletionProvider(),
             New CompletionListTagCompletionProvider(),
             New OverrideCompletionProvider(),
-            New XmlDocCommentCompletionProvider()
-        )
+            New XmlDocCommentCompletionProvider(),
+            New InternalsVisibleToCompletionProvider(),
+            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance),
+            New TypeImportCompletionProvider())
 
         Private ReadOnly _workspace As Workspace
 
         Public Sub New(workspace As Workspace,
-                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider) ? = Nothing)
+                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
             MyBase.New(workspace, exclusiveProviders)
             _workspace = workspace
         End Sub
@@ -113,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             ' the glyph when matching.
 
             Dim keywordCompletionItem = If(IsKeywordItem(existingItem), existingItem, If(IsKeywordItem(item), item, Nothing))
-            If keywordCompletionItem IsNot Nothing AndAlso keywordCompletionItem.Tags.Contains(CompletionTags.Intrinsic) Then
+            If keywordCompletionItem IsNot Nothing AndAlso keywordCompletionItem.Tags.Contains(WellKnownTags.Intrinsic) Then
                 Dim otherItem = If(keywordCompletionItem Is item, existingItem, item)
                 Dim changeText = GetChangeText(otherItem)
                 If changeText = keywordCompletionItem.DisplayText Then

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -151,9 +151,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", true);
+}           ", "c.CompareTo(d)", true);
         }
 
         [Fact]
@@ -170,9 +171,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", false);
+}           ", "c.CompareTo(d)", false);
         }
 
         [Fact]
@@ -287,7 +289,7 @@ class Program
 using System.Collections;
 class Collection : IEnumerable
 {
-    public IEnumerator GetEnumerator() { return null; }
+    public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
     public void Add(string s) { }
     public void Add(int i) { }
     void Main()
@@ -340,6 +342,154 @@ class Program
 }           ", "Directions.South", semanticChanges: false);
         }
 
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        var x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]:
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        object x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]: // without the case, object x does not match int 1
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRedundantCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRequiredCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+    public new Indexer Foo { get; } = new Indexer();
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRedundantCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRequiredCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+    public new MyDelegate Foo { get; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);
@@ -356,13 +506,13 @@ class Program
                 CompilationName,
                 new[] { tree },
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress) }));
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress) }));
         }
 
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
         {
             var langCompilation = compilation;
-            Func<Diagnostic, bool> isProblem = d => d.Severity >= DiagnosticSeverity.Warning;
+            bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
             return !langCompilation.GetDiagnostics().Any(isProblem) &&
                 !langCompilation.Emit(temporaryStream).Diagnostics.Any(isProblem);
         }

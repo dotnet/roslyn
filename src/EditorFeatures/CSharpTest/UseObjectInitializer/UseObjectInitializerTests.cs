@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -324,7 +325,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var v = new C(() => {
+        var v = new C(() =>
+        {
             var v2 = new C
             {
                 i = 1
@@ -364,7 +366,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var v = new C
         {
-            j = () => {
+            j = () =>
+            {
                 var v2 = new C
                 {
                     i = 1
@@ -429,7 +432,7 @@ class C
     void M()
     {
         var c = [||]new C();
-        c.i = 1; // Foo
+        c.i = 1; // Goo
         c.j = 2; // Bar
     }
 }",
@@ -442,12 +445,11 @@ class C
     {
         var c = new C
         {
-            i = 1, // Foo
+            i = 1, // Goo
             j = 2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
@@ -474,7 +476,7 @@ ignoreTrivia: false);
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         dynamic body = [||]new ExpandoObject();
         body.content = new ExpandoObject();
@@ -488,13 +490,13 @@ class C
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
-        var foo = [||]new Foo();
+        var goo = [||]new Goo();
 #if true
-        foo.Value = "";
+        goo.Value = "";
 #endif
     }
 
@@ -508,25 +510,25 @@ public class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
 #if true
-        var foo = [||]new Foo();
-        foo.Value = "";
+        var goo = [||]new Goo();
+        goo.Value = "";
 #endif
     }
 
     public string Value { get; set; }
 }",
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
 #if true
-        var foo = new Foo
+        var goo = new Goo
         {
             Value = "";
         };
@@ -534,7 +536,148 @@ public class Foo
     }
 
     public string Value { get; set; }
-}", ignoreTrivia: false);
+}");
+        }
+
+        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestKeepBlankLinesAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Goo
+{
+    public int Bar { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        var goo = [||]new Goo();
+        goo.Bar = 1;
+
+        int horse = 1;
+    }
+}",
+@"
+class Goo
+{
+    public int Bar { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        var goo = new Goo
+        {
+            Bar = 1
+        };
+
+        int horse = 1;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface IExample {
+    string Name { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.Name = string.Empty;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.Name = string.Empty;
+        e.LastName = string.Empty;
+    }
+}");
+        }
+
+        [WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestWithExplicitImplementedInterfaceMembers3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = [||]new C();
+        e.LastName = string.Empty;
+        e.Name = string.Empty;
+    }
+}",
+@"
+interface IExample {
+    string Name { get; set; }
+    string LastName { get; set; }
+}
+
+class C : IExample {
+    string IExample.Name { get; set; }
+    public string LastName { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        IExample e = new C
+        {
+            LastName = string.Empty
+        };
+        e.Name = string.Empty;
+    }
+}");
         }
     }
 }

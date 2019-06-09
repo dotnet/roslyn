@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// Cannot await void.
         /// </summary>
         private const string CS4008 = nameof(CS4008);
+
+        [ImportingConstructor]
+        public CSharpConvertToAsyncMethodCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {

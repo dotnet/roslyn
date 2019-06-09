@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                var expression = node as ExpressionSyntax;
-                if (expression != null &&
+                if (node is ExpressionSyntax expression &&
                     _matches.Contains(expression))
                 {
                     return _replacementNode

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            ExpressionVariableFinder.FindExpressionVariables(this, builder, (CSharpSyntaxNode)ScopeDesignator, 
+            ExpressionVariableFinder.FindExpressionVariables(this, builder, (CSharpSyntaxNode)ScopeDesignator,
                                                              GetBinder((CSharpSyntaxNode)ScopeDesignator));
             return builder.ToImmutableAndFree();
         }

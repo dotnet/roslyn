@@ -9,8 +9,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exposed by the compiler.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract partial class Symbol : ISymbol, IMessageSerializable
+    internal abstract partial class Symbol : ISymbol, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version of Symbol.
@@ -206,6 +208,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// The index of this member in the containing symbol. This is an optional
+        /// property, implemented by anonymous type properties only, for comparing
+        /// symbols in flow analysis.
+        /// </summary>
+        /// <remarks>
+        /// Should this be used for tuple fields as well?
+        /// </remarks>
+        internal virtual int? MemberIndexOpt => null;
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
@@ -302,6 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<SyntaxReference> builder = ArrayBuilder<SyntaxReference>.GetInstance();
             foreach (Location location in locations)
             {
+                // Location may be null. See https://github.com/dotnet/roslyn/issues/28862.
+                if (location == null)
+                {
+                    continue;
+                }
                 if (location.IsInSource)
                 {
                     SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
@@ -384,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   the "value" parameter for a property setter,
         ///   the parameters on indexer accessor methods (not on the indexer itself),
         ///   methods in anonymous types,
+        ///   anonymous functions
         /// </summary>
         public virtual bool IsImplicitlyDeclared
         {
@@ -538,9 +556,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      resorting to .Equals
 
             // the condition is expected to be folded when inlining "someSymbol == null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left == (object)null;
+                return left is null;
             }
 
             // this part is expected to disappear when inlining "someSymbol == null"
@@ -563,9 +581,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      since that sometimes results in a worse code
 
             // the condition is expected to be folded when inlining "someSymbol != null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left != (object)null;
+                return left is object;
             }
 
             // this part is expected to disappear when inlining "someSymbol != null"
@@ -619,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build and add synthesized attributes for this symbol.
         /// </summary>
-        internal virtual void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
         }
 
@@ -748,9 +766,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return "";
         }
 
-        internal string GetDebuggerDisplay()
+        private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
+            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+        internal virtual string GetDebuggerDisplay()
         {
-            return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
+            return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
         internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
@@ -913,11 +935,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
+        {
+            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+        }
+
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.CustomModifiers);
+            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
@@ -967,6 +994,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
+        {
+            foreach (var t in types)
+            {
+                if (t.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<CustomModifier> modifiers, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var modifier in modifiers)
@@ -984,9 +1024,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.CustomModifiers, owner, ref checkedTypes))
+                if (parameter.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes))
                 {
                     return true;
                 }
@@ -1095,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
 
-        protected static void ReportErrorIfHasConstraints(
+        internal static void ReportErrorIfHasConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
         {
             if (constraintClauses.Count > 0)
@@ -1119,53 +1158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #region ISymbol Members
-
-        SymbolKind ISymbol.Kind
-        {
-            get
-            {
-                switch (this.Kind)
-                {
-                    case SymbolKind.ArrayType:
-                        return SymbolKind.ArrayType;
-                    case SymbolKind.Assembly:
-                        return SymbolKind.Assembly;
-                    case SymbolKind.DynamicType:
-                        return SymbolKind.DynamicType;
-                    case SymbolKind.Event:
-                        return SymbolKind.Event;
-                    case SymbolKind.Field:
-                        return SymbolKind.Field;
-                    case SymbolKind.Label:
-                        return SymbolKind.Label;
-                    case SymbolKind.Local:
-                        return SymbolKind.Local;
-                    case SymbolKind.Method:
-                        return SymbolKind.Method;
-                    case SymbolKind.ErrorType:
-                    case SymbolKind.NamedType:
-                        return SymbolKind.NamedType;
-                    case SymbolKind.Namespace:
-                        return SymbolKind.Namespace;
-                    case SymbolKind.Parameter:
-                        return SymbolKind.Parameter;
-                    case SymbolKind.PointerType:
-                        return SymbolKind.PointerType;
-                    case SymbolKind.Property:
-                        return SymbolKind.Property;
-                    case SymbolKind.TypeParameter:
-                        return SymbolKind.TypeParameter;
-                    case SymbolKind.Alias:
-                        return SymbolKind.Alias;
-                    case SymbolKind.NetModule:
-                        return SymbolKind.NetModule;
-                    case SymbolKind.RangeVariable:
-                        return SymbolKind.RangeVariable;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
-            }
-        }
 
         public string Language
         {
@@ -1330,5 +1322,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor);
 
         #endregion
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
+        }
     }
 }

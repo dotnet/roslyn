@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.Utilities</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
+
+    <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
+    <NoWarn>$(NoWarn);CA1825</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
+  </ItemGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
+      <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
+      <Link>Compiler\InternalUtilities\FailFast.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
+      <Link>Compiler\InternalUtilities\FatalError.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs">
+      <Link>Compiler\InternalUtilities\EnumField.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
+      <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
+      <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayExtensions.cs">
+      <Link>Compiler\SymbolDisplay\ObjectDisplayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\SymbolDisplay\ObjectDisplayOptions.cs">
+      <Link>Compiler\SymbolDisplay\ObjectDisplayOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
+      <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
+      <Link>DateTimeUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ExpressionCompiler\CustomTypeInfo.cs">
+      <Link>ExpressionCompiler\CustomTypeInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs">
+      <Link>ExpressionCompiler\DynamicFlagsCustomTypeInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ExpressionCompiler\ExpressionCompilerConstants.cs">
+      <Link>ExpressionCompiler\ExpressionCompilerConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ExpressionCompiler\ExpressionEvaluatorFatalError.cs">
+      <Link>ExpressionCompiler\ExpressionEvaluatorFatalError.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Source\ResultProvider\Portable\Resources.Designer.cs">
+      <Link>Resources.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx">
+      <Link>Resources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
+</Project>

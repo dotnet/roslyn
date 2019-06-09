@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             // Currently Qualified Cref is the only CrefSyntax We are handling separately
             if (crefSyntax.Kind() != SyntaxKind.QualifiedCref)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, memberCref, speculativeBindingOption).Symbol;
 
-                if (newSymbol == oldSymbol)
+                if (Equals(newSymbol, oldSymbol))
                 {
                     // Copy Trivia and Annotations
                     memberCref = memberCref.WithLeadingTrivia(crefSyntax.GetLeadingTrivia());

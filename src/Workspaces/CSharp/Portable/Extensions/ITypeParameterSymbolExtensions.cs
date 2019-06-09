@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AddConstraintClauses(clauses, typeParameter);
             }
 
-            return clauses.Count == 0 ? default(SyntaxList<TypeParameterConstraintClauseSyntax>) : clauses.ToSyntaxList();
+            return clauses.Count == 0 ? default : clauses.ToSyntaxList();
         }
 
         private static void AddConstraintClauses(
@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (typeParameter.HasReferenceTypeConstraint)
             {
                 constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+            }
+            else if (typeParameter.HasUnmanagedTypeConstraint)
+            {
+                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")));
             }
             else if (typeParameter.HasValueTypeConstraint)
             {

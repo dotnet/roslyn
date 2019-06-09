@@ -172,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim result = 0
             If EqualConstness(x.Modifiers, y.Modifiers, result) AndAlso
                EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
+               EqualReadOnlyNess(x.Modifiers, y.Modifiers, result) AndAlso
                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
                 If _includeName Then
@@ -363,6 +364,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function EqualSharedness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
             Return BothHaveModifier(x, y, SyntaxKind.SharedKeyword, comparisonResult)
+        End Function
+
+        Private Shared Function EqualReadOnlyness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
+            Return BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, comparisonResult)
         End Function
 
         Private Shared Function EqualConstness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean

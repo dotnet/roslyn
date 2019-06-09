@@ -1,15 +1,21 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
+    <[UseExportProvider]>
     Public Class ImplementAbstractClassCommandHandlerTests
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>
@@ -18,16 +24,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Baz(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 End Class</text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
 
@@ -47,16 +53,16 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo $$
+    Inherits Goo $$
 End Class
                       </text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -71,16 +77,16 @@ End Class
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo 'Comment $$
+    Inherits Goo 'Comment $$
 End Class
                       </text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -95,19 +101,19 @@ End Class
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
+Public MustInherit Class Goo
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 End Class</text>
 
             Dim expectedText = <text>   
 Imports System
 
-Public MustInherit Class Foo
+Public MustInherit Class Goo
 End Class
 Public Class Bar
-    Inherits Foo
+    Inherits Goo
 
 End Class</text>
 
@@ -125,7 +131,7 @@ End Class</text>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
-    MustOverride Sub foo()
+    MustOverride Sub goo()
 End Class
  
 Class SomeClass
@@ -136,7 +142,7 @@ End Class
 
             Dim expectedText = <text>
 MustInherit Class Base
-    MustOverride Sub foo()
+    MustOverride Sub goo()
 End Class
  
 Class SomeClass
@@ -159,23 +165,23 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 </text>
 
             Dim expectedText = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo
+    Inherits Goo
 
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class</text>
@@ -200,9 +206,9 @@ End Class</text>
 
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
-            Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
+            Dim commandHandler As VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs) =
                 New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
-            commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler)
+            commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler, TestCommandExecutionContext.Create())
 
             Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()
 
@@ -217,7 +223,8 @@ End Class</text>
             <%= code.Value %>
         </Document>
     </Project>
-</Workspace>)
+</Workspace>,
+exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
         End Function
     End Class
 End Namespace

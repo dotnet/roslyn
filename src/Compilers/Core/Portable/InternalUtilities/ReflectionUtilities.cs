@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
         {
             if (methodInfo == null)
             {
-                return default(T);
+                return default;
             }
 
             return (T)(object)methodInfo.CreateDelegate(typeof(T));
@@ -115,7 +115,7 @@ namespace Roslyn.Utilities
         {
             if (constructorInfo == null)
             {
-                return default(T);
+                return default;
             }
 
             try
@@ -126,7 +126,7 @@ namespace Roslyn.Utilities
             {
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 Debug.Assert(false, "Unreachable");
-                return default(T);
+                return default;
             }
         }
 

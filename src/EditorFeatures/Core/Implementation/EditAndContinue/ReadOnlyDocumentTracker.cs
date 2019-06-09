@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal sealed class ReadOnlyDocumentTracker : ForegroundThreadAffinitizedObject, IDisposable
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private readonly Workspace _workspace;
 
         // null after the object is disposed
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         // invoked on UI thread
         private readonly Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> _onReadOnlyDocumentEditAttempt;
 
-        public ReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
-            : base(assertIsForeground: true)
+        public ReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, Action<DocumentId, SessionReadOnlyReason, ProjectReadOnlyReason> onReadOnlyDocumentEditAttempt)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() => TrackDocument(e.Document.Id));
+            InvokeBelowInputPriorityAsync(() => TrackDocument(e.Document.Id));
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
             // The buffer is gone by now, so we don't need to remove the read-only region from it, just clean up our dictionary.
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (_readOnlyRegions != null)
                 {

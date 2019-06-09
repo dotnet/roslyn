@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -364,10 +365,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim relationalCaseClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                             Debug.Assert(relationalCaseClause.OperatorKind = BinaryOperatorKind.Equals)
-                            Debug.Assert(relationalCaseClause.OperandOpt IsNot Nothing)
+                            Debug.Assert(relationalCaseClause.ValueOpt IsNot Nothing)
                             Debug.Assert(relationalCaseClause.ConditionOpt Is Nothing)
 
-                            constant = relationalCaseClause.OperandOpt.ConstantValueOpt
+                            constant = relationalCaseClause.ValueOpt.ConstantValueOpt
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(caseClause.Kind)

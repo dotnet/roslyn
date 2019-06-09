@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -373,14 +374,14 @@ struct $$S { }
 <Code>
 struct S
 {
-    void Foo()
+    void Goo()
     {
 
     }
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
 #End Region
@@ -500,7 +501,7 @@ interface I { }
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-struct $$Foo
+struct $$Goo
 {
 }
 </Code>

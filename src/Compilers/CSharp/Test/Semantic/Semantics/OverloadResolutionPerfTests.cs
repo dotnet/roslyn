@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -11,7 +12,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     // test timeout, without shortcuts in overload resolution.
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
-        [Fact]
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
+        public void Overloads()
+        {
+            const int n = 3000;
+            var builder = new StringBuilder();
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine($"    static void F() {{ F(null); }}"); // matches n overloads: F(C0), F(C1), ...
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"    static void F(C{i} c) {{ }}");
+            }
+            builder.AppendLine("}");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            var source = builder.ToString();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS0121: The call is ambiguous between the following methods or properties: 'C.F(C0)' and 'C.F(C1)'
+                //     static void F() { F(null); }
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("C.F(C0)", "C.F(C1)").WithLocation(3, 23));
+        }
+
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
+        public void BinaryOperatorOverloads()
+        {
+            const int n = 3000;
+            var builder = new StringBuilder();
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine($"    static object F(C x) => x + null;"); // matches n overloads: +(C, C0), +(C, C1), ...
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"    public static object operator+(C x, C{i} y) => null;");
+            }
+            builder.AppendLine("}");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            var source = builder.ToString();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (3,29): error CS0034: Operator '+' is ambiguous on operands of type 'C' and '<null>'
+                //     static object F(C x) => x + null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + null").WithArguments("+", "C", "<null>").WithLocation(3, 29));
+        }
+
+        [ConditionalFact(typeof(IsRelease))]
         public void StaticMethodsWithLambda()
         {
             const int n = 100;
@@ -29,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ConstructorsWithLambdaAndParams()
         {
             const int n = 100;
@@ -52,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ExtensionMethodsWithLambda()
         {
             const int n = 100;
@@ -74,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ExtensionMethodsWithLambdaAndParams()
         {
             const int n = 100;
@@ -96,11 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void ExtensionMethodsWithLambdaAndErrors()
         {
             const int n = 200;
@@ -125,12 +178,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine("}");
             var source = builder.ToString();
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             // error CS1929: 'Ci' does not contain a definition for 'G' and the best extension method overload 'S.G(C1, Action<C1>)' requires a receiver of type 'C1'
             var diagnostics = Enumerable.Range(0, n / 2).
                 Select(i => Diagnostic(ErrorCode.ERR_BadInstanceArgType, "x").WithArguments($"C{i * 2}", "G", "S.G(C1, System.Action<C1>)", "C1")).
                 ToArray();
             comp.VerifyDiagnostics(diagnostics);
+        }
+
+        [Fact, WorkItem(29360, "https://github.com/dotnet/roslyn/pull/29360")]
+        public void RaceConditionOnImproperlyCapturedAnalyzedArguments()
+        {
+            const int n = 6;
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"public class C{i}");
+                builder.AppendLine("{");
+
+                for (int j = 0; j < n; j++)
+                {
+                    builder.AppendLine($"    public string M{j}()");
+                    builder.AppendLine("    {");
+
+                    for (int k = 0; k < n; k++)
+                    {
+                        for (int l = 0; l < n; l++)
+                        {
+                            builder.AppendLine($"        Class.Method((C{k} x{k}) => x{k}.M{l});");
+                        }
+                    }
+
+                    builder.AppendLine("        return null;");
+                    builder.AppendLine("    }");
+                }
+
+                builder.AppendLine("}");
+            }
+
+            builder.AppendLine(@"
+public static class Class
+{
+    public static void Method<TClass>(Func<TClass, Func<string>> method) { }
+    public static void Method<TClass>(Func<TClass, Func<string, string>> method) { }
+}
+");
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

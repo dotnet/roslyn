@@ -100,7 +100,7 @@ End Class
     <file name="a.vb">
 Structure s1
     Dim x As Integer
-    Sub foo()
+    Sub goo()
 [|
         Me.x = 1
         Dim y = Me.x
@@ -205,14 +205,14 @@ End Module
 <compilation name="MyClassUsedToRefMethodDefinedInBaseClass">
     <file name="a.vb">
 Class BaseClass
-    Public Function foo()
-        foo = "STRING"
+    Public Function goo()
+        goo = "STRING"
     End Function
 End Class
 Class DerivedClass
     Inherits BaseClass
     Sub Test()
-        [| Dim x = MyClass.foo() |]
+        [| Dim x = MyClass.goo() |]
     End Sub
 End Class
     </file>
@@ -241,7 +241,7 @@ End Class
 <compilation name="MyClassUsedToQualifierSharedMember">
     <file name="a.vb">
 Class BaseClass
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 Class DerivedClass
@@ -276,7 +276,7 @@ End Class
         ' Call Me.[Me]
         <Fact>
         Public Sub CallMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallMe">
     <file name="a.vb">
 Imports System
@@ -299,7 +299,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -321,7 +321,7 @@ End Class
 
         <Fact>
         Public Sub AssignMeToVar_Derived()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="AssignMeToVar">
     <file name="a.vb">
 Option Infer On        
@@ -351,7 +351,7 @@ End Structure
 
         <Fact>
         Public Sub CallFunctionInBaseClassByMe()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="CallFunctionInBaseClassByMe">
     <file name="a.vb">
 Option Infer On        
@@ -381,7 +381,7 @@ End Class
         <WorkItem(529096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529096")>
         <Fact()>
         Public Sub UseMeInLambda()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInLambda">
     <file name="a.vb">
 Option Infer On        
@@ -406,7 +406,7 @@ End Module
 
         <Fact>
         Public Sub UseMeInQuery()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="UseMeInQuery">
     <file name="a.vb">
 Option Infer On        
@@ -432,7 +432,7 @@ End Module
 
         <Fact>
         Public Sub InvokeMyBaseAutoProperty()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseAutoProperty">
     <file name="a.vb">
 Option Infer On        
@@ -445,7 +445,7 @@ Class GenParent(Of t)
     Inherits GenBase
     Dim xyz = 1
     Public Property PropXyz = 1
-    Sub foo()
+    Sub goo()
         Dim x = Sub()
                     xyz = 2
                     MyBase.abc = 1
@@ -467,7 +467,7 @@ End Class
 
         <Fact>
         Public Sub InvokeMyBaseImplementMultInterface()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="InvokeMyBaseImplementMultInterface">
     <file name="a.vb">
 Option Infer On        
@@ -481,7 +481,7 @@ Class C1
     Public Function Compare1(ByVal x As Integer, ByVal y As Integer) As Integer Implements System.Collections.Generic.IComparer(Of Integer).Compare
         Return 0
     End Function
-    Sub FOO()
+    Sub GOO()
         Console.WriteLine(MyBase.ToString()) 'BIND1:"MyBase"
     End Sub
 End Class
@@ -494,14 +494,14 @@ End Class
         <Fact>
         Public Sub InvokeExtensionMethodFromMyClass()
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="InvokeExtensionMethodFromMyClass">
     <file name="a.vb">
 Option Infer On        
 Imports System.Runtime.CompilerServices
 Imports System
 Class C1
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine(MyClass.Sum) 'BIND1:"Sum"
     End Sub
 End Class
@@ -524,12 +524,12 @@ End Module
 
         <Fact>
         Public Sub MyClassUsedInStructure()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
 <compilation name="MyClassUsedInStructure">
     <file name="a.vb">
 Option Infer On        
 Structure s1
-    Sub foo()
+    Sub goo()
         Console.WriteLine(MyClass.ToString()) 'BIND1:"MyClass"
     End Sub
 End Structure

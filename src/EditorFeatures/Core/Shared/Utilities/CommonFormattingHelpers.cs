@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,17 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal static class CommonFormattingHelpers
     {
         public static TextSpan GetFormattingSpan(SyntaxNode root, TextSpan span)
-        {
-            Contract.ThrowIfNull(root);
-
-            var startToken = root.FindToken(span.Start).GetPreviousToken();
-            var endToken = root.FindTokenFromEnd(span.End).GetNextToken();
-
-            var startPosition = startToken.SpanStart;
-            var endPosition = endToken.RawKind == 0 ? root.Span.End : endToken.Span.End;
-
-            return TextSpan.FromBounds(startPosition, endPosition);
-        }
+            => CodeAnalysis.Shared.Utilities.CommonFormattingHelpers.GetFormattingSpan(root, span);
 
         public static TextSpan GetFormattingSpan(ITextSnapshot snapshot, SnapshotSpan selectedSpan)
         {

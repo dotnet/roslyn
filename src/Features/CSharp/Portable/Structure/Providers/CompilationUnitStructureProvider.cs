@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             externsAndUsings.Sort((node1, node2) => node1.SpanStart.CompareTo(node2.SpanStart));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings, autoCollapse: true, 
+                externsAndUsings, autoCollapse: true,
                 type: BlockTypes.Imports, isCollapsible: true));
 
             if (compilationUnit.Usings.Count > 0 ||

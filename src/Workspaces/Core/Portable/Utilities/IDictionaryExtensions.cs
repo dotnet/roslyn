@@ -27,21 +27,7 @@ namespace Roslyn.Utilities
                 return value;
             }
 
-            return default(TValue);
-        }
-
-        public static bool DictionaryEquals<K, V>(this IDictionary<K, V> left, IDictionary<K, V> right, IEqualityComparer<KeyValuePair<K, V>> comparer = null)
-        {
-            comparer = comparer ?? EqualityComparer<KeyValuePair<K, V>>.Default;
-
-            // two dictionaries should have same number of entries
-            if (left.Count != right.Count)
-            {
-                return false;
-            }
-
-            // check two dictionaries have same key/value pairs
-            return left.All(pair => comparer.Equals(pair));
+            return default;
         }
 
         public static void MultiAdd<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
@@ -68,18 +54,6 @@ namespace Roslyn.Utilities
                     dictionary.Remove(key);
                 }
             }
-        }
-
-        public static void MultiAddRange<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, IEnumerable<TValue> values)
-            where TCollection : ICollection<TValue>, new()
-        {
-            if (!dictionary.TryGetValue(key, out var collection))
-            {
-                collection = new TCollection();
-                dictionary.Add(key, collection);
-            }
-
-            collection.AddRange(values);
         }
     }
 }

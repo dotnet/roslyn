@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
-    public struct TaggedText
+    public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
-            
+
             return values.IsDefault
                 ? null
                 : Join(values);
@@ -104,17 +105,42 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.TypeParameter:
                     return ClassificationTypeNames.TypeParameterName;
 
+                case TextTags.Field:
+                    return ClassificationTypeNames.FieldName;
+
+                case TextTags.Event:
+                    return ClassificationTypeNames.EventName;
+
+                case TextTags.Label:
+                    return ClassificationTypeNames.LabelName;
+
+                case TextTags.Local:
+                    return ClassificationTypeNames.LocalName;
+
+                case TextTags.Method:
+                    return ClassificationTypeNames.MethodName;
+
+                case TextTags.Namespace:
+                    return ClassificationTypeNames.NamespaceName;
+
+                case TextTags.Parameter:
+                    return ClassificationTypeNames.ParameterName;
+
+                case TextTags.Property:
+                    return ClassificationTypeNames.PropertyName;
+
+                case TextTags.ExtensionMethod:
+                    return ClassificationTypeNames.ExtensionMethodName;
+
+                case TextTags.EnumMember:
+                    return ClassificationTypeNames.EnumMemberName;
+
+                case TextTags.Constant:
+                    return ClassificationTypeNames.ConstantName;
+
                 case TextTags.Alias:
                 case TextTags.Assembly:
-                case TextTags.Field:
                 case TextTags.ErrorType:
-                case TextTags.Event:
-                case TextTags.Label:
-                case TextTags.Local:
-                case TextTags.Method:
-                case TextTags.Namespace:
-                case TextTags.Parameter:
-                case TextTags.Property:
                 case TextTags.RangeVariable:
                     return ClassificationTypeNames.Identifier;
 

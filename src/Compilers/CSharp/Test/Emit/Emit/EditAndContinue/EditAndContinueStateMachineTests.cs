@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
@@ -41,8 +41,8 @@ class C
         yield return 1;
     }
 }";
-            var compilation0 = CreateStandardCompilation(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
-            var compilation1 = CreateStandardCompilation(Parse(source1, "a.cs"), options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40(new[] { Parse(source0, "a.cs") }, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib40(new[] { Parse(source1, "a.cs") }, options: TestOptions.DebugDll);
 
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -215,7 +215,7 @@ class C
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""61, E4, 46, A3, DE, 2B, DE, 69, 1A, 31,  7, F6, EA,  2, CE, B0, 5F, 38,  3, 79, "" />
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""61-E4-46-A3-DE-2B-DE-69-1A-31-07-F6-EA-02-CE-B0-5F-38-03-79"" />
   </files>
   <methods>
     <method token=""0x600000b"">
@@ -772,8 +772,7 @@ class C
   IL_0032:  stfld      ""int C.<F>d__0.<>1__state""
   IL_0037:  ldc.i4.0
   IL_0038:  ret
-}
-");
+}");
                     v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       57 (0x39)
@@ -815,7 +814,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UpdateAsync_NoVariables()
         {
             var source0 = @"
@@ -955,8 +954,7 @@ class C
   IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00a0:  nop
   IL_00a1:  ret
-}
-");
+}");
                     v0.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      160 (0xa0)
@@ -1040,10 +1038,13 @@ class C
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_009e:  nop
   IL_009f:  ret
-}
-", sequencePoints: "C+<F>d__0.MoveNext");
+}", sequencePoints: "C+<F>d__0.MoveNext");
 
-                    v0.VerifyPdb("C+<F>d__0.MoveNext", @"<symbols>
+                    v0.VerifyPdb("C+<F>d__0.MoveNext", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -1059,15 +1060,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x6c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" />
-        <entry offset=""0x70"" hidden=""true"" />
-        <entry offset=""0x8a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x92"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x70"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x92"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa0"">
         <namespace name=""System.Threading.Tasks"" />
@@ -1181,8 +1182,7 @@ class C
   IL_003e:  stfld      ""int C.<F>d__0.<>1__state""
   IL_0043:  ldc.i4.0
   IL_0044:  ret
-}
-");
+}");
                 }
             }
         }
@@ -1294,8 +1294,7 @@ class C
   IL_005e:  nop
   IL_005f:  ldc.i4.0
   IL_0060:  ret
-}
-");
+}");
                 }
             }
         }
@@ -1402,8 +1401,7 @@ class C
   IL_0052:  nop
   IL_0053:  ldc.i4.0
   IL_0054:  ret
-}
-");
+}");
                 }
             }
         }
@@ -1510,8 +1508,7 @@ class C
   IL_0051:  nop
   IL_0052:  ldc.i4.0
   IL_0053:  ret
-}
-");
+}");
                 }
             }
         }
@@ -1663,8 +1660,7 @@ class C
   IL_009a:  stfld      ""double[] C.<F>d__0.<>s__4""
   IL_009f:  ldc.i4.0
   IL_00a0:  ret
-}
-");
+}");
                 }
             }
         }
@@ -1970,8 +1966,7 @@ class C
   IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00b0:  nop
   IL_00b1:  ret
-}
-");
+}");
             // 2 field defs added (both variables a1 and a2 of F changed their types) & 2 methods updated
             CheckEncLogDefinitions(md2.Reader,
                 Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -2074,8 +2069,7 @@ class C
   IL_00ab:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00b0:  nop
   IL_00b1:  ret
-}
-");
+}");
             // 2 field defs added - variables of G and H changed their types; 4 methods updated: G, H kickoff and MoveNext
             CheckEncLogDefinitions(md3.Reader,
                 Row(13, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -2190,8 +2184,7 @@ class C
   IL_0090:  nop
   IL_0091:  ldc.i4.0
   IL_0092:  ret
-}
-";
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
 
             var diff1 = compilation1.EmitDifference(
@@ -2260,9 +2253,7 @@ class C
   IL_0092:  nop
   IL_0093:  ldc.i4.0
   IL_0094:  ret
-}
-";
-
+}";
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>o__0#1, <F>d__0}",
@@ -2747,8 +2738,7 @@ class C
   IL_0105:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_010a:  nop
   IL_010b:  ret
-}
-");
+}");
             // 1 field def added & 2 methods updated
             CheckEncLogDefinitions(md2.Reader,
                 Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -2886,8 +2876,7 @@ class C
   IL_0105:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_010a:  nop
   IL_010b:  ret
-}
-");
+}");
             // 2 field defs added - G and H awaiters & 4 methods updated: G, H kickoff and MoveNext
             CheckEncLogDefinitions(md3.Reader,
                 Row(13, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -3309,8 +3298,7 @@ class C
   IL_0055:  nop
   IL_0056:  ldc.i4.0
   IL_0057:  ret
-}
-";
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3453,8 +3441,7 @@ class C
   IL_006a:  nop
   IL_006b:  ldc.i4.0
   IL_006c:  ret
-}
-";
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3609,8 +3596,7 @@ class C
   IL_0069:  nop
   IL_006a:  ldc.i4.0
   IL_006b:  ret
-}
-";
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "1"));
 
             var diff1 = compilation1.EmitDifference(
@@ -3717,8 +3703,7 @@ class C
   IL_0054:  nop
   IL_0055:  ldc.i4.0
   IL_0056:  ret
-}
-";
+}";
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL0);
 
             var diff1 = compilation1.EmitDifference(
@@ -3774,8 +3759,7 @@ class C
   IL_0056:  nop
   IL_0057:  ldc.i4.0
   IL_0058:  ret
-}
-";
+}";
 
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
@@ -4352,8 +4336,7 @@ class Program
   IL_031b:  nop
   IL_031c:  ldc.i4.0
   IL_031d:  ret
-}
-");
+}");
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4663,8 +4646,7 @@ class Program
   IL_0372:  nop
   IL_0373:  ldc.i4.0
   IL_0374:  ret
-}
-");
+}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -4716,8 +4698,8 @@ class C
     }
 }
 ");
-            
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+
+            var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain IteratorStateMachineAttribute
@@ -4784,7 +4766,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // the ctor is missing a parameter
@@ -4848,7 +4830,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain IteratorStateMachineAttribute
@@ -4917,7 +4899,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain IteratorStateMachineAttribute
@@ -4970,14 +4952,14 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain AsyncStateMachineAttribute, IteratorStateMachineAttribute
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5029,14 +5011,14 @@ class C
     }
 }
 ");
-                        
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain IteratorStateMachineAttribute
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -5095,12 +5077,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
             v0.VerifyDiagnostics();
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -5145,12 +5127,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30316_17626.mscorlib }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30319_17626.mscorlib }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5196,12 +5178,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Fails);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5247,12 +5229,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5308,12 +5290,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -5363,12 +5345,12 @@ class C
 }
 ");
 
-            var compilation0 = CreateCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30316_17626.mscorlib }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { TestReferences.NetFx.v4_0_30319_17626.mscorlib }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");

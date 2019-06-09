@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxTrivia CreateEndOfLine()
         {
-            if (_newLine == default(SyntaxTrivia))
+            if (_newLine == default)
             {
                 var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
                 _newLine = SyntaxFactory.EndOfLine(text);
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
-            result = default(SyntaxTrivia);
+            result = default;
 
             if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
             {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         public EnvDTE.TextPoint CreateTextPoint(FileCodeModel fileCodeModel, VirtualTreePoint point)
         {
-            var workspace = fileCodeModel.Workspace as VisualStudioWorkspaceImpl;
-            var hostDocument = workspace.GetHostDocument(fileCodeModel.GetDocumentId());
-            if (hostDocument == null)
+            if (!fileCodeModel.TryGetDocument(out var document))
             {
                 return null;
             }
 
-            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, hostDocument.FilePath, needsSave: false, needsUndoDisabled: false))
+            var hierarchyOpt = fileCodeModel.Workspace.GetHierarchy(document.Project.Id);
+
+            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, document.FilePath, hierarchyOpt, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
 

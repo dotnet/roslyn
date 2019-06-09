@@ -1,20 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Configuration;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Security.Principal;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Runtime.InteropServices;
-using System.Collections.Specialized;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -31,11 +28,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
         {
+            var compilerServerHost = CreateCompilerServerHost();
+            return CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+        }
+
+        internal static ICompilerServerHost CreateCompilerServerHost()
+        {
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+            var sdkDirectory = BuildClient.GetSystemSdkDirectory();
+
+            return new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+        }
+
+        internal static IClientConnectionHost CreateClientConnectionHostForServerHost(
+            ICompilerServerHost compilerServerHost,
+            string pipeName)
+        {
             return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
@@ -63,18 +73,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return ServerDispatcher.DefaultServerKeepAlive;
                 }
             }
-            catch (ConfigurationErrorsException e)
+            catch (Exception e)
             {
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
 
-        protected override Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
+        protected override async Task<Stream> ConnectForShutdownAsync(string pipeName, int timeout)
         {
-            var client = new NamedPipeClientStream(pipeName);
-            client.Connect(timeout);
-            return Task.FromResult<Stream>(client);
+            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
         }
 
         protected override string GetDefaultPipeName()
@@ -95,31 +103,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // pipename and consuming excess resources. If someone else holds the mutex
             // exit immediately with a non-zero exit code
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            bool holdsMutex;
-            using (var serverMutex = new Mutex(initiallyOwned: true,
-                                               name: mutexName,
-                                               createdNew: out holdsMutex))
+            bool createdNew;
+            using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName,
+                                                                             createdNew: out createdNew))
             {
-                if (!holdsMutex)
+                if (!createdNew)
                 {
                     return CommonCompiler.Failed;
                 }
 
-                try
-                {
-                    return base.RunServerCore(pipeName, connectionHost, listener, keepAlive, cancellationToken);
-                }
-                finally
-                {
-                    serverMutex.ReleaseMutex();
-                }
+                return base.RunServerCore(pipeName, connectionHost, listener, keepAlive, cancellationToken);
             }
         }
 
-        internal static new int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static new int RunServer(
+            string pipeName,
+            string tempPath,
+            IClientConnectionHost clientConnectionHost = null,
+            IDiagnosticListener listener = null,
+            TimeSpan? keepAlive = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             BuildServerController controller = new DesktopBuildServerController(new NameValueCollection());
-            return controller.RunServer(pipeName, clientConnectionHost, listener, keepAlive, cancellationToken);
+            return controller.RunServer(pipeName, tempPath, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
     }
 }

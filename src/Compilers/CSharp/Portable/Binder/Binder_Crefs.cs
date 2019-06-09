@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -88,8 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Diagnostics that don't prevent us from getting a symbol don't matter - the caller will report
             // an umbrella diagnostic if the result is an error type.
             DiagnosticBag unusedDiagnostics = DiagnosticBag.GetInstance();
-            NamespaceOrTypeSymbol namespaceOrTypeSymbol = BindNamespaceOrTypeSymbol(syntax, unusedDiagnostics);
+            NamespaceOrTypeSymbol namespaceOrTypeSymbol = BindNamespaceOrTypeSymbol(syntax, unusedDiagnostics).NamespaceOrTypeSymbol;
             unusedDiagnostics.Free();
+
+            // BindNamespaceOrTypeSymbol will wrap any tuple types in a TupleTypeSymbol. We unwrap it here, as doc comments don't consider the (T,T) form of tuples
+            if (namespaceOrTypeSymbol is TupleTypeSymbol t)
+            {
+                namespaceOrTypeSymbol = t.UnderlyingNamedType;
+            }
 
             Debug.Assert((object)namespaceOrTypeSymbol != null);
             return namespaceOrTypeSymbol;
@@ -275,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Filter out methods with the wrong return type, since overload resolution won't catch these.
             sortedSymbols = sortedSymbols.WhereAsArray(symbol =>
-                symbol.Kind != SymbolKind.Method || ((MethodSymbol)symbol).ReturnType == returnType);
+                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType, returnType, TypeCompareKind.ConsiderEverything2));
 
             if (!sortedSymbols.Any())
             {
@@ -357,11 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   to not introduce a regression and breaking change we return NULL in this case.
                     //   e.g.
                     //   
-                    //   /// <see cref="Foo"/>
-                    //   class Foo<T> { }
+                    //   /// <see cref="Goo"/>
+                    //   class Goo<T> { }
                     //   
                     //   This cref used not to bind to anything, because before it was looking for a type and
-                    //   since there was no arity, it didn't find Foo<T>. Now however, it finds Foo<T>.ctor,
+                    //   since there was no arity, it didn't find Goo<T>. Now however, it finds Goo<T>.ctor,
                     //   which is arguably correct, but would be a breaking change (albeit with minimal impact)
                     //   so we catch this case and chuck out the symbol found.
 
@@ -381,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // constructor (unless the type is generic, the cref is on/in the type (but not 
                             // on/in a nested type), and there were no parens after the member name).
 
-                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || this.ContainingType != containerType.OriginalDefinition))
+                            if (containerType.Name == memberName && (hasParameterList || containerType.Arity == 0 || !TypeSymbol.Equals(this.ContainingType, containerType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
                             {
                                 constructorType = containerType;
                             }
@@ -532,9 +539,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    foreach (TypeSymbol typeArgument in namedType.TypeArgumentsNoUseSiteDiagnostics)
+                    foreach (TypeWithAnnotations typeArgument in namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                     {
-                        if (ContainsNestedTypeOfUnconstructedGenericType(typeArgument))
+                        if (ContainsNestedTypeOfUnconstructedGenericType(typeArgument.Type))
                         {
                             return true;
                         }
@@ -739,8 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 containingType: null,
                                 name: null,
                                 refKind: RefKind.None,
-                                returnType: null,
-                                returnTypeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                                returnType: default,
                                 refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
                             break;
@@ -755,8 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 containingType: null,
                                 name: null,
                                 refKind: RefKind.None,
-                                type: null,
-                                typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                                type: default,
                                 refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 isStatic: false,
                                 explicitInterfaceImplementations: ImmutableArray<PropertySymbol>.Empty);
@@ -831,18 +836,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arity > 0)
             {
                 SeparatedSyntaxList<TypeSyntax> typeArgumentSyntaxes = typeArgumentListSyntax.Arguments;
-                TypeSymbol[] typeArgumentSymbols = new TypeSymbol[arity];
+                var typeArgumentsWithAnnotations = ArrayBuilder<TypeWithAnnotations>.GetInstance(arity);
 
                 DiagnosticBag unusedDiagnostics = DiagnosticBag.GetInstance();
                 for (int i = 0; i < arity; i++)
                 {
                     TypeSyntax typeArgumentSyntax = typeArgumentSyntaxes[i];
 
-                    typeArgumentSymbols[i] = BindType(typeArgumentSyntax, unusedDiagnostics);
+                    var typeArgument = BindType(typeArgumentSyntax, unusedDiagnostics);
+                    typeArgumentsWithAnnotations.Add(typeArgument);
 
                     // Should be in a WithCrefTypeParametersBinder.
                     Debug.Assert(typeArgumentSyntax.ContainsDiagnostics || !typeArgumentSyntax.SyntaxTree.ReportDocumentationCommentDiagnostics() ||
-                        (!unusedDiagnostics.HasAnyErrors() && typeArgumentSymbols[i] is CrefTypeParameterSymbol));
+                        (!unusedDiagnostics.HasAnyErrors() && typeArgument.Type is CrefTypeParameterSymbol));
 
                     unusedDiagnostics.Clear();
                 }
@@ -850,12 +856,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Kind == SymbolKind.Method)
                 {
-                    symbol = ((MethodSymbol)symbol).Construct(typeArgumentSymbols);
+                    symbol = ((MethodSymbol)symbol).Construct(typeArgumentsWithAnnotations.ToImmutableAndFree());
                 }
                 else
                 {
                     Debug.Assert(symbol is NamedTypeSymbol);
-                    symbol = ((NamedTypeSymbol)symbol).Construct(typeArgumentSymbols);
+                    symbol = ((NamedTypeSymbol)symbol).Construct(typeArgumentsWithAnnotations.ToImmutableAndFree());
                 }
             }
 
@@ -868,11 +874,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (CrefParameterSyntax parameter in parameterListSyntax.Parameters)
             {
-                RefKind refKind = parameter.RefOrOutKeyword.Kind().GetRefKind();
+                RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
 
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 
-                parameterBuilder.Add(new SignatureOnlyParameterSymbol(type, ImmutableArray<CustomModifier>.Empty, ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
+                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
             }
 
             return parameterBuilder.ToImmutableAndFree();
@@ -899,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation.GetBinderFactory(typeSyntax.SyntaxTree).GetBinder(typeSyntax).Flags ==
                 (parameterOrReturnTypeBinder.Flags & ~BinderFlags.SemanticModel));
 
-            TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, unusedDiagnostics);
+            TypeSymbol type = parameterOrReturnTypeBinder.BindType(typeSyntax, unusedDiagnostics).Type;
 
             if (unusedDiagnostics.HasAnyErrors())
             {

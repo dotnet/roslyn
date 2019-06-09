@@ -32,8 +32,8 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
         [Theory]
         // escaped
         [InlineData(@"\\", '\\')]
-        [InlineData(@"\""", '"')] 
-        // unsecaped
+        [InlineData(@"\""", '"')]
+        // unescaped
         [InlineData(@"'", '\'')]
         [InlineData(@"/", '/')]
         //

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.Member.Kind = BoundKind.LateMemberAccess Then
-                ' objReceiver.foo(args)         
+                ' objReceiver.goo(args)         
                 Dim member = DirectCast(node.Member, BoundLateMemberAccess)
 
                 ' NOTE: member is not the receiver of the call, it just represents the latebound access. 

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateConversionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateConversionService
         Inherits AbstractGenerateConversionService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function AreSpecialOptionsActive(semanticModel As SemanticModel) As Boolean
             Return VisualBasicCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel)
@@ -142,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 accessibility:=Nothing,
                 modifiers:=Nothing,
                 returnType:=typeToGenerateIn,
-                returnsByRef:=False,
-                explicitInterfaceSymbol:=Nothing,
+                refKind:=RefKind.None,
+                explicitInterfaceImplementations:=Nothing,
                 name:=Nothing,
                 typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,
                 parameters:=ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),

@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis
         ForEachArrayIndex = 8,
 
         /// <summary>
-        /// Local variable that holds a pinned handle of a string passed to a fixed statement (C#).
+        /// Local variable that holds a pinned handle of a managed reference passed to a fixed statement (C#).
         /// </summary>
-        FixedString = 9,
+        FixedReference = 9,
 
         /// <summary>
         /// Local variable that holds the object passed to With statement (VB). 
@@ -160,10 +160,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be hoisted or its lifespan ends before 
-        /// the end of the containing await expression.
+        /// Such a local arises from the translation of an await or switch expression,
+        /// and might be hoisted to an async state machine if it remains alive
+        /// after an await expression.
         /// </summary>
-        AwaitSpill = 28,
+        Spill = 28,
 
         AwaitByRefSpill = 29,
 
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         /// Temp created for pattern matching by type. This holds the value of an input value provisionally
         /// converted to the type against which it is being matched.
         /// </summary>
-        PatternMatching = 35,
+        SwitchCasePatternMatching = 35,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 

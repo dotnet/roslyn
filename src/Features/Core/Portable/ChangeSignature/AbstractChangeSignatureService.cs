@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<ISymbol> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SignatureChange signaturePermutation,
             CancellationToken cancellationToken);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+        internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var symbol = await GetInvocationSymbolAsync(
+            var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-language symbols will show as metadata, so map it to source if possible.
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod);
+            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
             if (!parameterConfiguration.IsChangeable())
             {
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
+                    FindReferencesSearchOptions.Default,
                     cancellationToken);
 
                 await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
@@ -241,8 +242,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
                 {
                     var eventSymbol = symbolWithSyntacticParameters as IEventSymbol;
-                    var type = eventSymbol.Type as INamedTypeSymbol;
-                    if (type != null && type.DelegateInvokeMethod != null)
+                    if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
                     }
@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
 
-                var formattedRoot = Formatter.FormatAsync(
+                var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
                     doc.Project.Solution.Workspace,
                     options: null,
                     rules: GetFormattingRules(doc),
-                    cancellationToken: CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    cancellationToken: CancellationToken.None);
 
                 updatedRoots[docId] = formattedRoot;
             }
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var root = tree.GetRoot();
             SyntaxNode node = root.FindNode(location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            var updater = document.Project.LanguageServices.GetService<AbstractChangeSignatureService>();
+            var updater = document.GetLanguageService<AbstractChangeSignatureService>();
             nodeToUpdate = updater.FindNodeToUpdate(document, node);
 
             return nodeToUpdate != null;
@@ -484,8 +484,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 origStuff.AddRange(bonusParameters);
                 newStuff.AddRange(bonusParameters);
 
-                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
-                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null);
+                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 updatedSignature = new SignatureChange(newOrigParams, newUpdatedParams);
             }
 
@@ -532,6 +532,42 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return parametersToPermute;
+        }
+
+        /// <summary>
+        /// Given the cursor position, find which parameter is selected.
+        /// Returns 0 as the default value. Note that the ChangeSignature dialog adjusts the selection for
+        /// the `this` parameter in extension methods (the selected index won't remain 0).
+        /// </summary>
+        protected static int GetParameterIndex<TNode>(SeparatedSyntaxList<TNode> parameters, int position)
+            where TNode : SyntaxNode
+        {
+            if (parameters.Count == 0)
+            {
+                return 0;
+            }
+
+            if (position < parameters.Span.Start)
+            {
+                return 0;
+            }
+
+            if (position > parameters.Span.End)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < parameters.Count - 1; i++)
+            {
+                // `$$,` points to the argument before the separator
+                // but `,$$` points to the argument following the separator
+                if (position <= parameters.GetSeparator(i).Span.Start)
+                {
+                    return i;
+                }
+            }
+
+            return parameters.Count - 1;
         }
     }
 }

@@ -1,8 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -19,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = "public class C {}";
             var symbolName = "C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -28,8 +29,7 @@ public class [|C|]
 {{
     public C();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -45,16 +45,14 @@ End Class");
             var metadataSource = "public interface I {}";
             var symbolName = "I";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public interface [|I|]
 {{
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -68,8 +66,7 @@ End Interface");
             var metadataSource = "public class C {}";
             var symbolName = "C..ctor";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -77,8 +74,7 @@ public class C
 {{
     public [|C|]();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -90,11 +86,10 @@ End Class");
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestMethod()
         {
-            var metadataSource = "public class C { public void Foo() {} }";
-            var symbolName = "C.Foo";
+            var metadataSource = "public class C { public void Goo() {} }";
+            var symbolName = "C.Goo";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -102,17 +97,16 @@ public class C
 {{
     public C();
 
-    public void [|Foo|]();
+    public void [|Goo|]();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
     Public Sub New()
 
-    Public Sub [|Foo|]()
+    Public Sub [|Goo|]()
 End Class");
         }
 
@@ -122,8 +116,7 @@ End Class");
             var metadataSource = "public class C { public string S; }";
             var symbolName = "C.S";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -133,8 +126,7 @@ public class C
 
     public C();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -152,8 +144,7 @@ End Class");
             var metadataSource = "public class C { public string S { get; protected set; } }";
             var symbolName = "C.S";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -163,8 +154,7 @@ public class C
 
     public string [|S|] {{ get; protected set; }}
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -183,8 +173,7 @@ End Class");
             var metadataSource = "using System; public class C { public event Action E; }";
             var symbolName = "C.E";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -196,8 +185,7 @@ public class C
 
     public event Action [|E|];
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -216,8 +204,7 @@ End Class");
             var metadataSource = "public class C { protected class D { } }";
             var symbolName = "C+D";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -230,8 +217,7 @@ public class C
         public D();
     }}
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -251,8 +237,7 @@ End Class");
             var metadataSource = "public enum E { A, B, C }";
             var symbolName = "E";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -262,8 +247,7 @@ public enum [|E|]
     B = 1,
     C = 2
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -281,8 +265,7 @@ End Enum");
             var metadataSource = "public enum E { A, B, C }";
             var symbolName = "E.C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -292,8 +275,7 @@ public enum E
     B = 1,
     [|C|] = 2
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -311,8 +293,7 @@ End Enum");
             var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
             var symbolName = "E.C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -322,15 +303,14 @@ public enum E : short
     B = 1,
     [|C|] = 2
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Enum E As Short
     A = 0
     B = 1
-    [|C|] = 2 
+    [|C|] = 2
 End Enum");
         }
 
@@ -341,8 +321,7 @@ End Enum");
             var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
             var symbolName = "E.A";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -350,8 +329,7 @@ public enum E : ulong
 {{
     [|A|] = 9223372036854775808
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -366,8 +344,7 @@ End Enum");
             var metadataSource = "public enum E : short { A = 1, B = 2, C = 3 }";
             var symbolName = "E.C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -377,8 +354,7 @@ public enum E : short
     B = 2,
     [|C|] = 3
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -396,8 +372,7 @@ End Enum");
             var metadataSource = "namespace N { public class C {} }";
             var symbolName = "N.C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -408,8 +383,7 @@ namespace N
         public C();
     }}
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -427,8 +401,7 @@ End Namespace");
             var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
             var symbolName = "C.S";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -438,8 +411,7 @@ public class C
 
     public C();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -467,8 +439,7 @@ public class C {}";
 
             var symbolName = "C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -477,8 +448,7 @@ public class [|C|]
 {{
     public C();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -495,16 +465,14 @@ End Class");
             var metadataSource = "public struct S {}";
             var symbolName = "S";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public struct [|S|]
 {{
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -518,8 +486,7 @@ End Structure");
             var metadataSource = "public class C { public static C Create() { return new C(); } }";
             var symbolName = "C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -529,8 +496,7 @@ public class [|C|]
 
     public static C Create();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -548,8 +514,7 @@ End Class");
             var metadataSource = "public class G<SomeType> { public SomeType S; }";
             var symbolName = "G`1";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -559,8 +524,7 @@ public class [|G|]<SomeType>
 
     public G();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -578,8 +542,7 @@ End Class");
             var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
             var symbolName = "C+D`1";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -589,14 +552,12 @@ public class C
 
     public delegate void [|D|]<SomeType>(SomeType s);
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class C
     Public Sub New()
-
     Public Delegate Sub [|D|](Of SomeType)(s As SomeType)
 End Class");
         }
@@ -621,8 +582,7 @@ public class C {}";
 
             var symbolName = "C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -633,8 +593,7 @@ public class [|C|]
 {{
     public C();
 }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -752,7 +711,7 @@ End Class");
             {
                 var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
                 var document = context.GetDocument(file);
-                await Formatting.Formatter.FormatAsync(document);
+                await Formatter.FormatAsync(document);
             }
         }
 
@@ -771,8 +730,7 @@ Public Class C
         End Set
     End Property
 End Class";
-            var expected = $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -805,10 +763,10 @@ public class MyAttribute : Attribute
     public MyAttribute(Type t) { }
 }";
 
-            var expected = $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
+
 [My(typeof(D))]
 public class [|C|]
 {{
@@ -861,8 +819,7 @@ public class C
     public static C operator + (C c1, C c2) { return new C(); }
 }
 ";
-            var expectedCS = $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -903,13 +860,11 @@ public class [|C|]
 
     [Obsolete]
     public static C operator +(C c1, C c2);
-}}
-";
+}}";
             var symbolName = "C";
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -1003,10 +958,9 @@ public class [|C|]
 
     public static C operator +(C c1, C c2);
     public static C operator -(C c1, C c2);
-}}
-";
+}}";
             var symbolName = "C";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1037,7 +991,7 @@ Public Class [|C|]
     Public Shared Operator +(c1 As C, c2 As C) As C
     Public Shared Operator -(c1 As C, c2 As C) As C
 End Class";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
         [WorkItem(728644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644")]
@@ -1047,16 +1001,16 @@ End Class";
             var source = @"
 using System;
 
-/// <summary>T:IFoo</summary>
-public interface IFoo
+/// <summary>T:IGoo</summary>
+public interface IGoo
 {
-    /// <summary>P:IFoo.Prop1</summary>
+    /// <summary>P:IGoo.Prop1</summary>
     Uri Prop1 { get; set; }
-    /// <summary>M:IFoo.Method1</summary>
+    /// <summary>M:IGoo.Method1</summary>
     Uri Method1();
 }
 ";
-            var symbolName = "IFoo";
+            var symbolName = "IGoo";
             var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
@@ -1065,21 +1019,20 @@ using System;
 
 //
 // {FeaturesResources.Summary_colon}
-//     T:IFoo
-public interface [|IFoo|]
+//     T:IGoo
+public interface [|IGoo|]
 {{
     //
     // {FeaturesResources.Summary_colon}
-    //     P:IFoo.Prop1
+    //     P:IGoo.Prop1
     Uri Prop1 {{ get; set; }}
 
     //
     // {FeaturesResources.Summary_colon}
-    //     M:IFoo.Method1
+    //     M:IGoo.Method1
     Uri Method1();
-}}
-";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false, includeXmlDocComments: true);
+}}";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1089,20 +1042,19 @@ Imports System
 
 '
 ' {FeaturesResources.Summary_colon}
-'     T:IFoo
-Public Interface [|IFoo|]
+'     T:IGoo
+Public Interface [|IGoo|]
     '
     ' {FeaturesResources.Summary_colon}
-    '     P:IFoo.Prop1
+    '     P:IGoo.Prop1
     Property Prop1 As Uri
 
     '
     ' {FeaturesResources.Summary_colon}
-    '     M:IFoo.Method1
+    '     M:IGoo.Method1
     Function Method1() As Uri
-End Interface
-";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false, includeXmlDocComments: true);
+End Interface";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
         }
 
         [WorkItem(679114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")]
@@ -1114,7 +1066,7 @@ using System.IO;
 
 public class Test
 {
-    public void foo(FileOptions options = 0) {}
+    public void goo(FileOptions options = 0) {}
 }
 ";
             var symbolName = "Test";
@@ -1124,22 +1076,24 @@ public class Test
 
 using System.IO;
 
-public class [|Test|] 
+public class [|Test|]
 {{
-    public Test(); 
-    public void foo(FileOptions options = FileOptions.None);
-}}
-";
+    public Test();
+
+    public void goo(FileOptions options = FileOptions.None);
+}}";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
-Imports System.IO 
 
-Public Class [|Test|] 
-    Public Sub New() 
-    Public Sub foo(Optional options As FileOptions = FileOptions.None) 
+Imports System.IO
+
+Public Class [|Test|]
+    Public Sub New()
+
+    Public Sub goo(Optional options As FileOptions = FileOptions.None)
 End Class";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
@@ -1164,25 +1118,25 @@ public class TestAttribute : Attribute
 #endregion
 
 using System;
- 
+
 [Test(null)]
 public class [|TestAttribute|] : Attribute
 {{
     public TestAttribute(int[] i);
-}}
-";
+}}";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS);
 
-            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" 
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
-Imports System 
+
+Imports System
 
 <Test(Nothing)>
 Public Class [|TestAttribute|]
-    Inherits Attribute 
-    
-    Public Sub New(i() As Integer) 
+    Inherits Attribute
+
+    Public Sub New(i() As Integer)
 End Class";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
@@ -1207,12 +1161,11 @@ class C
             var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
- 
+
 public static class ObjectExtensions
 {{
     public static void [|M|](this object o, int x);
-}}
-";
+}}";
 
             using (var context = TestContext.Create(
                 LanguageNames.CSharp,
@@ -1249,12 +1202,13 @@ End Module";
             var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
+
 Imports System.Runtime.CompilerServices
 
 Namespace NS
-    <Extension> 
-    Public Module StringExtensions
-        <Extension> Public Sub [|M|](o As String, x As Integer)
+    <Extension>
+    Public Module StringExtensions <Extension>
+        Public Sub [|M|](o As String, x As Integer)
     End Module
 End Namespace";
 
@@ -1294,8 +1248,7 @@ End Namespace";
 }";
             var symbolName = "Program";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -1303,15 +1256,14 @@ using System.Reflection;
 
 [DefaultMember(""Item"")]
 public class [|Program|]
-        {{
-            public Program();
+{{
+    public Program();
 
-            public int this[int x] {{ get; set; }}
+    public int this[int x] {{ get; set; }}
 
-            public static Program operator +(Program p1, Program p2);
-        }}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+    public static Program operator +(Program p1, Program p2);
+}}");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -1345,10 +1297,10 @@ public interface IComImport
 }";
             var symbolName = "IComImport";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
-#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
+
 using System.Runtime.InteropServices;
 
 [Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
@@ -1357,8 +1309,757 @@ public interface [|IComImport|]
     void MOverload();
     void X();
     void MOverload(int i);
+
     int Prop {{ get; }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestOptionalParameterWithDefaultLiteral()
+        {
+            var metadataSource = @"
+using System.Threading;
+
+public class C {
+    public void M(CancellationToken cancellationToken = default(CancellationToken)) { }
+}";
+            var symbolName = "C";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Threading;
+
+public class [|C|]
+{{
+    public C();
+
+    public void M(CancellationToken cancellationToken = default);
+}}", languageVersion: "CSharp7_1");
         }
+
+        [WorkItem(446567, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestDocCommentsWithUnixNewLine()
+        {
+            var source = @"
+using System;
+
+/// <summary>T:IGoo" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+public interface IGoo
+{
+    /// <summary>P:IGoo.Prop1" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+    Uri Prop1 { get; set; }
+    /// <summary>M:IGoo.Method1" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+    Uri Method1();
+}
+";
+            var symbolName = "IGoo";
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+//
+// {FeaturesResources.Summary_colon}
+//     T:IGoo ABCDE FGHIJK
+public interface [|IGoo|]
+{{
+    //
+    // {FeaturesResources.Summary_colon}
+    //     P:IGoo.Prop1 ABCDE FGHIJK
+    Uri Prop1 {{ get; set; }}
+
+    //
+    // {FeaturesResources.Summary_colon}
+    //     M:IGoo.Method1 ABCDE FGHIJK
+    Uri Method1();
+}}";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
+
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+
+'
+' {FeaturesResources.Summary_colon}
+'     T:IGoo ABCDE FGHIJK
+Public Interface [|IGoo|]
+    '
+    ' {FeaturesResources.Summary_colon}
+    '     P:IGoo.Prop1 ABCDE FGHIJK
+    Property Prop1 As Uri
+
+    '
+    ' {FeaturesResources.Summary_colon}
+    '     M:IGoo.Method1 ABCDE FGHIJK
+    Function Method1() As Uri
+End Interface";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Type()
+        {
+            var metadata = @"using System;
+public class TestType<T> where T : unmanaged
+{
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new [|TestType|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|TestType|]<T> where T : unmanaged
+{{
+    public TestType();
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Method()
+        {
+            var metadata = @"using System;
+public class TestType
+{
+    public void M<T>() where T : unmanaged
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M|]<T>() where T : unmanaged;
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Delegate()
+        {
+            var metadata = @"using System;
+public delegate void D<T>() where T : unmanaged;";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M([|D|]&lt;int&gt; lambda)
+    {
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public delegate void [|D|]<T>() where T : unmanaged;";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestSByteMinValue()
+        {
+            var source = @"
+class C
+{
+    sbyte Goo = sbyte.[|MinValue|];
+}";
+
+            var expected = "public const SByte MinValue = -128;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestSByteMinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = SByte.[|MinValue|]
+End Class";
+
+            var expected = "Public Const MinValue As [SByte] = -128";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt16MinValue()
+        {
+            var source = @"
+class C
+{
+    short Goo = short.[|MinValue|];
+}";
+
+            var expected = $"public const Int16 MinValue = -32768;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt16MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Short.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int16 = -32768";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt32MinValue()
+        {
+            var source = @"
+class C
+{
+    int Goo = int.[|MinValue|];
+}";
+
+            var expected = $"public const Int32 MinValue = -2147483648;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt32MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Integer.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int32 = -2147483648";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt64MinValue()
+        {
+            var source = @"
+class C
+{
+    long Goo = long.[|MinValue|];
+}";
+
+            var expected = $"public const Int64 MinValue = -9223372036854775808;";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt64MinValueVB()
+        {
+            var source = @"
+Class C
+    Public Goo = Long.[|MinValue|]
+End Class";
+
+            var expected = $"Public Const MinValue As Int64 = -9223372036854775808";
+
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyStruct()
+        {
+            var metadataSource = @"
+public readonly struct S
+{
+    public readonly int i;
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly struct [|S|]
+{{
+    public readonly int i;
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+<IsReadOnlyAttribute>
+Public Structure [|S|]
+    Public ReadOnly i As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestRefStruct()
+        {
+            var metadataSource = @"
+public ref struct S
+{
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public ref struct [|S|]
+{{
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+Imports System.Runtime.CompilerServices
+
+<IsByRefLikeAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
+Public Structure [|S|]
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyRefStruct()
+        {
+            var metadataSource = @"
+public readonly ref struct S
+{
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly ref struct [|S|]
+{{
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+Imports System.Runtime.CompilerServices
+
+<IsByRefLikeAttribute> <IsReadOnlyAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
+Public Structure [|S|]
+End Structure");
+        }
+
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyMethod()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly void M() {}
+}
+";
+            var symbolName = "S.M";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly void [|M|]();
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+Public Structure S <IsReadOnlyAttribute>
+    Public Sub [|M|]()
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnly()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnly_CSharp7_3()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "CSharp7_3",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet_Set()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { readonly get => 123; set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ readonly get; set; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_Get_ReadOnlySet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get => 123; readonly set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ get; readonly set; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet_ReadOnlySet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int P { get => 123; set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; set; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructIndexer_ReadOnlyGet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int this[int i] => i;
+}
+";
+            var symbolName = "S.Item";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public struct S
+{{
+    public readonly int [|this|][int i] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Structure S
+    Default Public ReadOnly Property [|Item|](i As Integer) As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructIndexer_ReadOnlyGet_Set()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int this[int i] { readonly get => i; set {} }
+}
+";
+            var symbolName = "S.Item";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public struct S
+{{
+    public int [|this|][int i] {{ readonly get; set; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Structure S
+    Default Public Property [|Item|](i As Integer) As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStruct_ReadOnlyEvent()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly event System.Action E { add {} remove {} }
+}
+";
+            var symbolName = "S.E";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+public struct S
+{{
+    public readonly event Action [|E|];
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+
+Public Structure S
+    Public Event [|E|] As Action
+End Structure");
+        }
+    }
 }

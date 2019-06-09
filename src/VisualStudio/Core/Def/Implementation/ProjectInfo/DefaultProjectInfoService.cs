@@ -16,11 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
                 return false;
             }
 
-            var hostProject = workspace.GetHostProject(project.Id) as AbstractProject;
-            if (hostProject != null)
-            {
-                return hostProject.IsWebSite;
-            }
+            // TODO: reimplement
 
             return false;
         }

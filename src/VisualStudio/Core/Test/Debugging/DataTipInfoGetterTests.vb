@@ -1,11 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
@@ -13,6 +13,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class DataTipInfoGetterTests
 
         Private Async Function TestNoDataTipAsync(input As XElement) As Task
@@ -60,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         Public Async Function Test1() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|Sys$$tem|].Console.WriteLine(args)
   end sub
 end class</text>)
@@ -70,7 +71,7 @@ end class</text>)
         Public Async Function Test2() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|System$$.Console|].WriteLine(args)
   end sub
 end class</text>)
@@ -80,7 +81,7 @@ end class</text>)
         Public Async Function Test3() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|System.$$Console|].WriteLine(args)
   end sub
 end class</text>)
@@ -90,7 +91,7 @@ end class</text>)
         Public Async Function Test4() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|System.Con$$sole|].WriteLine(args)
   end sub
 end class</text>)
@@ -100,7 +101,7 @@ end class</text>)
         Public Async Function Test5() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|System.Console.Wri$$teLine(args)|]
   end sub
 end class</text>)
@@ -110,7 +111,7 @@ end class</text>)
         Public Async Function Test6() As Task
             Await TestNoDataTipAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     System.Console.WriteLine$$(args)
   end sub
 end class</text>)
@@ -120,7 +121,7 @@ end class</text>)
         Public Async Function Test7() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     System.Console.WriteLine($$[|args|])
   end sub
 end class</text>)
@@ -130,7 +131,7 @@ end class</text>)
         Public Async Function Test8() As Task
             Await TestNoDataTipAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     System.Console.WriteLine(args$$)
   end sub
 end class</text>)
@@ -140,7 +141,7 @@ end class</text>)
         Public Async Function Test9() As Task
             Await TestAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim [|$$i|] = 5
   end sub
 end class</text>)
@@ -150,7 +151,7 @@ end class</text>)
         Public Async Function TestLiterals() As Task
             Await TestNoDataTipAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim i = 5$$6
   end sub
 end class</text>)
@@ -160,7 +161,7 @@ end class</text>)
         Public Async Function TestNonExpressions() As Task
             Await TestNoDataTipAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim i = 5
   end sub$$
 end class</text>)
@@ -171,7 +172,7 @@ end class</text>)
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim ia3 As Integer() = {1, 2, 3, 4 $$, 5}
 
   end sub
@@ -184,10 +185,10 @@ end class</text>)
             Await TestAsync(<text>
 Module Module1
     Sub Main()
-        Foo(1, 2, 3)
+        Goo(1, 2, 3)
     End Sub
 
-    Private Sub Foo([|$$v1|] As Integer, v2 As Integer, v3 As Integer)
+    Private Sub Goo([|$$v1|] As Integer, v2 As Integer, v3 As Integer)
         Throw New NotImplementedException() ' breakpoint here
     End Sub
 End Module

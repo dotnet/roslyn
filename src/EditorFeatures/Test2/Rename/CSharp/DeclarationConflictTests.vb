@@ -1,9 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class DeclarationConflictTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -65,9 +65,9 @@ class C
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int [|$$foo|];
+    int [|$$goo|];
     int {|Conflict:bar|};
 }
                             </Document>
@@ -85,9 +85,9 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int [|$$foo|];
+    int [|$$goo|];
     int {|Conflict:bar|}() { }
 }
                             </Document>
@@ -108,7 +108,7 @@ class Foo
 class Program
 {
     int {|Conflict:bar|} { get; set; }
-    int [|$$foo|]() { return 0; }
+    int [|$$goo|]() { return 0; }
 }
                             </Document>
                     </Project>
@@ -125,9 +125,9 @@ class Program
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int [|$$foo|]() { }
+    int [|$$goo|]() { }
     int {|Conflict:bar|}() { }
 }
                                </Document>
@@ -145,9 +145,9 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int f(int [|$$foo|], int {|Conflict:bar|}) { }
+    int f(int [|$$goo|], int {|Conflict:bar|}) { }
 }
                             </Document>
                     </Project>
@@ -164,9 +164,9 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int [|$$foo|]() { }
+    int [|$$goo|]() { }
     int bar(int parameter) { }
 }
                             </Document>
@@ -183,9 +183,9 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class Foo
+class Goo
 {
-    int [|$$foo|](out int parameter) { }
+    int [|$$goo|](out int parameter) { }
     int {|Conflict:bar|}(int parameter) { }
 }
                             </Document>
@@ -203,9 +203,9 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
-class Foo
+class Goo
 {
-    int [|$$foo|](int parameter) { }
+    int [|$$goo|](int parameter) { }
     int bar<T>(int parameter) { }
 }
                         ]]></Document>
@@ -223,7 +223,7 @@ class Foo
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
-namespace [|$$Foo|] { }
+namespace [|$$Goo|] { }
                         ]]></Document>
                     </Project>
                 </Workspace>, renameTo:="System")
@@ -238,7 +238,7 @@ namespace [|$$Foo|] { }
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
-namespace [|$$Foo|] { }
+namespace [|$$Goo|] { }
 namespace N1 { }
                         ]]></Document>
                     </Project>
@@ -441,7 +441,7 @@ class C : A
         return this;
     }
  
-    public void {|possibleImplicitConflict:$$Foo|}() { } // Rename Foo to MoveNext
+    public void {|possibleImplicitConflict:$$Goo|}() { } // Rename Goo to MoveNext
 }
                         ]]></Document>
                     </Project>
@@ -482,7 +482,7 @@ class C : A
         return this;
     }
  
-    public void [|$$Foo|]<T>() { } // Rename Foo to MoveNext
+    public void [|$$Goo|]<T>() { } // Rename Goo to MoveNext
 }
                         ]]></Document>
                     </Project>
@@ -521,7 +521,7 @@ class C : A
         return this;
     }
  
-    public void [|$$Foo|]() { } // Rename Foo to MoveNext
+    public void [|$$Goo|]() { } // Rename Goo to MoveNext
 }
                         ]]></Document>
                     </Project>
@@ -600,6 +600,37 @@ class C
                 result.AssertLabeledSpansAre("first", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("second", "M(new { }, (_, a) => (long)X(a))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 result.AssertLabeledSpansAre("origin", "X", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
+        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter0:$$x|});
+}
+                        </Document>
+                        <Document>
+partial class C
+{
+    partial void M(int {|parameter1:x|})
+    {
+        int {|local0:y|} = 1;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="y")
+
+                result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
     End Class

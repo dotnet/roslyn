@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Navigation
     internal class DefaultSymbolNavigationServiceFactory : IWorkspaceServiceFactory
     {
         private ISymbolNavigationService _singleton;
+
+        [ImportingConstructor]
+        public DefaultSymbolNavigationServiceFactory()
+        {
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {

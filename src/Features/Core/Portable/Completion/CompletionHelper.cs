@@ -4,17 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
-
         private readonly object _gate = new object();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
              new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
@@ -22,31 +19,19 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
-        private CompletionHelper(bool isCaseSensitive)
+        public CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
         }
 
-        public static CompletionHelper GetHelper(Workspace workspace, string language)
-        {
-            var isCaseSensitive = true;
-            var ls = workspace.Services.GetLanguageServices(language);
-            if (ls != null)
-            {
-                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-                isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
-            }
-
-            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
-        }
-
         public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
+            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+                .GetCompletionHelper(document);
         }
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-            string text, string pattern, CultureInfo culture)
+                string text, string pattern, CultureInfo culture)
         {
             var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
@@ -97,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern, 
+            string completionItemText, string pattern,
             CultureInfo culture, bool includeMatchSpans)
         {
             var patternMatcher = this.GetPatternMatcher(pattern, culture, includeMatchSpans);
@@ -198,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static bool IsKeywordItem(CompletionItem item)
         {
-            return item.Tags.Contains(CompletionTags.Keyword);
+            return item.Tags.Contains(WellKnownTags.Keyword);
         }
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
@@ -226,14 +211,14 @@ namespace Microsoft.CodeAnalysis.Completion
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
             // language, then we prefer the former.
-            if (item1.DisplayText.Length != item2.DisplayText.Length)
+            if (item1.GetEntireDisplayText().Length != item2.GetEntireDisplayText().Length)
             {
                 var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+                if (item2.GetEntireDisplayText().StartsWith(item1.GetEntireDisplayText(), comparison))
                 {
                     return -1;
                 }
-                else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
+                else if (item1.GetEntireDisplayText().StartsWith(item2.GetEntireDisplayText(), comparison))
                 {
                     return 1;
                 }

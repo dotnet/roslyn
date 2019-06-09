@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
-        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
             INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
-            return (displayAndInsertionText, displayAndInsertionText);
+            return (displayAndInsertionText, "", displayAndInsertionText);
         }
 
         protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)

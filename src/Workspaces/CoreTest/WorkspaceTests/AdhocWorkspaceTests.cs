@@ -13,10 +13,13 @@ using Xunit;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class AdhocWorkspaceTests : WorkspaceTestBase
+    [UseExportProvider]
+    public partial class AdhocWorkspaceTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()
@@ -148,41 +151,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(info2.Language, project2.Language);
                 Assert.Equal(1, project2.ProjectReferences.Count());
                 Assert.Equal(id1, project2.ProjectReferences.First().ProjectId);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public async Task TestAddProject_CommandLineProjectAsync()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-
-            string commandLine = @"CSharpClass.cs /out:foo.dll /target:library";
-            var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
-
-            using (var ws = new AdhocWorkspace())
-            {
-                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
-                ws.AddProject(info);
-                var project = ws.CurrentSolution.GetProject(info.Id);
-
-                Assert.Equal("TestProject", project.Name);
-                Assert.Equal("foo", project.AssemblyName);
-                Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
-
-                Assert.Equal(1, project.Documents.Count());
-
-                var fooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
-                Assert.Equal(0, fooDoc.Folders.Count);
-                var expectedPath = Path.Combine(baseDirectory, "CSharpClass.cs");
-                Assert.Equal(expectedPath, fooDoc.FilePath);
-
-                var text = (await fooDoc.GetTextAsync()).ToString();
-                Assert.NotEqual("", text);
-
-                var tree = await fooDoc.GetSyntaxRootAsync();
-                Assert.Equal(false, tree.ContainsDiagnostics);
-
-                var compilation = await project.GetCompilationAsync();
             }
         }
 
@@ -326,6 +294,47 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestOpenCloseAnnalyzerConfigDocument()
+        {
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
+            var docInfo = DocumentInfo.Create(
+                    DocumentId.CreateNewId(pid),
+                    name: ".editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(text, version, analyzerConfigDocFilePath)),
+                    filePath: analyzerConfigDocFilePath);
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp)
+                .WithAnalyzerConfigDocuments(new[] { docInfo });
+
+            using (var ws = new AdhocWorkspace())
+            {
+                ws.AddProject(projInfo);
+                var doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out var currentText));
+
+                ws.OpenAnalyzerConfigDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+                Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
+                Assert.Same(text, currentText);
+                Assert.Equal(version, currentVersion);
+
+                ws.CloseAnalyzerConfigDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetAnalyzerConfigDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
+            }
+        }
+
+        [Fact]
         public void TestGenerateUniqueName()
         {
             var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
@@ -403,9 +412,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees()
+        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
-            var ws = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
             ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
             return ws;
         }
@@ -413,11 +422,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
         {
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace());
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees());
+            var hostServices = MefHostServices.Create(TestHost.Assemblies);
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace(hostServices));
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
-        public async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
+        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
@@ -469,7 +479,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 pws.SetParseOptions(projid, parseOptions.WithLanguageVersion(CS.LanguageVersion.CSharp3));
 
                 // get partial semantics doc
-                var frozen = await pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                var frozen = pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemantics(CancellationToken.None);
             }
         }
 
@@ -572,7 +582,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
                 Assert.Null(originalDoc.FilePath);
 
-                var newPath = @"\foo\TestDocument.cs";
+                var newPath = @"\goo\TestDocument.cs";
                 var changedDoc = originalDoc.WithFilePath(newPath);
                 Assert.Equal(newPath, changedDoc.FilePath);
 
@@ -659,6 +669,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal("A", appliedDoc.Folders[0]);
                 Assert.Equal("B", appliedDoc.Folders[1]);
                 Assert.Equal(newPath, appliedDoc.FilePath);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestDefaultDocumentTextDifferencingService()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var service = ws.Services.GetService<IDocumentTextDifferencingService>();
+                Assert.NotNull(service);
+                Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
             }
         }
     }

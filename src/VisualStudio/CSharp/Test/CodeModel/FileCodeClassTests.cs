@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         public FileCodeClassTests()
             : base(@"using System;
 
-public abstract class Foo : IDisposable, ICloneable
+public abstract class Goo : IDisposable, ICloneable
 {
 }
 
@@ -31,6 +30,8 @@ public class Bar
             return a;
         }
     }
+
+    public string WindowsUserID => ""Domain""; 
 }")
         {
         }
@@ -44,7 +45,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsAbstract()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             Assert.True(cc.IsAbstract);
         }
@@ -53,7 +54,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Bases()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             var bases = cc.Bases;
 
@@ -64,7 +65,7 @@ public class Bar
 
             var parentClass = bases.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Foo");
+            Assert.Equal(parentClass.FullName, "Goo");
 
             Assert.True(bases.Item("object") is CodeClass);
         }
@@ -73,7 +74,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void ImplementedInterfaces()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             var interfaces = cc.ImplementedInterfaces;
 
@@ -84,7 +85,7 @@ public class Bar
 
             var parentClass = interfaces.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Foo");
+            Assert.Equal(parentClass.FullName, "Goo");
 
             Assert.True(interfaces.Item("System.IDisposable") is CodeInterface);
             Assert.True(interfaces.Item("ICloneable") is CodeInterface);
@@ -94,7 +95,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void KindTest()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             Assert.Equal(vsCMElement.vsCMElementClass, cc.Kind);
         }
@@ -227,7 +228,7 @@ public class Bar
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
@@ -292,7 +293,7 @@ public class Bar
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
@@ -316,8 +317,20 @@ public class Bar
 
             TextPoint endPoint = testObject.EndPoint;
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
         }
+
+        [ConditionalWpfFact(typeof(x86))]
+        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        public void Accessor()
+        {
+            CodeClass testObject = GetCodeClass("Bar");
+
+            var l = from p in testObject.Members.OfType<CodeProperty>() where vsCMAccess.vsCMAccessPublic == p.Access && p.Getter != null && !p.Getter.IsShared && vsCMAccess.vsCMAccessPublic == p.Getter.Access select p;
+            var z = l.ToList<CodeProperty>();
+            Assert.Equal(2, z.Count);
+        }
+
     }
 }

@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
@@ -17,11 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Public Sub TestCodeElements1()
             Dim code =
 <code>
-class Foo { }
+class Goo { }
 </code>
 
             TestChildren(code,
-                             "Foo",
+                             "Goo",
                              "System",
                              "Microsoft",
                              "Windows")
@@ -72,7 +73,7 @@ namespace N
         Public Sub TestExternalNamespaceChildren()
             Dim code =
 <code>
-class Foo { }
+class Goo { }
 </code>
 
             TestRootCodeModelWithCodeFile(code,

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -25,7 +25,7 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = (ObjectCreationExpressionSyntax) tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
+            var node = (ObjectCreationExpressionSyntax)tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
             var identifierName = node.Type;
 
             var symbolInfo = model.GetSymbolInfo(node);

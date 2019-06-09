@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -13,6 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
     <ExportLanguageService(GetType(IProgressionLanguageService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicProgressionLanguageService
         Implements IProgressionLanguageService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
             ' TODO: Implement this lazily like in C#?

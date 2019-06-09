@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
@@ -86,7 +87,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public bool TryResolve(SyntaxNode root, out SyntaxNodeOrToken nodeOrToken)
         {
-            nodeOrToken = default(SyntaxNodeOrToken);
+            nodeOrToken = default;
 
             var current = (SyntaxNodeOrToken)root;
             foreach (var segment in _segments)
@@ -126,7 +127,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return default(SyntaxNodeOrToken);
+            return default;
         }
 
         public bool TryResolve<TNode>(SyntaxTree syntaxTree, CancellationToken cancellationToken, out TNode node)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,7 +121,7 @@
     <value>Class C
 	Sub Method()
 		Dim book = &lt;book
-					$$version="foo"
+					$$version="goo"
                    /&gt;
 	End Sub
 End Class</value>
@@ -228,7 +228,7 @@ End Class</value>
   </data>
   <data name="Test4_Input" xml:space="preserve">
     <value>Class C
-    Sub Foo()
+    Sub Goo()
         Dim xml = &lt;xml&gt;&lt;code&gt;&lt;node&gt;&lt;/node&gt;&lt;/code&gt;&lt;/xml&gt;
 
         Dim j = From node In xml.&lt;code&gt;
@@ -238,7 +238,7 @@ End Class</value>
   </data>
   <data name="Test4_Output" xml:space="preserve">
     <value>Class C
-    Sub Foo()
+    Sub Goo()
         Dim xml = &lt;xml&gt;&lt;code&gt;&lt;node&gt;&lt;/node&gt;&lt;/code&gt;&lt;/xml&gt;
 
         Dim j = From node In xml.&lt;code&gt;
@@ -300,7 +300,7 @@ End Namespace</value>
     <value>Class C
 	Sub Method()
 		Dim book = &lt;book
-                   version="foo"
+                   version="goo"
                    &gt;
                    &lt;/book&gt;
 	End Sub
@@ -310,7 +310,7 @@ End Class</value>
     <value>Class C
     Sub Method()
         Dim book = &lt;book
-                       version="foo"
+                       version="goo"
                        &gt;
                    &lt;/book&gt;
     End Sub
@@ -410,7 +410,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim foo = _
+        Dim goo = _
                      &lt;LongBook&gt;
                          &lt;%= _
                              From i In &lt;were&gt;&lt;a&gt;&lt;b&gt;&lt;c&gt;&lt;/c&gt;&lt;/b&gt;&lt;/a&gt;&lt;/were&gt; _

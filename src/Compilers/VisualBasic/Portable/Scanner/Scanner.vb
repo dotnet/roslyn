@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -534,8 +535,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
+        Private Function TryGet(num As Integer, ByRef ch As Char) As Boolean
+            If CanGet(num) Then
+                ch = Peek(num)
+                Return True
+            End If
+            Return False
+        End Function
+
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGet() Then
+            Dim ch As Char = ChrW(0)
+            If Not TryGet(0, ch) Then
                 Return False
             End If
 
@@ -543,31 +553,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return False
             End If
 
-            Dim ch As Char = Peek()
             If Not IsUnderscore(ch) Then
                 Return False
             End If
 
-            Dim Here = 1
-            While CanGet(Here)
-                ch = Peek(Here)
-                If IsWhitespace(ch) Then
-                    Here += 1
-                Else
-                    Exit While
-                End If
-            End While
+            Dim Here = GetWhitespaceLength(1)
+            TryGet(Here, ch)
 
-            ' Line continuation is valid at the end of the
-            ' line or at the end of file only.
-            Dim atNewLine = IsNewLine(ch)
-            If Not atNewLine AndAlso CanGet(Here) Then
+            Dim foundComment = IsSingleQuote(ch)
+            Dim atNewLine As Boolean = IsNewLine(ch)
+            If Not foundComment AndAlso Not atNewLine AndAlso CanGet(Here) Then
                 Return False
             End If
 
             tList.Add(MakeLineContinuationTrivia(GetText(1)))
             If Here > 1 Then
                 tList.Add(MakeWhiteSpaceTrivia(GetText(Here - 1)))
+            End If
+
+            If foundComment Then
+                Dim comment As SyntaxTrivia = ScanComment()
+                If Not CheckFeatureAvailability(Feature.CommentsAfterLineContinuation) Then
+                    comment = comment.WithDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1,
+                        New VisualBasicRequiredLanguageVersion(Feature.CommentsAfterLineContinuation.GetLanguageVersion()))})
+                End If
+                tList.Add(comment)
+                ' Need to call CanGet here to prevent Peek reading past EndOfBuffer. This can happen when file ends with comment but no New Line.
+                If CanGet() Then
+                    ch = Peek()
+                    atNewLine = IsNewLine(ch)
+                Else
+                    Debug.Assert(Not atNewLine)
+                End If
             End If
 
             If atNewLine Then
@@ -729,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim startCh = Peek()
 
             ' First create a trivia from the start of this merge conflict marker to the
-            ' end of line/file (whicever comes first).
+            ' end of line/file (whichever comes first).
             ScanConflictMarkerHeader(tList)
 
             ' Now add the newlines as the next trivia.
@@ -1672,6 +1689,7 @@ FullWidthRepeat:
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
             Dim UnderscoreUsed As Boolean = False
+            Dim LeadingUnderscoreUsed = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1694,7 +1712,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
@@ -1712,7 +1733,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
@@ -1730,7 +1754,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
@@ -2084,13 +2111,16 @@ FullWidthRepeat2:
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
-            ElseIf UnderscoreInWrongPlace Then
-                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
             End If
 
-            If UnderscoreUsed Then
+            If UnderscoreInWrongPlace Then
+                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            ElseIf LeadingUnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
+            ElseIf UnderscoreUsed Then
                 result = CheckFeatureAvailability(result, Feature.DigitSeparators)
             End If
+
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If

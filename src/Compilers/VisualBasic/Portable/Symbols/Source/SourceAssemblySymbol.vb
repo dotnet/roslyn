@@ -6,7 +6,9 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an assembly built by compiler.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend NotInheritable Class SourceAssemblySymbol
+    Partial Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
         Implements ISourceAssemblySymbolInternal, IAttributeTargetSymbol
 
@@ -99,7 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _modules = moduleBuilder.ToImmutableAndFree()
 
             If Not compilation.Options.CryptoPublicKey.IsEmpty Then
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, MessageProvider.Instance)
+                ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, hasCounterSignature:=False, MessageProvider.Instance)
             End If
         End Sub
 
@@ -231,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 ' Duplicate attributes with same attribute type are not allowed.
                 ' Check if there is an existing assembly attribute with same attribute type.
-                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) a.AttributeClass = attributeClass) Then
+                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) TypeSymbol.Equals(a.AttributeClass, attributeClass, TypeCompareKind.ConsiderEverything)) Then
                     ' Attribute with unique attribute type, not a duplicate.
                     Dim success As Boolean = AddUniqueAssemblyAttribute(attribute, uniqueAttributes)
                     Debug.Assert(success)
@@ -447,8 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me._lazyNetModuleAttributesBag.IsSealed)
             Debug.Assert(index >= 0)
             Debug.Assert(index < Me.GetAttributes().Length)
-            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse
-                         Not Me.DeclaringCompilation.Options.OutputKind.IsNetModule())
+            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse Not IsNetModule)
 
             Return Me._lazyDuplicateAttributeIndices IsNot Nothing AndAlso Me._lazyDuplicateAttributeIndices.Contains(index)
         End Function
@@ -1064,6 +1066,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasReferenceAssemblyAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) Then
                 ' VB doesn't need to decode argument values
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().RuntimeCompatibilityWrapNonExceptionThrows = True
@@ -1180,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
-                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not IsNetModule Then
                     diagnostics.Add(StrongNameKeys.DiagnosticOpt)
                 End If
 
@@ -1194,7 +1198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 If DeclaringCompilation.Options.PublicSign Then
-                    If DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                    If IsNetModule Then
                         diagnostics.Add(ERRID.ERR_PublicSignNetModule, NoLocation.Singleton)
                     ElseIf Not Identity.HasPublicKey Then
                         diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
@@ -1383,6 +1387,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
+        ''' True if internals are exposed at all.
+        ''' </summary>
+        ''' <remarks>
+        ''' Forces binding and decoding of attributes.
+        ''' This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
+        ''' </remarks>
+        Public ReadOnly Property InternalsAreVisible As Boolean Implements ISourceAssemblySymbolInternal.InternalsAreVisible
+            Get
+                EnsureAttributesAreBound()
+                Return _lazyInternalsVisibleToMap IsNot Nothing
+            End Get
+        End Property
+
+        ''' <summary>
         ''' We may synthesize some well-known attributes for this assembly symbol.  However, at synthesis time, it is
         ''' too late to report diagnostics or cancel the emit.  Instead, we check for use site errors on the types and members
         ''' we know we'll need at synthesis time.
@@ -1422,7 +1440,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Private ReadOnly Property HasReferenceAssemblyAttribute As Boolean
+            Get
+                Dim assemblyData As CommonAssemblyWellKnownAttributeData = Me.GetSourceDecodedWellKnownAttributeData()
+                Return assemblyData IsNot Nothing AndAlso assemblyData.HasReferenceAssemblyAttribute
+            End Get
+        End Property
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
@@ -1578,8 +1603,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-
-            Return MakeFinalIVTDetermination(potentialGiverOfAccess) = IVTConclusion.Match
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Return conclusion = IVTConclusion.Match
+            ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function
 
         Friend ReadOnly Property StrongNameKeys As StrongNameKeys
@@ -1652,8 +1678,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+            Dim hasCounterSignature = Not String.IsNullOrEmpty(SignatureKey)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
+            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity

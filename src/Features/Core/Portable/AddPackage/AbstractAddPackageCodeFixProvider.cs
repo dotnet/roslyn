@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected abstract bool IncludePrerelease { get; }
 
+        public override abstract FixAllProvider GetFixAllProvider();
+
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
         {
@@ -51,9 +54,9 @@ namespace Microsoft.CodeAnalysis.AddPackage
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
-                installerService.IsEnabled)
+                installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.PackageSources)
+                foreach (var packageSource in installerService.GetPackageSources())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

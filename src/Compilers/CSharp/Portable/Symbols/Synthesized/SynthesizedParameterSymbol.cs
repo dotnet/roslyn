@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,19 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
     {
         private readonly MethodSymbol _container;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol container,
-            TypeSymbol type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name = "")
         {
-            Debug.Assert((object)type != null);
+            Debug.Assert(type.HasType);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);
 
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -48,15 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
 
-        internal override bool IsMetadataOut
-        {
-            get { return _refKind == RefKind.Out; }
-        }
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
@@ -67,8 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _name; }
         }
-
-        public abstract override ImmutableArray<CustomModifier> CustomModifiers { get; }
 
         public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
@@ -122,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _container; }
@@ -140,24 +138,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 
             // in order to facilitate debugging.  In the case the necessary attributes are missing 
             // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
-            if (Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            var type = this.TypeWithAnnotations;
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (Type.ContainsTupleNames() &&
+            if (type.Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type));
+                    compilation.SynthesizeTupleNamesAttribute(type.Type));
+            }
+
+            if (TypeWithAnnotations.NeedsNullableAttribute())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations));
+            }
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
     }
@@ -166,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private SynthesizedParameterSymbol(
             MethodSymbol container,
-            TypeSymbol type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name)
@@ -176,19 +185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ParameterSymbol Create(
             MethodSymbol container,
-            TypeSymbol type,
+            TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>),
             ImmutableArray<CustomModifier> refCustomModifiers = default(ImmutableArray<CustomModifier>))
         {
-            if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
+            if (refCustomModifiers.IsDefaultOrEmpty)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
-            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, customModifiers, refCustomModifiers);
+            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers);
         }
 
         /// <summary>
@@ -205,16 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.Type, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers, oldParam.RefCustomModifiers));
+                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.TypeWithAnnotations, oldParam.Ordinal,
+                    oldParam.RefKind, oldParam.Name, oldParam.RefCustomModifiers));
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -224,26 +227,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
         {
-            private readonly ImmutableArray<CustomModifier> _customModifiers;
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
             public SynthesizedParameterSymbolWithCustomModifiers(
                 MethodSymbol container,
-                TypeSymbol type,
+                TypeWithAnnotations type,
                 int ordinal,
                 RefKind refKind,
                 string name,
-                ImmutableArray<CustomModifier> customModifiers,
                 ImmutableArray<CustomModifier> refCustomModifiers)
                 : base(container, type, ordinal, refKind, name)
             {
-                _customModifiers = customModifiers.NullToEmpty();
                 _refCustomModifiers = refCustomModifiers.NullToEmpty();
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return _customModifiers; }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

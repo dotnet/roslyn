@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             var markup = @"
 class Ext
 {
-    void Foo(int a, int b) => [||]0;
+    void Goo(int a, int b) => [||]0;
 }";
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
@@ -55,11 +56,11 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(
                 LanguageNames.CSharp,
-                markup: markup, 
+                markup: markup,
                 updatedSignature: new[] { 1, 0 },
                 expectedUpdatedInvocationDocumentCode: expectedCode);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
         {
@@ -88,7 +89,7 @@ class Program
 class Ext
 {
     [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -104,7 +105,7 @@ class Ext
 class Ext
 {
     // [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -120,7 +121,7 @@ class Ext
 class Ext
 {
     [||]//
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -136,7 +137,7 @@ class Ext
 class Ext
 {
     /// [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -152,7 +153,7 @@ class Ext
 class Ext
 {
     [||]///
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -168,7 +169,7 @@ class Ext
 class Ext
 {
     [||][X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -184,7 +185,7 @@ class Ext
 class Ext
 {
     [[||]X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -200,7 +201,7 @@ class Ext
 class Ext
 {
     [X][||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -215,7 +216,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    void Foo<T>(int a, int b) where [||]T : class
+    void Goo<T>(int a, int b) where [||]T : class
     {
     };
 }";

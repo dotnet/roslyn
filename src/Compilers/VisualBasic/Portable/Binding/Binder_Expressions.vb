@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -250,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
                     ' anything unexpected.
-                    Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
                     Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
@@ -413,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
             Next
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(inferredElementNames, uniqueFieldNames)
 
             Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
             elementNames?.Free()
@@ -452,7 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
         End Function
 
-        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+        ''' <summary>
+        ''' Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        ''' </summary>
+        Private Shared Sub RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ByRef inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
             If inferredElementNames Is Nothing Then
                 Return
             End If
@@ -471,6 +475,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     inferredElementNames(index) = Nothing
                 End If
             Next
+
+            If inferredElementNames.All(Function(n) n Is Nothing) Then
+                inferredElementNames.Free()
+                inferredElementNames = Nothing
+            End If
         End Sub
 
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
@@ -934,6 +943,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
            expr As BoundExpression,
            diagnostics As DiagnosticBag
         ) As BoundExpression
+            If expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
+                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
+                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
+
+                Dim resultType As TypeSymbol = access.Type
+
+                If Not resultType.IsErrorType() Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
+                        If Not resultType.IsNullableType() Then
+                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
+                        End If
+                    ElseIf Not resultType.IsReferenceType Then
+                        ' Access cannot have unconstrained generic type or a restricted type
+                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
+                        resultType = ErrorTypeSymbol.UnknownResultType
+                    End If
+                End If
+
+                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
+            End If
 
             If expr.HasErrors Then
                 Return expr
@@ -1107,6 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      isLValue:=False,
                                                      receiverOpt:=access.ReceiverOpt,
                                                      arguments:=access.Arguments,
+                                                     defaultArguments:=access.DefaultArguments,
                                                      type:=access.Type,
                                                      hasErrors:=access.HasErrors)
 
@@ -1118,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Call
                     Dim [call] = DirectCast(result, BoundCall)
                     result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
-                                           [call].ConstantValueOpt,
+                                           [call].DefaultArguments, [call].ConstantValueOpt,
                                            isLValue:=False,
                                            suppressObjectClone:=[call].SuppressObjectClone,
                                            type:=[call].Type,
@@ -1191,25 +1221,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
                     Return parenthesized.Update(enclosed, enclosed.Type)
                 End If
-            ElseIf expr.Kind = BoundKind.ConditionalAccess AndAlso expr.Type Is Nothing Then
-                Dim conditionalAccess = DirectCast(expr, BoundConditionalAccess)
-                Dim access As BoundExpression = Me.MakeRValue(conditionalAccess.AccessExpression, diagnostics)
-
-                Dim resultType As TypeSymbol = access.Type
-
-                If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType Then
-                        If Not resultType.IsNullableType() Then
-                            resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
-                        End If
-                    ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type
-                        ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
-                        resultType = ErrorTypeSymbol.UnknownResultType
-                    End If
-                End If
-
-                Return conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.Placeholder, access, resultType)
             End If
 
             expr = ReclassifyAsValue(expr, diagnostics)
@@ -1630,12 +1641,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim initializers = ImmutableArray(Of BoundExpression).Empty
-            For i = 1 To rank
-                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
+
+            For i = 1 To rank - 1
+                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing).MakeCompilerGenerated()
                 initializers = ImmutableArray.Create(Of BoundExpression)(arrayInitialization)
             Next
 
-            Return arrayInitialization
+            Return New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
         End Function
 
         Private Function ReclassifyTupleLiteralExpression(
@@ -1819,7 +1831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Dev10 comment:
                 ' Note that this is needed so that we can determine whether the structure
-                ' is not an LValue (eg: RField.m_x = 20 where foo is a readonly field of a
+                ' is not an LValue (eg: RField.m_x = 20 where goo is a readonly field of a
                 ' structure type). In such cases, the structure's field m_x cannot be modified.
                 '
                 ' This does not apply to type params because for type params we do want to
@@ -2084,11 +2096,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundSecondArgWithConversions = MakeRValueAndIgnoreDiagnostics(boundSecondArg)
             End If
 
-            '  if there are still no errors check the original type of the first argument to be 
-            '       of a reference or nullable type, generate IllegalCondTypeInIIF otherwise
+            ' If there are still no errors check the original type of the first argument. First, we check
+            ' the pre-VB 16.0 condition, which is the first operand must be Nothing, a reference type, or
+            ' a nullable value type
             If Not hasErrors AndAlso Not (boundFirstArg.IsNothingLiteral OrElse boundFirstArg.Type.IsNullableType OrElse boundFirstArg.Type.IsReferenceType) Then
-                ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
-                hasErrors = True
+                ' VB 16 changed the requirements on the first operand to permit unconstrained type parameters. If we're in that scenario,
+                ' ensure that the feature is enabled and report an error if it is not
+                If Not boundFirstArg.Type.IsValueType Then
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   node.Location,
+                                                                   DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.UnconstrainedTypeParameterInConditional)
+                Else
+                    ReportDiagnostic(diagnostics, node.FirstExpression, ERRID.ERR_IllegalCondTypeInIIF)
+                    hasErrors = True
+                End If
             End If
 
             Return AnalyzeConversionAndCreateBinaryConditionalExpression(
@@ -2701,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
                             Dim typeDiagnostics = New DiagnosticBag()
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
-                            If boundType.Type = leftType Then
+                            If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
                                 If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not BindSimpleNameIsMemberOfType(leftSymbol, ContainingType)) Then
                                     diagnostics.AddRange(typeDiagnostics)
@@ -3571,7 +3593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments = typeArgumentsOpt.Arguments
 
             'TODO: What should we do if count is 0? Can we get in a situation like this?
-            '      Perhaps for a missing type argument case [Foo(Of )].
+            '      Perhaps for a missing type argument case [Goo(Of )].
 
             Dim boundArguments(arguments.Count - 1) As TypeSymbol
 
@@ -4083,6 +4105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inferredElementType As TypeSymbol = Nothing
             Dim arrayInitializer = BindArrayInitializerList(node, knownSizes, hasDominantType, numberOfCandidates, inferredElementType, diagnostics)
 
+            ' Similar to ReclassifyArrayLiteralExpression:
+            ' Mark as compiler generated so that semantic model does not select the array initialization bound node.
+            ' The array initialization node is not a real expression and lacks a type.
+            arrayInitializer.SetWasCompilerGenerated()
+
             Dim inferredArrayType = ArrayTypeSymbol.CreateVBArray(inferredElementType, Nothing, knownSizes.Length, Compilation)
 
             Dim sizes As ImmutableArray(Of BoundExpression) = CreateArrayBounds(node, knownSizes, diagnostics)
@@ -4498,7 +4525,9 @@ lElseClause:
 
                 ElseIf expressionKind = BoundKind.TupleLiteral Then
                     expressionType = DirectCast(expression, BoundTupleLiteral).InferredType
-                    typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    If expressionType IsNot Nothing Then
+                        typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    End If
 
                 ElseIf expressionKind = BoundKind.ArrayLiteral Then
                     Dim arrayLiteral = DirectCast(expression, BoundArrayLiteral)
@@ -4531,8 +4560,7 @@ lElseClause:
                         allConvertibleToObject = False
                     End If
 
-                    ' this will pick up lambdas which couldn't be inferred, and array literals which lacked a dominant type,
-                    ' and AddressOf expressions.
+                    ' this will pick up AddressOf expressions.
                 End If
             Next
 

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         if (symbol is INamedTypeSymbol namedType)
                         {
-                            await AddLinkedNodeForType(project, namedType, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                            await AddLinkedNodeForTypeAsync(project, namedType, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
                         }
                         else
                         {
@@ -61,12 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private async Task<GraphNode> AddLinkedNodeForType(Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
+        private async Task<GraphNode> AddLinkedNodeForTypeAsync(Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
         {
             // If this named type is contained in a parent type, then just link farther up
             if (namedType.ContainingType != null)
             {
-                var parentTypeNode = await AddLinkedNodeForType(project, namedType.ContainingType, graphBuilder, syntaxTrees).ConfigureAwait(false);
+                var parentTypeNode = await AddLinkedNodeForTypeAsync(project, namedType.ContainingType, graphBuilder, syntaxTrees).ConfigureAwait(false);
                 var typeNode = await graphBuilder.AddNodeForSymbolAsync(namedType, relatedNode: parentTypeNode).ConfigureAwait(false);
                 graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode);
 
@@ -96,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var trees = member.DeclaringSyntaxReferences.Select(d => d.SyntaxTree);
 
-            var parentTypeNode = await AddLinkedNodeForType(project, member.ContainingType, graphBuilder, trees).ConfigureAwait(false);
+            var parentTypeNode = await AddLinkedNodeForTypeAsync(project, member.ContainingType, graphBuilder, trees).ConfigureAwait(false);
             var memberNode = await graphBuilder.AddNodeForSymbolAsync(member, relatedNode: parentTypeNode).ConfigureAwait(false);
             graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode);
 
@@ -134,8 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 results.Add(symbol);
 
                 // also report matching constructors (using same match result as type)
-                var namedType = symbol as INamedTypeSymbol;
-                if (namedType != null)
+                if (symbol is INamedTypeSymbol namedType)
                 {
                     foreach (var constructor in namedType.Constructors)
                     {
@@ -148,8 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
 
                 // report both parts of partial methods
-                var method = symbol as IMethodSymbol;
-                if (method != null && method.PartialImplementationPart != null)
+                if (symbol is IMethodSymbol method && method.PartialImplementationPart != null)
                 {
                     results.Add(method);
                 }

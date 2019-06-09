@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    internal class ArrayBuilderTests
+    public class ArrayBuilderTests
     {
         [Fact]
         public void RemoveDuplicates1()
@@ -20,6 +22,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             builder = new ArrayBuilder<int>();
             builder.RemoveDuplicates();
+            AssertEx.Equal(new int[0], builder);
+        }
+
+        [Fact]
+        public void SortAndRemoveDuplicates1()
+        {
+            var builder = new ArrayBuilder<int> { 5, 1, 3, 2, 4, 1, 2 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2, 3, 4, 5 }, builder);
+
+            builder = new ArrayBuilder<int> { 1 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1 }, builder);
+
+            builder = new ArrayBuilder<int> { 1, 2 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2 }, builder);
+
+            builder = new ArrayBuilder<int> { 1, 2, 3 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2, 3 }, builder);
+
+            builder = new ArrayBuilder<int> { 1, 2, 2 };
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
+            AssertEx.Equal(new[] { 1, 2 }, builder);
+
+            builder = new ArrayBuilder<int>();
+            builder.SortAndRemoveDuplicates(Comparer<int>.Default);
             AssertEx.Equal(new int[0], builder);
         }
 

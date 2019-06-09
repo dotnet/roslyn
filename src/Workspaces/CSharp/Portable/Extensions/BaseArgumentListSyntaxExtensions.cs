@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
@@ -36,21 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxToken);
-        }
-
-        public static BaseArgumentListSyntax WithArguments(
-            this BaseArgumentListSyntax node, SeparatedSyntaxList<ArgumentSyntax> arguments)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                    return ((ArgumentListSyntax)node).WithArguments(arguments);
-                case SyntaxKind.BracketedArgumentList:
-                    return ((BracketedArgumentListSyntax)node).WithArguments(arguments);
-                default:
-                    throw new InvalidOperationException();
-            }
+            return default;
         }
     }
 }

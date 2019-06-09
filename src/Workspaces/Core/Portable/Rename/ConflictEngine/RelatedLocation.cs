@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         // If there was a conflict at ConflictCheckSpan during rename, then the next phase in rename uses ComplexifiedTargetSpan span to be expanded to resolve the conflict
         public TextSpan ComplexifiedTargetSpan { get; }
 
-        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default(TextSpan))
+        public RelatedLocation(TextSpan location, DocumentId documentId, RelatedLocationType type, bool isReference = false, TextSpan complexifiedTargetSpan = default)
         {
             this.ConflictCheckSpan = location;
             this.Type = type;

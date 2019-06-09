@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
             {
-                this.OnDocumentMonikerChanged(pHierOld, pszMkDocumentOld, pszMkDocumentNew);
+                this.OnDocumentMonikerChanged(docCookie, pHierOld, pszMkDocumentOld, pszMkDocumentNew);
             }
 
             return VSConstants.S_OK;

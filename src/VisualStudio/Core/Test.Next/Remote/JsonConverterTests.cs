@@ -3,16 +3,17 @@
 extern alias hub;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -22,7 +23,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestChecksum()
         {
-            VerifyJsonSerialization(new Checksum(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(checksum);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksum_Null()
+        {
+            VerifyJsonSerialization<Checksum>(null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksumNull()
+        {
+            VerifyJsonSerialization(Checksum.Null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -47,6 +61,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestDiagnosticArguments()
         {
             var arguments = new DiagnosticArguments(
+                forcedAnalysis: false,
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
@@ -55,7 +70,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&
@@ -111,6 +127,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 {
                     return x.SequenceEqual(y) ? 0 : 1;
                 });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestPinnedSolutionInfo()
+        {
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
+            {
+                return (x.ScopeId == y.ScopeId &&
+                        x.FromPrimaryBranch == y.FromPrimaryBranch &&
+                        x.WorkspaceVersion == y.WorkspaceVersion &&
+                        x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
+            });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestAnalyzerPerformanceInfo()
+        {
+            VerifyJsonSerialization(
+                new AnalyzerPerformanceInfo("testAnalyzer", builtIn: false, timeSpan: TimeSpan.FromMilliseconds(12345)),
+                (x, y) => (x.AnalyzerId == y.AnalyzerId && x.BuiltIn == y.BuiltIn && x.TimeSpan == y.TimeSpan) ? 0 : 1);
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

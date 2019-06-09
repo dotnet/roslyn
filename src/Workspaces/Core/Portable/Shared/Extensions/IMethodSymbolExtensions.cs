@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -53,6 +54,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
+        /// <summary>
+        /// Returns the methodSymbol and any partial parts.
+        /// </summary>
+        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
+        {
+            if (method.PartialDefinitionPart != null)
+            {
+                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
+                return ImmutableArray.Create(method, method.PartialDefinitionPart);
+            }
+            else if (method.PartialImplementationPart != null)
+            {
+                Debug.Assert(!Equals(method.PartialImplementationPart, method));
+                return ImmutableArray.Create(method.PartialImplementationPart, method);
+            }
+            else
+            {
+                return ImmutableArray.Create(method);
+            }
+        }
+
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
@@ -64,7 +86,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
+            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
             for (int i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
@@ -76,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType.SubstituteTypes(mapping, typeGenerator),
-                method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.RefKind,
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
                 method.Parameters.SelectAsArray(p =>
@@ -102,23 +125,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
-                method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.RefKind,
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,
                 parameters);
         }
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             IList<string> newNames,
             ITypeGenerator typeGenerator)
         {
             // We generate the type parameter in two passes.  The first creates the new type
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < typeParameters.Count; i++)
+
+            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+            for (int i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 
@@ -131,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,
                     typeParameter.HasValueTypeConstraint,
+                    typeParameter.HasUnmanagedTypeConstraint,
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
@@ -175,13 +201,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+            bool shouldRemoveAttribute(AttributeData a) =>
                 removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             return method.RemoveAttributesCore(
                 shouldRemoveAttribute,
-                statements: default(ImmutableArray<SyntaxNode>),
-                handlesExpressions: default(ImmutableArray<SyntaxNode>));
+                statements: default,
+                handlesExpressions: default);
         }
 
         private static IMethodSymbol RemoveAttributesCore(
@@ -206,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
                 method.ReturnType,
-                method.ReturnsByRef,
-                method.ExplicitInterfaceImplementations.FirstOrDefault(),
+                method.RefKind,
+                method.ExplicitInterfaceImplementations,
                 method.Name,
                 method.TypeParameters,
                 method.Parameters.SelectAsArray(p =>
@@ -244,10 +270,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // be more specific if, for example, it was actually written with concrete types (like 'int') 
             // versus the other which may have been instantiated from a type parameter.   i.e.
             //
-            // class C<T> { void Foo(T t); void Foo(int t); }
+            // class C<T> { void Goo(T t); void Goo(int t); }
             //
-            // THe latter Foo is more specific when comparing "C<int>.Foo(int t)" (method1) vs 
-            // "C<int>.Foo(int t)" (method2).
+            // THe latter Goo is more specific when comparing "C<int>.Goo(int t)" (method1) vs 
+            // "C<int>.Goo(int t)" (method2).
             p1 = method1.OriginalDefinition.Parameters;
             p2 = method2.OriginalDefinition.Parameters;
             return p1.Select(p => p.Type).ToList().AreMoreSpecificThan(p2.Select(p => p.Type).ToList());
@@ -334,5 +360,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return PredefinedOperator.None;
             }
         }
+
+        /// <summary>
+        /// Returns true for void returning methods with two parameters, where
+        /// the first parameter is of <see cref="object"/> type and the second
+        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// </summary>
+        public static bool HasEventHandlerSignature(this IMethodSymbol method, INamedTypeSymbol eventArgsType)
+            => eventArgsType != null &&
+               method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+               method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
     }
 }

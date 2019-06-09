@@ -1,7 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Roslyn.Test.Utilities
@@ -16,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Visual
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -68,13 +70,87 @@ End Namespace
             End Using
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+Namespace N
+	Class C
+		Private Enum PrivateEnumTest
+		End Enum
+		Private Class PrivateClassTest
+		End Class
+		Private Structure PrivateStructTest
+		End Structure
+	End Class
+End Namespace
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PrivateStructTest", "C.PrivateClassTest", "C.PrivateEnumTest")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateDoubleNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+Namespace N
+	Friend Class C
+		Private Class NestedClass
+			Private Class NestedNestedClass
+			End Class
+		End Class
+	End Class
+End Namespace
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.NestedClass", "C.NestedClass.NestedNestedClass")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudeNoPrivateNestedTypeOfMetaData()
+            Dim metaDatacode =
+<Code>
+Namespace N
+	Public Class C
+		Public Enum PublicEnumTest
+            V1
+		End Enum
+		Private Class PrivateClassTest
+		End Class
+		Private Structure PrivateStructTest
+		End Structure
+	End Class
+End Namespace
+</Code>
+            Dim code = <Code></Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PublicEnumTest")
+            End Using
+        End Sub
+
         <WorkItem(932387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
         Public Sub TestContent_InheritedMembers1()
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -82,8 +158,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -94,8 +170,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -112,7 +188,7 @@ End Class
                 list = list.GetMemberList(0)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
                     "Equals(Object, Object) As Boolean",
@@ -130,7 +206,7 @@ End Class
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -138,8 +214,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -150,8 +226,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -168,7 +244,7 @@ End Class
                 list = list.GetMemberList(1)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
@@ -187,7 +263,7 @@ End Class
             Dim code =
 <Code>
 Class A
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -195,8 +271,8 @@ End Class
 Class B
     Inherits A
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Overridable Sub Bar()
@@ -207,8 +283,8 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub Foo()
-        MyBase.Foo()
+    Protected Overrides Sub Goo()
+        MyBase.Goo()
     End Sub
 
     Public Overrides Sub Bar()
@@ -225,7 +301,7 @@ End Class
                 list = list.GetMemberList(2)
 
                 list.VerifyNames(
-                    "Foo()",
+                    "Goo()",
                     "Bar()",
                     "ToString() As String",
                     "Equals(Object) As Boolean",
@@ -754,7 +830,7 @@ End Namespace
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)
@@ -2030,9 +2106,9 @@ Class C
      ExactSpelling:=True,
      CallingConvention:=CallingConvention.StdCall)&gt;
     Public Shared Function moveFile(ByVal src As String, ByVal dst As String) As Boolean
-        ' This function copies a file from the path src to the path dst. 
-        ' Leave this function empty. The DLLImport attribute forces calls 
-        ' to moveFile to be forwarded to MoveFileW in KERNEL32.DLL. 
+        ' This function copies a file from the path src to the path dst.
+        ' Leave this function empty. The DLLImport attribute forces calls
+        ' to moveFile to be forwarded to MoveFileW in KERNEL32.DLL.
     End Function
 End Class
 </Code>

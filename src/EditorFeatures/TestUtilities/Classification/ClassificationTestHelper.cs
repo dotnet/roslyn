@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,19 +11,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
     public static class ClassificationTestHelper
     {
-        private static string GetText(Tuple<string, string> tuple)
-        {
-            return "(" + tuple.Item1 + ", " + tuple.Item2 + ")";
-        }
+        private static string GetText(FormattedClassification formattedClassification)
+            => $"({formattedClassification.Text}, {formattedClassification.ClassificationName})";
 
         private static string GetText(ClassifiedSpan tuple)
-        {
-            return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
-        }
+            => $"({tuple.TextSpan}, {tuple.ClassificationType})";
 
-        internal static void Verify(
+        public static void VerifyTextAndClassifications(
             string expectedText,
-            IEnumerable<Tuple<string, string>> expectedClassifications,
+            IEnumerable<FormattedClassification> expectedClassifications,
             string actualText,
             IEnumerable<ClassifiedSpan> actualClassifications)
         {
@@ -53,18 +48,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     var expected = expectedClassificationList[i];
 
                     var text = actualText.Substring(actual.TextSpan.Start, actual.TextSpan.Length);
-                    Assert.Equal(expected.Item1, text);
-                    Assert.Equal(expected.Item2, actual.ClassificationType);
+                    Assert.Equal(expected.Text, text);
+                    Assert.Equal(expected.ClassificationName, actual.ClassificationType);
                 }
             }
         }
 
-        internal static void Verify(
+        public static void VerifyTextAndClassifications(
             string expectedText,
-            IEnumerable<Tuple<string, string>> expectedClassifications,
+            IEnumerable<FormattedClassification> expectedClassifications,
             IList<TaggedText> actualContent)
         {
-            Verify(
+            VerifyTextAndClassifications(
                 expectedText,
                 expectedClassifications,
                 actualText: actualContent.GetFullText(),

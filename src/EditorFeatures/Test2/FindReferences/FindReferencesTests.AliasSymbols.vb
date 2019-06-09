@@ -1,11 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestAlias1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestAlias1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             [|D|] date;
 
-            void Foo()
+            void Goo()
             {
             }
         }
@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestAlias2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestAlias2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -43,18 +43,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             [|D|] date;
 
-            void Foo()
+            void Goo()
             {
             }
         }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestAlias3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestAlias3(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 [|D|].C date;
                 [|N|].C date;
 
-                void Foo()
+                void Goo()
                 {
                 }
             }
@@ -74,27 +74,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input)
+            Await TestAPI(input, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamedType_CSharpAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
-        using FooAttribute = System.[|ObsoleteAttribute|];
+        using GooAttribute = System.[|ObsoleteAttribute|];
 
-        [[|FooAttribute|]]
+        [[|GooAttribute|]]
         class C{ }
 
-        [[|Foo|]]
+        [[|Goo|]]
         class D{ }
 
-        [[|FooAttribute|]()]
+        [[|GooAttribute|]()]
         class B{ }
 
-        [[|$$Foo|]()] // Invoke FAR here on Foo
+        [[|$$Goo|]()] // Invoke FAR here on Goo
         class Program
         {    
             static void Main(string[] args)    
@@ -104,12 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
-        Public Async Function TestMultipleAliasSymbols() As Task
+        Public Async Function TestMultipleAliasSymbols(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -136,12 +136,12 @@ namespace NS
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(667962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667962")>
-        Public Async Function TestMultipleAliasSymbols2() As Task
+        Public Async Function TestMultipleAliasSymbols2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -167,30 +167,30 @@ namespace NS
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestNamedType_VBAttributeEndingWithAttributeThroughAlias() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamedType_VBAttributeEndingWithAttributeThroughAlias(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
-        Imports FooAttribute = System.[|ObsoleteAttribute|];
+        Imports GooAttribute = System.[|ObsoleteAttribute|];
 
-        <[|FooAttribute|]>
+        <[|GooAttribute|]>
         Class C
         End Class
 
-        <[|Foo|]>
+        <[|Goo|]>
         Class D
         End Class
 
-        <[|FooAttribute|]()>
+        <[|GooAttribute|]()>
         Class B
         End Class
 
-        <[|$$Foo|]()> ' Invoke FAR here on Foo
+        <[|$$Goo|]()> ' Invoke FAR here on Goo
         Class Program
             Public Shared Sub Main()    
             End Function
@@ -199,7 +199,7 @@ namespace NS
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

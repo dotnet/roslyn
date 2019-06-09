@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis
             return new ValidTargetsStringLocalizableErrorArgument(builder.ToArrayAndFree());
         }
 
-        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable, IMessageSerializable
+        private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
             private readonly string[] _targetResourceIds;
 

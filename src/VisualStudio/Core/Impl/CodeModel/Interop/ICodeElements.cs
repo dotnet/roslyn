@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Runtime.InteropServices;
@@ -23,10 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         new IEnumerator GetEnumerator();
 
         [DispId(1)]
-        EnvDTE.DTE DTE {[return: MarshalAs(UnmanagedType.Interface)] get; }
+        EnvDTE.DTE DTE { [return: MarshalAs(UnmanagedType.Interface)] get; }
 
         [DispId(2)]
-        object Parent {[return: MarshalAs(UnmanagedType.IDispatch)] get; }
+        object Parent { [return: MarshalAs(UnmanagedType.IDispatch)] get; }
 
         [DispId(0)]
         [PreserveSig]

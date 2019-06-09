@@ -94,7 +94,7 @@ namespace ns1
                     string s = "c1.test()";
                     {
                         Console.WriteLine(s);
-                        this.foo(o); foo(i); this.foo(b); this.foo(b1); // Overload Resolution, Implicit Conversions
+                        this.goo(o); goo(i); this.goo(b); this.goo(b1); // Overload Resolution, Implicit Conversions
                     }
                 }
             }
@@ -212,9 +212,9 @@ namespace ns1
             return new int();
         }
 
-        internal int foo(int x)
+        internal int goo(int x)
         {
-            Console.WriteLine("    c1.foo(int)");
+            Console.WriteLine("    c1.goo(int)");
 
             // Read, Write Fields
             this.ui = 0u + this.ui;
@@ -247,9 +247,9 @@ namespace ns1
             return x;
         }
 
-        public bool foo(object x)
+        public bool goo(object x)
         {
-            Console.WriteLine("    c1.foo(object)");
+            Console.WriteLine("    c1.goo(object)");
 
             // Read, Write Fields
             ui = 0u;
@@ -261,7 +261,7 @@ namespace ns1
             bool b = true; string s = string.Empty;
             s = null; b = this.i != 1;
             ui = ui1; i = i1;
-            bar4(b); this.foo(i1); bar4(b == (true != b));
+            bar4(b); this.goo(i1); bar4(b == (true != b));
 
             // Read, Write Params
             x = null; x = new c1(this.i, this.ui, a);
@@ -292,7 +292,7 @@ namespace ns1
             this.ui = 0u - 0u;
             i = this.i * 1;
             this.a = new c1();
-            this.foo(i.GetHashCode()); this.a = this;
+            this.goo(i.GetHashCode()); this.a = this;
 
             // Read, Write Locals
             c1 c = new c1(1, 0u, (null));
@@ -305,7 +305,7 @@ namespace ns1
             c.a = c;
             c.a = c = this.a = c.a = null;
             c = new c1(i.GetHashCode());
-            this.foo(c.i); bar3(c != null);
+            this.goo(c.i); bar3(c != null);
 
             if (this.i == 10321)
             {
@@ -322,7 +322,7 @@ namespace ns1
             string[] a1 = new string[] { "", null, null };
             a1[1] = null; a1[2] = "";
             string s = null;
-            s = a1[1]; foo(a1[2]);
+            s = a1[1]; goo(a1[2]);
         }
 
         protected string bar2(object x)
@@ -333,7 +333,7 @@ namespace ns1
             this.ui = ui - this.ui;
             i = i / 1;
             a = null;
-            foo(i);
+            goo(i);
 
             // Read, Write Locals
             c1 c;
@@ -382,7 +382,7 @@ namespace ns1
 
             // Read, Write Params
             x = (this.i == i + 1);
-            foo(x.GetHashCode());
+            goo(x.GetHashCode());
 
             // Read, Write Array Element
             bool[] a1 = new bool[] { true, false, x };
@@ -390,7 +390,7 @@ namespace ns1
             b = (a1[1]); b = a1[2];
             object o = b != a1[2];
             o = (a1[1].ToString()) == (a1[2].ToString());
-            foo(a1[1].GetHashCode());
+            goo(a1[1].GetHashCode());
 
             if (b)
             {
@@ -411,7 +411,7 @@ namespace ns1
             this.ui = this.ui - (this.ui + this.ui) * this.ui;
             this.i = (i + 1) - (1 * (i / 1));
             this.a = (null);
-            foo(this.i.GetHashCode());
+            goo(this.i.GetHashCode());
 
             // Read, Write Locals
             object o = null;
@@ -424,17 +424,17 @@ namespace ns1
             c.i = 1;
             c.i = this.i * (this.i / c.i + c.i);
             c.a = c = this.a = c.a = new c1(); c.a = c;
-            foo(c.GetHashCode()); bar3(c.a.GetHashCode() != i);
+            goo(c.GetHashCode()); bar3(c.a.GetHashCode() != i);
 
             // Read, Write Params
             x = (o.ToString());
-            x = x.ToString(); foo(x.GetHashCode()); foo(x.ToString().GetHashCode());
+            x = x.ToString(); goo(x.GetHashCode()); goo(x.ToString().GetHashCode());
 
             // Read, Write Array Element
             object[] a1 = new object[] { (null), (this.a), c };
             a1[1] = ((this.a)); a1[2] = (c); a1[1] = (i);
             Array.Reverse(a1);
-            o = a1[1]; foo(a1.GetHashCode()); bar3(a1[2] == null);
+            o = a1[1]; goo(a1.GetHashCode()); bar3(a1[2] == null);
 
             if (b)
             {
@@ -472,7 +472,7 @@ namespace ns1
                     if (b == 0)
                     {
                         Console.WriteLine(s);
-                        this.foo(x: b, y: sb); // Named Arguments
+                        this.goo(x: b, y: sb); // Named Arguments
                     }
                 }
                 if (sb != 1)
@@ -488,7 +488,7 @@ namespace ns1
                     if (sb2 == 0)
                     {
                         Console.WriteLine(s2);
-                        foo(x: b, y: sb2); // Named Arguments
+                        goo(x: b, y: sb2); // Named Arguments
                     }
                 }
                 if (b == sb2)
@@ -576,14 +576,14 @@ namespace ns1
                 const c1 const3 = null;
                 if (true)
                 {
-                    this.bar4(const1); c.foo(const2 != 1); this.a = const3;
+                    this.bar4(const1); c.goo(const2 != 1); this.a = const3;
                 }
             }
         }
 
-        private T foo1(T x)
+        private T goo1(T x)
         {
-            Console.WriteLine("    c2<T>.foo1(T)");
+            Console.WriteLine("    c2<T>.goo1(T)");
 
             int aa = 1;
 
@@ -601,15 +601,15 @@ namespace ns1
 
             while (const2 == const1 - aa + aa)
             {
-                this.bar4(const1); c.foo(const2 != 1U);
+                this.bar4(const1); c.goo(const2 != 1U);
                 return x;
             }
             return x;
         }
 
-        private bool foo(bool x)
+        private bool goo(bool x)
         {
-            Console.WriteLine("    c2<T>.foo(bool)");
+            Console.WriteLine("    c2<T>.goo(bool)");
 
             int aa = 1;
 
@@ -631,14 +631,14 @@ namespace ns1
             return x;
         }
 
-        protected c1 foo(byte x, object y)
+        protected c1 goo(byte x, object y)
         {
-            Console.WriteLine("    c2<T>.foo(byte, object)");
+            Console.WriteLine("    c2<T>.goo(byte, object)");
 
             // Read, Write Params
             y = x; x = 1;
             c1 c = new c1();
-            c.bar4(y); c.foo(x);
+            c.bar4(y); c.goo(x);
 
             // Read Consts
             const string const1 = "";
@@ -653,7 +653,7 @@ namespace ns1
                     byte bb = 1;
                     if (bb == x)
                     {
-                        this.bar4(const1); this.foo(const2 != 1); this.a = const3;
+                        this.bar4(const1); this.goo(const2 != 1); this.a = const3;
                         break;
                     }
                     else
@@ -673,7 +673,7 @@ namespace ns1
             // Read, Write Params
             y = x; x = 1;
             c1 c = new c1();
-            c.bar4(y); c.foo(x);
+            c.bar4(y); c.goo(x);
 
             // Read Consts
             const long const1 = 1;
@@ -682,7 +682,7 @@ namespace ns1
 
             while (const2 == 1U)
             {
-                this.bar4(const1); this.foo(const2 != 1);
+                this.bar4(const1); this.goo(const2 != 1);
                 break;
             }
         }
@@ -694,7 +694,7 @@ namespace ns1
             // Read, Write Params
             y = x; x = 1;
             c1 c = new c1();
-            c.bar4(y); this.foo(x);
+            c.bar4(y); this.goo(x);
 
             // Read Consts
             const long const1 = 1;
@@ -704,7 +704,7 @@ namespace ns1
                 const c1 const3 = null;
                 if (c != const3)
                 {
-                    c.bar4(const1); this.foo(const2 != 1); this.a = const3;
+                    c.bar4(const1); this.goo(const2 != 1); this.a = const3;
                 }
             }
             return (int)const1;
@@ -718,7 +718,7 @@ namespace ns1
             y = x; x = 1;
             double d = 1.1;
             c1 c = new c1();
-            this.bar4(y); c.foo(x);
+            this.bar4(y); c.goo(x);
 
             // Read Consts
             const string const1 = "hi";
@@ -729,7 +729,7 @@ namespace ns1
                 const c1 const3 = null;
                 if (const3 != c)
                 {
-                    this.bar4(const1); c.foo(const2 != 1); c.a = const3;
+                    this.bar4(const1); c.goo(const2 != 1); c.a = const3;
                     return (float)d;
                 }
                 return (float)(1.1f + (float)1.1);
@@ -745,7 +745,7 @@ namespace ns1
             string s = "c3<T>.test()";
             {
                 Console.WriteLine(s);
-                foo(); foo(1); foo("1"); foo(1.1); // Overload Resolution, Implicit Conversions
+                goo(); goo(1); goo("1"); goo(1.1); // Overload Resolution, Implicit Conversions
             }
             // Nested Scopes
             {
@@ -824,38 +824,38 @@ namespace ns1
         }
 
         // Static Methods
-        protected static int foo(T x, U y)
+        protected static int goo(T x, U y)
         {
-            Console.WriteLine("    c3<T, U>.foo(T, U)");
+            Console.WriteLine("    c3<T, U>.goo(T, U)");
             int[] a = new int[3] { 1, 2, 3 }; a[1] = a[2];
             return (int)((long)x.GetHashCode() + (long)(int)(long)y.GetHashCode());
         }
 
-        internal static c1 foo(object x)
+        internal static c1 goo(object x)
         {
-            Console.WriteLine("    c3<T, U>.foo(object)");
+            Console.WriteLine("    c3<T, U>.goo(object)");
             c1[] a = new c1[3] { null, new c1(), new c1(1) }; a[1] = a[2];
             x = "hi";
             return new c1((int)1.1f, (uint)1, new c1(x.GetHashCode()));
         }
 
-        private static float foo(string x)
+        private static float goo(string x)
         {
-            Console.WriteLine("    c3<T, U>.foo(string)");
+            Console.WriteLine("    c3<T, U>.goo(string)");
             string[] a = new string[] { x, x, "", null }; a[1] = a[2]; a[2] = a[1];
-            return (float)foo(x.GetHashCode());
+            return (float)goo(x.GetHashCode());
         }
 
-        public static int foo(int x)
+        public static int goo(int x)
         {
-            Console.WriteLine("    c3<T, U>.foo(int)");
+            Console.WriteLine("    c3<T, U>.goo(int)");
             int[] a = new int[] { x, x, 1, 0 }; a[1] = a[2]; a[2] = a[1];
             return (int)x.GetHashCode() + x;
         }
 
-        public static string foo()
+        public static string goo()
         {
-            Console.WriteLine("    c3<T, U>.foo()");
+            Console.WriteLine("    c3<T, U>.goo()");
             string[] a = new string[] { "", null }; a[0] = a[1]; a[1] = a[0];
             return (string)null;
         }
@@ -880,7 +880,7 @@ namespace ns1
             Console.WriteLine("    c3<T, U>.bar(string)");
             string[] a = new string[] { x, x, "", null }; a[1] = a[2]; a[2] = a[1];
             x = a[2];
-            return (float)foo(x.GetHashCode());
+            return (float)goo(x.GetHashCode());
         }
 
         public int bar(int x)
@@ -916,15 +916,15 @@ namespace ns1
                 int i = 2;
                 Console.WriteLine(str);
                 {
-                    c1 a = new c1(i); a.foo(i);
+                    c1 a = new c1(i); a.goo(i);
                 }
                 double d = 1.1;
                 {
                     sbyte sb = 1;
                     c1 a = new c1(i + (i + i));
-                    a.foo(sb);
+                    a.goo(sb);
                     {
-                        a.foo(d);
+                        a.goo(d);
                     }
                 }
 
@@ -1078,9 +1078,9 @@ namespace ns1
         }
 
         // Non-Overloaded Method
-        public static c4 foo(int i, string s, bool b, byte b1, long l, string s1)
+        public static c4 goo(int i, string s, bool b, byte b1, long l, string s1)
         {
-            Console.WriteLine("    c4.foo(int, string, bool, byte, long, string)");
+            Console.WriteLine("    c4.goo(int, string, bool, byte, long, string)");
             return new c4();
         }
 
@@ -1117,18 +1117,18 @@ namespace ns1
                     {
                         byte b1 = 1; long l = i; string s1 = s;
                         float f = 1.2f; o = f; l = ui;
-                        c4.foo(sh, s, b, b1, i, s1); // Implicit Conversions
+                        c4.goo(sh, s, b, b1, i, s1); // Implicit Conversions
                         c4 c = new c4();
-                        c.foo(sh); this.bar(sh);
-                        cc.bar(c5.foo(cc.bar()));
-                        c5.foo(cc.bar(c5.foo()));
+                        c.goo(sh); this.bar(sh);
+                        cc.bar(c5.goo(cc.bar()));
+                        c5.goo(cc.bar(c5.goo()));
                         if (b == false)
                         {
                             double d = f; ulong ul = 1; sbyte sb = 1; s1 = s;
                             c4.bar(sh, us, sb, f, d, ui, ul); // Implicit Conversions
                             c.bar4(us);
                             this.bar(cc.bar(), c);
-                            c5.foo(this.bar(c5.foo(), c));
+                            c5.goo(this.bar(c5.goo(), c));
                         }
                         if (b1 >= l)
                         {
@@ -1138,18 +1138,18 @@ namespace ns1
                             {
                                 byte b11 = 1; long l1 = i; string s11 = s1;
                                 float f1 = 1.2f; o = f1; l1 = ui1;
-                                c4.foo(sh, s1, b, b11, i, s11); // Implicit Conversions
-                                c.foo(b);
-                                this.bar(b); if (c5.foo() != null) c5.foo().ToString().GetHashCode();
-                                cc.bar(this.bar(c5.foo()));
+                                c4.goo(sh, s1, b, b11, i, s11); // Implicit Conversions
+                                c.goo(b);
+                                this.bar(b); if (c5.goo() != null) c5.goo().ToString().GetHashCode();
+                                cc.bar(this.bar(c5.goo()));
 
                                 if (!false)
                                 {
                                     double d1 = f1; ulong ul1 = 1; sbyte sb1 = 1; s1 = s;
                                     c4.bar(sh, us, sb1, f1, d1, ui1, ul1); // Implicit Conversions
-                                    c.foo(b1, sb1);
+                                    c.goo(b1, sb1);
                                     this.bar(o).bar4(c);
-                                    cc.bar(c5.foo(o)).bar4(c).ToString();
+                                    cc.bar(c5.goo(o)).bar4(c).ToString();
                                     d1 = d;
                                     if (d != d1) return i;
                                 }
@@ -1160,15 +1160,15 @@ namespace ns1
                                     {
                                         byte b12 = 1; long l2 = i; string s12 = s11;
                                         float f2 = 1.2f; o = f1; l2 = ui1;
-                                        c4.foo(sh, s1, b, b12, i, s12); // Implicit Conversions
+                                        c4.goo(sh, s1, b, b12, i, s12); // Implicit Conversions
                                         c.bar4(b.ToString() == b.ToString());
-                                        this.bar(c5.foo(cc.bar(i)));
+                                        this.bar(c5.goo(cc.bar(i)));
                                         {
                                             double d2 = f2; ulong ul2 = 1; sbyte sb2 = 1; s1 = s;
                                             c4.bar(sh, us, sb2, f2, d2, ui2, ul2); // Implicit Conversions
-                                            c.foo(false == true != false == b);
+                                            c.goo(false == true != false == b);
                                             c.bar4(sh > us == sh <= us);
-                                            this.bar((object)c5.foo((object)cc.bar((object)i)));
+                                            this.bar((object)c5.goo((object)cc.bar((object)i)));
                                             if (i != i +
                                                 1 -
                                                 1)
@@ -2814,9 +2814,9 @@ namespace ns1
             };
 
             // Generic Method
-            protected void foo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)
+            protected void goo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)
             {
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)");
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, UU, VV> x, Func<UU, VV, TT> y, Func<VV, TT, UU> z)");
                 TT t = default(TT); UU u = default(UU); VV v = default(VV);
 
                 // Invoke Lambdas
@@ -2824,15 +2824,15 @@ namespace ns1
             }
 
             // Generic Method
-            protected void foo<TT, UU, VV>(TT xx, UU yy, VV zz)
+            protected void goo<TT, UU, VV>(TT xx, UU yy, VV zz)
             {
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(TT xx, UU yy, VV zz)");
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(TT xx, UU yy, VV zz)");
             }
 
             // Generic Method
-            protected void foo<TT, UU, VV>(Func<TT, List<TT>, UU, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)
+            protected void goo<TT, UU, VV>(Func<TT, List<TT>, UU, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)
             {
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, List<TT>, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)");
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, List<TT>, Dictionary<List<TT>, UU>> x, Del<UU, VV> y, Action<VV, List<VV>, Dictionary<List<VV>, TT>> z)");
                 TT t = default(TT); UU u = default(UU); VV v = default(VV);
 
                 // Invoke Lambdas
@@ -2934,9 +2934,9 @@ namespace ns1
                 func(tt, uu)(uu, vv)(vv, tt)(t, u)(u);
             }
 
-            public void foo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)
+            public void goo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)
             {
-                Console.WriteLine("    c1<T, U>.foo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)");
+                Console.WriteLine("    c1<T, U>.goo<TT, UU, VV>(Func<TT, UU> x, Func<TT, VV> y, Func<UU, VV> z, Func<UU, TT> a, Func<VV, TT> b, Func<VV, UU> c)");
             }
 
             public void Test()
@@ -2950,20 +2950,20 @@ namespace ns1
                 Del del = (a, b, c) => a;
 
                 // Generic Methods, Simple Closures
-                foo<int, string, Del<T, U>>(y, x.ToString(), (a, b, c) => u);
-                foo<string, Del<T>, int>(x.ToString(), (a, b, c) => x, y);
-                foo<Del, int, string>((c, a) => a.ToString(),
+                goo<int, string, Del<T, U>>(y, x.ToString(), (a, b, c) => u);
+                goo<string, Del<T>, int>(x.ToString(), (a, b, c) => x, y);
+                goo<Del, int, string>((c, a) => a.ToString(),
                     (int a, string b) => del,
                     (b, c) => y - c(x, y, null));
 
                 // Generic Type Inference, Nested Lambdas
-                foo(x, "", del1);
-                foo(func, del2,
+                goo(x, "", del1);
+                goo(func, del2,
                     (T a, List<T> b, Dictionary<List<T>, T> c) =>
                     {
                         int z = x;
                         {
-                            foo(new Action(() => x = 2),
+                            goo(new Action(() => x = 2),
                                 new Func<ArgumentException, int>((aa) =>
                                 {
                                     return y + x + +z + b.Count;
@@ -2975,35 +2975,35 @@ namespace ns1
                         }
                         x = z;
                         {
-                            foo((aa, bb) => a.ToString(),
+                            goo((aa, bb) => a.ToString(),
                                 (long bb, string cc) => y - (int)bb + b.Count - z,
                                 (string cc, int aa) => x + y + aa + c.Values.Count);
                         }
                     });
 
                 // Generic Type Inference, Dominant Type
-                foo((Exception a, Exception b) => new ArgumentException(),
+                goo((Exception a, Exception b) => new ArgumentException(),
                     (Exception a, Exception b) => new ArgumentException(),
                     (Exception a, Exception b) => new ArgumentException());
-                foo((a, b) => new ArgumentException(),
+                goo((a, b) => new ArgumentException(),
                     (a, b) => new ArgumentException(),
                     (ArgumentException a, Exception b) => new Exception());
                 Func<Exception, ArgumentException> func2 = (Exception a) => new ArgumentException();
                 Func<ArgumentException, Exception> func3 = (ArgumentException a) => new ArgumentException();
-                foo(func2, func2, func2, func2, func3, func3);
-                foo((a) => new ArgumentException(),
+                goo(func2, func2, func2, func2, func3, func3);
+                goo((a) => new ArgumentException(),
                     (Exception a) => new InvalidCastException(),
                     (a) => new InvalidCastException(),
                     (ArgumentException a) => new Exception(),
                     (a) => new ArgumentException(),
                     (InvalidCastException a) => new ArgumentException());
-                foo((Exception a) => new Exception(),
+                goo((Exception a) => new Exception(),
                     (Exception a) => new ArgumentException(),
                     (Exception a) => new ArgumentException(),
                     (Exception a) => new Exception(),
                     (Exception a) => new ArgumentException(),
                     (Exception a) => new Exception());
-                foo((a) => new Exception(),
+                goo((a) => new Exception(),
                     (Exception a) => new ArgumentException(),
                     (a) => new ArgumentException(),
                     (a) => new Exception(),
@@ -3030,54 +3030,54 @@ namespace ns1
                 T t = default(T); U u = default(U);
 
                 // Delegate Binding, Compound Assignment
-                Del2<TT, UU, VV> d2 = foo; d2 += foo<TT, UU, VV>; d2 -= foo;
-                Del3<TT, VV, UU> d3 = foo; d3 += foo<TT, VV, UU>; d3 -= foo;
-                Del4<UU, TT, VV> d4 = foo; d4 += foo<UU, TT, VV>; d4 -= foo;
+                Del2<TT, UU, VV> d2 = goo; d2 += goo<TT, UU, VV>; d2 -= goo;
+                Del3<TT, VV, UU> d3 = goo; d3 += goo<TT, VV, UU>; d3 -= goo;
+                Del4<UU, TT, VV> d4 = goo; d4 += goo<UU, TT, VV>; d4 -= goo;
                 // Invoke Delegates
                 d2((a, b) => vv, (b, c) => tt, (c, a) => uu);
                 d3(tt, vv, uu);
                 d4((a, b, c) => null, (a, b, c) => vv, (a, b, c) => { uu.Equals(vv); });
 
                 // Delegate Binding, Compound Assignment
-                Del2<int, Del, VV> d22 = foo; d22 += (foo); d22 -= foo<int, Del, VV>;
-                Del3<long, int, Exception> d32 = foo; d32 += foo<long, int, Exception>; d32 -= ((foo));
-                Del4<T, U, Dictionary<List<TT>, Dictionary<List<UU>, VV>>> d42 = foo; d42 += foo; d42 -= foo;
+                Del2<int, Del, VV> d22 = goo; d22 += (goo); d22 -= goo<int, Del, VV>;
+                Del3<long, int, Exception> d32 = goo; d32 += goo<long, int, Exception>; d32 -= ((goo));
+                Del4<T, U, Dictionary<List<TT>, Dictionary<List<UU>, VV>>> d42 = goo; d42 += goo; d42 -= goo;
                 // Invoke Delegates
                 d22((a, b) => vv, (b, c) => 1, (c, a) => null);
                 d32(1, 0, null);
                 d42((a, b, c) => null, (a, b, c) => null, (a, b, c) => { uu.Equals(vv); });
 
                 // Delegate Relaxation, Compound Assignment
-                Del1 d1 = foo; d1 += foo<T, U>;
-                Del3<InvalidCastException, ArgumentNullException, NullReferenceException, Exception> d33 = foo<int, long>;
-                d33 -= foo<int, long>; d33 += foo<int, double>;
+                Del1 d1 = goo; d1 += goo<T, U>;
+                Del3<InvalidCastException, ArgumentNullException, NullReferenceException, Exception> d33 = goo<int, long>;
+                d33 -= goo<int, long>; d33 += goo<int, double>;
                 // Invoke Delegates
                 d1(t, u, null, null);
                 d33(new InvalidCastException(), new ArgumentNullException(), new NullReferenceException());
 
                 // Delegate Relaxation, Generic Methods
-                foo<ArgumentException, ArgumentException, Exception>(foo<int>, foo<long>, foo<double>);
-                foo<ArgumentException, ArgumentException, Exception>(foo<Exception, ArgumentException>,
-                                                                     foo<Exception, ArgumentException>,
-                                                                     foo<Exception, ArgumentException>);
-                foo<ArgumentException, ArgumentException, Exception>(bar, bar, bar);
+                goo<ArgumentException, ArgumentException, Exception>(goo<int>, goo<long>, goo<double>);
+                goo<ArgumentException, ArgumentException, Exception>(goo<Exception, ArgumentException>,
+                                                                     goo<Exception, ArgumentException>,
+                                                                     goo<Exception, ArgumentException>);
+                goo<ArgumentException, ArgumentException, Exception>(bar, bar, bar);
             }
 
-            private ArgumentException foo<TT, UU>(Exception x, Exception y, Exception z)
+            private ArgumentException goo<TT, UU>(Exception x, Exception y, Exception z)
             {
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(Exception x, Exception y, Exception z)");
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(Exception x, Exception y, Exception z)");
                 return null;
             }
 
-            private ArgumentException foo<TT, UU>(TT x, UU y, Exception a, Exception b)
+            private ArgumentException goo<TT, UU>(TT x, UU y, Exception a, Exception b)
             {
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(TT x, UU y, Exception a, Exception b)");
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(TT x, UU y, Exception a, Exception b)");
                 return null;
             }
 
-            private ArgumentException foo<TT>(Exception a, Exception b)
+            private ArgumentException goo<TT>(Exception a, Exception b)
             {
-                Console.WriteLine("    c2<T, U>.foo<TT>(Exception a, Exception b)");
+                Console.WriteLine("    c2<T, U>.goo<TT>(Exception a, Exception b)");
                 return null;
             }
 
@@ -3087,9 +3087,9 @@ namespace ns1
                 return null;
             }
 
-            private UU foo<TT, UU>(TT a, TT b)
+            private UU goo<TT, UU>(TT a, TT b)
             {
-                Console.WriteLine("    c2<T, U>.foo<TT, UU>(TT a, TT b)");
+                Console.WriteLine("    c2<T, U>.goo<TT, UU>(TT a, TT b)");
                 return default(UU);
             }
 

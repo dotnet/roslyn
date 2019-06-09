@@ -17,7 +17,7 @@ You'll need to create a .resx file to hold your localizable resources. For the p
 Using Localized Resources in Analyzers
 --------------------------------------
 
-Normally, .Net applications can simply access the resource through the type generated from the .resx file:
+Normally, .NET applications can simply access the resource through the type generated from the .resx file:
 ``` C#
 string message = AnalyzerResources.Message;
 ```

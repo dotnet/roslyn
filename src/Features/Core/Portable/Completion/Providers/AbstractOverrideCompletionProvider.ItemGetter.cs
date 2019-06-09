@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private ItemGetter(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
-                Document document, 
-                int position, 
+                Document document,
+                int position,
                 SourceText text,
                 SyntaxTree syntaxTree,
                 int startLineNumber,
@@ -90,8 +91,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
+                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
+
                 return overridableMembers.Select(m => CreateItem(
                     m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
+            }
+
+            private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
+            {
+                // SymbolKey doesn't guarantee roundtrip-ability, which we need in order to generate overrides.
+                // Preemptively filter out those methods whose SymbolKeys we won't be able to round trip.
+                var key = SymbolKey.Create(m, _cancellationToken);
+                var result = key.Resolve(compilation, cancellationToken: _cancellationToken);
+                return result.Symbol != null;
             }
 
             private CompletionItem CreateItem(
@@ -102,8 +114,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var displayString = symbolDisplayService.ToMinimalDisplayString(semanticModel, position, symbol, _overrideNameFormat);
 
-                return  MemberInsertionCompletionItem.Create(
+                return MemberInsertionCompletionItem.Create(
                     displayString,
+                    displayTextSuffix: "",
                     modifiers,
                     _startLineNumber,
                     symbol,

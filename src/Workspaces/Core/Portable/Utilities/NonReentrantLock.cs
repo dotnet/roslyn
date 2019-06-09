@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
+
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Log;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -74,14 +78,14 @@ namespace Roslyn.Utilities
         /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was
         /// canceled.</exception>
         /// <exception cref="LockRecursionException">The caller already holds the lock</exception>
-        public void Wait(CancellationToken cancellationToken = default(CancellationToken))
+        public void Wait(CancellationToken cancellationToken = default)
         {
             if (this.IsOwnedByMe)
             {
                 throw new LockRecursionException();
             }
 
-            CancellationTokenRegistration cancellationTokenRegistration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration cancellationTokenRegistration = default;
 
             if (cancellationToken.CanBeCanceled)
             {
@@ -117,8 +121,9 @@ namespace Roslyn.Utilities
                     {
                         // If cancelled, we throw. Trying to wait could lead to deadlock.
                         cancellationToken.ThrowIfCancellationRequested();
-
+#if WORKSPACE
                         using (Logger.LogBlock(FunctionId.Misc_NonReentrantLock_BlockingWait, cancellationToken))
+#endif
                         {
                             // Another thread holds the lock. Wait until we get awoken either
                             // by some code calling "Release" or by cancellation.
@@ -198,7 +203,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private void TakeOwnership()
         {
-            Contract.Assert(!this.IsLocked);
+            Debug.Assert(!this.IsLocked);
             _owningThreadId = Environment.CurrentManagedThreadId;
         }
 
@@ -207,7 +212,7 @@ namespace Roslyn.Utilities
         /// </summary>
         private void ReleaseOwnership()
         {
-            Contract.Assert(this.IsOwnedByMe);
+            Debug.Assert(this.IsOwnedByMe);
             _owningThreadId = 0;
         }
 
@@ -229,7 +234,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public SemaphoreDisposer DisposableWait(CancellationToken cancellationToken = default(CancellationToken))
+        public SemaphoreDisposer DisposableWait(CancellationToken cancellationToken = default)
         {
             this.Wait(cancellationToken);
             return new SemaphoreDisposer(this);

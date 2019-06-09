@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' <summary>
@@ -108,6 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' Indicates that the tuple info in the attribute didn't match
                 ' the type. Bad metadata.
             End Try
+
+            If metadataType.GetUseSiteErrorInfo() IsNot Nothing Then
+                Return metadataType
+            End If
 
             ' Bad metadata
             Return New UnsupportedMetadataTypeSymbol()

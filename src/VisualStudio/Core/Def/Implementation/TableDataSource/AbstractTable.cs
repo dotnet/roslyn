@@ -7,6 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Base implementation of new platform table. this knows how to create various ITableDataSource and connect
     /// them to ITableManagerProvider
@@ -61,6 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.AdditionalDocumentRemoved:
                 case WorkspaceChangeKind.AdditionalDocumentReloaded:
                 case WorkspaceChangeKind.AdditionalDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
                     Contract.Fail("Can't reach here");

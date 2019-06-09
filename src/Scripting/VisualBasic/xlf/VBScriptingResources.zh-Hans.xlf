@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBScriptingResources.resx">
+    <body>
+      <trans-unit id="LogoLine1">
+        <source>Microsoft (R) Visual Basic Interactive Compiler version {0}</source>
+        <target state="translated">Microsoft (R) Visual Basic 交互式编译器版本 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LogoLine2">
+        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
+        <target state="translated">版权所有(C) Microsoft Corporation。保留所有权利。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InteractiveHelp">
+        <source>Usage: vbi [options] [script-file.vbx] [-- script-arguments]
+
+If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+
+Options:
+  /help                          Display this usage message (Short form: /?)
+  /version                       Display the version and exit
+  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
+  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
+  /referencePath:&lt;path list&gt;     List of paths where to look for metadata references specified as unrooted paths. (Short form: /rp)
+  /using:&lt;namespace&gt;             Define global namespace using (Short form: /u)
+  /define:&lt;name&gt;=&lt;value&gt;,...     Declare global conditional compilation symbol(s) (Short form: /d)
+  @&lt;file&gt;                        Read response file for more options
+</source>
+        <target state="translated">用法: vbi [options] [script-file.vbx] [-- script-arguments]
+
+如果指定了脚本文件，则执行脚本；否则启动交互式 REPL (读取–求值–打印循环)。
+
+选项:
+  /help                          显示此用法消息(缩写: /?)
+  /version                       显示版本并退出
+  /reference:&lt;alias&gt;=&lt;file&gt;      从使用给定别名的指定程序集文件引用元数据(缩写: /r)
+  /reference:&lt;file list&gt;         从指定的程序集文件中引用元数据(缩写: /r)
+  /referencePath:&lt;path list&gt;     路径列表，在此处查找执行为非根路径的元数据引用。(缩写: /rp)
+  /using:&lt;namespace&gt;             定义使用(缩写: /u)的全局命名空间
+  /define:&lt;name&gt;=&lt;value&gt;,...     声明全局条件编译符号(缩写: /d)
+  @&lt;file&gt;                        读取响应文件以了解更多选项
+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEscapeWithoutQuote">
+        <source>Cannot escape non-printable characters in Visual Basic notation unless quotes are used.</source>
+        <target state="translated">不可在 Visual Basic 表示法中对不可打印的字符进行转义，除非使用引号。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"class c
 {
-    private void foo() { };
+    private void goo() { };
 
     partial void $$
 }";
@@ -47,11 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     partial void $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -59,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c<T>
 {
-    partial void foo(T bar);
+    partial void goo(T bar);
 
     partial void $$
 }";
-            await VerifyItemExistsAsync(text, "foo(T bar)");
+            await VerifyItemExistsAsync(text, "goo(T bar)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -71,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial struct c
 {
-    partial void foo();
+    partial void goo();
 
     partial void $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -83,11 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     partial $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -95,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     void partial $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -107,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial static unsafe void foo();
+    partial static unsafe void goo();
 
     void static unsafe partial $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -119,11 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial static unsafe void foo();
+    partial static unsafe void goo();
 
     private partial $$
 }";
-            await VerifyItemExistsAsync(text, "foo()");
+            await VerifyItemExistsAsync(text, "goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     void partial unsafe $$
 }";
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    public partial void foo();
+    public partial void goo();
 
     void partial $$
 }";
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    internal partial void foo();
+    internal partial void goo();
 
     void partial $$
 }";
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    protected partial void foo();
+    protected partial void goo();
 
     void partial $$
 }";
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    protected internal partial void foo();
+    protected internal partial void goo();
 
     void partial $$
 }";
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     extern void partial $$
 }";
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    virtual partial void foo();
+    virtual partial void goo();
 
     void partial $$
 }";
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial class c
 {
-    partial int foo();
+    partial int goo();
 
     partial $$
 }";
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var text = @"partial interface i
 {
-    partial void foo();
+    partial void goo();
 
     partial $$
 }";
@@ -239,22 +242,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var markupBeforeCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     partial $$
 }";
 
             var expectedCodeAfterCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
-    partial void foo()
+    partial void goo()
     {
         throw new System.NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -262,22 +265,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var markupBeforeCommit = @"partial class c<T>
 {
-    partial void foo(T bar);
+    partial void goo(T bar);
 
     partial $$
 }";
 
             var expectedCodeAfterCommit = @"partial class c<T>
 {
-    partial void foo(T bar);
+    partial void goo(T bar);
 
-    partial void foo(T bar)
+    partial void goo(T bar)
     {
         throw new System.NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo(T bar)", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo(T bar)", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -285,22 +288,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var markupBeforeCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
     private partial $$
 }";
 
             var expectedCodeAfterCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 
-    partial void foo()
+    partial void goo()
     {
         throw new System.NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -308,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var markupBeforeCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 }
 
 partial class c
@@ -318,18 +321,18 @@ partial class c
 
             var expectedCodeAfterCommit = @"partial class c
 {
-    partial void foo();
+    partial void goo();
 }
 
 partial class c
 {
-    partial void foo()
+    partial void goo()
     {
         throw new System.NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -337,22 +340,22 @@ partial class c
         {
             var markupBeforeCommit = @"partial struct c
 {
-    partial void foo();
+    partial void goo();
 
     partial $$
 }";
 
             var expectedCodeAfterCommit = @"partial struct c
 {
-    partial void foo();
+    partial void goo();
 
-    partial void foo()
+    partial void goo()
     {
         throw new System.NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -360,7 +363,7 @@ partial class c
         {
             var text = @"partial class C
     {
-        partial void Foo();
+        partial void Goo();
     }
  
     partial class C
@@ -379,7 +382,7 @@ partial class c
 {
     partial $$
  
-    void Foo()
+    void Goo()
     {
         
     }
@@ -396,7 +399,7 @@ partial class c
 
 partial class Bar
 {
-    partial void Foo();
+    partial void Goo();
 
     async partial $$
 }";
@@ -405,15 +408,15 @@ partial class Bar
 
 partial class Bar
 {
-    partial void Foo();
+    partial void Goo();
 
-    async partial void Foo()
+    async partial void Goo()
     {
         throw new NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit);
         }
 
         [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
@@ -424,24 +427,24 @@ partial class Bar
 
 partial class Bar
 {
-    partial void Foo();
+    partial void Goo();
 
-    partial Foo$$
+    partial Goo$$
 }";
 
             var expectedCodeAfterCommit = @"using System;
 
 partial class Bar
 {
-    partial void Foo();
+    partial void Goo();
 
-    partial void Foo()
+    partial void Goo()
     {
         throw new NotImplementedException();$$
     }
 }";
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Foo()", expectedCodeAfterCommit, commitChar: '(');
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit, commitChar: '(');
         }
 
         [WorkItem(965677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
@@ -473,6 +476,45 @@ partial class Bar
 }
 ";
             await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
+        }
+
+        [WorkItem(26388, "https://github.com/dotnet/roslyn/issues/26388")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExpressionBodyMethod()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+
+            try
+            {
+                workspace.Options = originalOptions.WithChangedOption(
+                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
+
+                var text = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial $$
+}
+"
+;
+
+                var expected = @"using System;
+partial class Bar
+{
+    partial void Foo();
+    partial void Foo() => throw new NotImplementedException();$$
+}
+"
+;
+
+                await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
         }
     }
 }

@@ -79,7 +79,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return true;
             }
 
-            // okay, only branch was return. make sure we have all return in the selection. (?)
+            // okay, only branch was return. make sure we have all return in the selection.
+
+            // check for special case, if end point is not reachable, we don't care the selection
+            // actually contains all return statements. we just let extract method go through
+            // and work like we did in dev10
             if (!controlFlowAnalysisData.EndPointIsReachable)
             {
                 return true;

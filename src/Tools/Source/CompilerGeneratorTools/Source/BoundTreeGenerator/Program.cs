@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -49,7 +50,7 @@ namespace BoundTreeGenerator
                 tree = (Tree)serializer.Deserialize(reader);
             }
 
-            using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create)))
+            using (var outfile = new StreamWriter(File.Open(outfilename, FileMode.Create), Encoding.UTF8))
             {
                 BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
             }

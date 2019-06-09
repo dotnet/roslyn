@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SolutionCrawler.State;
 using Roslyn.Utilities;
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                     list.Add(new TodoItem(
                         priority, message,
-                        document.Project.Solution.Workspace, document.Id,
+                        document.Id,
                         mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile));
                 }
             }

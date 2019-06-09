@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     <ExportLanguageService(GetType(IImplementInterfaceService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicImplementInterfaceService
         Inherits AbstractImplementInterfaceService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides ReadOnly Property CanImplementImplicitly As Boolean
             Get
@@ -154,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             decls(decls.Length - 1) = decls(decls.Length - 1).WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia()),
-                    SyntaxFactory.CarriageReturnLineFeed))
+                    SyntaxFactory.ElasticCarriageReturnLineFeed))
 
             ' Ensure that open and close brace tokens are generated in case they are missing.
             Dim newNode = classBlock.AddMembers(decls).FixTerminators()

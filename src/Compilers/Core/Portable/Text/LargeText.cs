@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u0085':
                         case '\u2028':
                         case '\u2029':
-                            line_break:
+line_break:
                             arrayBuilder.Add(position);
                             position = index;
                             break;

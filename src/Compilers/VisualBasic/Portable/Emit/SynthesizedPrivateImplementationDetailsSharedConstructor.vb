@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedPrivateImplementationDetailsSharedConstructor

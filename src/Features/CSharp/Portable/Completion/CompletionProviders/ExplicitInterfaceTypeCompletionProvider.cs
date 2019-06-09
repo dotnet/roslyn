@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -22,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
-        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
-            => CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+            => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
         protected override async Task<SyntaxContext> CreateContext(
             Document document, int position, CancellationToken cancellationToken)
@@ -35,16 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var completionCount = context.Items.Count;
-            await base.ProvideCompletionsAsync(context).ConfigureAwait(false);
-
-            if (completionCount < context.Items.Count)
+            try
             {
-                // If we added any items, then add a suggestion mode item as this is a location 
-                // where a member name could be written, and we should not interfere with that.
-                context.SuggestionModeItem = CreateSuggestionModeItem(
-                    CSharpFeaturesResources.member_name,
-                    CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
+                var completionCount = context.Items.Count;
+                await base.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+                if (completionCount < context.Items.Count)
+                {
+                    // If we added any items, then add a suggestion mode item as this is a location 
+                    // where a member name could be written, and we should not interfere with that.
+                    context.SuggestionModeItem = CreateSuggestionModeItem(
+                        CSharpFeaturesResources.member_name,
+                        CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -86,9 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
-            // Looks syntactically good.  See what interfaces our containing class/struct has
             var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
-            Debug.Assert(IsClassOrStruct(typeDeclaration));
+            if (typeDeclaration == null)
+            {
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            }
+
+            // Looks syntactically good.  See what interfaces our containing class/struct/interface has
+            Debug.Assert(IsClassOrStructOrInterface(typeDeclaration));
 
             var semanticModel = context.SemanticModel;
             var namedType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -107,23 +121,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
             {
-                // Show us after the open brace for a class/struct
-                return IsClassOrStruct(tokenBeforeType.Parent);
+                // Show us after the open brace for a class/struct/interface
+                return IsClassOrStructOrInterface(tokenBeforeType.Parent);
             }
 
             if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
                 tokenBeforeType.Kind() == SyntaxKind.SemicolonToken)
             {
-                // Check that we're after a class/struct member.
+                // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();
                 return memberDeclaration?.GetLastToken() == tokenBeforeType &&
-                       IsClassOrStruct(memberDeclaration.Parent);
+                       IsClassOrStructOrInterface(memberDeclaration.Parent);
             }
 
             return false;
         }
 
-        private static bool IsClassOrStruct(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration;
+        private static bool IsClassOrStructOrInterface(SyntaxNode node)
+            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration || node.Kind() == SyntaxKind.InterfaceDeclaration;
     }
 }

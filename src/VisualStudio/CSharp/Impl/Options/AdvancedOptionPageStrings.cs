@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -9,10 +9,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere; }
         }
 
-        public static string Option_ClosedFileDiagnostics
-        {
-            get { return CSharpVSResources.Enable_full_solution_analysis; }
-        }
+        public static string Option_Analysis
+            => ServicesVSResources.Analysis;
+
+        public static string Option_Enable_full_solution_analysis
+            => ServicesVSResources.Enable_full_solution_analysis;
+
+        public static string Option_Enable_navigation_to_decompiled_sources
+            => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
+        public static string Option_use_nullable_reference_analysis_IDE_features
+            => ServicesVSResources.Enable_nullable_reference_analysis_IDE_features;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -66,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => ServicesVSResources.When_generating_properties;
 
         public static string Option_prefer_auto_properties
-            => ServicesVSResources.prefer_auto_properties;
+            => ServicesVSResources.codegen_prefer_auto_properties;
 
         public static string Option_prefer_throwing_properties
             => ServicesVSResources.prefer_throwing_properties;
@@ -130,23 +137,57 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
 
+        public static string Option_Fading
+            => ServicesVSResources.Fading;
+
+        public static string Option_Fade_out_unused_usings
+            => CSharpVSResources.Fade_out_unused_usings;
+
+        public static string Option_Fade_out_unreachable_code
+            => ServicesVSResources.Fade_out_unreachable_code;
+
         public static string Option_Performance
         {
             get { return CSharpVSResources.Performance; }
         }
 
         public static string Option_PlaceSystemNamespaceFirst
-        {
-            get { return CSharpVSResources.Place_System_directives_first_when_sorting_usings; }
-        }
+            => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
+
+        public static string Option_SeparateImportGroups
+            => CSharpVSResources.Separate_using_directive_groups;
 
         public static string Option_Using_Directives =>
             CSharpVSResources.Using_Directives;
 
         public static string Option_Suggest_usings_for_types_in_reference_assemblies =>
-            CSharpVSResources.Suggest_usings_for_types_in_reference_assemblies;
+            CSharpVSResources.Suggest_usings_for_types_in_dotnet_framework_assemblies;
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+
+        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;
+
+        public static string Option_Regular_Expressions =>
+            ServicesVSResources.Regular_Expressions;
+
+        public static string Option_Colorize_regular_expressions =>
+            ServicesVSResources.Colorize_regular_expressions;
+
+        public static string Option_Report_invalid_regular_expressions =>
+            ServicesVSResources.Report_invalid_regular_expressions;
+
+        public static string Option_Highlight_related_components_under_cursor =>
+            ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_Show_completion_list =>
+            ServicesVSResources.Show_completion_list;
+
+        public static string Option_Classifications =>
+            ServicesVSResources.Classifications;
+
+        public static string Option_Use_enhanced_colors_for_C_and_Basic =>
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
     }
 }

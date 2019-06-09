@@ -6,16 +6,17 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed class FileChangeTracker : IVsFileChangeEvents, IDisposable
+    internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDisposable
     {
-        private const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
+        private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-        private static readonly Lazy<uint> s_none = new Lazy<uint>(() => /* value doesn't matter*/ 42424242, LazyThreadSafetyMode.ExecutionAndPublication);
+        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(ct => null, cacheResult: true);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;
@@ -23,11 +24,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// The cookie received from the IVsFileChangeEx interface that is watching for changes to
-        /// this file.
+        /// this file. This field may never be null, but might be a Lazy that has a value of null if
+        /// we either failed to subscribe over never have tried to subscribe.
         /// </summary>
-        private Lazy<uint> _fileChangeCookie;
+        private AsyncLazy<uint?> _fileChangeCookie;
 
         public event EventHandler UpdatedOnDisk;
+
+        /// <summary>
+        /// Operations on <see cref="IVsFileChangeEx"/> synchronize on a single lock within that service, so there's no point
+        /// in us trying to have multiple threads all trying to use it at the same time. When we queue a new background thread operation
+        /// we'll just do a continuation after the previous one. Any callers of <see cref="EnsureSubscription"/> will bypass that queue
+        /// and ensure it happens quickly.
+        /// </summary>
+        private static Task s_lastBackgroundTask = Task.CompletedTask;
+
+        /// <summary>
+        /// The object to use as a monitor guarding <see cref="s_lastBackgroundTask"/>. This lock is not strictly necessary, since we don't need
+        /// to ensure the background tasks happen entirely sequentially -- if we just removed the lock, and two subscriptions happened, we end up with
+        /// a 'branching' set of continuations, but that's fine since we're generally not running things in parallel. But it's easy to write,
+        /// and easy to delete if this lock has contention itself. Given we tend to call <see cref="StartFileChangeListeningAsync"/> on the UI
+        /// thread, I don't expect to see contention.
+        /// </summary>
+        private static readonly object s_lastBackgroundTaskGate = new object();
 
         public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath)
         {
@@ -49,6 +68,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _filePath; }
         }
 
+        /// <summary>
+        /// Returns true if a previous call to <see cref="StartFileChangeListeningAsync"/> has completed.
+        /// </summary>
+        public bool PreviousCallToStartFileChangeHasAsynchronouslyCompleted
+        {
+            get
+            {
+                var cookie = _fileChangeCookie;
+                return cookie != s_none && cookie.TryGetValue(out _);
+            }
+        }
+
         public void AssertUnsubscription()
         {
             // We must have been disposed properly.
@@ -58,51 +89,90 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureSubscription()
         {
             // make sure we have file notification subscribed
-            var unused = _fileChangeCookie.Value;
+            var unused = _fileChangeCookie.GetValue(CancellationToken.None);
         }
 
         public void StartFileChangeListeningAsync()
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(typeof(FileChangeTracker).Name);
+                throw new ObjectDisposedException(nameof(FileChangeTracker));
             }
 
             Contract.ThrowIfTrue(_fileChangeCookie != s_none);
 
-            _fileChangeCookie = new Lazy<uint>(() =>
+            _fileChangeCookie = new AsyncLazy<uint?>(async cancellationToken =>
             {
-                Marshal.ThrowExceptionForHR(
-                    _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out var newCookie));
-                return newCookie;
-            }, LazyThreadSafetyMode.ExecutionAndPublication);
+                try
+                {
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, FileChangeFlags, this).ConfigureAwait(false);
+                }
+                catch (Exception e) when (ReportException(e))
+                {
+                    return null;
+                }
+            }, cancellationToken =>
+            {
+                try
+                {
+                    Marshal.ThrowExceptionForHR(
+                        _fileChangeService.AdviseFileChange(_filePath, (uint)FileChangeFlags, this, out var newCookie));
+                    return newCookie;
+                }
+                catch (Exception e) when (ReportException(e))
+                {
+                    return null;
+                }
+            }, cacheResult: true);
 
-            // file change service is free-threaded. start running it in background right away
-            Task.Run(() => _fileChangeCookie.Value, CancellationToken.None);
+            lock (s_lastBackgroundTaskGate)
+            {
+                s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.GetValueAsync(CancellationToken.None), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            }
+        }
+
+        private static bool ReportException(Exception e)
+        {
+            // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
+            if (!(e is PathTooLongException))
+            {
+                return FatalError.ReportWithoutCrash(e);
+            }
+
+            // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from
+            // StopFileChangeListening or Dispose which causes all sorts of downstream problems.
+            return true;
         }
 
         public void StopFileChangeListening()
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(typeof(FileChangeTracker).Name);
+                throw new ObjectDisposedException(nameof(FileChangeTracker));
             }
 
             // there is a slight chance that we haven't subscribed to the service yet so we subscribe and unsubscribe
             // both here unnecessarily. but I believe that probably is a theoretical problem and never happen in real life.
             // and even if that happens, it will be just a perf hit
-            if (_fileChangeCookie != s_none)
+            if (_fileChangeCookie == s_none)
             {
-                var hr = _fileChangeService.UnadviseFileChange(_fileChangeCookie.Value);
+                return;
+            }
 
-                // Verify if the file still exists before reporting the unadvise failure.
-                // This is a workaround for VSO #248774
-                if (hr != VSConstants.S_OK && File.Exists(_filePath))
+            var fileChangeCookie = _fileChangeCookie.GetValue(CancellationToken.None);
+            _fileChangeCookie = s_none;
+
+            // We may have tried to subscribe but failed, so have to check a second time
+            if (fileChangeCookie.HasValue)
+            {
+                try
                 {
-                    Marshal.ThrowExceptionForHR(hr);
+                    Marshal.ThrowExceptionForHR(
+                        _fileChangeService.UnadviseFileChange(fileChangeCookie.Value));
                 }
-
-                _fileChangeCookie = s_none;
+                catch (Exception e) when (ReportException(e))
+                {
+                }
             }
         }
 
@@ -125,6 +195,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
 
             return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChanged(string pszDirectory)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx(string pszDirectory, string pszFile)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents.DirectoryChanged(string pszDirectory)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents.DirectoryChangedEx(string pszDirectory, string pszFile)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
         }
     }
 }

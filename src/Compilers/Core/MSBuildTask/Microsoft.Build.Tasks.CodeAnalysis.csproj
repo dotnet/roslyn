@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+    <AssemblyVersion/>
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
+
+    <PackageDescription>
+      The build task and targets used by MSBuild to run the C# and VB compilers.
+      Supports using VBCSCompiler on Windows.
+    </PackageDescription>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="*.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <BuildAction>None</BuildAction>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackagePath>contentFiles\any\any</PackagePath>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
+    <Compile Include="..\..\Shared\BuildServerConnection.cs" />
+    <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="..\Portable\CommitHashAttribute.cs" />
+    <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs" />
+    <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Update="ErrorString.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ErrorString.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="ErrorString.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
+  </ItemGroup>
+  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
+</Project>

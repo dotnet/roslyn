@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
             bool isPatternContext,
+            bool isRightSideOfNumericType,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPossibleTupleContext = isPossibleTupleContext;
             this.IsPatternContext = isPatternContext;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
+            this.IsRightSideOfNumericType = isRightSideOfNumericType;
         }
 
         public Workspace Workspace { get; }
@@ -87,7 +90,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsPossibleTupleContext { get; }
         public bool IsPatternContext { get; }
 
-        public IEnumerable<ITypeSymbol> InferredTypes { get; }
+        public bool IsRightSideOfNumericType { get; }
+
+        public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             return SpecializedCollections.EmptySet<INamedTypeSymbol>();
         }
 
-        protected IEnumerable<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
+        protected ImmutableArray<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
             SemanticModel semanticModel,
             int position,
             CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IWaitIndicator _waitIndicator;
@@ -42,24 +44,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         [ImportingConstructor]
         public RenameTrackingTaggerProvider(
+            IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IWaitIndicator waitIndicator,
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
             return new Tagger(stateMachine, _undoHistoryRegistry, _waitIndicator, _refactorNotifyServices) as ITagger<T>;
         }
 
@@ -170,12 +174,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             try
             {
-                return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
+                return isRenamableIdentifierTask.WaitAndGetResult_CanCallOnBackground(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
-                // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
+                // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
                 return false;
             }
         }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 
@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TypeParameterMap = 1 << 3,
         AnonymousTypes = 1 << 4,
         Exceptions = 1 << 5,
-        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions
+        Captures = 1 << 6,
+        All = MainDescription | AwaitableUsageText | Documentation | TypeParameterMap | AnonymousTypes | Exceptions | Captures
     }
 }

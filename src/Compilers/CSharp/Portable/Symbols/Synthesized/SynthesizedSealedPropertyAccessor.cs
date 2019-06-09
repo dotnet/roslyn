@@ -62,23 +62,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Accessibility overriddenAccessibility = _overriddenAccessor.DeclaredAccessibility;
-
-                if (overriddenAccessibility == Accessibility.ProtectedOrInternal &&
-                    !this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                switch (overriddenAccessibility)
                 {
-                    // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
-                    // but it's not clear why.  It seems like it would make more sense to just correct
-                    // the accessibility of the synthesized override, the same way a programmer would if
-                    // it existed in source.
+                    case Accessibility.ProtectedOrInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
+                            // but it's not clear why.  It seems like it would make more sense to just correct
+                            // the accessibility of the synthesized override, the same way a programmer would if
+                            // it existed in source.
 
-                    return Accessibility.Protected;
+                            return Accessibility.Protected;
+                        }
+                        break;
+
+                    case Accessibility.ProtectedAndInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // Of course this must trigger an error later, as you cannot override a private
+                            // protected member from another assembly.
+                            return Accessibility.Private;
+                        }
+                        break;
                 }
-                else
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
-                    return overriddenAccessibility;
-                }
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
+                return overriddenAccessibility;
             }
         }
 
@@ -162,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -170,19 +180,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _overriddenAccessor.ReturnType;
+                return _overriddenAccessor.ReturnTypeWithAnnotations;
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -215,14 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return _overriddenAccessor.ReturnTypeCustomModifiers;
-            }
-        }
-        
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

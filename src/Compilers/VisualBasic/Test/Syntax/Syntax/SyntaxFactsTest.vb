@@ -219,13 +219,13 @@ Public Class SyntaxFactsTests
 
 Namespace NS1
     Module Module1
-        Delegate Sub DelFoo(xx As Integer)
-        Sub Foo(xx As Integer)
+        Delegate Sub DelGoo(xx As Integer)
+        Sub Goo(xx As Integer)
         End Sub
 
         Sub Main()
             Dim a1 = GetType(Integer)
-            Dim d As DelFoo = AddressOf Foo
+            Dim d As DelGoo = AddressOf Goo
             d.Invoke(xx:=1)
             Dim Obj Gen As New genClass(Of Integer)
         End Sub
@@ -243,7 +243,7 @@ End Namespace
 
 
 
-        Dim tree = CreateCompilationWithMscorlib(source).SyntaxTrees.Item(0)
+        Dim tree = CreateCompilationWithMscorlib40(source).SyntaxTrees.Item(0)
         Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
         Assert.False(SyntaxFacts.IsInvocationOrAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
@@ -1000,7 +1000,8 @@ End Namespace
         Assert.Equal(VarianceKind.None, SyntaxFacts.VarianceKindFromToken(keywordToken))
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopClrOnly))>
+    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
@@ -1098,7 +1099,8 @@ End Namespace
 
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(DesktopClrOnly))>
+    <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
@@ -1196,7 +1198,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x ! _
-        Foo
+        Goo
     End Sub
 End Module
 ]]>)

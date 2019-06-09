@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -14,13 +17,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
     Inherits System.Windows.Forms.Form
-    Public Sub foo()
+    Public Sub goo()
 
     End Sub
 End Class
 
 Public Class class2
-    Public Sub foo(ByVal x As System.Windows.Forms.Form)
+    Public Sub goo(ByVal x As System.Windows.Forms.Form)
 
     End Sub
 
@@ -46,30 +49,33 @@ Public Class class3
     Public Sub PerformClick() Implements System.Windows.Forms.IButtonControl.PerformClick
 
     End Sub
-End Class";
+End Class
+";
         private const string FileInLibraryProject2 = @"Public Class Class1
     Inherits System.Xml.XmlAttribute
     Sub New()
         MyBase.New(Nothing, Nothing, Nothing, Nothing)
     End Sub
-    Sub foo()
+    Sub goo()
 
     End Sub
     Public bar As ClassLibrary3.Class1
-End Class";
+End Class
+";
         private const string FileInLibraryProject3 = @"Public Class Class1
     Public Enum E
         E1
         E2
     End Enum
 
-    Public Function Foo() As ADODB.Recordset
+    Public Function Goo() As ADODB.Recordset
         Dim x As ADODB.Recordset = Nothing
         Return x
     End Function
 
 
-End Class";
+End Class
+";
         private const string FileInConsoleProject1 = @"Imports System.Data.XLinq
 
 Module Module1
@@ -77,14 +83,14 @@ Module Module1
     Sub Main()
         'ERRID_UnreferencedAssembly3
         Dim y As New ClassLibrary1.class2
-        y.foo(Nothing)
+        y.goo(Nothing)
 
         'ERRID_UnreferencedAssemblyEvent3
         AddHandler y.ee, Nothing
 
         'ERRID_UnreferencedAssemblyBase3
         Dim x As New ClassLibrary1.Class1
-        x.foo()
+        x.goo()
         'ERRID_UnreferencedAssemblyImplements3
         Dim z As New ClassLibrary1.class3
         Dim xxx = z.DialogResult
@@ -95,7 +101,8 @@ Module Module1
         Dim d = a.bar
     End Sub
 
-End Module";
+End Module
+";
 
         private const string ClassLibrary1Name = "ClassLibrary1";
         private const string ClassLibrary2Name = "ClassLibrary2";
@@ -104,9 +111,14 @@ End Module";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicAddMissingReference(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public BasicAddMissingReference(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
@@ -136,44 +148,44 @@ End Module";
                 "</Solution>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-             VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
-             VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-             VisualStudio.Editor.PlaceCaret("x.foo", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-             VisualStudio.Editor.PlaceCaret("z.DialogResult", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-             VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudio.Editor.PlaceCaret("x.goo", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudio.Editor.PlaceCaret("z.DialogResult", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
+            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInVisualBasicThenVerifyReferences()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-             VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
-             VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
-             VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
-                project: consoleProject,
-                assemblyName: "System.Windows.Forms",
-                assemblyVersion: "4.0.0.0",
-                assemblyPublicKeyToken: "b77a5c561934e089");
-             VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-             VisualStudio.Editor.InvokeCodeActionList();
-             VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
-             VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
-                project: consoleProject,
-                referencedProjectName: ClassLibrary3Name);
+            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Module1.vb");
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
+               project: consoleProject,
+               assemblyName: "System.Windows.Forms",
+               assemblyVersion: "4.0.0.0",
+               assemblyPublicKeyToken: "b77a5c561934e089");
+            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
+               project: consoleProject,
+               referencedProjectName: ClassLibrary3Name);
         }
     }
 }

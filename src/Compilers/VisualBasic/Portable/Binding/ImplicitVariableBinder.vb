@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -230,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
 
                 For Each localSymbol In _implicitLocals.Values
-                    If originalBinder.CanAddLookupSymbolInfo(localSymbol, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(localSymbol, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(localSymbol, localSymbol.Name, 0)
                     End If
                 Next

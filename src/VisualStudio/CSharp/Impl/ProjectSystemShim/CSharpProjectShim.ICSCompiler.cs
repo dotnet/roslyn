@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -45,12 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         public void BuildForEnc(ICSCompileProgress progress, ICSEncProjectServices encService, object pe)
         {
             throw new NotImplementedException();
-        }
-
-        public string GetOutputFileName()
-        {
-            // in-proc compiler, return the output we got set.
-            return this.ObjOutputPath;
         }
 
         public object CreateParser()

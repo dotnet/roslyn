@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
@@ -30,11 +31,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
         /// retrieve the symbol later on when navigating.  This is needed so that we can go to
         /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
-        /// for the symbol and the name we get back from  <see cref="AssemblyIdentity.GetDisplayName"/>
-        /// for.  With these we can effetively recover the symbol.
+        /// for the symbol and the project ID that originated the symbol.  With these we can correctly recover the symbol.
         /// </summary>
         private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
-        private const string MetadataAssemblyIdentityDisplayName = nameof(MetadataAssemblyIdentityDisplayName);
+        private const string MetadataSymbolOriginatingProjectIdGuid = nameof(MetadataSymbolOriginatingProjectIdGuid);
+        private const string MetadataSymbolOriginatingProjectIdDebugName = nameof(MetadataSymbolOriginatingProjectIdDebugName);
 
         /// <summary>
         /// If this item is something that cannot be navigated to.  We store this in our
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private const string NonNavigable = nameof(NonNavigable);
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
+        /// Descriptive tags from <see cref="WellKnownTags"/>. These tags may influence how the 
         /// item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
@@ -111,7 +112,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             if (Properties.ContainsKey(MetadataSymbolKey))
             {
-                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataAssemblyIdentityDisplayName));
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
             }
         }
 
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             DocumentSpan sourceSpan,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             bool displayIfNoReferences = true)
         {
             return Create(
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
@@ -169,17 +171,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Solution solution, ISymbol symbol,
+            Project project,
+            ISymbol symbol,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
 
             var symbolKey = symbol.GetSymbolKey().ToString();
-            var assemblyIdentityDisplayName = symbol.ContainingAssembly?.Identity.GetDisplayName();
 
             properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataAssemblyIdentityDisplayName, assemblyIdentityDisplayName);
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(
@@ -204,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> originationParts = default,
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             properties = properties.Add(NonNavigable, "");
 
             return new DefaultDefinitionItem(
-                tags: tags, 
+                tags: tags,
                 displayParts: displayParts,
                 nameDisplayParts: ImmutableArray<TaggedText>.Empty,
                 originationParts: originationParts,

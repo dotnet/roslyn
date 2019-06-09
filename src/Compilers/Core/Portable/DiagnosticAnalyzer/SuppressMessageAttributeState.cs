@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,15 +13,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
-        private static readonly SmallDictionary<string, TargetScope> s_suppressMessageScopeTypes = new SmallDictionary<string, TargetScope>()
+        private static readonly SmallDictionary<string, TargetScope> s_suppressMessageScopeTypes = new SmallDictionary<string, TargetScope>(StringComparer.OrdinalIgnoreCase)
             {
-                { null, TargetScope.None },
+                { string.Empty, TargetScope.None },
                 { "module", TargetScope.Module },
                 { "namespace", TargetScope.Namespace },
                 { "resource", TargetScope.Resource },
                 { "type", TargetScope.Type },
-                { "member", TargetScope.Member }
+                { "member", TargetScope.Member },
+                { "namespaceanddescendants", TargetScope.NamespaceAndDescendants }
             };
+
+        private static bool TryGetTargetScope(SuppressMessageInfo info, out TargetScope scope)
+            => s_suppressMessageScopeTypes.TryGetValue(info.Scope ?? string.Empty, out scope);
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
@@ -56,14 +61,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _compilationWideSuppressions.TryGetValue(id, out info);
             }
 
-            public bool HasGlobalSymbolSuppression(ISymbol symbol, string id, out SuppressMessageInfo info)
+            public bool HasGlobalSymbolSuppression(ISymbol symbol, string id, bool isImmediatelyContainingSymbol, out SuppressMessageInfo info)
             {
                 Debug.Assert(symbol != null);
                 Dictionary<string, SuppressMessageInfo> suppressions;
                 if (_globalSymbolSuppressions.TryGetValue(symbol, out suppressions) &&
                     suppressions.TryGetValue(id, out info))
                 {
-                    return true;
+                    if (symbol.Kind != SymbolKind.Namespace)
+                    {
+                        return true;
+                    }
+
+                    if (TryGetTargetScope(info, out TargetScope targetScope))
+                    {
+                        switch (targetScope)
+                        {
+                            case TargetScope.Namespace:
+                                // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
+                                // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
+                                return isImmediatelyContainingSymbol;
+
+                            case TargetScope.NamespaceAndDescendants:
+                                return true;
+                        }
+                    }
                 }
 
                 info = default(SuppressMessageInfo);
@@ -108,49 +130,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info, ISymbol symbolOpt = null)
-        {
-            if (symbolOpt != null && IsDiagnosticSuppressed(diagnostic.Id, symbolOpt, out info))
-            {
-                return true;
-            }
-
-            return IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, out info);
-        }
-
-        private bool IsDiagnosticSuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
-        {
-            Debug.Assert(id != null);
-            Debug.Assert(symbol != null);
-
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                // Suppressions associated with namespace symbols only apply to namespace declarations themselves
-                // and any syntax nodes immediately contained therein, not to nodes attached to any other symbols.
-                // Diagnostics those nodes will be filtered by location, not by associated symbol.
-                info = default(SuppressMessageInfo);
-                return false;
-            }
-
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
-                if (associated != null &&
-                    (IsDiagnosticLocallySuppressed(id, associated, out info) || IsDiagnosticGloballySuppressed(id, associated, out info)))
-                {
-                    return true;
-                }
-            }
-
-            if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, out info))
-            {
-                return true;
-            }
-
-            // Check for suppression on parent symbol
-            var parent = symbol.ContainingSymbol;
-            return parent != null && IsDiagnosticSuppressed(id, parent, out info);
-        }
+        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info)
+            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, out info);
 
         private bool IsDiagnosticSuppressed(string id, Location location, out SuppressMessageInfo info)
         {
@@ -159,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             info = default(SuppressMessageInfo);
 
-            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, info: out info))
+            if (IsDiagnosticGloballySuppressed(id, symbolOpt: null, isImmediatelyContainingSymbol: false, info: out info))
             {
                 return true;
             }
@@ -181,28 +162,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (symbol.Kind == SymbolKind.Namespace)
                         {
-                            // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
-                            // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
-                            return inImmediatelyContainingSymbol && IsDiagnosticGloballySuppressed(id, symbol, out info);
+                            return hasNamespaceSuppression((INamespaceSymbol)symbol, inImmediatelyContainingSymbol);
                         }
-                        else if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, out info))
+                        else if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, inImmediatelyContainingSymbol, out info))
                         {
                             return true;
                         }
+                    }
 
+                    if (!declaredSymbols.IsEmpty)
+                    {
                         inImmediatelyContainingSymbol = false;
                     }
                 }
             }
 
             return false;
+
+            bool hasNamespaceSuppression(INamespaceSymbol namespaceSymbol, bool inImmediatelyContainingSymbol)
+            {
+                do
+                {
+                    if (IsDiagnosticGloballySuppressed(id, namespaceSymbol, inImmediatelyContainingSymbol, out _))
+                    {
+                        return true;
+                    }
+
+                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                    inImmediatelyContainingSymbol = false;
+                }
+                while (namespaceSymbol != null);
+
+                return false;
+            }
         }
 
-        private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt, out SuppressMessageInfo info)
+        private bool IsDiagnosticGloballySuppressed(string id, ISymbol symbolOpt, bool isImmediatelyContainingSymbol, out SuppressMessageInfo info)
         {
             this.DecodeGlobalSuppressMessageAttributes();
             return _lazyGlobalSuppressions.HasCompilationWideSuppression(id, out info) ||
-                symbolOpt != null && _lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id, out info);
+                symbolOpt != null && _lazyGlobalSuppressions.HasGlobalSymbolSuppression(symbolOpt, id, isImmediatelyContainingSymbol, out info);
         }
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
@@ -292,10 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                string scopeString = info.Scope != null ? info.Scope.ToLowerInvariant() : null;
-                TargetScope scope;
-
-                if (s_suppressMessageScopeTypes.TryGetValue(scopeString, out scope))
+                if (TryGetTargetScope(info, out TargetScope scope))
                 {
                     if ((scope == TargetScope.Module || scope == TargetScope.None) && info.Target == null)
                     {
@@ -335,6 +331,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         new TargetSymbolResolver(compilation, scope, target).Resolve(results);
                         return results;
                     }
+
+                case TargetScope.NamespaceAndDescendants:
+                    return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
+
                 default:
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
@@ -382,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Namespace,
             Resource,
             Type,
-            Member
+            Member,
+            NamespaceAndDescendants
         }
     }
 }

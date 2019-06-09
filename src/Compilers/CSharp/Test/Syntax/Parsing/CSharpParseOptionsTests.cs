@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpacetring()
+        public void BadPreProcessorSymbolsShouldProduceDiagnostics_WhiteSpaceString()
         {
             var options = new CSharpParseOptions().WithPreprocessorSymbols(new[] { " " });
 

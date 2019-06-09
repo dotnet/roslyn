@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         Private _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
             Return _instance
         End Function
@@ -29,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TryNavigateToSymbolProvidedOptions As OptionSet
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
-            Public TrySymbolNavigationNotifyProvidedSolution As Solution
+            Public TrySymbolNavigationNotifyProvidedProject As Project
             Public TrySymbolNavigationNotifyReturnValue As Boolean = False
 
             Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
@@ -47,10 +51,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             End Function
 
             Public Function TrySymbolNavigationNotify(symbol As ISymbol,
-                                                      solution As Solution,
+                                                      project As Project,
                                                       cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
-                Me.TrySymbolNavigationNotifyProvidedSolution = solution
+                Me.TrySymbolNavigationNotifyProvidedProject = project
 
                 Return TrySymbolNavigationNotifyReturnValue
             End Function

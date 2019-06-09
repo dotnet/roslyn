@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,11 +17,11 @@ namespace Microsoft.CodeAnalysis
     /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
     [StructLayout(LayoutKind.Auto)]
-    public partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
+    public readonly partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node, int position, int index = 0)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node, int position, int index = 0)
         {
             Token = token;
             Node = node;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxTriviaList(SyntaxToken token, GreenNode node)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node)
         {
             Token = token;
             Node = node;
@@ -36,12 +37,42 @@ namespace Microsoft.CodeAnalysis
             Index = 0;
         }
 
-        internal SyntaxTriviaList(SyntaxTrivia trivia)
+        public SyntaxTriviaList(SyntaxTrivia trivia)
         {
             Token = default(SyntaxToken);
             Node = trivia.UnderlyingNode;
             Position = 0;
             Index = 0;
+        }
+
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">An array of trivia.</param>
+        public SyntaxTriviaList(params SyntaxTrivia[] trivias)
+            : this(default, CreateNode(trivias), 0, 0)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">A sequence of trivia.</param>
+        public SyntaxTriviaList(IEnumerable<SyntaxTrivia> trivias)
+            : this(default, SyntaxTriviaListBuilder.Create(trivias).Node, 0, 0)
+        {
+        }
+
+        private static GreenNode CreateNode(SyntaxTrivia[] trivias)
+        {
+            if (trivias == null)
+            {
+                return null;
+            }
+
+            var builder = new SyntaxTriviaListBuilder(trivias.Length);
+            builder.Add(trivias);
+            return builder.ToList().Node;
         }
 
         internal SyntaxToken Token { get; }
@@ -174,7 +205,7 @@ namespace Microsoft.CodeAnalysis
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(ref this);
+            return new Enumerator(in this);
         }
 
         public int IndexOf(SyntaxTrivia triviaInList)
@@ -380,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -390,7 +421,7 @@ namespace Microsoft.CodeAnalysis
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
 
-            return new EnumeratorImpl(ref this);
+            return new EnumeratorImpl(in this);
         }
 
         /// <summary>

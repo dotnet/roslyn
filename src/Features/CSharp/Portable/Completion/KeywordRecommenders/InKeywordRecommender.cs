@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -17,11 +19,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            var syntaxTree = context.SyntaxTree;
             return
                 IsValidContextInForEachClause(context) ||
                 IsValidContextInFromClause(context, cancellationToken) ||
                 IsValidContextInJoinClause(context, cancellationToken) ||
+                IsInParameterModifierContext(position, context) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
+        }
+
+        private static bool IsInParameterModifierContext(int position, CSharpSyntaxContext context)
+        {
+            if (context.SyntaxTree.IsParameterModifierContext(
+                    position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier))
+            {
+                if (previousModifier == SyntaxKind.None)
+                {
+                    return true;
+                }
+
+                if (previousModifier == SyntaxKind.ThisKeyword &&
+                    parameterIndex == 0 &&
+                    context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsValidContextInForEachClause(CSharpSyntaxContext context)
@@ -35,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                var statement = token.Parent as ForEachStatementSyntax;
-                if (statement != null && token == statement.Identifier)
+                if (token.Parent is ForEachStatementSyntax statement && token == statement.Identifier)
                 {
                     return true;
                 }
@@ -70,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     }
                 }
 
-                var fromClause = token.Parent as FromClauseSyntax;
-                if (fromClause != null)
+                if (token.Parent is FromClauseSyntax fromClause)
                 {
                     // case:
                     //   from int x |

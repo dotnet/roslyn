@@ -267,14 +267,14 @@ Module EmitTest
         System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Dim ex As Exception
-            foo(ex)
+            goo(ex)
             Console.Write(ex.Message)
         Finally
             System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
-    Sub foo(ByRef ex As Exception)
+    Sub goo(ByRef ex As Exception)
         Dim x As Integer = 0
         Try
             x = x \ x
@@ -285,7 +285,7 @@ End Module
     </file>
 </compilation>,
 expectedOutput:="Attempted to divide by zero.").
-            VerifyIL("EmitTest.foo",
+            VerifyIL("EmitTest.goo",
             <![CDATA[
 {
   // Code size       26 (0x1a)
@@ -708,7 +708,7 @@ End Class
 
         <Fact()>
         Public Sub ThrowNothing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module M
@@ -980,7 +980,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation, expectedOutput:="Exited Try")
 
@@ -1008,11 +1008,74 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation, expectedOutput:="Exited Try")
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:="Exited Try")
+        End Sub
+
+        <Fact>
+        <WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")>
+        Public Sub Issue29481()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class C
+    Shared Sub Main()
+        try
+            Dim b As Boolean = false
+            if b
+                try
+                    return
+                finally
+                    Console.WriteLine("Prints")
+                end try
+            else
+                return
+            end if
+        finally
+            GC.KeepAlive(Nothing)
+        end try
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="", options:=TestOptions.DebugExe)
+            CompileAndVerify(source, expectedOutput:="", options:=TestOptions.ReleaseExe).
+            VerifyIL("C.Main",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldc.i4.0
+    IL_0001:  brfalse.s  IL_0010
+    .try
+    {
+      IL_0003:  leave.s    IL_0019
+    }
+    finally
+    {
+      IL_0005:  ldstr      "Prints"
+      IL_000a:  call       "Sub System.Console.WriteLine(String)"
+      IL_000f:  endfinally
+    }
+    IL_0010:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_0012:  ldnull
+    IL_0013:  call       "Sub System.GC.KeepAlive(Object)"
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
+}
+]]>)
         End Sub
 
     End Class

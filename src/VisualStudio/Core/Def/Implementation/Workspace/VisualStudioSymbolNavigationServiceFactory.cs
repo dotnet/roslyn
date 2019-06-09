@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ISymbolNavigationService _singleton;
 
         [ImportingConstructor]
-        private VisualStudioSymbolNavigationServiceFactory(
+        public VisualStudioSymbolNavigationServiceFactory(
             SVsServiceProvider serviceProvider,
             [Import] VisualStudio14StructureTaggerProvider outliningTaggerProvider)
         {

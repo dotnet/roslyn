@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
     /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
     /// </remarks>
-    internal sealed class IteratorAndAsyncCaptureWalker : DataFlowPass
+    internal sealed class IteratorAndAsyncCaptureWalker : DefiniteAssignmentPass
     {
         // In Release builds we hoist only variables (locals and parameters) that are captured. 
         // This set will contain such variables after the bound tree is visited.
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _seenYieldInCurrentTry;
 
-        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
+        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation,
                   method,
                   node,
-                  emptyStructCache,
+                  EmptyStructTypeCache.CreateNeverEmpty(),
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
-            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
@@ -75,10 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var variable = kvp.Key;
                     var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
-                    foreach (CSharpSyntaxNode syntax in kvp.Value)
+                    if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
-                        // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
+                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.TypeWithAnnotations);
+                    }
+                    else
+                    {
+                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        {
+                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                        }
                     }
                 }
             }
@@ -107,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.Parameter)
             {
                 var parameter = (ParameterSymbol)symbol;
-                return !parameter.Type.IsRestrictedType();
+                return !parameter.TypeWithAnnotations.IsRestrictedType();
             }
 
             if (symbol.Kind == SymbolKind.Local)
@@ -122,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // hoist all user-defined locals that can be hoisted:
                 if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
                 {
-                    return !local.Type.IsRestrictedType();
+                    return !local.TypeWithAnnotations.IsRestrictedType();
                 }
 
                 // hoist all synthesized variables that have to survive state machine suspension:
@@ -195,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
-                // error has already been reported:
-                if (variable is SynthesizedLocal)
+                // error has already been reported.
+                if (variable is SynthesizedLocal local && local.SynthesizedKind != SynthesizedLocalKind.Spill)
                 {
                     return;
                 }
@@ -224,24 +232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetOrCreateSlot(parameter);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            if (symbol is LocalSymbol || symbol is ParameterSymbol)
+            switch (symbol.Kind)
             {
-                CaptureVariable(symbol, node);
+                case SymbolKind.Field:
+                    symbol = GetNonMemberSymbol(slot);
+                    goto case SymbolKind.Local;
+
+                case SymbolKind.Local:
+                case SymbolKind.Parameter:
+                    CaptureVariable(symbol, node);
+                    break;
             }
-        }
-
-        // The iterator transformation causes some unreachable code to become
-        // reachable from the code gen's point of view, so we analyze the unreachable code too.
-        protected override LocalState UnreachableState()
-        {
-            return this.State;
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
-        {
-            CaptureVariable(GetNonFieldSymbol(unassignedSlot), node);
         }
 
         protected override void VisitLvalueParameter(BoundParameter node)

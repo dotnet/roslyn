@@ -7,7 +7,7 @@
     <SharedGUID>c1930979-c824-496b-a630-70f5369a636f</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>SharedCollections</Import_RootNamespace>
+    <Import_RootNamespace>Microsoft.CodeAnalysis.PooledObjects</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.cs" />
@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledStopwatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledStringBuilder.cs" />
   </ItemGroup>
 </Project>

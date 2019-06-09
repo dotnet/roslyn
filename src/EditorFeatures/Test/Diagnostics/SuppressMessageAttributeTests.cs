@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
         protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     actualDiagnostics.AddRange(
-                        await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
+                        await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span, onAnalyzerException));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);

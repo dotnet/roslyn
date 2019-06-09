@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Host
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTask((t, c) => _queue.ScheduleTask(t, c), taskName, taskFunc, cancellationToken);
             }

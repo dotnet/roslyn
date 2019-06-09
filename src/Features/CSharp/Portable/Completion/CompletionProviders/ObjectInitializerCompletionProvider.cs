@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // class c : IEnumerable<int> 
             // { 
             // public void Add(int addend) { }
-            // public int foo; 
+            // public int goo; 
             // }
 
-            // void foo()
+            // void goo()
             // {
             //    var b = new c {|
             // }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            // new Foo { bar = $$
+            // new Goo { bar = $$
             if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
             {
                 var objectCreation = token.Parent.Parent as ObjectCreationExpressionSyntax;
@@ -125,17 +125,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var ctor = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).Symbol;
-                var type = ctor != null ? ctor.ContainingType : null;
+                var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
+                if (type is ITypeParameterSymbol typeParameterSymbol)
+                {
+                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
+                }
 
-                return Tuple.Create<ITypeSymbol, Location>(type, token.GetLocation());
+                return Tuple.Create(type, token.GetLocation());
             }
 
-            // Nested: new Foo { bar = { $$
+            // Nested: new Goo { bar = { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
                 var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
                 return Tuple.Create(expectedType, token.GetLocation());
@@ -154,9 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (token.Parent != null)
                 {
-                    var initializer = token.Parent as InitializerExpressionSyntax;
 
-                    if (initializer != null)
+                    if (token.Parent is InitializerExpressionSyntax initializer)
                     {
                         return new HashSet<string>(initializer.Expressions.OfType<AssignmentExpressionSyntax>()
                             .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
@@ -178,6 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.IsInitializable(member, containingType);
+        }
+
+        protected override string EscapeIdentifier(ISymbol symbol)
+        {
+            return symbol.Name.EscapeIdentifier();
         }
     }
 }

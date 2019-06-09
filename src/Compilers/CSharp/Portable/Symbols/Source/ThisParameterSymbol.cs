@@ -31,19 +31,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SymbolName; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _containingType; }
+            get { return TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated); }
         }
 
         public override RefKind RefKind
         {
             get
             {
-                return
-                    ((object)_containingType == null || _containingType.TypeKind != TypeKind.Struct) ? RefKind.None :
-                    ((object)_containingMethod != null && _containingMethod.MethodKind == MethodKind.Constructor) ? RefKind.Out :
-                    RefKind.Ref;
+                if (ContainingType?.TypeKind != TypeKind.Struct)
+                {
+                    return RefKind.None;
+                }
+
+                if (_containingMethod?.MethodKind == MethodKind.Constructor)
+                {
+                    return RefKind.Out;
+                }
+
+                if (_containingMethod?.IsEffectivelyReadOnly == true)
+                {
+                    return RefKind.In;
+                }
+
+                return RefKind.Ref;
             }
         }
 
@@ -102,14 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
+        }
+
         public override int Ordinal
         {
             get { return -1; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers

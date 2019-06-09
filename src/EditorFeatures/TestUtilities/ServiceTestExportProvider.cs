@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -19,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         public static ComposableCatalog CreateAssemblyCatalog()
         {
-            return MinimalTestExportProvider.CreateAssemblyCatalog(
-                GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies()), MinimalTestExportProvider.CreateResolver());
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct(), ExportProviderCache.CreateResolver())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog());
         }
 
         public static Type[] GetLanguageNeutralTypes()
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Workspaces.NoCompilationContentTypeLanguageService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
-                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
-                typeof(CodeAnalysis.Diagnostics.EngineV2.DiagnosticAnalyzerExecutor)
+                typeof(Implementation.InlineRename.InlineRenameService), // Ensure that EditorFeatures.Wpf is included in the composition
+                typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider)
             };
 
             return MinimalTestExportProvider.GetLanguageNeutralTypes().Concat(types).Distinct().ToArray();

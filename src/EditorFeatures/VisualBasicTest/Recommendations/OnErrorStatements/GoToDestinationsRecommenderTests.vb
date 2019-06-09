@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class GoToDestinationsRecommenderTests
@@ -21,6 +21,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
         Public Async Function AfterExplicitLineContinuationTest() As Task
             Await VerifyRecommendationsAreExactlyAsync(
 <MethodBody>On Error Goto _
+ |</MethodBody>, "0", "-1")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
+<MethodBody>On Error Goto _ ' Test
  |</MethodBody>, "0", "-1")
         End Function
     End Class

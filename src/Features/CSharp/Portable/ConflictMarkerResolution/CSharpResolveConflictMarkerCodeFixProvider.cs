@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
     {
         private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
-        public CSharpResolveConflictMarkerCodeFixProvider() 
+        [ImportingConstructor]
+        public CSharpResolveConflictMarkerCodeFixProvider()
             : base(CS8300)
         {
         }
@@ -24,8 +25,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
-
-        protected override bool IsNewLine(char ch)
-            => SyntaxFacts.IsNewLine(ch);
     }
 }

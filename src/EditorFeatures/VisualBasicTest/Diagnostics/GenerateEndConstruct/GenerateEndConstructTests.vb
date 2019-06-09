@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
@@ -23,86 +23,86 @@ If True Then
 
 End If</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestUsing() As Task
             Dim text = <MethodBody>
-Using (foo)[||]
+Using (goo)[||]
 </MethodBody>
 
             Dim expected = <MethodBody>
-Using (foo)
+Using (goo)
 
 End Using</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestStructure() As Task
             Dim text = <File>
-Structure Foo[||]</File>
+Structure Goo[||]</File>
 
-            Dim expected = StringFromLines("Structure Foo", "End Structure", "")
+            Dim expected = StringFromLines("", "Structure Goo", "End Structure", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestModule() As Task
             Dim text = <File>
-Module Foo[||]
+Module Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Module Foo", "End Module", "")
+            Dim expected = StringFromLines("", "Module Goo", "", "End Module", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNamespace() As Task
             Dim text = <File>
-Namespace Foo[||]
+Namespace Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Namespace Foo", "End Namespace", "")
+            Dim expected = StringFromLines("", "Namespace Goo", "", "End Namespace", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestClass() As Task
             Dim text = <File>
-Class Foo[||]
+Class Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Class Foo", "End Class", "")
+            Dim expected = StringFromLines("", "Class Goo", "", "End Class", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestInterface() As Task
             Dim text = <File>
-Interface Foo[||]
+Interface Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Interface Foo", "End Interface", "")
+            Dim expected = StringFromLines("", "Interface Goo", "", "End Interface", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEnum() As Task
             Dim text = <File>
-Enum Foo[||]
+Enum Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Enum Foo", "End Enum", "")
+            Dim expected = StringFromLines("", "Enum Goo", "", "End Enum", "")
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -115,7 +115,7 @@ While True
 
 End While</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -128,7 +128,7 @@ With True
 
 End With</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -141,7 +141,7 @@ SyncLock Me
 
 End SyncLock</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -154,7 +154,7 @@ Do While True
 
 Loop</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -167,7 +167,7 @@ For x = 1 to 3
 
 Next</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -180,7 +180,7 @@ For Each x in {}
 
 Next</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -193,7 +193,7 @@ Try
 
 End Try</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -208,7 +208,7 @@ Catch
 
 End Try</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -225,7 +225,7 @@ Finally
 
 End Try</MethodBody>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -246,7 +246,7 @@ Class C
     End Property
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -265,7 +265,7 @@ Class C
     End Property
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -284,7 +284,7 @@ Class C
     End Property
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -303,7 +303,7 @@ Class C
     End Property
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -311,7 +311,7 @@ End Class</File>
             Dim text = <File>
 Public Enum e[||]
     e1
-Class Foo
+Class Goo
 End Class</File>
 
             Dim expected = <File>
@@ -319,10 +319,10 @@ Public Enum e
     e1
 End Enum
 
-Class Foo
+Class Goo
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -339,7 +339,7 @@ Class C
     End Sub
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
@@ -356,7 +356,7 @@ Class C
     End Function
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
@@ -388,7 +388,7 @@ Class C
 
 End Class</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
@@ -420,7 +420,7 @@ Module Program
     End Sub
 End Module</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
         <WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
@@ -433,7 +433,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
     End Sub
-    Function foo()
+    Function goo()
         Dim op = Sub[||](c)
                      Dim kl = Sub(g)
                               End Sub 
@@ -464,7 +464,7 @@ Interface I
     End Module
 End Interface</File>
 
-            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
     End Class
 End Namespace

@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
-            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
+            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
                 Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
+                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
                 matchToPrevious = New VisualBasicSymbolMatcher(
                     previousGeneration.AnonymousTypeMap,
@@ -159,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim propertyType = [property].Type
                 If propertyType.TypeKind = TypeKind.TypeParameter Then
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
-                    Debug.Assert(typeParameter.ContainingSymbol = type)
+                    Debug.Assert(TypeSymbol.Equals(DirectCast(typeParameter.ContainingSymbol, TypeSymbol), type, TypeCompareKind.ConsiderEverything))
                     Dim index = typeParameter.Ordinal
                     Debug.Assert(properties(index).Name Is Nothing)
                     ' ReadOnly anonymous type properties were 'Key' properties.

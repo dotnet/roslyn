@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TVariableDeclaratorSyntax : SyntaxNode
     {
         protected abstract bool FadeOutOperatorToken { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
@@ -87,11 +85,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Value;
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
+            var severity = option.Notification.Severity;
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 objectCreationExpression.GetLocation(),
-                additionalLocations: locations));
+                severity,
+                additionalLocations: locations,
+                properties: null));
 
             FadeOutCode(context, optionSet, matches.Value, locations);
         }
@@ -140,6 +140,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

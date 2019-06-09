@@ -94,11 +94,28 @@ Public Class ParseExpressionTest
 
 #Region "Literal Test"
 
-
-    <Fact>
-    Public Sub ParseIntegerLiteralTest()
+    <Fact, Trait("IntegerLiteral_Prefix", "Hex")>
+    Public Sub ParseIntegerLiteralTest_HexPrefix()
         ParseExpression("&H1")
+        ParseExpression("&h1")
+        ParseExpression("&Ｈ1")
+        ParseExpression("&ｈ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Oct")>
+    Public Sub ParseIntegerLiteralTest_OctPrefix()
         ParseExpression("&O1")
+        ParseExpression("&o1")
+        ParseExpression("&Ｏ1")
+        ParseExpression("&ｏ1")
+    End Sub
+
+    <Fact, Trait("IntegerLiteral_Prefix", "Bin")>
+    Public Sub ParseIntegerLiteralTest_BinPrefix()
+        ParseExpression("&B1")
+        ParseExpression("&b1")
+        ParseExpression("&Ｂ1")
+        ParseExpression("&ｂ1")
     End Sub
 
     <Fact>
@@ -445,13 +462,7 @@ ToString]]>.Value)
                     Dim y = New (A As Integer, B$)
                 End Sub
             End Module
-        ]]>,
-<errors>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="87" end="93"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="126" End="132"/>
-    <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="167" End="185"/>
-</errors>
-        )
+        ]]>)
 
         ParseAndVerify(<![CDATA[
             Module Module1
@@ -466,13 +477,8 @@ ToString]]>.Value)
                     Return (New(Integer, Integer)() {(4, 5)}, 5)
                 End Function
             End Module
-        ]]>,
-                       <errors>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="88" end="94"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="128" end="134"/>
-                           <error id="37280" message="'New' cannot be used with tuple type. Use a tuple literal expression instead." start="170" end="188"/>
-                       </errors>
-        )
+        ]]>)
+
     End Sub
 
     <Fact>
@@ -1444,7 +1450,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                     if True
                         dim x=Sub()
 
@@ -1463,7 +1469,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                     if True
                         dim x=Sub()
                             With new Object()
@@ -1484,7 +1490,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                         dim x=Function()
                             With new Object()
                 end Sub
@@ -1502,7 +1508,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                         dim x=Sub() if true then while true : Dim z=Function()
 
                                                               End Function : end while
@@ -1516,7 +1522,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                         dim x=Sub() if true then while true : Dim z=Function()
 
                                                               End Function : end while
@@ -1532,7 +1538,7 @@ Skip 2
         ParseAndVerify(<![CDATA[
             module BBB
 
-                Sub Foo
+                Sub Goo
                         dim x=Sub() if true then while true : Dim z=Function()
                                                                 end while
                                                               End Function : end while
@@ -1566,7 +1572,7 @@ Skip 2
     Public Sub ParseBadlyTerminateLambdaScenario8()
         ParseAndVerify(<![CDATA[
             module BBB
-                friend e = Foo(Function()
+                friend e = Goo(Function()
                                 if true then
                                     dim x=Sub() Call Sub()
                                                     end if
@@ -1599,7 +1605,7 @@ Skip 2
     Public Sub ParseBadlyTerminateLambdaScenario10()
         ParseAndVerify(<![CDATA[
             module BBB
-                Sub Foo()
+                Sub Goo()
                   Dim x  = Function()
                 End Sub
             end module
@@ -1613,7 +1619,7 @@ Skip 2
     <Fact>
     Public Sub ParseBadlyTerminateLambdaScenario11()
         ParseAndVerify(<![CDATA[
-            Module foo    
+            Module goo    
                 sub main     
                     Dim x = function         
                 End sub    
@@ -1630,7 +1636,7 @@ Skip 2
     Public Sub ParseSingleLineLambdaWithSingleLineIf()
         ParseAndVerify(<![CDATA[
             module m1
-                Sub Foo
+                Sub Goo
                         dim x=Sub() if true then console.writeline
                 end sub
             end module
@@ -1641,7 +1647,7 @@ Skip 2
     Public Sub ParseSingleLineLambdaWithMultipleStatements()
         ParseAndVerify(<![CDATA[
             module m1
-                Sub Foo
+                Sub Goo
                         dim x=Sub() console.writeline : console.writeline : end sub
                 end sub
             end module
@@ -1656,7 +1662,7 @@ Skip 2
     Public Sub ParseSingleLineLambdaEndingWithColon()
         ParseAndVerify(<![CDATA[
             module m1
-                Sub Foo
+                Sub Goo
                         dim x=Sub() console.writeline : console() :
                 end sub
             end module
@@ -1671,7 +1677,7 @@ Skip 2
     Public Sub ParseTryCastErrorExpectedRparen()
         ParseAndVerify(<![CDATA[
                 Module Module1
-                  Sub Foo()
+                  Sub Goo()
                    Dim o As Object
                    TryCast(o,Nothing)
                   End Sub
@@ -1719,13 +1725,16 @@ Skip 2
     <WorkItem(887861, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorExpectedExpression30241()
-        ParseAndVerify(<![CDATA[
-                      <myattr2(1, "abc", prop:=42,true)> Class Scen15
-                      End Class
-            ]]>,
-            <errors>
-                <error id="30241"/>
-            </errors>)
+        Dim tree = Parse(<![CDATA[
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+                            ~
+                                    ]]></errors>)
     End Sub
 
     <WorkItem(887741, "DevDiv/Personal")>
@@ -1733,7 +1742,7 @@ Skip 2
     Public Sub ParseMoreErrorExpectedExpression()
         ParseAndVerify(<![CDATA[
                      Module Module1
-                        Sub Foo()
+                        Sub Goo()
                          Dim c = <></>
                         End Sub
                      End Module
@@ -1807,14 +1816,14 @@ class C1
     Public Sub ParseMethodInvocationWithMissingParens()
         ParseAndVerify(<![CDATA[
 class C1
-sub foo
-foo
+sub goo
+goo
 end sub
 End Class
 
 class c2
-sub foo
-foo 'comment
+sub goo
+goo 'comment
 end sub
 end class
 
@@ -1836,11 +1845,11 @@ end class
            Friend Module RegressDDB17220
     Sub RegressDDB17220()
 
-        Dim y = New With {Foo()}
+        Dim y = New With {Goo()}
 
     End Sub
 
-    Function foo() As String
+    Function goo() As String
         Return Nothing
     End Function
 End Module
@@ -1986,7 +1995,7 @@ Module Module1
     Sub Main()
         Dim x(9) As Integer
         x(0) = 1 : x(1) = 2 : x(2) = 3 : x(3) = 4 : x(4) = 5 : x(5) = 6 : x(6) = 7 : x(7) = 8 : x(8) = 9 : x(9) = 10
-        Dim q1 = Aggregate i In x Into foo = Sum(i)
+        Dim q1 = Aggregate i In x Into goo = Sum(i)
     End Sub
 End Module
             ]]>.Value

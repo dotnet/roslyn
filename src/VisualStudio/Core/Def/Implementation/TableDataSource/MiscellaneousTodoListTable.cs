@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         // only for test
-        public MiscellaneousTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
+        public MiscellaneousTodoListTable(Microsoft.CodeAnalysis.Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
             base(workspace, todoListProvider, IdentifierString, provider)
         {
         }

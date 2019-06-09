@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             MemberAccessExpressionSyntax,
             AssignmentStatementSyntax,
             VariableDeclaratorSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetNewStatement(
                 statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
@@ -66,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 Dim initializer = SyntaxFactory.NamedFieldInitializer(
                     keyKeyword:=Nothing,
                     dotToken:=match.MemberAccessExpression.OperatorToken,
-                    name:=DirectCast(match.MemberAccessExpression.Name, IdentifierNameSyntax),
+                    name:=SyntaxFactory.IdentifierName(match.MemberName),
                     equalsToken:=match.Statement.OperatorToken,
                     expression:=rightValue).WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
 

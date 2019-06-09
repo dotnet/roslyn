@@ -1,12 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBCollectionInitializerTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CollectionInitializerAsCollTypeEquals()
             Dim source =
 <compilation>
@@ -26,10 +27,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -39,9 +43,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29"/>
-                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="91"/>
-                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="91" document="1"/>
+                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2c">
                 <namespace name="System" importlevel="file"/>
@@ -54,7 +58,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CollectionInitializerAsNewCollType()
             Dim source =
 <compilation>
@@ -74,10 +78,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -87,9 +94,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29"/>
-                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="73"/>
-                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="73" document="1"/>
+                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2c">
                 <namespace name="System" importlevel="file"/>
@@ -102,7 +109,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CollectionInitializerNested()
             Dim source =
 <compilation>
@@ -122,9 +129,12 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -134,9 +144,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29"/>
-                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="107"/>
-                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="107" document="1"/>
+                <entry offset="0x2b" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2c">
                 <namespace name="System" importlevel="file"/>
@@ -149,7 +159,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CollectionInitializerAsNewCollTypeMultipleVariables()
             Dim source =
 <compilation>
@@ -169,9 +179,12 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -182,10 +195,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29"/>
-                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="19"/>
-                <entry offset="0x2b" startLine="10" startColumn="21" endLine="10" endColumn="27"/>
-                <entry offset="0x55" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="10" startColumn="13" endLine="10" endColumn="19" document="1"/>
+                <entry offset="0x2b" startLine="10" startColumn="21" endLine="10" endColumn="27" document="1"/>
+                <entry offset="0x55" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x56">
                 <namespace name="System" importlevel="file"/>

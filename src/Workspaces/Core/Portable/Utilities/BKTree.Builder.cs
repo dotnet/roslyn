@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
 
             // Instead of producing a char[] for each string we're building a node for, we instead 
             // have one long char[] with all the chracters of each string concatenated.  i.e.
-            // "foo" "bar" and "baz" becomes { f, o, o, b, a, r, b, a, z }.  Then in _wordSpans
+            // "goo" "bar" and "baz" becomes { f, o, o, b, a, r, b, a, z }.  Then in _wordSpans
             // we have the text spans for each of those words in this array.  This gives us only
             // two allocations instead of as many allocations as the number of strings we have.
             //
@@ -192,8 +192,8 @@ namespace Roslyn.Utilities
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
                     var editDistance = EditDistance.GetEditDistance(
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, currentNode.CharacterSpan),
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan));
+                        _concatenatedLowerCaseWords.AsSpan(currentNode.CharacterSpan.Start, currentNode.CharacterSpan.Length),
+                        _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length));
 
                     if (editDistance == 0)
                     {

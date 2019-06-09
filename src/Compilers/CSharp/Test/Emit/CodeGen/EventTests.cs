@@ -613,7 +613,7 @@ class D : C
 ";
 
             var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateStandardCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise
@@ -638,7 +638,7 @@ D Raise
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
@@ -656,7 +656,7 @@ class C
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,21): warning CS0067: The event 'C.e' is never used
                 //     public event E1 e;
@@ -699,7 +699,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -771,7 +771,7 @@ struct C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -834,7 +834,7 @@ class C
         remove => x = 0;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.E.add", @"
 {

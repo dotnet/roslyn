@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
@@ -27,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me._testState = testState
         End Sub
 
-        Public Sub PresentItems(triggerSpan As ITrackingSpan,
+        Public Sub PresentItems(textSnapshot As ITextSnapshot,
+                                triggerSpan As ITrackingSpan,
                                 completionItems As IList(Of CompletionItem),
                                 selectedItem As CompletionItem,
                                 suggestionModeItem As CompletionItem,

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeAnalysisResources {
@@ -58,6 +58,24 @@ namespace Microsoft.CodeAnalysis {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A language name cannot be specified for this option..
+        /// </summary>
+        internal static string A_language_name_cannot_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_cannot_be_specified_for_this_option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A language name must be specified for this option..
+        /// </summary>
+        internal static string A_language_name_must_be_specified_for_this_option {
+            get {
+                return ResourceManager.GetString("A_language_name_must_be_specified_for_this_option", resourceCulture);
             }
         }
         
@@ -270,6 +288,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot target net module when emitting ref assembly..
+        /// </summary>
+        internal static string CannotTargetNetModuleWhenEmittingRefAssembly {
+            get {
+                return ResourceManager.GetString("CannotTargetNetModuleWhenEmittingRefAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a module reference to an assembly..
         /// </summary>
         internal static string CantCreateModuleReferenceToAssembly {
@@ -297,11 +324,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The changes must be ordered and not overlapping..
+        ///   Looks up a localized string similar to The changes must not overlap..
         /// </summary>
-        internal static string ChangesMustBeOrderedAndNotOverlapping {
+        internal static string ChangesMustNotOverlap {
             get {
-                return ResourceManager.GetString("ChangesMustBeOrderedAndNotOverlapping", resourceCulture);
+                return ResourceManager.GetString("ChangesMustNotOverlap", resourceCulture);
             }
         }
         
@@ -451,11 +478,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Embedded texts are only supported when emitting Portable PDB..
+        ///   Looks up a localized string similar to Embedded texts are only supported when emitting a PDB..
         /// </summary>
-        internal static string EmbeddedTextsRequirePortablePdb {
+        internal static string EmbeddedTextsRequirePdb {
             get {
-                return ResourceManager.GetString("EmbeddedTextsRequirePortablePdb", resourceCulture);
+                return ResourceManager.GetString("EmbeddedTextsRequirePdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embedding PDB is not allowed when emitting metadata..
+        /// </summary>
+        internal static string EmbeddingPdbUnexpectedWhenEmittingMetadata {
+            get {
+                return ResourceManager.GetString("EmbeddingPdbUnexpectedWhenEmittingMetadata", resourceCulture);
             }
         }
         
@@ -524,6 +560,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Could not enable multicore JIT due to exception: {0}..
+        /// </summary>
+        internal static string ExceptionEnablingMulticoreJit {
+            get {
+                return ResourceManager.GetString("ExceptionEnablingMulticoreJit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected non-empty public key.
         /// </summary>
         internal static string ExpectedNonEmptyPublicKey {
@@ -583,6 +628,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string IconStreamUnexpectedFormat {
             get {
                 return ResourceManager.GetString("IconStreamUnexpectedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Including private members should not be used when emitting to the secondary assembly output..
+        /// </summary>
+        internal static string IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream {
+            get {
+                return ResourceManager.GetString("IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream", resourceCulture);
             }
         }
         
@@ -722,6 +776,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
+        /// </summary>
+        internal static string InvalidDiagnosticSpanReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticSpanReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -745,6 +808,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InvalidNodeToTrack {
             get {
                 return ResourceManager.GetString("InvalidNodeToTrack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation block does not belong to the current analysis context..
+        /// </summary>
+        internal static string InvalidOperationBlockForAnalysisContext {
+            get {
+                return ResourceManager.GetString("InvalidOperationBlockForAnalysisContext", resourceCulture);
             }
         }
         
@@ -803,11 +875,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;IOperation&apos; is disabled..
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be an &apos;INamedTypeSymbol&apos; or an &apos;IAssemblySymbol&apos;..
         /// </summary>
-        internal static string IOperationFeatureDisabled {
+        internal static string IsSymbolAccessibleBadWithin {
             get {
-                return ResourceManager.GetString("IOperationFeatureDisabled", resourceCulture);
+                return ResourceManager.GetString("IsSymbolAccessibleBadWithin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; must be a symbol from this compilation or some referenced assembly..
+        /// </summary>
+        internal static string IsSymbolAccessibleWrongAssembly {
+            get {
+                return ResourceManager.GetString("IsSymbolAccessibleWrongAssembly", resourceCulture);
             }
         }
         
@@ -839,11 +920,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
+        ///   Looks up a localized string similar to Metadata PE stream should not be given when emitting metadata only..
         /// </summary>
-        internal static string KeyInPathMapEndsWithSeparator {
+        internal static string MetadataPeStreamUnexpectedWhenEmittingMetadataOnly {
             get {
-                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
+                return ResourceManager.GetString("MetadataPeStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
             }
         }
         
@@ -920,6 +1001,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Must include private members unless emitting a ref assembly..
+        /// </summary>
+        internal static string MustIncludePrivateMembersUnlessRefAssembly {
+            get {
+                return ResourceManager.GetString("MustIncludePrivateMembersUnlessRefAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name cannot be empty..
         /// </summary>
         internal static string NameCannotBeEmpty {
@@ -974,11 +1064,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given operation has a non-null parent..
+        /// </summary>
+        internal static string NotARootOperation {
+            get {
+                return ResourceManager.GetString("NotARootOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A value in the pathMap is null..
         /// </summary>
         internal static string NullValueInPathMap {
             get {
                 return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Given operation has a null semantic model..
+        /// </summary>
+        internal static string OperationHasNullSemanticModel {
+            get {
+                return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided operation must not be part of a Control Flow Graph..
+        /// </summary>
+        internal static string OperationMustNotBeControlFlowGraphPart {
+            get {
+                return ResourceManager.GetString("OperationMustNotBeControlFlowGraphPart", resourceCulture);
             }
         }
         
@@ -1024,6 +1141,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string PdbStreamUnexpectedWhenEmbedding {
             get {
                 return ResourceManager.GetString("PdbStreamUnexpectedWhenEmbedding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDB stream should not be given when emitting metadata only..
+        /// </summary>
+        internal static string PdbStreamUnexpectedWhenEmittingMetadataOnly {
+            get {
+                return ResourceManager.GetString("PdbStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
             }
         }
         
@@ -1190,15 +1316,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source Link embedding is only supported when emitting Portable PDB..
-        /// </summary>
-        internal static string SourceLinkRequiresPortablePdb {
-            get {
-                return ResourceManager.GetString("SourceLinkRequiresPortablePdb", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction..
         /// </summary>
         internal static string SourceTextCannotBeEmbedded {
@@ -1289,20 +1406,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; contains a null descriptor in its &apos;SupportedDiagnostics&apos;..
         /// </summary>
-        internal static string SymWriterNotAvailable {
+        internal static string SupportedDiagnosticsHasNullDescriptor {
             get {
-                return ResourceManager.GetString("SymWriterNotAvailable", resourceCulture);
+                return ResourceManager.GetString("SupportedDiagnosticsHasNullDescriptor", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support SourceLink feature: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SymWriterDoesNotSupportSourceLink {
+            get {
+                return ResourceManager.GetString("SymWriterDoesNotSupportSourceLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterNotDeterministic {
             get {
                 return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The version of Windows PDB writer is older than required: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SymWriterOlderVersionThanRequired {
+            get {
+                return ResourceManager.GetString("SymWriterOlderVersionThanRequired", resourceCulture);
             }
         }
         
@@ -1474,6 +1609,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string WinRTIdentityCantBeRetargetable {
             get {
                 return ResourceManager.GetString("WinRTIdentityCantBeRetargetable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid severity in analyzer config file..
+        /// </summary>
+        internal static string WRN_InvalidSeverityInAnalyzerConfig_Title {
+            get {
+                return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture);
             }
         }
         

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (analyzer is DocumentDiagnosticAnalyzer)
             {
-                category |= DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+                category |= DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
             }
             else if (analyzer is ProjectDiagnosticAnalyzer)
             {
@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-                if (builtInAnalyzer != null)
+                if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
                 {
                     category = builtInAnalyzer.GetAnalyzerCategory();
                 }
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // It is not possible to know the categorization for a public analyzer,
                     // so return a worst-case categorization.
-                    category = (DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
+                    category = (DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
                 }
             }
 
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool SupportsSyntaxDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
         {
             var category = analyzer.GetDiagnosticAnalyzerCategory();
-            return (category & DiagnosticAnalyzerCategory.SyntaxAnalysis) != 0;
+            return (category & DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis) != 0;
         }
 
         public static bool SupportsSemanticDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)

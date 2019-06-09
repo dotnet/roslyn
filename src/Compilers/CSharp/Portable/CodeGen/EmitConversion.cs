@@ -21,21 +21,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
                     return;
-                case ConversionKind.IdentityValue:
-                    EmitExpressionCore(conversion.Operand, used);
-                    return;
             }
+
+            var operand = conversion.Operand;
 
             if (!used && !conversion.ConversionHasSideEffects())
             {
-                EmitExpression(conversion.Operand, false); // just do expr side effects
+                EmitExpression(operand, false); // just do expr side effects
                 return;
             }
 
-            EmitExpression(conversion.Operand, true);
+            EmitExpression(operand, true);
             EmitConversion(conversion);
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitReadOnlySpanFromArrayExpression(BoundReadOnlySpanFromArray expression, bool used)
+        {
+            BoundExpression operand = expression.Operand;
+            var typeTo = (NamedTypeSymbol)expression.Type;
+
+            Debug.Assert((operand.Type.IsArray()) &&
+                         this._module.Compilation.IsReadOnlySpanType(typeTo),
+                         "only special kinds of conversions involving ReadOnlySpan may be handled in emit");
+
+            if (!TryEmitReadonlySpanAsBlobWrapper(typeTo, operand, used, inPlace: false))
+            {
+                // there are several reasons that could prevent us from emitting a wrapper
+                // in such case we just emit the operand and then invoke the conversion method 
+                EmitExpression(operand, used);
+                if (used)
+                {
+                    // consumes 1 argument (array) and produces one result (span)
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                    EmitSymbolToken(expression.ConversionMethod, expression.Syntax, optArgList: null);
+                }
+            }
         }
 
         private void EmitConversion(BoundConversion conversion)
@@ -51,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
-                    // from IL prospective ImplicitReference and Boxing conversions are the same thing.
+                    // from IL perspective ImplicitReference and Boxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then assume that result has the target type - which may involve unboxing.
                     EmitImplicitReferenceConversion(conversion);
                     break;
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
-                    // from IL prospective ExplicitReference and UnBoxing conversions are the same thing.
+                    // from IL perspective ExplicitReference and UnBoxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then reinterpret result as the target type - which may involve unboxing.
                     EmitExplicitReferenceConversion(conversion);
@@ -110,6 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #endif
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+                    break;
+                case ConversionKind.PinnedObjectToPointer:
+                    // CLR allows unsafe conversion from(O) to native int/uint.
+                    // The conversion does not change the representation of the value, 
+                    // but the value will not be reported to subsequent GC operations (and therefore will not be updated by such operations)
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
                     break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
@@ -177,10 +205,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             // if target type is verifiably a reference type, we can leave the value as-is otherwise
             // we need to unbox to targetType to keep verifier happy.
-            if (!conversion.Type.IsVerifierReference())
+            var resultType = conversion.Type;
+            if (!resultType.IsVerifierReference())
             {
                 _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
+            }
+            else if (resultType.IsArray())
+            {
+                // need a static cast here to satisfy verifier
+                // Example: Derived[] can be used in place of Base[] for all purposes except for LDELEMA <Base> 
+                //          Even though it would be safe due to run time check, verifier requires that the static type of the array is Base[]
+                //          We do not know why we are casting, so to be safe, lets make the cast explicit. JIT elides such casts.
+                EmitStaticCast(conversion.Type, conversion.Syntax);
             }
 
             return;

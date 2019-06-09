@@ -231,8 +231,8 @@
   <data name="Could_not_find_location_of_folder_on_disk" xml:space="preserve">
     <value>Could not find location of folder on disk</value>
   </data>
-  <data name="Error_while_reading_0_colon_1" xml:space="preserve">
-    <value>Error while reading '{0}': {1}</value>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error while reading file '{0}': {1}</value>
   </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
@@ -345,6 +345,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Add_to_existing_file" xml:space="preserve">
     <value>Add to _existing file</value>
   </data>
+  <data name="Add_to_current_file" xml:space="preserve">
+    <value>Add to _current file</value>
+  </data>
   <data name="Change_Signature" xml:space="preserve">
     <value>Change Signature</value>
   </data>
@@ -365,6 +368,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Location_colon" xml:space="preserve">
     <value>Location:</value>
+  </data>
+  <data name="Select_destination" xml:space="preserve">
+    <value>Select destination</value>
   </data>
   <data name="Modifier" xml:space="preserve">
     <value>Modifier</value>
@@ -500,6 +506,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
+  </data>
+  <data name="This_workspace_does_not_support_updating_Visual_Basic_compilation_options" xml:space="preserve">
+    <value>This workspace does not support updating Visual Basic compilation options.</value>
   </data>
   <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
     <value>This workspace does not support updating Visual Basic parse options.</value>
@@ -654,7 +663,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 2. Open a Visual Studio Developer Command Prompt
 3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
 4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment varaible (devenv)
+5. Restart VS from the command prompt you set the environment variable (devenv)
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
@@ -780,8 +789,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>
@@ -876,6 +885,9 @@ Additional information: {1}</value>
   <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
     <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
   </data>
+  <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
+    <value>Prefer auto properties</value>
+  </data>
   <data name="Add_a_symbol_specification" xml:space="preserve">
     <value>Add a symbol specification</value>
   </data>
@@ -900,16 +912,314 @@ Additional information: {1}</value>
   <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
     <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
   </data>
-  <data name="prefer_auto_properties" xml:space="preserve">
+  <data name="codegen_prefer_auto_properties" xml:space="preserve">
     <value>prefer auto properties</value>
   </data>
   <data name="prefer_throwing_properties" xml:space="preserve">
     <value>prefer throwing properties</value>
   </data>
-    <data name="When_generating_properties" xml:space="preserve">
+  <data name="When_generating_properties" xml:space="preserve">
     <value>When generating properties:</value>
-    </data>
+  </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
+  </data>
+  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
+    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  </data>
+  <data name="Never_show_this_again" xml:space="preserve">
+    <value>Never show this again</value>
+  </data>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
+  </data>
+  <data name="Prefer_inferred_tuple_names" xml:space="preserve">
+    <value>Prefer inferred tuple element names</value>
+  </data>
+  <data name="Prefer_inferred_anonymous_type_member_names" xml:space="preserve">
+    <value>Prefer inferred anonymous type member names</value>
+  </data>
+  <data name="Preview_pane" xml:space="preserve">
+    <value>Preview pane</value>
+  </data>
+  <data name="Analysis" xml:space="preserve">
+    <value>Analysis</value>
+  </data>
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
+    <value>Enable full solution _analysis</value>
+  </data>
+  <data name="Fade_out_unreachable_code" xml:space="preserve">
+    <value>Fade out unreachable code</value>
+  </data>
+  <data name="Fading" xml:space="preserve">
+    <value>Fading</value>
+  </data>
+  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
+    <value>Changes are not allowed if the assembly has not been loaded.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
+
+'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
+  </data>
+  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
+    <value>Changes are not allowed while code is running.</value>
+  </data>
+  <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
+    <value>Prefer local function over anonymous function</value>
+  </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
+  <data name="ModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Module has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesUnexpectedError" xml:space="preserve">
+    <value>Can't apply changes -- unexpected error: '{0}'</value>
+  </data>
+  <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
+    <value>Prefer deconstructed variable declaration</value>
+  </data>
+  <data name="External_reference_found" xml:space="preserve">
+    <value>External reference found</value>
+  </data>
+  <data name="No_references_found_to_0" xml:space="preserve">
+    <value>No references found to '{0}'</value>
+  </data>
+  <data name="Search_found_no_results" xml:space="preserve">
+    <value>Search found no results</value>
+  </data>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
+  </data>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
+  </data>
+  <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
+    <value>Enable navigation to decompiled sources (experimental)</value>
+  </data>
+  <data name="Decompiler_Legal_Notice_Message" xml:space="preserve">
+    <value>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+ 
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
+ 
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+
+I agree to all of the foregoing:</value>
+  </data>
+  <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
+    <value>Decompiler Legal Notice</value>
+  </data>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
+  </data>
+  <data name="Code_style_header_use_editor_config" xml:space="preserve">
+    <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
+  </data>
+  <data name="Modifier_preferences_colon" xml:space="preserve">
+    <value>Modifier preferences:</value>
+  </data>
+  <data name="Prefer_readonly_fields" xml:space="preserve">
+    <value>Prefer readonly fields</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Live_analysis" xml:space="preserve">
+    <value>Live analysis</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Prefer_compound_assignments" xml:space="preserve">
+    <value>Prefer compound assignments</value>
+  </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
+  </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Avoid_expression_statements_that_implicitly_ignore_value" xml:space="preserve">
+    <value>Avoid expression statements that implicitly ignore value</value>
+  </data>
+  <data name="Avoid_unused_parameters" xml:space="preserve">
+    <value>Avoid unused parameters</value>
+  </data>
+  <data name="Avoid_unused_value_assignments" xml:space="preserve">
+    <value>Avoid unused value assignments</value>
+  </data>
+  <data name="Parameter_preferences_colon" xml:space="preserve">
+    <value>Parameter preferences:</value>
+  </data>
+  <data name="Non_public_methods" xml:space="preserve">
+    <value>Non-public methods</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_an_unused_local" xml:space="preserve">
+    <value>Unused value is explicitly assigned to an unused local</value>
+  </data>
+  <data name="Unused_value_is_explicitly_assigned_to_discard" xml:space="preserve">
+    <value>Unused value is explicitly assigned to discard</value>
+  </data>
+  <data name="Value_assigned_here_is_never_used" xml:space="preserve">
+    <value>Value assigned here is never used</value>
+  </data>
+  <data name="Value_returned_by_invocation_is_implicitly_ignored" xml:space="preserve">
+    <value>Value returned by invocation is implicitly ignored</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Interface_cannot_have_field" xml:space="preserve">
+    <value>Interface cannot have field.</value>
+  </data>
+  <data name="Make_abstract" xml:space="preserve">
+    <value>Make abstract</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Namespace_0" xml:space="preserve">
+    <value>Namespace: '{0}'</value>
+  </data>
+  <data name="Pull_Members_Up" xml:space="preserve">
+    <value>Pull Members Up</value>
+  </data>
+  <data name="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below" xml:space="preserve">
+    <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
+  </data>
+  <data name="Select_Dependents" xml:space="preserve">
+    <value>Select _Dependents</value>
+  </data>
+  <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
+    <value>Select destination and members to pull up.</value>
+  </data>
+  <data name="Select_members_colon" xml:space="preserve">
+    <value>Select members:</value>
+  </data>
+  <data name="Select_Public" xml:space="preserve">
+    <value>Select _Public</value>
+  </data>
+  <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
+    <value>'{0}' will be changed to abstract.</value>
+  </data>
+  <data name="_0_will_be_changed_to_non_static" xml:space="preserve">
+    <value>'{0}' will be changed to non-static.</value>
+  </data>
+  <data name="_0_will_be_changed_to_public" xml:space="preserve">
+    <value>'{0}' will be changed to public.</value>
+  </data>
+  <data name="Calculating_dependents" xml:space="preserve">
+    <value>Calculating dependents...</value>
+  </data>
+  <data name="Select_destination_colon" xml:space="preserve">
+    <value>Select destination:</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Allow_colon" xml:space="preserve">
+    <value>Allow:</value>
+  </data>
+  <data name="Make_0_abstract" xml:space="preserve">
+    <value>Make '{0}' abstract</value>
+  </data>
+  <data name="Review_Changes" xml:space="preserve">
+    <value>Review Changes</value>
+  </data>
+  <data name="Select_member" xml:space="preserve">
+    <value>Select member</value>
+  </data>
+  <data name="Classifications" xml:space="preserve">
+    <value>Classifications</value>
+  </data>
+  <data name="Prefer_static_local_functions" xml:space="preserve">
+    <value>Prefer static local functions</value>
+  </data>
+  <data name="Prefer_simple_using_statement" xml:space="preserve">
+    <value>Prefer simple 'using' statement</value>
+  </data>
+  <data name="Show_completion_list" xml:space="preserve">
+    <value>Show completion list</value>
+  </data>
+  <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
+    <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
+    <value>Enable nullable reference analysis IDE features</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to Namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="Target_Namespace_colon" xml:space="preserve">
+    <value>Target Namespace:</value>
+  </data>
+  <data name="This_is_an_invalid_namespace" xml:space="preserve">
+    <value>This is an invalid namespace</value>
+  </data>
+  <data name="A_new_namespace_will_be_created" xml:space="preserve">
+    <value>A new namespace will be created</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
   </data>
 </root>

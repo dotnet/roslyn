@@ -225,9 +225,6 @@
   <data name="NullValueInPathMap" xml:space="preserve">
     <value>A value in the pathMap is null.</value>
   </data>
-  <data name="KeyInPathMapEndsWithSeparator" xml:space="preserve">
-    <value>A key in the pathMap ends with a path separator.</value>
-  </data>
   <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
     <value>Compilation options must not have errors.</value>
   </data>
@@ -330,6 +327,24 @@
   <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
     <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
   </data>
+  <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>PDB stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>Metadata PE stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
+    <value>Including private members should not be used when emitting to the secondary assembly output.</value>
+  </data>
+  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
+    <value>Must include private members unless emitting a ref assembly.</value>
+  </data>
+  <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
+    <value>Embedding PDB is not allowed when emitting metadata.</value>
+  </data>
+  <data name="CannotTargetNetModuleWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Cannot target net module when emitting ref assembly.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>
@@ -398,8 +413,8 @@
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
   </data>
-  <data name="ChangesMustBeOrderedAndNotOverlapping" xml:space="preserve">
-    <value>The changes must be ordered and not overlapping.</value>
+  <data name="ChangesMustNotOverlap" xml:space="preserve">
+    <value>The changes must not overlap.</value>
   </data>
   <data name="DiagnosticIdCantBeNullOrWhitespace" xml:space="preserve">
     <value>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</value>
@@ -434,6 +449,9 @@
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
+  <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
@@ -465,10 +483,13 @@
     <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
   <data name="SymWriterNotDeterministic" xml:space="preserve">
-    <value>Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+    <value>Windows PDB writer doesn't support deterministic compilation: '{0}'</value>
   </data>
-  <data name="SymWriterNotAvailable" xml:space="preserve">
-    <value>Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+  <data name="SymWriterOlderVersionThanRequired" xml:space="preserve">
+    <value>The version of Windows PDB writer is older than required: '{0}'</value>
+  </data>
+  <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
+    <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
   </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
@@ -558,12 +579,6 @@
   <data name="TupleUnderlyingTypeMustBeTupleCompatible" xml:space="preserve">
     <value>The underlying type for a tuple must be tuple-compatible.</value>
   </data>
-  <data name="IOperationFeatureDisabled" xml:space="preserve">
-    <value>Feature 'IOperation' is disabled.</value>
-  </data>
-  <data name="SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>Source Link embedding is only supported when emitting Portable PDB.</value>
-  </data>
   <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
     <value>Unrecognized resource file format.</value>
   </data>
@@ -573,8 +588,8 @@
   <data name="StreamIsTooLong" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
-  <data name="EmbeddedTextsRequirePortablePdb" xml:space="preserve">
-    <value>Embedded texts are only supported when emitting Portable PDB.</value>
+  <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
+    <value>Embedded texts are only supported when emitting a PDB.</value>
   </data>
   <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
     <value>The stream cannot be written to.</value>
@@ -593,5 +608,41 @@
   </data>
   <data name="Stream_contains_invalid_data" xml:space="preserve">
     <value>Stream contains invalid data</value>
+  </data>
+  <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
+  </data>
+  <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
+    <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
+  </data>
+  <data name="NotARootOperation" xml:space="preserve">
+    <value>Given operation has a non-null parent.</value>
+  </data>
+  <data name="OperationHasNullSemanticModel" xml:space="preserve">
+    <value>Given operation has a null semantic model.</value>
+  </data>
+  <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
+    <value>Given operation block does not belong to the current analysis context.</value>
+  </data>
+  <data name="IsSymbolAccessibleBadWithin" xml:space="preserve">
+    <value>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</value>
+  </data>
+  <data name="IsSymbolAccessibleWrongAssembly" xml:space="preserve">
+    <value>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</value>
+  </data>
+  <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
+    <value>The provided operation must not be part of a Control Flow Graph.</value>
+  </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
+    <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>
+  </data>
+  <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
+    <value>Invalid severity in analyzer config file.</value>
   </data>
 </root>

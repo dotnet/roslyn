@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,8 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     internal class HACK_CSharpCreateServicesOnUIThread : HACK_AbstractCreateServicesOnUiThread
     {
         [ImportingConstructor]
-        public HACK_CSharpCreateServicesOnUIThread([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(serviceProvider, LanguageNames.CSharp)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public HACK_CSharpCreateServicesOnUIThread(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : base(threadingContext, serviceProvider, LanguageNames.CSharp)
         {
         }
     }

@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Const s_CHARPROP_LENGTH = &H180
 
         ' Maximum length of a token to scan
-        Friend Const MAXTOKENSIZE = 42
+        Friend Const MAX_CACHED_TOKENSIZE = 42
 
         Shared Sub New()
             Debug.Assert(s_charProperties.Length = s_CHARPROP_LENGTH)
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim index = _lineBufferOffset And s_PAGE_MASK
             Dim qtStart = index
 
-            Dim limit = index + Math.Min(MAXTOKENSIZE, _bufferLen - offset)
+            Dim limit = index + Math.Min(MAX_CACHED_TOKENSIZE, _bufferLen - offset)
             limit = Math.Min(limit, pageArr.Length)
 
             Dim hashCode As Integer = Hash.FnvOffsetBias

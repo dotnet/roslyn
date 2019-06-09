@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
+        [ImportingConstructor]
+        public VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
+        {
+        }
+
         public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
         {
             if (projectId == null)
@@ -43,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _assemblyIdentity = assemblyIdentity;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Microsoft.CodeAnalysis.Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var visualStudioWorkspace = (VisualStudioWorkspaceImpl)workspace;
                 if (!visualStudioWorkspace.TryAddReferenceToProject(_projectId, "*" + _assemblyIdentity.GetDisplayName()))
@@ -52,9 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // We'll pop up the Add Reference dialog to let the user figure this out themselves.
                     // This is the same approach done in CVBErrorFixApply::ApplyAddMetaReferenceFix
 
-                    var uiHierarchy = visualStudioWorkspace.GetHierarchy(_projectId) as IVsUIHierarchy;
 
-                    if (uiHierarchy != null)
+                    if (visualStudioWorkspace.GetHierarchy(_projectId) is IVsUIHierarchy uiHierarchy)
                     {
                         var command = new OLECMD[1];
                         command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;

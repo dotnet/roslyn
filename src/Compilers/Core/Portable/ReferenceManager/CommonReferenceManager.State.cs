@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
             int referencedModuleCount,
-            int explicitlyReferencedAsemblyCount,
+            int explicitlyReferencedAssemblyCount,
             IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                     // the item in the list is the highest version, by construction
                     for (int i = 1; i < assemblyReference.Value.Count; i++)
                     {
-                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
+                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAssemblyCount);
                         aliasesOfReferencedAssembliesBuilder[assemblyIndex] = s_supersededAlias;
                     }
                 }
@@ -631,7 +632,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies()
         {
-            return ReferencedAssembliesMap.Select(ra => KeyValuePair.Create(ra.Key, (IAssemblySymbol)ReferencedAssemblies[ra.Value]));
+            return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbol)ReferencedAssemblies[ra.Value]));
         }
 
         internal TAssemblySymbol GetReferencedAssemblySymbol(MetadataReference reference)
@@ -680,7 +681,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (PortableExecutableReference reference in ImplicitReferences)
             {
-                yield return KeyValuePair.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
+                yield return KeyValuePairUtil.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
             }
         }
 

@@ -98,6 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     result = this.ParseLoadDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
                     break;
 
+                case SyntaxKind.NullableKeyword:
+                    result = this.ParseNullableDirective(hash, this.EatContextualToken(contextualKind), isActive);
+                    break;
+
                 default:
                     if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
                     {
@@ -258,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Resulting span: [first non-whitespace char, EOD)
         /// 
         /// Examples (pipes indicate span):
-        /// #error |foo|
-        /// #error  |foo|
-        /// #error |foo |
-        /// #error |foo baz|
-        /// #error |//foo|
-        /// #error |/*foo*/|
-        /// #error |/*foo|
+        /// #error |goo|
+        /// #error  |goo|
+        /// #error |goo |
+        /// #error |goo baz|
+        /// #error |//goo|
+        /// #error |/*goo*/|
+        /// #error |/*goo|
         /// </summary>
         /// <param name="hash">The '#' token.</param>
         /// <param name="keyword">The 'error' or 'warning' token.</param>
@@ -316,8 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
                             this.Options.SpecifiedLanguageVersion.ToDisplayString());
                     }
@@ -424,73 +427,118 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.LoadDirectiveTrivia(hash, keyword, file, end, isActive);
         }
 
+        private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
+        {
+            if (isActive)
+            {
+                token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            }
+
+            SyntaxToken setting;
+
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.DisableKeyword:
+                case SyntaxKind.RestoreKeyword:
+                    setting = EatToken();
+                    break;
+
+                default:
+                    setting = EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
+                    break;
+            }
+
+            var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || !isActive);
+            return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, end, isActive);
+        }
+
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
         {
-            pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            if (isActive)
+            {
+                pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            }
 
             bool hasError = false;
             if (this.CurrentToken.ContextualKind == SyntaxKind.WarningKeyword)
             {
                 var warning = this.EatContextualToken(SyntaxKind.WarningKeyword);
                 SyntaxToken style;
-                if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword ||
+                    this.CurrentToken.Kind == SyntaxKind.EnableKeyword)
                 {
                     style = this.EatToken();
-                    var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
-                    while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
+
+                    if (isActive && style.Kind == SyntaxKind.EnableKeyword)
                     {
-                        SyntaxToken id;
-                        ExpressionSyntax idExpression;
-
-                        if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken)
-                        {
-                            // Previous versions of the compiler used to report a warning (CS1691)
-                            // whenever an unrecognized warning code was supplied in a #pragma directive
-                            // (or via /nowarn /warnaserror flags on the command line).
-                            // Going forward, we won't generate any warning in such cases. This will make
-                            // maintenance of backwards compatibility easier (we no longer need to worry
-                            // about breaking existing projects / command lines if we deprecate / remove
-                            // an old warning code).
-                            id = this.EatToken();
-                            idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                        {
-                            // Lexing / parsing of identifiers inside #pragma warning directives is identical
-                            // to that inside #define directives except that very long identifiers inside #define
-                            // are truncated to 128 characters to maintain backwards compatibility with previous
-                            // versions of the compiler. (See TruncateIdentifier() below.)
-                            // Since support for identifiers inside #pragma warning directives is new, 
-                            // we don't have any backwards compatibility constraints. So we can preserve the
-                            // identifier exactly as it appears in source.
-                            id = this.EatToken();
-                            idExpression = SyntaxFactory.IdentifierName(id);
-                        }
-                        else
-                        {
-                            id = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_IdentifierOrNumericLiteralExpected, reportError: isActive);
-                            idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
-                        }
-
-                        hasError = hasError || id.ContainsDiagnostics;
-                        ids.Add(idExpression);
-
-                        if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
-                        {
-                            break;
-                        }
-
-                        ids.AddSeparator(this.EatToken());
+                        style = CheckFeatureAvailability(style, MessageID.IDS_FeaturePragmaWarningEnable, forceWarning: true);
                     }
 
-                    var end = this.ParseEndOfDirective(hasError || !isActive, afterPragma: true);
-                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, ids.ToList(), end, isActive);
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.NullableKeyword)
+                    {
+                        SyntaxToken nullable = this.EatContextualToken(SyntaxKind.NullableKeyword);
+                        var end = this.ParseEndOfDirective(hasError || !isActive, afterPragma: true);
+                        return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: nullable, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
+                    }
+                    else
+                    {
+                        var ids = new SeparatedSyntaxListBuilder<ExpressionSyntax>(10);
+                        while (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken)
+                        {
+                            SyntaxToken id;
+                            ExpressionSyntax idExpression;
+
+                            if (this.CurrentToken.Kind == SyntaxKind.NumericLiteralToken)
+                            {
+                                // Previous versions of the compiler used to report a warning (CS1691)
+                                // whenever an unrecognized warning code was supplied in a #pragma directive
+                                // (or via /nowarn /warnaserror flags on the command line).
+                                // Going forward, we won't generate any warning in such cases. This will make
+                                // maintenance of backwards compatibility easier (we no longer need to worry
+                                // about breaking existing projects / command lines if we deprecate / remove
+                                // an old warning code).
+                                id = this.EatToken();
+                                idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
+                            }
+                            else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                            {
+                                // Lexing / parsing of identifiers inside #pragma warning directives is identical
+                                // to that inside #define directives except that very long identifiers inside #define
+                                // are truncated to 128 characters to maintain backwards compatibility with previous
+                                // versions of the compiler. (See TruncateIdentifier() below.)
+                                // Since support for identifiers inside #pragma warning directives is new, 
+                                // we don't have any backwards compatibility constraints. So we can preserve the
+                                // identifier exactly as it appears in source.
+                                id = this.EatToken();
+                                idExpression = SyntaxFactory.IdentifierName(id);
+                            }
+                            else
+                            {
+                                id = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.WRN_IdentifierOrNumericLiteralExpected, reportError: isActive);
+                                idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
+                            }
+
+                            hasError = hasError || id.ContainsDiagnostics;
+                            ids.Add(idExpression);
+
+                            if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                            {
+                                break;
+                            }
+
+                            ids.AddSeparator(this.EatToken());
+                        }
+
+                        var end = this.ParseEndOfDirective(hasError || !isActive, afterPragma: true);
+                        return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: default, ids.ToList(), end, isActive);
+                    }
                 }
                 else
                 {
                     style = this.EatToken(SyntaxKind.DisableKeyword, ErrorCode.WRN_IllegalPPWarning, reportError: isActive);
                     var end = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
-                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
+                    return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: default, default(SeparatedSyntaxList<ExpressionSyntax>), end, isActive);
                 }
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ChecksumKeyword)
@@ -536,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var warning = this.EatToken(SyntaxKind.WarningKeyword, ErrorCode.WRN_IllegalPragma, reportError: isActive);
                 var style = this.EatToken(SyntaxKind.DisableKeyword, reportError: false);
                 var eod = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
-                return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(SeparatedSyntaxList<ExpressionSyntax>), eod, isActive);
+                return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, nullableKeyword: default, default(SeparatedSyntaxList<ExpressionSyntax>), eod, isActive);
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
     internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
     {
+        private static readonly SymbolDisplayFormat s_typeFormat =
+            SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
+
         private static readonly SymbolDisplayFormat s_memberFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -33,7 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                                   SymbolDisplayParameterOptions.IncludeName |
                                   SymbolDisplayParameterOptions.IncludeDefaultValue |
                                   SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+
+        [ImportingConstructor]
+        public CSharpNavigationBarItemService()
+        {
+        }
 
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
@@ -175,9 +183,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return null;
         }
 
-        private static readonly SymbolDisplayFormat s_typeFormat =
-            SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
-
         private static bool IsAccessor(ISymbol member)
         {
             if (member.Kind == SymbolKind.Method)
@@ -282,8 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
 
             var declaringNode = reference.GetSyntax();
-            var enumMember = declaringNode as EnumMemberDeclarationSyntax;
-            if (enumMember != null)
+            if (declaringNode is EnumMemberDeclarationSyntax enumMember)
             {
                 var enumDeclaration = enumMember.GetAncestor<EnumDeclarationSyntax>();
 
@@ -343,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         [Conditional("DEBUG")]
         private static void ValidateSpanFromBounds(ITextSnapshot snapshot, int start, int end)
         {
-            Contract.Requires(start >= 0 && end <= snapshot.Length && start <= end);
+            Debug.Assert(start >= 0 && end <= snapshot.Length && start <= end);
         }
 
         [Conditional("DEBUG")]

@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -764,7 +765,8 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19368")>
+        <Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1() As Task
             Dim input =
         <Workspace>
@@ -868,7 +870,7 @@ namespace N1
                         class B
                         {
                             Del Boo = new Del(A.Boo);
-                            void Foo()
+                            void Goo()
                             {
                                 Boo(A.{|SimplifyParent:Boo|}); 
                                 A.Boo(Boo);
@@ -889,7 +891,7 @@ namespace N1
                         class B
                         {
                             Del Boo = new Del(A.Boo);
-                            void Foo()
+                            void Goo()
                             {
                                 Boo(A.Boo); 
                                 A.Boo(Boo);
@@ -914,7 +916,7 @@ namespace N1
                     class B
                     {
                         Action<int> Bar = (int x) => { };
-                        void Foo()
+                        void Goo()
                         {
                             A.{|SimplifyParent:Bar|}(3);            
                         }
@@ -934,7 +936,7 @@ namespace N1
                     class B
                     {
                         Action<int> Bar = (int x) => { };
-                        void Foo()
+                        void Goo()
                         {
                             A.Bar(3);            
                         }
@@ -958,7 +960,7 @@ namespace N1
                     class B
                     {
                         Func<int,int> Bar = (int x) => { return x; };
-                        void Foo()
+                        void Goo()
                         {
                             A.{|SimplifyParent:Bar|}(3);            
                         }
@@ -978,7 +980,7 @@ namespace N1
                     class B
                     {
                         Func<int,int> Bar = (int x) => { return x; };
-                        void Foo()
+                        void Goo()
                         {
                             A.Bar(3);            
                         }
@@ -1070,7 +1072,7 @@ class A
             <Project Language="C#" CommonReferences="true">
                 <Document>
 using System;
-namespace System.{|SimplifyParent:Foo|}
+namespace System.{|SimplifyParent:Goo|}
 {}
                 </Document>
             </Project>
@@ -1079,7 +1081,7 @@ namespace System.{|SimplifyParent:Foo|}
             Dim expected =
               <text>
 using System;
-namespace System.Foo
+namespace System.Goo
 {}
               </text>
 
@@ -1096,7 +1098,7 @@ namespace System.Foo
             using @if = System.Runtime.InteropServices.InAttribute;
             class C
             {
-                void foo()
+                void goo()
                 {
                     var x = new System.Runtime.InteropServices.{|SimplifyParent:InAttribute|}() // Simplify Type Name
                 }
@@ -1110,7 +1112,7 @@ namespace System.Foo
             using @if = System.Runtime.InteropServices.InAttribute;
             class C
             {
-                void foo()
+                void goo()
                 {
                     var x = new @if() // Simplify Type Name
                 }
@@ -1205,7 +1207,7 @@ class C
 using System;
 using System.Collections.Generic;
 
-using foo = System.Console;
+using goo = System.Console;
 class Program
 {
     static void Main(string[] args)
@@ -1222,12 +1224,12 @@ class Program
 using System;
 using System.Collections.Generic;
 
-using foo = System.Console;
+using goo = System.Console;
 class Program
 {
     static void Main(string[] args)
     {
-             foo.WriteLine("test");
+             goo.WriteLine("test");
     }
 }
 </code>
@@ -1311,7 +1313,7 @@ class C
 {
     Action A { get; set; }
  
-    void Foo()
+    void Goo()
     {
         (this.{|SimplifyParent:A|})(); // Simplify type name
     }
@@ -1328,7 +1330,7 @@ class C
 {
     Action A { get; set; }
  
-    void Foo()
+    void Goo()
     {
         (this.A)(); // Simplify type name
     }
@@ -1351,7 +1353,7 @@ class C
 {
     Action A { get; set; }
  
-    void Foo()
+    void Goo()
     {
         ((this.{|SimplifyParent:A|}))(); // Simplify type name
     }
@@ -1368,7 +1370,7 @@ class C
 {
     Action A { get; set; }
  
-    void Foo()
+    void Goo()
     {
         ((A))(); // Simplify type name
     }
@@ -1396,7 +1398,7 @@ public class C
 
     public D d = new D();
 
-    void Foo()
+    void Goo()
     {
         (this.{|SimplifyParent:d|}.A)(); // Simplify type name
     }
@@ -1418,7 +1420,7 @@ public class C
 
     public D d = new D();
 
-    void Foo()
+    void Goo()
     {
         (this.d.A)(); // Simplify type name
     }
@@ -1466,9 +1468,93 @@ class C1
 
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharpSimplifyToVarCorrect() As Task
+        Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Program
+{
+    void Main()
+    {
+        {|Simplify:int|} i = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class Program
+{
+    void Main()
+    {
+        var i = 0;
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
+
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach ({|Simplify:int|} item in new List&lt;int&gt;()) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach (var item in new List&lt;int&gt;()) { }
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarCorrect() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
             Dim input =
 <Workspace>
@@ -1492,9 +1578,9 @@ class Program
 
         using ({|Simplify:StreamReader|} file = new StreamReader("C:\\myfile.txt")) {}
 
-        {|Simplify:int|} x = Foo();
+        {|Simplify:int|} x = Goo();
     }
-    static int Foo() { return 1; }
+    static int Goo() { return 1; }
 }
         </Document>
     </Project>
@@ -1516,13 +1602,13 @@ class Program
 
         var d = new D();
 
-        foreach (var item in new List&lt;int&gt;()) { }
+        foreach (int item in new List&lt;int&gt;()) { }
 
         using (var file = new StreamReader("C:\\myfile.txt")) {}
 
-        var x = Foo();
+        var x = Goo();
     }
-    static int Foo() { return 1; }
+    static int Goo() { return 1; }
 }
  
 </code>
@@ -1534,8 +1620,12 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
-
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
+            }
 
             Dim input =
 <Workspace>
@@ -3048,7 +3138,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_CSharp() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_CSharp() As Task
             Dim input =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -3080,7 +3170,7 @@ class C
 }
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -3231,10 +3321,10 @@ class C
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
                     Module Program
-                    Dim Foo() As Integer
+                    Dim Goo() As Integer
 
                     Sub Main(args As String())
-                        {|SimplifyParent:Program|}.Foo(23) = 23
+                        {|SimplifyParent:Program|}.Goo(23) = 23
                     End Sub
                     End Module
                 </Document>
@@ -3244,10 +3334,10 @@ class C
             Dim expected =
               <text>
                     Module Program
-                    Dim Foo() As Integer
+                    Dim Goo() As Integer
 
                     Sub Main(args As String())
-                        Foo(23) = 23
+                        Goo(23) = 23
                     End Sub
                     End Module
                 </text>
@@ -3972,7 +4062,7 @@ End Namespace</text>
                     Shared Bar As Action(Of Integer) = New Action(Of Integer)(Function(x) x + 1)
                     Class B
                         Shared Bar As Action(Of Integer) = New Action(Of Integer)(Function(x) x + 1)
-                        Sub Foo()
+                        Sub Goo()
                             A.{|SimplifyParent:Bar|}(3)
                         End Sub
                     End Class
@@ -3989,7 +4079,7 @@ End Namespace</text>
                     Shared Bar As Action(Of Integer) = New Action(Of Integer)(Function(x) x + 1)
                     Class B
                         Shared Bar As Action(Of Integer) = New Action(Of Integer)(Function(x) x + 1)
-                        Sub Foo()
+                        Sub Goo()
                             A.Bar(3)
                         End Sub
                     End Class
@@ -4006,13 +4096,13 @@ End Namespace</text>
             <Project Language="Visual Basic" CommonReferences="true">
                 <Document>
                 MustInherit Class A
-                    Public MustOverride Sub Foo()
+                    Public MustOverride Sub Goo()
                     Public Sub Boo()
                     End Sub
                 End Class
                 Class B
                     Inherits A
-                    Public Overrides Sub Foo()
+                    Public Overrides Sub Goo()
                         MyBase.{|SimplifyParent:Boo|}()
                     End Sub
                 End Class    
@@ -4023,13 +4113,13 @@ End Namespace</text>
             Dim expected =
               <text>
                 MustInherit Class A
-                    Public MustOverride Sub Foo()
+                    Public MustOverride Sub Goo()
                     Public Sub Boo()
                     End Sub
                 End Class
                 Class B
                     Inherits A
-                    Public Overrides Sub Foo()
+                    Public Overrides Sub Goo()
                         Boo()
                     End Sub
                 End Class    
@@ -4046,15 +4136,15 @@ End Namespace</text>
         <Document>
 Imports System
 
-&lt;Global.Assembly.{|SimplifyParent:Foo|}&gt;
+&lt;Global.Assembly.{|SimplifyParent:Goo|}&gt;
 Module Assembly
-    Class FooAttribute
+    Class GooAttribute
         Inherits Attribute
     End Class
 End Module
 
 Module M
-    Class FooAttribute
+    Class GooAttribute
         Inherits Attribute
     End Class
 End Module
@@ -4066,15 +4156,15 @@ End Module
 <code>
 Imports System
 
-&lt;[Assembly].Foo&gt;
+&lt;[Assembly].Goo&gt;
 Module Assembly
-    Class FooAttribute
+    Class GooAttribute
         Inherits Attribute
     End Class
 End Module
 
 Module M
-    Class FooAttribute
+    Class GooAttribute
         Inherits Attribute
     End Class
 End Module
@@ -4091,7 +4181,7 @@ End Module
         <Document>
 Imports System
 
-Namespace foo
+Namespace goo
     Module Program
         Sub Main(args As String())
 
@@ -4102,7 +4192,7 @@ End Namespace
 Namespace bar
     Module b
         Sub m()
-            foo.Program.{|SimplifyParent:Main|}(Nothing)
+            goo.Program.{|SimplifyParent:Main|}(Nothing)
         End Sub
     End Module
 End Namespace
@@ -4114,7 +4204,7 @@ End Namespace
 <code>
 Imports System
 
-Namespace foo
+Namespace goo
     Module Program
         Sub Main(args As String())
 
@@ -4125,7 +4215,7 @@ End Namespace
 Namespace bar
     Module b
         Sub m()
-            foo.Main(Nothing)
+            goo.Main(Nothing)
         End Sub
     End Module
 End Namespace
@@ -4142,7 +4232,7 @@ End Namespace
         <Document>
 Imports System
 
-Namespace foo
+Namespace goo
     Module Program
         Sub Main(args As String())
         End Sub
@@ -4154,7 +4244,7 @@ End Namespace
 Namespace bar
     Module b
         Sub m()
-            Dim x as foo.Program.{|SimplifyParent:C1|}
+            Dim x as goo.Program.{|SimplifyParent:C1|}
         End Sub
     End Module
 End Namespace
@@ -4166,7 +4256,7 @@ End Namespace
 <code>
 Imports System
 
-Namespace foo
+Namespace goo
     Module Program
         Sub Main(args As String())
         End Sub
@@ -4178,7 +4268,7 @@ End Namespace
 Namespace bar
     Module b
         Sub m()
-            Dim x as foo.C1
+            Dim x as goo.C1
         End Sub
     End Module
 End Namespace
@@ -4232,7 +4322,7 @@ End Module
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Imports System
-            Namespace System.{|SimplifyParent:Foo|}
+            Namespace System.{|SimplifyParent:Goo|}
             End Namespace
         </Document>
     </Project>
@@ -4241,7 +4331,7 @@ End Module
             Dim expected =
 <Code>
             Imports System
-            Namespace System.Foo
+            Namespace System.Goo
             End Namespace
 </Code>
 
@@ -5629,7 +5719,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_VisualBasic() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_VisualBasic() As Task
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -5657,7 +5747,7 @@ Class C
 End Class
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

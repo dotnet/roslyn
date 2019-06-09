@@ -16,6 +16,10 @@ Public Class ScannerTests
         Return SyntaxFactory.ParseToken(str, startStatement:=startStatement)
     End Function
 
+    Private Function ScanOnce(str As String, languageVersion As VisualBasic.LanguageVersion) As SyntaxToken
+        Return SyntaxFactory.ParseTokens(str, options:=New VisualBasicParseOptions(languageVersion:=languageVersion)).First()
+    End Function
+
     Private Function AsString(tokens As IEnumerable(Of SyntaxToken)) As String
         Dim str = String.Concat(From t In tokens Select t.ToFullString())
         Return str
@@ -504,9 +508,56 @@ Public Class ScannerTests
         Assert.Equal(" _ ", tk.ToFullString())
 
         tk = ScanOnce(" _'", startStatement:=True)
-        Assert.Equal(SyntaxKind.BadToken, tk.Kind)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors.First().Code)
+        Assert.Equal(3, tk.LeadingTrivia.Count)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
+        Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
+        Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
+        Assert.Equal(1, tk.Errors.Count)
+        Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
+
+        tk = ScanOnce(" _'", LanguageVersion.VisualBasic16)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _'", tk.ToFullString())
+        Assert.Equal(3, tk.LeadingTrivia.Count)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
+        Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
+        Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
+        Assert.Equal(0, tk.Errors.Count)
+
+        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic15_3)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _' Comment", tk.ToFullString())
+        Assert.Equal(3, tk.LeadingTrivia.Count)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
+        Assert.False(tk.LeadingTrivia(0).ContainsDiagnostics)
+        Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
+        Assert.False(tk.LeadingTrivia(1).ContainsDiagnostics)
+        Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
+        Assert.True(tk.LeadingTrivia(2).ContainsDiagnostics)
+        Assert.Equal(1, tk.Errors.Count)
+        Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
+
+        tk = ScanOnce(" _' Comment", LanguageVersion.VisualBasic16)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _' Comment", tk.ToFullString())
+        Assert.Equal(3, tk.LeadingTrivia.Count)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
+        Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
+        Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
+        Assert.Equal(0, tk.Errors.Count)
+
+        tk = ScanOnce(" _  ' Comment" & vbCrLf, LanguageVersion.VisualBasic16)
+        Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
+        Assert.Equal(" _  ' Comment" & vbCrLf, tk.ToFullString())
+        Assert.Equal(5, tk.LeadingTrivia.Count)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
+        Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(2).Kind)
+        Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(3).Kind)
+        Assert.Equal(SyntaxKind.EndOfLineTrivia, tk.LeadingTrivia(4).Kind)
+        Assert.Equal(0, tk.Errors.Count)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
@@ -546,7 +597,7 @@ Public Class ScannerTests
     Public Sub Scanner_LineContInsideStatement()
 
         ' this would be a case of      )_
-        ' valid _ would have been consumed by   ) 
+        ' valid _ would have been consumed by   )
         Dim tk = ScanOnce("_" & vbLf, False)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal("_" + vbLf, tk.ToFullString)
@@ -1042,6 +1093,48 @@ End If]]>.Value,
         Assert.Equal(&H42L, tk.Value)
         Assert.Equal(" &H4_2L ", tk.ToFullString())
 
+        Str = " &H_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H1, tk.Value)
+        Assert.Equal(" &H_1 ", tk.ToFullString())
+
+        Str = " &B_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B1, tk.Value)
+        Assert.Equal(" &B_1 ", tk.ToFullString())
+
+        Str = " &O_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O1, tk.Value)
+        Assert.Equal(" &O_1 ", tk.ToFullString())
+
+        Str = " &H__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H11L, tk.Value)
+        Assert.Equal(" &H__1_1L ", tk.ToFullString())
+
+        Str = " &B__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B11L, tk.Value)
+        Assert.Equal(" &B__1_1L ", tk.ToFullString())
+
+        Str = " &O__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O11L, tk.Value)
+        Assert.Equal(" &O__1_1L ", tk.ToFullString())
+
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).Kind)
@@ -1227,12 +1320,6 @@ End If]]>.Value,
         Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0, CInt(tk.Value))
 
-        Str = "&H_1"
-        tk = ScanOnce(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
-        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
-        Assert.Equal(0, CInt(tk.Value))
-
         Str = "&H1_"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
@@ -1249,6 +1336,42 @@ End If]]>.Value,
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
         Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_2_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_UnderscoreFeatureFlag()
+        Dim Str = "&H_1"
+        Dim tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(36716, errors.First().Code)
+        Assert.Equal(1, CInt(tk.Value))
+
+        Str = "&H_123_456_789_ABC_DEF_123"
+        tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(2, errors.Count)
+        Assert.Equal(30036, errors.ElementAt(0).Code)
+        Assert.Equal(36716, errors.ElementAt(1).Code)
         Assert.Equal(0, CInt(tk.Value))
     End Sub
 
@@ -1415,13 +1538,13 @@ End If]]>.Value,
 
     <Fact>
     Public Sub Scanner_BracketedIdentToken()
-        Dim Str = "[Foo123]"
+        Dim Str = "[Goo123]"
         Dim tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IdentifierToken, tk.Kind)
         Assert.True(tk.IsBracketed)
-        Assert.Equal("Foo123", tk.ValueText)
-        Assert.Equal("Foo123", tk.Value)
-        Assert.Equal("[Foo123]", tk.ToFullString())
+        Assert.Equal("Goo123", tk.ValueText)
+        Assert.Equal("Goo123", tk.Value)
+        Assert.Equal("[Goo123]", tk.ToFullString())
 
         Str = "[__]"
         tk = ScanOnce(Str)
@@ -1430,11 +1553,11 @@ End If]]>.Value,
         Assert.Equal("__", tk.ValueText)
         Assert.Equal("[__]", tk.ToFullString())
 
-        Str = "[Foo ]"
+        Str = "[Goo ]"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(30034, tk.GetSyntaxErrorsNoTree()(0).Code)
-        Assert.Equal("[Foo ", tk.ToFullString())
+        Assert.Equal("[Goo ", tk.ToFullString())
 
         Str = "[]"
         tk = ScanOnce(Str)
@@ -1557,7 +1680,7 @@ End If
     <Fact>
     Public Sub OghamSpacemark()
         ParseAndVerify(<![CDATA[
-Module M 
+Module M
 End Module
 
         ]]>)
@@ -1632,9 +1755,9 @@ a<
     Public Sub ParseHugeNumber()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
+    Sub Main
  Dim x = CompareDouble(-7.92281625142643E337593543950335D)
-    End Sub 
+    End Sub
 EndModule
 
 
@@ -1652,10 +1775,10 @@ EndModule
     Public Sub ParseHugeNumberLabel()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
- 
+    Sub Main
+
 678901234567890123456789012345678901234567456789012345678901234567890123456789012345
-    End Sub 
+    End Sub
 EndModule
 
         ]]>,
@@ -1679,9 +1802,9 @@ Public Class Assembly001bDll
         Asb = System.Reflection.Assembly.GetExecutingAssembly()
 
 
-        
-        
-        
+
+
+
 
         apcompare(Left(CurDir(), 1) & ":\School\assembly001bdll.dll", Asb.Location, "location")
 
@@ -1750,5 +1873,18 @@ Module SyntaxDiagnosticInfoListExtensions
         Next
 
         Throw New InvalidOperationException()
+    End Function
+
+    <Extension>
+    Public Function ElementAt(list As SyntaxDiagnosticInfoList, index As Integer) As DiagnosticInfo
+        Dim i = 0
+        For Each v In list
+            If i = index Then
+                Return v
+            End If
+            i += 1
+        Next
+
+        Throw New IndexOutOfRangeException()
     End Function
 End Module

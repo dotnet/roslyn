@@ -1,59 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract class AbstractPackage : Package
+    internal abstract class AbstractPackage : AsyncPackage
     {
-        protected ForegroundThreadAffinitizedObject ForegroundObject;
-
-        protected override void Initialize()
+        protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            base.Initialize();
-
-            // Assume that we are being initialized on the UI thread at this point.
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(
-                defaultKind: ForegroundThreadDataKind.ForcedByPackageInitialize);
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
-            ForegroundObject = new ForegroundThreadAffinitizedObject();
+            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+            await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded()
-        {
-            ForegroundObject.AssertIsForeground();
-
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
-            {
-                // if we are already in the right UI context, load it right away
-                LoadComponentsInUIContext();
-            }
-            else
-            {
-                // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContext;
-            }
-        }
-
-        private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
-        {
-            ForegroundObject.AssertIsForeground();
-
-            if (e.Activated)
-            {
-                // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
-
-                // load components
-                LoadComponentsInUIContext();
-            }
-        }
-
-        protected abstract void LoadComponentsInUIContext();
+        protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);
     }
 }

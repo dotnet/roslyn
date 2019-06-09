@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 using System.Diagnostics;
 
@@ -112,8 +113,8 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-        // TODO: error
-        done:
+// TODO: error
+done:
             if (isAssemblyQualified)
             {
                 AppendAssemblyQualifierIfNecessary(sb, UnwrapTypeReference(typeReference, context), out isAssemblyQualified, context);

@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default(T));
+                _builder.Add(default);
             }
 
             if (index == _builder.Count)
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _builder.IndexOf(item);
         }
-        
+
         public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
         {
             return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             return _builder.IndexOf(item, startIndex, count);
         }
 
-        public int FindIndex(Predicate<T> match) 
+        public int FindIndex(Predicate<T> match)
             => FindIndex(0, this.Count, match);
 
         public int FindIndex(int startIndex, Predicate<T> match)
@@ -176,6 +174,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return -1;
+        }
+
+        public bool Remove(T element)
+        {
+            return _builder.Remove(element);
         }
 
         public void RemoveAt(int index)
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Count == 0)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return this.ToImmutable();
@@ -274,7 +277,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
-            var result = this.ToImmutable();
+            ImmutableArray<T> result;
+            if (Count == 0)
+            {
+                result = ImmutableArray<T>.Empty;
+            }
+            else if (_builder.Capacity == Count)
+            {
+                result = _builder.MoveToImmutable();
+            }
+            else
+            {
+                result = ToImmutable();
+            }
+
             this.Free();
             return result;
         }
@@ -304,7 +320,7 @@ namespace Microsoft.CodeAnalysis
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
-                if (this.Count < 128)
+                if (_builder.Capacity < 128)
                 {
                     if (this.Count != 0)
                     {
@@ -506,6 +522,28 @@ namespace Microsoft.CodeAnalysis
 
             Clip(j);
             set.Free();
+        }
+
+        public void SortAndRemoveDuplicates(IComparer<T> comparer)
+        {
+            if (Count <= 1)
+            {
+                return;
+            }
+
+            Sort(comparer);
+
+            int j = 0;
+            for (int i = 1; i < Count; i++)
+            {
+                if (comparer.Compare(this[j], this[i]) < 0)
+                {
+                    j++;
+                    this[j] = this[i];
+                }
+            }
+
+            Clip(j + 1);
         }
 
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)

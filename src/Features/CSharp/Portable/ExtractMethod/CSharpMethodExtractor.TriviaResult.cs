@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (tokenPair.PreviousToken == method.Body.OpenBraceToken &&
                         tokenPair.NextToken == method.Body.CloseBraceToken)
                     {
-                        return (location == TriviaLocation.AfterBeginningOfSpan) 
-                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker) 
+                        return (location == TriviaLocation.AfterBeginningOfSpan)
+                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
                             : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                     }
                 }
@@ -110,14 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     if (tokenPair.PreviousToken == method.ExpressionBody.ArrowToken &&
                         tokenPair.NextToken.GetPreviousToken() == method.SemicolonToken)
                     {
-                        return (location == TriviaLocation.AfterBeginningOfSpan) 
+                        return (location == TriviaLocation.AfterBeginningOfSpan)
                             ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
                             : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                     }
                 }
 
-                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default(LeadingTrailingTriviaPair);
-                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default(LeadingTrailingTriviaPair);
+                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default;
+                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default;
 
                 var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                 var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();

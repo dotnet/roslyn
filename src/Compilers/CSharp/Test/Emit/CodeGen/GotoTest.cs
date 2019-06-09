@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,7 +21,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -28,7 +29,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -46,14 +47,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 ";
 
@@ -89,28 +90,30 @@ class C
 ";
             CompileAndVerify(text).VerifyIL("C.Main", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (string V_0) //Fruit
   IL_0000:  ldstr      ""Apple""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldstr      ""Banana""
-  IL_000c:  call       ""bool string.op_Equality(string, string)""
-  IL_0011:  brtrue.s   IL_0039
-  IL_0013:  ldloc.0
-  IL_0014:  ldstr      ""Chair""
-  IL_0019:  call       ""bool string.op_Equality(string, string)""
-  IL_001e:  brtrue.s   IL_0039
-  IL_0020:  ldloc.0
-  IL_0021:  ldstr      ""Apple""
-  IL_0026:  call       ""bool string.op_Equality(string, string)""
-  IL_002b:  brtrue.s   IL_0039
-  IL_002d:  ldloc.0
-  IL_002e:  ldstr      ""Table""
-  IL_0033:  call       ""bool string.op_Equality(string, string)""
-  IL_0038:  pop
-  IL_0039:  ret
+  IL_0007:  brfalse.s  IL_003c
+  IL_0009:  ldloc.0
+  IL_000a:  ldstr      ""Banana""
+  IL_000f:  call       ""bool string.op_Equality(string, string)""
+  IL_0014:  brtrue.s   IL_003c
+  IL_0016:  ldloc.0
+  IL_0017:  ldstr      ""Chair""
+  IL_001c:  call       ""bool string.op_Equality(string, string)""
+  IL_0021:  brtrue.s   IL_003c
+  IL_0023:  ldloc.0
+  IL_0024:  ldstr      ""Apple""
+  IL_0029:  call       ""bool string.op_Equality(string, string)""
+  IL_002e:  brtrue.s   IL_003c
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""Table""
+  IL_0036:  call       ""bool string.op_Equality(string, string)""
+  IL_003b:  pop
+  IL_003c:  ret
 }");
         }
 
@@ -703,14 +706,6 @@ label
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        // When ReflectionEmit supports writing exception handler info, this method
-        // can be removed and CompileAndVerify references above will resolve to
-        // the overload that emits with both CCI and ReflectionEmit. (Bug #7012)
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null)
-        {
-            return base.CompileAndVerify(source: source, expectedOutput: expectedOutput);
-        }
-
         [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
         [Fact]
         public void LabelBetweenLocalAndInitialize()
@@ -824,7 +819,7 @@ L0: ;
 @"True
 False";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -854,7 +849,7 @@ False";
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void AcrossScriptDeclarations()
         {
             string source =
@@ -875,7 +870,7 @@ if (Q < 4) goto L;";
 3: F
 4: Q";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -958,7 +953,7 @@ default:
             string expectedOutput =
 @"3";
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1018,7 +1013,7 @@ A: goto B;";
 @"#load ""a.csx""
 goto B;
 B: goto A;";
-            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", sourceA));
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", sourceA));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
             var compilation = CreateCompilationWithMscorlib45(sourceB, options: options, parseOptions: TestOptions.Script);
             compilation.GetDiagnostics().Verify(

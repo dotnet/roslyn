@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -50,6 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    /// <summary>
+    /// Note: do not use a static/singleton instance of this type, as it holds state.
+    /// </summary>
     internal abstract class BoundTreeWalkerWithStackGuard : BoundTreeWalker
     {
         private int _recursionDepth;
@@ -86,6 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    /// <summary>
+    /// Note: do not use a static/singleton instance of this type, as it holds state.
+    /// </summary>
     internal abstract class BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeWalkerWithStackGuard
     {
         protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()

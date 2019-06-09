@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
         /// </summary>
         private const string CS0266 = nameof(CS0266);
+
+        [ImportingConstructor]
+        public CSharpAddYieldCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -197,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root && n.IsKind(SyntaxKind.ReturnStatement));
             return node != null;
         }
 

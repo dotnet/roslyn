@@ -102,24 +102,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return _caller; }
             }
 
-            IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.Accessors
+            IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
             {
-                get
+                if (_adder != null)
                 {
-                    if (_adder != null)
-                    {
-                        yield return _adder;
-                    }
+                    yield return _adder;
+                }
 
-                    if (_remover != null)
-                    {
-                        yield return _remover;
-                    }
+                if (_remover != null)
+                {
+                    yield return _remover;
+                }
 
-                    if (_caller != null)
-                    {
-                        yield return _caller;
-                    }
+                if (_caller != null)
+                {
+                    yield return _caller;
                 }
             }
 

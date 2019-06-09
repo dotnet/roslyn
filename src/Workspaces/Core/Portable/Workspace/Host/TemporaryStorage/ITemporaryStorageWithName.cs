@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Host
         string Name { get; }
 
         /// <summary>
+        /// Get offset of the temporary storage
+        /// </summary>
+        long Offset { get; }
+
+        /// <summary>
         /// Get size of the temporary storage
         /// </summary>
         long Size { get; }

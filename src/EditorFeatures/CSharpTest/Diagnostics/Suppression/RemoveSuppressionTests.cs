@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override bool IncludeSuppressedDiagnostics => true;
         protected override bool IncludeUnsuppressedDiagnostics => false;
         protected override int CodeActionIndex => 0;
-        private string FixAllActionEquivalenceKey => FeaturesResources.Remove_Suppression + UserDiagnosticAnalyzer.Decsciptor.Id;
 
         protected class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -369,7 +368,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -465,7 +464,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -565,7 +564,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             #endregion
@@ -690,7 +689,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -810,7 +809,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -939,7 +938,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 
@@ -1066,7 +1065,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 

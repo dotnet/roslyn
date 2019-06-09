@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      A private package for the Razor team to grant access to certain internal APIs.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">
+      <Link>Shared\RoslynJsonConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
+      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceHub\Shared\ServiceHubServiceBase.cs">
+      <Link>Shared\ServiceHubServiceBase.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceHub\Shared\Extensions.cs">
+      <Link>Shared\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceHub\Shared\ClientDirectStream.cs">
+      <Link>Shared\ClientDirectStream.cs</Link>
+    </Compile>
+    <Compile Include="..\ServiceHub\Shared\ServerDirectStream.cs">
+      <Link>Shared\ServerDirectStream.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

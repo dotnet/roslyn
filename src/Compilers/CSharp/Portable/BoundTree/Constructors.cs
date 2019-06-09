@@ -26,7 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), type, hasErrors)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
+        {
+        }
+
+        public BoundFieldAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            FieldSymbol fieldSymbol,
+            ConstantValue constantValueOpt,
+            LookupResultKind resultKind,
+            bool isDeclaration,
+            TypeSymbol type,
+            bool hasErrors = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
         {
         }
 
@@ -37,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol typeSymbol)
         {
-            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, typeSymbol);
+            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, this.IsDeclaration, typeSymbol);
         }
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)
@@ -55,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundFieldAccess)receiver).IsByValue;
 
                 case BoundKind.Local:
-                    return !((BoundLocal)receiver).LocalSymbol.IsWritable;
+                    var localSymbol = ((BoundLocal)receiver).LocalSymbol;
+                    return !(localSymbol.IsWritableVariable || localSymbol.IsRef);
 
                 default:
                     return false;
@@ -75,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall,
             bool invokedAsExtensionMethod,
             ImmutableArray<MethodSymbol> originalMethods,
-            LookupResultKind resultKind)
+            LookupResultKind resultKind,
+            Binder binder)
         {
             if (!originalMethods.IsEmpty)
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
@@ -84,14 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var call = new BoundCall(node, receiverOpt, method, arguments, namedArguments,
                 refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, type: method.ReturnType, hasErrors: true);
+                resultKind: resultKind, binderOpt: binder, type: method.ReturnType, hasErrors: true);
             call.OriginalMethodsOpt = originalMethods;
             return call;
         }
 
         public BoundCall Update(BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, ResultKind, Type);
+            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, ResultKind, BinderOpt, Type);
         }
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method)
@@ -122,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Viable,
+                    binderOpt: null,
                     type: method.ReturnType,
                     hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )
@@ -131,12 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, params BoundExpression[] arguments)
-            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, Binder binderOpt, params BoundExpression[] arguments)
+            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, binderOpt, constructor.ContainingType)
         {
         }
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments)
-            : this(syntax, constructor, arguments, default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, Binder binderOpt, ImmutableArray<BoundExpression> arguments)
+            : this(syntax, constructor, arguments, default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, binderOpt, constructor.ContainingType)
         {
         }
     }
@@ -161,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                binderOpt: null,
+                useSetterForDefaultArgumentGeneration: false,
                 type: indexer.Type,
                 hasErrors: true)
             {
@@ -185,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
+                conversionGroupOpt: null,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -201,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            ConversionGroup conversionGroupOpt,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -210,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand,
                 conversion,
                 @checked,
-                explicitCastInCode,
+                explicitCastInCode: explicitCastInCode,
+                conversionGroupOpt,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -225,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
+            ConversionGroup conversionGroupOpt,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -236,6 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
                 constantValueOpt: constantValueOpt,
+                conversionGroupOpt,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {
@@ -313,11 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 constantValueOpt,
                 methodOpt,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -342,12 +365,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this(
                 syntax,
                 operatorKind,
-                left,
-                right,
                 logicalOperator,
                 trueOperator,
                 falseOperator,
                 resultKind,
+                left,
+                right,
                 type,
                 hasErrors)
         {
@@ -401,18 +424,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression
     {
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, typeWithAnnotations.Type, hasErrors)
+        {
+            Debug.Assert((object)typeWithAnnotations.Type != null, "Field 'type' cannot be null");
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, aliasOpt, boundContainingTypeOpt, ImmutableArray<BoundExpression>.Empty, typeWithAnnotations, hasErrors)
+        {
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, aliasOpt, null, typeWithAnnotations, hasErrors)
+        {
+        }
+
         public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, false, null, type, hasErrors)
+            : this(syntax, aliasOpt, null, TypeWithAnnotations.Create(type), hasErrors)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type)
-            : this(syntax, aliasOpt, false, null, type)
-        {
-        }
-
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, inferredType, null, type, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, ImmutableArray<BoundExpression> dimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, aliasOpt, null, dimensionsOpt, typeWithAnnotations, hasErrors)
         {
         }
     }
@@ -438,8 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundAssignmentOperator
     {
         public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right,
-            TypeSymbol type, RefKind refKind = RefKind.None, bool hasErrors = false)
-            : this(syntax, left, right, refKind, type, hasErrors)
+            TypeSymbol type, bool isRef = false, bool hasErrors = false)
+            : this(syntax, left, right, isRef, type, hasErrors)
         {
         }
     }
@@ -502,8 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBlock
     {
-        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false): this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors)
-        { 
+        public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false) : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors)
+        {
         }
 
         public static BoundBlock SynthesizedNoLocals(SyntaxNode syntax, BoundStatement statement)
@@ -526,16 +560,34 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDefaultExpression
     {
         public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, type.GetDefaultValue(), type, hasErrors)
+            : this(syntax, targetType: null, type?.GetDefaultValue(), type, hasErrors)
         {
         }
     }
 
     internal partial class BoundTryStatement
     {
-        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt)
-            : this(syntax, tryBlock, catchBlocks, finallyBlockOpt, preferFaultHandler: false, hasErrors: false)
+        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, LabelSymbol finallyLabelOpt = null)
+            : this(syntax, tryBlock, catchBlocks, finallyBlockOpt, finallyLabelOpt, preferFaultHandler: false, hasErrors: false)
         {
         }
+    }
+
+    internal partial class BoundAddressOfOperator
+    {
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+             : this(syntax, operand, isManaged: false, type, hasErrors)
+        {
+        }
+    }
+
+    internal partial class BoundDagTemp
+    {
+        public BoundDagTemp(SyntaxNode syntax, TypeSymbol type, BoundDagEvaluation source)
+            : this(syntax, type, source, index: 0, hasErrors: false)
+        {
+        }
+
+        public static BoundDagTemp ForOriginalInput(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type, source: null);
     }
 }

@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim overriddenByDefinitionContainingTypeDefinition As NamedTypeSymbol = overriddenByDefinitionContaining.OriginalDefinition
                 Dim baseType As NamedTypeSymbol = substitutedOverridingMember.ContainingType.BaseTypeNoUseSiteDiagnostics
                 While baseType IsNot Nothing
-                    If baseType.OriginalDefinition = overriddenByDefinitionContainingTypeDefinition Then
-                        If baseType = overriddenByDefinitionContaining Then
+                    If TypeSymbol.Equals(baseType.OriginalDefinition, overriddenByDefinitionContainingTypeDefinition, TypeCompareKind.ConsiderEverything) Then
+                        If TypeSymbol.Equals(baseType, overriddenByDefinitionContaining, TypeCompareKind.ConsiderEverything) Then
                             Return overriddenByDefinitionMember
                         End If
 

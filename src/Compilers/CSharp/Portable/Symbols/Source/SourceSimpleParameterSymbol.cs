@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SourceSimpleParameterSymbol(
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,
@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
@@ -60,16 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExtensionMethodThis
         {
             get { return false; }
-        }
-
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
-
-        internal override bool IsMetadataOut
-        {
-            get { return RefKind == RefKind.Out; }
         }
 
         internal override bool IsIDispatchConstant
@@ -95,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return false; }
+        }
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return TryGetExtraAttributeAnnotations() ?? FlowAnalysisAnnotations.None; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation

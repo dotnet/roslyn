@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub Validate()
             Debug.Assert((AccessKind And LateBoundAccessKind.Call) = 0 OrElse (AccessKind And Not LateBoundAccessKind.Call) = 0)
             Debug.Assert(Type.IsObjectType())
+            Debug.Assert(ReceiverOpt Is Nothing OrElse ReceiverOpt.Kind <> BoundKind.TypeExpression)
         End Sub
 #End If
     End Class

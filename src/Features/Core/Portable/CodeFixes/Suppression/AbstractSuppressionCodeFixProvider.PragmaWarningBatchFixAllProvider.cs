@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             protected override async Task AddDocumentFixesAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, 
+                Document document, ImmutableArray<Diagnostic> diagnostics,
                 ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
@@ -56,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutableAndFree(), 
-                        pragmaDiagnosticsBuilder.ToImmutableAndFree(), 
+                        pragmaActionsBuilder.ToImmutableAndFree(),
+                        pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                         fixAllState, cancellationToken);
 
                     fixes.Add((diagnostic: null, pragmaBatchFix));

@@ -217,7 +217,7 @@ Imports System
     </file>
 </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation, expectedErrors(infer))
             Next
         End Sub
@@ -354,7 +354,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -427,7 +427,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -476,7 +476,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -540,7 +540,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30039: Loop control variable cannot be a property or a late-bound indexed array.
@@ -573,14 +573,14 @@ Class C1
         arr(1) = 42
 
         For Each C1 In arr
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation, expectedErrors(infer))
             Next
         End Sub
@@ -606,14 +606,14 @@ Class C1
         arr(1) = 42
 
         For Each C1 In arr
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next C1
     End Sub
 End Class        
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
     <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -644,14 +644,14 @@ Class C1
         arr(1) = 42
 
         For Each element In arr
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next element
     End Sub
 End Class        
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
     <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -684,14 +684,14 @@ Class C1
         arr(1) = 42
 
         For Each element In arr
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next element
     End Sub
 End Class        
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
     <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -727,7 +727,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30616: Variable 'element' hides a variable in an enclosing block.
@@ -794,7 +794,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30070: Next control variable does not match For loop control variable 'element'.
@@ -826,7 +826,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30451: 'element2' is not declared. It may be inaccessible due to its protection level.
@@ -864,7 +864,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30070: Next control variable does not match For loop control variable 'e'.
@@ -905,7 +905,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32037: 'Next' statement names more variables than there are matching 'For' statements.
@@ -938,7 +938,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30084: 'For' must end with a matching 'Next'.
@@ -972,7 +972,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30092: 'Next' must be preceded by a matching 'For'.
@@ -1003,7 +1003,7 @@ Public Class MyClass1
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30451: 'n' is not declared. It may be inaccessible due to its protection level.
@@ -1046,7 +1046,7 @@ Class C1
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30084: 'For' must end with a matching 'Next'.
@@ -1081,7 +1081,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
@@ -1112,7 +1112,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Off))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1205,7 +1205,7 @@ End Class
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation, expectedErrors(infer))
             Next
         End Sub
@@ -1224,14 +1224,14 @@ Class C1
         Dim threeDimJaggedArray()()() As Integer = New Integer(2)()() {}
 
         For Each twoDimJaggedArray(1)() as Integer In threeDimJaggedArray
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next twoDimJaggedArray
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32039: Array declared as for loop control variable cannot be declared with an initial size.
@@ -1268,7 +1268,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30069: For loop control variable 'element' already in use by an enclosing For loop.
@@ -1302,7 +1302,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30069: For loop control variable 'element' already in use by an enclosing For loop.
@@ -1343,7 +1343,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30069: For loop control variable 'X' already in use by an enclosing For loop.
@@ -1379,7 +1379,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30069: For loop control variable 'arr' already in use by an enclosing For loop.
@@ -1412,7 +1412,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedIn, ""),
                 Diagnostic(ERRID.ERR_Syntax, ","))
         End Sub
@@ -1441,7 +1441,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedIn, ""),
                 Diagnostic(ERRID.ERR_Syntax, "="))
         End Sub
@@ -1470,7 +1470,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30451: 'element' is not declared. It may be inaccessible due to its protection level.
@@ -1513,7 +1513,7 @@ End Class
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation, expectedErrors(infer))
             Next
         End Sub
@@ -1614,14 +1614,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1636,12 +1636,12 @@ Imports System
 Imports System.Collections
 
 Class Custom
-    Public Function GetEnumerator(Optional foo as integer = 1) As CustomEnumerator
+    Public Function GetEnumerator(Optional goo as integer = 1) As CustomEnumerator
         Return Nothing
     End Function
 
     Public Class CustomEnumerator
-        Public Function MoveNext(Optional foo as boolean = false) As Boolean
+        Public Function MoveNext(Optional goo as boolean = false) As Boolean
             Return False
         End Function
 
@@ -1658,14 +1658,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 </expected>)
@@ -1702,14 +1702,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Custom', which is not a collection type.
@@ -1751,14 +1751,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Custom', which is not a collection type.
@@ -1798,14 +1798,14 @@ Public Class CustomEnumerator
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1846,7 +1846,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -1863,7 +1863,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1879,7 +1879,7 @@ Imports System.Collections
 Imports System.Runtime.CompilerServices
 
 Class Custom
-    Public Function GetEnumerator(ByVal foo as Integer) As Double
+    Public Function GetEnumerator(ByVal goo as Integer) As Double
         Return Nothing
     End Function
 
@@ -1908,7 +1908,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -1925,7 +1925,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1955,24 +1955,24 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection1 As IEnumerable = nothing
         For Each element as IEnumerable In myCollection1
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection2 As IBetterEnumerable = nothing
         For Each element as IBetterEnumerable In myCollection2
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection3 As SomethingEnumerable = nothing
         For Each element as SomethingEnumerable In myCollection3
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertNoErrors(compilation)
         End Sub
 
@@ -2006,24 +2006,24 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection1 As IEnumerable(Of String) = nothing
         For Each element as String In myCollection1
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection2 As IBetterEnumerable(Of String) = nothing
         For Each element as String In myCollection2
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection3 As SomethingEnumerable(Of String) = nothing
         For Each element as String In myCollection3
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertNoErrors(compilation)
         End Sub
 
@@ -2091,7 +2091,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32096: 'For Each' on type 'C3(Of Integer)' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.
@@ -2148,7 +2148,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32096: 'For Each' on type 'B' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.
@@ -2184,7 +2184,7 @@ Class C
 End Class      
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
@@ -2219,7 +2219,7 @@ Class C
 End Class      
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30521: Overload resolution failed because no accessible 'Current' is most specific for these arguments:
@@ -2261,7 +2261,7 @@ Class C
 End Class  
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'T2', which is not a collection type.
@@ -2323,7 +2323,7 @@ Module Program
 End Module    
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
             compilation.AssertNoDiagnostics()
             ' NOTE: this did not succeed in Dev10, but it does in Roslyn because we do a full overload resolution and can decide whether this 
             ' is ambiguous or not.
@@ -2373,7 +2373,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2426,7 +2426,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2469,7 +2469,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Integer', which is not a collection type.
@@ -2517,14 +2517,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -2561,14 +2561,14 @@ Class C1
         Dim myCustomCollection As Custom(Of CustomEnumerator) = Nothing
 
         For Each element As Integer In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class   
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -2591,14 +2591,14 @@ Class C1
         Dim myCustomCollection As T = Nothing
 
         For Each element As Integer In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class   
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertNoErrors(compilation)
         End Sub
 
@@ -2680,7 +2680,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30002: Type 'SomeUnknownTypeInAddition' is not defined.
@@ -2709,7 +2709,7 @@ End Class
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
 <expected>
 BC32006: 'Char' values cannot be converted to 'Integer'. Use 'Microsoft.VisualBasic.AscW' to interpret a character as a Unicode value or 'Microsoft.VisualBasic.Val' to interpret it as a digit.
@@ -2743,7 +2743,7 @@ End Class
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
 <expected>
 BC32006: 'Char' values cannot be converted to 'Integer'. Use 'Microsoft.VisualBasic.AscW' to interpret a character as a Unicode value or 'Microsoft.VisualBasic.Val' to interpret it as a digit.
@@ -2780,7 +2780,7 @@ End Class
     </file>
     </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation,
 <expected>
 BC32006: 'Char' values cannot be converted to 'Integer'. Use 'Microsoft.VisualBasic.AscW' to interpret a character as a Unicode value or 'Microsoft.VisualBasic.Val' to interpret it as a digit.
@@ -2947,7 +2947,7 @@ End Module
     </file>
         </compilation>
 
-                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
                 AssertTheseDiagnostics(compilation, expectedErrors(infer))
             Next
         End Sub
@@ -2960,7 +2960,7 @@ End Module
 Option Infer On
 
 Class C1
-  public function foo() as Integer()
+  public function goo() as Integer()
     return new Integer() {1,2,3}
   end function
 End Class
@@ -2970,11 +2970,11 @@ Module M
 
         Dim unassignedRef1, unassignedRef2, unassignedRef3, unassignedRef4 as C1
 
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
 
             if unassignedRef3 is nothing then
             End if
-        Next unassignedRef1.foo()(unassignedRef4.foo()(0))
+        Next unassignedRef1.goo()(unassignedRef4.goo()(0))
 
         For each unassignedRef8 as C1 in New C1() {unassignedRef8}
             System.Console.WriteLine(unassignedRef8)
@@ -2984,17 +2984,17 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC42024: Unused local variable: 'unassignedRef4'.
         Dim unassignedRef1, unassignedRef2, unassignedRef3, unassignedRef4 as C1
                                                             ~~~~~~~~~~~~~~
 BC42104: Variable 'unassignedRef1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
                  ~~~~~~~~~~~~~~
 BC42104: Variable 'unassignedRef2' is used before it has been assigned a value. A null reference exception could result at runtime.
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
                                             ~~~~~~~~~~~~~~
 BC42104: Variable 'unassignedRef3' is used before it has been assigned a value. A null reference exception could result at runtime.
             if unassignedRef3 is nothing then
@@ -3013,7 +3013,7 @@ BC42104: Variable 'unassignedRef8' is used before it has been assigned a value. 
 Option Infer On
 
 Class C1
-  public shared function foo() as Integer()
+  public shared function goo() as Integer()
     return new Integer() {1,2,3}
   end function
 End Class
@@ -3023,11 +3023,11 @@ Module M
 
         Dim unassignedRef1, unassignedRef2, unassignedRef3, unassignedRef4 as C1
 
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
 
             if unassignedRef3 is nothing then
             End if
-        Next unassignedRef1.foo()(unassignedRef4.foo()(0))
+        Next unassignedRef1.goo()(unassignedRef4.goo()(0))
 
         For each unassignedRef5 as C1 in New C1() {unassignedRef5}
         Next 
@@ -3045,26 +3045,26 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC42024: Unused local variable: 'unassignedRef4'.
         Dim unassignedRef1, unassignedRef2, unassignedRef3, unassignedRef4 as C1
                                                             ~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
                  ~~~~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        For Each unassignedRef1.foo()(0) In unassignedRef2.foo()
+        For Each unassignedRef1.goo()(0) In unassignedRef2.goo()
                                             ~~~~~~~~~~~~~~~~~~
 BC42104: Variable 'unassignedRef3' is used before it has been assigned a value. A null reference exception could result at runtime.
             if unassignedRef3 is nothing then
                ~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        Next unassignedRef1.foo()(unassignedRef4.foo()(0))
+        Next unassignedRef1.goo()(unassignedRef4.goo()(0))
              ~~~~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        Next unassignedRef1.foo()(unassignedRef4.foo()(0))
+        Next unassignedRef1.goo()(unassignedRef4.goo()(0))
                                   ~~~~~~~~~~~~~~~~~~
 BC42104: Variable 'unassignedRef5' is used before it has been assigned a value. A null reference exception could result at runtime.
         For each unassignedRef5 as C1 in New C1() {unassignedRef5}
@@ -3103,7 +3103,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -3120,7 +3120,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 Option Infer On
 
 Class C1
-  public function foo() as Integer()
+  public function goo() as Integer()
     return new Integer() {1,2,3}
   end function
 End Class
@@ -3130,7 +3130,7 @@ Module M
 
         Dim used1, used2 as integer
 
-        For Each used1 In new C1().foo()
+        For Each used1 In new C1().goo()
             used2 = 23            
         Next used1
     End Sub
@@ -3138,7 +3138,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -3204,7 +3204,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30105: Number of indices is less than the number of dimensions of the indexed array.
@@ -3238,7 +3238,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
 1
 2
 3
-]]>, additionalRefs:={SystemCoreRef})
+]]>, references:={SystemCoreRef})
         End Sub
 
         <Fact()>
@@ -3258,7 +3258,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Object', which is not a collection type.
@@ -3284,7 +3284,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertNoErrors(compilation)
         End Sub
 
@@ -3336,7 +3336,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -3384,7 +3384,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
  <expected>
 BC32023: Expression is of type 'Integer', which is not a collection type.
@@ -3441,7 +3441,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC31103: 'Get' accessor of property 'Current' is not accessible.
@@ -3489,7 +3489,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Integer', which is not a collection type.
@@ -3541,7 +3541,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32023: Expression is of type 'Integer', which is not a collection type.
@@ -3593,17 +3593,17 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection1 As IEnumerable = nothing
         For Each element as IEnumerable In myCollection1
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection2 As IBetterEnumerable = nothing
         For Each element as IBetterEnumerable In myCollection2
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
 
         Dim myCollection3 As SomethingEnumerable = nothing
         For Each element as SomethingEnumerable In myCollection3
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class 
@@ -3619,7 +3619,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -3663,14 +3663,14 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30301: 'Public ReadOnly Property Current As Custom' and 'Public ReadOnly Property Current As Integer' cannot overload each other because they differ only by return types.
@@ -3724,7 +3724,7 @@ Class C1
         Dim myCustomCollection As Custom = nothing
 
         For Each element as Custom In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class    
@@ -3742,7 +3742,7 @@ End Class
   IL_000a:  ldc.i4.s   23
   IL_000c:  callvirt   "Function Custom.CustomEnumerator.get_Current(Integer) As Custom"
   IL_0011:  pop
-  IL_0012:  ldstr      "foo"
+  IL_0012:  ldstr      "goo"
   IL_0017:  call       "Sub System.Console.WriteLine(String)"
   IL_001c:  ldloc.0
   IL_001d:  callvirt   "Function Custom.CustomEnumerator.MoveNext() As Boolean"
@@ -3766,7 +3766,7 @@ Module Program
     Sub Main()
     End Sub
 
-    Sub Foo(Of T, S, R)
+    Sub Goo(Of T, S, R)
         For Each t In ""
         Next
 
@@ -3784,7 +3784,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32089: 'r' is already declared as a type parameter of this method.
@@ -3808,7 +3808,7 @@ Module Program
     Sub Main()
     End Sub
 
-    Sub Foo(Of T, S, R)
+    Sub Goo(Of T, S, R)
         For Each t In ""
         Next
 
@@ -3825,7 +3825,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32089: 'r' is already declared as a type parameter of this method.
@@ -3848,7 +3848,7 @@ Next
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For Each i In """""),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For Each i In """""),
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
@@ -3865,7 +3865,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For Each i In """""),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For Each i In """""),
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
@@ -3937,7 +3937,7 @@ Next
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For i As Integer = 1 To 100"),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For i As Integer = 1 To 100"),
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
@@ -3954,7 +3954,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For i As Integer = 1 To 100"),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "For i As Integer = 1 To 100"),
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
@@ -3975,7 +3975,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, ImmutableArray.Create(Of MetadataReference)().AsEnumerable)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, ImmutableArray.Create(Of MetadataReference)().AsEnumerable)
 
             compilation.AssertTheseDiagnostics(
             <expected>
@@ -4021,7 +4021,7 @@ BC42104: Variable 'xs' is used before it has been assigned a value. A null refer
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, ImmutableArray.Create(Of MetadataReference)().AsEnumerable)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, ImmutableArray.Create(Of MetadataReference)().AsEnumerable)
 
             compilation.AssertTheseDiagnostics(
             <expected>
@@ -4130,7 +4130,7 @@ module module1
         next
 
         console.writeline("Collection Test")
-        for each i in foo()
+        for each i in goo()
             x(i) = sub() console.writeline(i.toString)
         next
         for i = 1 to 3 
@@ -4139,7 +4139,7 @@ module module1
 
         console.writeline("NonLocal Test")
         dim jj as integer
-        for each jj in foo()
+        for each jj in goo()
             x(jj) = sub() console.writeline(jj.toString)
         next
         for i = 1 to 3 
@@ -4148,11 +4148,11 @@ module module1
         
     end sub
   
-    function foo() as IEnumerable(of Integer)
+    function goo() as IEnumerable(of Integer)
         return new list(of integer) from {1, 2, 3}
     end function
 
-    function foo2(kk as integer ) as IEnumerable(of Integer)
+    function goo2(kk as integer ) as IEnumerable(of Integer)
         return new list(of integer) from {1, 2, 3}
     end function
 
@@ -4180,7 +4180,7 @@ module module1
         next
 
         console.writeline("Header Test: Collection Test")
-        for each i in (function() foo())()
+        for each i in (function() goo())()
             x(i) = sub() console.writeline(i.toString)
         next
         for i = 1 to 3 
@@ -4189,7 +4189,7 @@ module module1
 
         console.writeline("Header Test: NonLocal Test")
         dim jj as integer
-        for each jj in (function() foo())()
+        for each jj in (function() goo())()
             x(jj) = sub() console.writeline(jj.toString)
         next
         for i = 1 to 3 
@@ -4222,7 +4222,7 @@ module module1
         next
 
         console.writeline("Header Test: Collection Test")
-        for each i as integer in (function(a) foo())(i)
+        for each i as integer in (function(a) goo())(i)
             x(i) = sub() console.writeline(i.toString)
         next
         for i = 1 to 3 
@@ -4231,7 +4231,7 @@ module module1
 
         console.writeline("Header Test: NonLocal Test")
         dim jj as integer
-        for each jj in (function(a) foo())(jj)
+        for each jj in (function(a) goo())(jj)
             x(jj) = sub() console.writeline(jj.toString)
         next
         for i = 1 to 3 
@@ -4240,7 +4240,7 @@ module module1
 
         console.writeline("Header Test: NonLocal Test2")
         dim kk as integer
-        for each kk in (function(a) foo2(kk))(kk)
+        for each kk in (function(a) goo2(kk))(kk)
             x(kk) = sub() console.writeline(kk.toString)
         next
 
@@ -4519,7 +4519,7 @@ End Namespace
         </file>
     </compilation>
 
-            Dim comp = CreateCompilationWithoutReferences(source) ' Lots of errors, since corlib is missing.
+            Dim comp = CreateEmptyCompilation(source) ' Lots of errors, since corlib is missing.
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
@@ -4537,6 +4537,192 @@ End Namespace
             ' Code Path 2: SemanticModel
             Dim info = model.GetTypeInfo(variableSyntax)
             Assert.Equal(localSymbolType, info.Type)
+        End Sub
+
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAnArrayAndUserDefinedConversion_SZ()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In New Integer() {0}
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Integer) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (Integer() V_0,
+                Integer V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "Integer"
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  br.s       IL_0018
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.i4
+  IL_000e:  call       "Function C.op_Implicit(Integer) As C"
+  IL_0013:  pop
+  IL_0014:  ldloc.1
+  IL_0015:  ldc.i4.1
+  IL_0016:  add.ovf
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.0
+  IL_001a:  ldlen
+  IL_001b:  conv.i4
+  IL_001c:  blt.s      IL_000b
+  IL_001e:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Int32) As C", info.ElementConversion.Method.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAnArrayAndUserDefinedConversion_MD()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In New Integer(,) {{0}}
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Integer) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (System.Collections.IEnumerator V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     "Integer(*,*)..ctor"
+  IL_0007:  call       "Function System.Array.GetEnumerator() As System.Collections.IEnumerator"
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_0020
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+  IL_0015:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
+  IL_001a:  call       "Function C.op_Implicit(Integer) As C"
+  IL_001f:  pop
+  IL_0020:  ldloc.0
+  IL_0021:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+  IL_0026:  brtrue.s   IL_000f
+  IL_0028:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Int32) As C", info.ElementConversion.Method.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(26112, "https://github.com/dotnet/roslyn/issues/26112")>
+        Public Sub ForEachOverAStringAndUserDefinedConversion()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+NotInheritable Class C
+
+    Shared Sub Main()
+        For Each z As C In "a"
+        Next
+    End Sub
+
+    Public Shared Widening Operator CType(x As Char) As C
+        System.Console.WriteLine("CType")
+        Return Nothing
+    End Operator
+End Class
+    </file>
+</compilation>, expectedOutput:="CType")
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (String V_0,
+                Integer V_1)
+  IL_0000:  ldstr      "a"
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
+  IL_0008:  br.s       IL_001b
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.1
+  IL_000c:  callvirt   "Function String.get_Chars(Integer) As Char"
+  IL_0011:  call       "Function C.op_Implicit(Char) As C"
+  IL_0016:  pop
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.1
+  IL_0019:  add.ovf
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   "Function String.get_Length() As Integer"
+  IL_0022:  blt.s      IL_000a
+  IL_0024:  ret
+}
+]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.String.GetEnumerator() As System.CharEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.CharEnumerator.Current As System.Char", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Char", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, info.ElementConversion.Kind)
+            Assert.Equal("Function C.op_Implicit(x As System.Char) As C", info.ElementConversion.Method.ToTestDisplayString())
         End Sub
 
     End Class

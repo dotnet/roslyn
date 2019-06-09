@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {
-                    workInfo = default(WorkItem);
+                    workInfo = default;
                     if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out workInfo))
                     {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_documentWorkQueue.Count == 0)
                     {
-                        workItem = default(WorkItem);
+                        workItem = default;
                         return false;
                     }
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         documentMap.TryGetValue(key, out var existingWorkItem))
                     {
                         // TODO: should I care about language when replace it?
-                        Contract.Requires(existingWorkItem.Language == item.Language);
+                        Debug.Assert(existingWorkItem.Language == item.Language);
 
                         // replace it
                         documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.Analyzers, item.IsRetry, item.AsyncToken);

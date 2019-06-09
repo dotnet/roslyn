@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public string DocumentationFile
         {
             set { _store[nameof(DocumentationFile)] = value; }
@@ -77,12 +83,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(Imports)] = value; }
             get { return (ITaskItem[])_store[nameof(Imports)]; }
-        }
-
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
         }
 
         public string ModuleAssemblyName
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separator = { "\r\n" };
+        private static readonly string[] s_separator = { Environment.NewLine };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         ///  Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolName
+        override protected string ToolNameWithoutExtension
         {
             get
             {
-                return "vbc.exe";
+                return "vbc";
             }
         }
 
@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/optionstrict:", this.OptionStrictType);
             commandLine.AppendWhenTrue("/nowarn", this._store, "NoWarnings");
             commandLine.AppendSwitchWithSplitting("/nowarn:", this.DisabledWarnings, ",", ';', ',');
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
             commandLine.AppendPlusOrMinusSwitch("/optioninfer", this._store, "OptionInfer");
             commandLine.AppendWhenTrue("/nostdlib", this._store, "NoStandardLib");
             commandLine.AppendWhenTrue("/novbruntimeref", this._store, "NoVBRuntimeReference");
@@ -434,7 +435,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/removeintchecks", this._store, "RemoveIntegerChecks");
             commandLine.AppendSwitchIfNotNull("/rootnamespace:", this.RootNamespace);
             commandLine.AppendSwitchIfNotNull("/sdkpath:", this.SdkPath);
-            commandLine.AppendSwitchIfNotNull("/langversion:", this.LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", this.ModuleAssemblyName);
             commandLine.AppendWhenTrue("/netcf", this._store, "TargetCompactFramework");
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
@@ -479,7 +479,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 commandLine.AppendSwitchIfNotNull("/", this.Verbosity);
             }
 
-            commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            if ((bool?)this._store[nameof(GenerateDocumentation)] != false)
+            {
+                // Only provide the filename when GenerateDocumentation is not
+                // explicitly disabled.  Otherwise, the /doc switch (which comes
+                // later in the command) overrides and re-enabled generating
+                // documentation.
+                commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            }
+
             commandLine.AppendSwitchUnquotedIfNotNull("/define:", Vbc.GetDefineConstantsSwitch(this.DefineConstants));
             AddReferencesToCommandLine(commandLine);
             commandLine.AppendSwitchIfNotNull("/win32resource:", this.Win32Resource);
@@ -512,10 +520,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
-            if (this.HostObject != null)
+            if (this.HostObject is IVbcHostObject vbHost)
             {
-                var vbHost = this.HostObject as IVbcHostObject;
                 designTime = vbHost.IsDesignTime();
+            }
+            else if (this.HostObject != null)
+            {
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Vbc", "IVbcHostObject"));
             }
             if (!designTime)
             {
@@ -782,10 +793,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// accordingly.
         ///
         /// Example:
-        ///     If we attempted to pass in Platform="foobar", then this method would
+        ///     If we attempted to pass in Platform="goobar", then this method would
         ///     set HostCompilerSupportsAllParameters=true, but it would throw an 
         ///     exception because the host compiler fully supports
-        ///     the Platform parameter, but "foobar" is an illegal value.
+        ///     the Platform parameter, but "goobar" is an illegal value.
         ///
         /// Example:
         ///     If we attempted to pass in NoConfig=false, then this method would set
@@ -814,6 +825,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
                     CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
                     CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
+                }
+
+                // For host objects which support them, set analyzer config files and potential analyzer config files
+                if (vbcHostObject is IAnalyzerConfigFilesHostObject analyzerConfigFilesHostObject)
+                {
+                    CheckHostObjectSupport(param = nameof(AnalyzerConfigFiles), analyzerConfigFilesHostObject.SetAnalyzerConfigFiles(AnalyzerConfigFiles));
+                    CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
                 }
 
                 CheckHostObjectSupport(param = nameof(BaseAddress), vbcHostObject.SetBaseAddress(TargetType, GetBaseAddressInHex()));
@@ -909,7 +927,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // Check for support of the LangVersion property
-                if (vbcHostObject is IVbcHostObject3)
+                if (vbcHostObject is IVbcHostObject3 && !DeferToICompilerOptionsHostObject(LangVersion, vbcHostObject))
                 {
                     IVbcHostObject3 vbcHostObject3 = (IVbcHostObject3)vbcHostObject;
                     CheckHostObjectSupport(param = nameof(LangVersion), vbcHostObject3.SetLanguageVersion(LangVersion));
@@ -960,6 +978,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
+        // VbcHostObject doesn't support VB versions beyond 15,
+        // so the LangVersion will be passed through ICompilerOptionsHostObject.SetCompilerOptions instead
+        private static bool DeferToICompilerOptionsHostObject(string langVersion, IVbcHostObject vbcHostObject)
+        {
+            if (!(vbcHostObject is ICompilerOptionsHostObject))
+            {
+                return false;
+            }
+
+            if (langVersion == null)
+            {
+                // CVbcMSBuildHostObject::SetLanguageVersion can handle null
+                return false;
+            }
+
+            // CVbcMSBuildHostObject::SetLanguageVersion can handle versions up to 15
+            var supportedList = new[]
+            {
+                "9", "9.0",
+                "10", "10.0",
+                "11", "11.0",
+                "12", "12.0",
+                "14", "14.0",
+                "15", "15.0"
+            };
+
+            return Array.IndexOf(supportedList, langVersion) < 0;
+        }
+
         /// <summary>
         /// This method will get called during Execute() if a host object has been passed into the Vbc
         /// task.  Returns one of the following values to indicate what the next action should be:
@@ -982,12 +1029,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // NOTE: For compat reasons this must remain IVbcHostObject
                 // we can dynamically test for smarter interfaces later..
-                using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(this.HostObject as IVbcHostObject))
+                if (HostObject is IVbcHostObject hostObjectCOM)
                 {
-                    IVbcHostObject vbcHostObject = hostObject.RCW;
-
-                    if (vbcHostObject != null)
+                    using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(hostObjectCOM))
                     {
+                        IVbcHostObject vbcHostObject = hostObject.RCW;
                         bool hostObjectSuccessfullyInitialized = InitializeHostCompiler(vbcHostObject);
 
                         // If we're currently only in design-time (as opposed to build-time),
@@ -1039,10 +1085,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return HostObjectInitializationStatus.NoActionReturnFailure;
                         }
                     }
-                    else
-                    {
-                        Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
-                    }
+                }
+                else
+                {
+                    Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
                 }
             }
 

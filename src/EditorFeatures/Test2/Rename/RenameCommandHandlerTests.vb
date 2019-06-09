@@ -1,24 +1,25 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameCommandHandlerTests
         Private Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
             Return New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                            workspace.GetService(Of IEditorOperationsFactoryService),
-                                            workspace.GetService(Of IWaitIndicator))
+                                            workspace.GetService(Of IEditorOperationsFactoryService))
         End Function
 
         <WpfFact>
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
                                 }
                             </Document>
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
-                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."), Utilities.TestCommandExecutionContext.Create())
 
                 Dim expectedTriggerToken = workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxRootAsync().Result.FindToken(view.Caret.Position.BufferPosition)
                 Assert.Equal(expectedTriggerToken.Span.ToSnapshotSpan(view.TextSnapshot), view.Selection.SelectedSpans.Single())
@@ -49,13 +50,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub RenameCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
-                        object $$foo;  
+                        object $$goo;  
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
@@ -71,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return VSCommanding.CommandState.Unavailable
                     End Function
 
                 Dim state = handler.GetCommandState(New RenameCommandArgs(textView, textView.TextBuffer), nextHandler)
@@ -100,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=False)
 
-                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."), Utilities.TestCommandExecutionContext.Create())
 
                 Assert.Equal(selectedSpan, view.Selection.SelectedSpans.Single())
             End Using
@@ -126,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 view.Caret.MoveTo(selectedSpan.End)
                 view.Selection.Select(selectedSpan, isReversed:=True)
 
-                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."))
+                CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."), Utilities.TestCommandExecutionContext.Create())
                 Await WaitForRename(workspace)
                 Assert.Equal(selectedSpan.Span, view.Selection.SelectedSpans.Single().Span)
             End Using
@@ -140,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Class [|Fo$$o|]
+Class [|Go$$o|]
 
 End Class
                             </Document>
@@ -151,14 +153,13 @@ End Class
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim session = StartSession(workspace)
 
                 editorOperations.MoveLineDown(extendSelection:=False)
                 Assert.Equal(4, view.Caret.Position.VirtualSpaces)
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "p"c), Sub() editorOperations.InsertText("p"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "p"c), Sub() editorOperations.InsertText("p"), Utilities.TestCommandExecutionContext.Create())
 
                 Assert.Equal("    p", view.Caret.Position.BufferPosition.GetContainingLine.GetText())
             End Using
@@ -171,7 +172,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int |$$|x = 0;
                                 }
@@ -183,7 +184,7 @@ End Class
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)
-                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New CommandState())
+                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New VSCommanding.CommandState())
 
                 Assert.True(commandState.IsAvailable)
             End Using
@@ -196,7 +197,7 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
                                 }
                             </Document>
@@ -209,12 +210,13 @@ End Class
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
 
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, " "c), Sub() AssertEx.Fail("Space should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, " "c),
+                                              Sub() AssertEx.Fail("Space should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 session.Cancel()
             End Using
@@ -227,9 +229,9 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
-                                    Foo f;
+                                    Goo f;
                                 }
                             </Document>
                     </Project>
@@ -242,8 +244,7 @@ End Class
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
 
@@ -254,7 +255,9 @@ End Class
                 Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, Dashboard)
                 dashboard.ShouldReceiveKeyboardNavigation = False
 
-                commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Tab should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Tab should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLine().LineNumber)
 
@@ -269,9 +272,9 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class $$Foo // comment
+class $$Goo // comment
 {
-Foo f;
+Goo f;
 }
                             </Document>
                     </Project>
@@ -287,8 +290,7 @@ Foo f;
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Assert.True(view.Selection.IsEmpty())
                 Dim session = StartSession(workspace)
@@ -299,11 +301,14 @@ Foo f;
                 view.Selection.Clear()
                 Assert.True(view.Selection.IsEmpty())
 
-                commandHandler.ExecuteCommand(New SelectAllCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Ctrl+A should not have been passed to the editor."))
+                Assert.True(commandHandler.ExecuteCommand(New SelectAllCommandArgs(view, view.TextBuffer),
+                                              Utilities.TestCommandExecutionContext.Create()))
                 Assert.Equal(identifierSpan, view.Selection.SelectedSpans.Single().Span)
                 Assert.Equal(identifierSpan.End, view.Caret.Position.BufferPosition.Position)
 
-                commandHandler.ExecuteCommand(New SelectAllCommandArgs(view, view.TextBuffer), Sub() editorOperations.SelectAll())
+                commandHandler.ExecuteCommand(New SelectAllCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.SelectAll(),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(view.TextBuffer.CurrentSnapshot.GetFullSpan(), view.Selection.SelectedSpans.Single().Span)
             End Using
         End Function
@@ -316,7 +321,7 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class [|$$Foo|] // comment
+class [|$$Goo|] // comment
 {
 }
                             </Document>
@@ -330,8 +335,7 @@ class [|$$Foo|] // comment
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -339,7 +343,9 @@ class [|$$Foo|] // comment
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, startPosition))
 
                 ' with the caret at the start, this should delete the whole identifier
-                commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Command should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Command should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Await VerifyTagsAreCorrect(workspace, "")
 
                 editorOperations.InsertText("this")
@@ -350,7 +356,9 @@ class [|$$Foo|] // comment
                 ' Note that the default editor handling would try to delete the '@' character, we override this behavior since
                 ' that '@' character is in a read only region during rename.
                 view.Selection.Select(New SnapshotSpan(view.TextSnapshot, Span.FromBounds(startPosition + 2, startPosition + 4)), isReversed:=True)
-                commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Command should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Command should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Await VerifyTagsAreCorrect(workspace, "s")
             End Using
         End Function
@@ -362,9 +370,9 @@ class [|$$Foo|] // comment
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class $$Foo // comment
+class $$Goo // comment
 {
-Foo f;
+Goo f;
 }
                             </Document>
                     </Project>
@@ -384,8 +392,7 @@ Foo f;
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -395,12 +402,16 @@ Foo f;
                 Assert.Equal(identifierSpan, view.Selection.SelectedSpans.Single().Span)
 
                 ' LineStart should move to the beginning of identifierSpan
-                commandHandler.ExecuteCommand(New LineStartCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Home should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New LineStartCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Home should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(0, view.Selection.SelectedSpans.Single().Span.Length)
                 Assert.Equal(startPosition, view.Caret.Position.BufferPosition.Position)
 
                 ' LineStart again should move to the beginning of the line
-                commandHandler.ExecuteCommand(New LineStartCommandArgs(view, view.TextBuffer), Sub() editorOperations.MoveToStartOfLine(extendSelection:=False))
+                commandHandler.ExecuteCommand(New LineStartCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.MoveToStartOfLine(extendSelection:=False),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(lineStart, view.Caret.Position.BufferPosition.Position)
 #End Region
 #Region "LineStartExtend"
@@ -408,11 +419,15 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, startPosition + 1))
 
                 ' LineStartExtend should move to the beginning of identifierSpan and extend the selection
-                commandHandler.ExecuteCommand(New LineStartExtendCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Shift+Home should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New LineStartExtendCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Shift+Home should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(New Span(startPosition, 1), view.Selection.SelectedSpans.Single().Span)
 
                 ' LineStartExtend again should move to the beginning of the line and extend the selection
-                commandHandler.ExecuteCommand(New LineStartExtendCommandArgs(view, view.TextBuffer), Sub() editorOperations.MoveToStartOfLine(extendSelection:=True))
+                commandHandler.ExecuteCommand(New LineStartExtendCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.MoveToStartOfLine(extendSelection:=True),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(Span.FromBounds(lineStart, startPosition + 1), view.Selection.SelectedSpans.Single().Span)
 #End Region
 #Region "LineEnd"
@@ -420,12 +435,16 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, startPosition + 1))
 
                 ' LineEnd should move to the end of identifierSpan
-                commandHandler.ExecuteCommand(New LineEndCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("End should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New LineEndCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("End should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(0, view.Selection.SelectedSpans.Single().Span.Length)
                 Assert.Equal(identifierSpan.End, view.Caret.Position.BufferPosition.Position)
 
                 ' LineEnd again should move to the end of the line
-                commandHandler.ExecuteCommand(New LineEndCommandArgs(view, view.TextBuffer), Sub() editorOperations.MoveToEndOfLine(extendSelection:=False))
+                commandHandler.ExecuteCommand(New LineEndCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.MoveToEndOfLine(extendSelection:=False),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(lineEnd, view.Caret.Position.BufferPosition.Position)
 #End Region
 #Region "LineEndExtend"
@@ -433,11 +452,15 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, startPosition + 1))
 
                 ' LineEndExtend should move to the end of identifierSpan and extend the selection
-                commandHandler.ExecuteCommand(New LineEndExtendCommandArgs(view, view.TextBuffer), Sub() AssertEx.Fail("Shift+End should not have been passed to the editor."))
+                commandHandler.ExecuteCommand(New LineEndExtendCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Shift+End should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(Span.FromBounds(startPosition + 1, identifierSpan.End), view.Selection.SelectedSpans.Single().Span)
 
                 ' LineEndExtend again should move to the end of the line and extend the selection
-                commandHandler.ExecuteCommand(New LineEndExtendCommandArgs(view, view.TextBuffer), Sub() editorOperations.MoveToEndOfLine(extendSelection:=True))
+                commandHandler.ExecuteCommand(New LineEndExtendCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.MoveToEndOfLine(extendSelection:=True),
+                                              Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(Span.FromBounds(startPosition + 1, lineEnd), view.Selection.SelectedSpans.Single().Span)
 #End Region
                 session.Cancel()
@@ -451,7 +474,7 @@ Foo f;
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -461,15 +484,16 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
                 Dim session = StartSession(workspace)
 
                 editorOperations.MoveToNextCharacter(extendSelection:=False)
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "$"c), Sub() editorOperations.InsertText("$"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "$"c),
+                                              Sub() editorOperations.InsertText("$"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Foo")
+                Await VerifyTagsAreCorrect(workspace, "Goo")
 
                 session.Cancel()
             End Using
@@ -482,9 +506,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -493,8 +517,7 @@ Foo f;
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -503,7 +526,9 @@ Foo f;
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
+                                              Sub() editorOperations.InsertText("B"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Move selection and cursor to a readonly region
                 Dim span = view.TextBuffer.CurrentSnapshot.GetSpanFromBounds(0, 0)
@@ -511,9 +536,11 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, span.End))
 
                 ' Now let's type and that should commit Rename
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c),
+                                              Sub() editorOperations.InsertText("Z"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -531,9 +558,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -542,8 +569,7 @@ Foo f;
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -552,7 +578,9 @@ Foo f;
 
                 ' Delete the first identifier char
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Delete())
+                commandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.Delete(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace, "oo")
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -569,9 +597,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|Fo$$o|]
+                                class [|Go$$o|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -580,8 +608,7 @@ Foo f;
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -590,9 +617,11 @@ Foo f;
 
                 ' Delete the first identifier char
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
+                commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.Backspace(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Fo")
+                Await VerifyTagsAreCorrect(workspace, "Go")
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -606,9 +635,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -617,8 +646,7 @@ Foo f;
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -627,7 +655,9 @@ Foo f;
 
                 ' Type first in the main identifier
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
+                                              Sub() editorOperations.InsertText("B"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Move selection and cursor to a readonly region
                 Dim span = view.TextBuffer.CurrentSnapshot.GetSpanFromBounds(0, 0)
@@ -635,9 +665,11 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, span.End))
 
                 ' Now let's type and that should commit Rename
-                commandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Delete())
+                commandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.Delete(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -652,9 +684,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
-                                [|Foo|] f;
+                                [|Goo|] f;
                             }
                         </Document>
                         <Document>
@@ -669,8 +701,7 @@ Foo f;
                 Dim view = workspace.Documents.ElementAt(0).GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -679,7 +710,9 @@ Foo f;
 
                 ' Type first in the main identifier
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
+                                              Sub() editorOperations.InsertText("B"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Move the cursor to the next file
                 Dim newview = workspace.Documents.ElementAt(1).GetTextView()
@@ -687,9 +720,11 @@ Foo f;
                 newview.Caret.MoveTo(New SnapshotPoint(newview.TextBuffer.CurrentSnapshot, 0))
 
                 ' Type the char at the beginning of the file
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(newview, newview.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(newview, newview.TextBuffer, "Z"c),
+                                              Sub() editorOperations.InsertText("Z"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -732,8 +767,7 @@ Foo f;
                 Dim view = workspace.Documents.ElementAt(0).GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
@@ -742,7 +776,9 @@ Foo f;
 
                 ' Type first in the main identifier
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
+                                              Sub() editorOperations.InsertText("B"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Move the cursor to the next file
                 Dim newview = workspace.Documents.ElementAt(1).GetTextView()
@@ -750,7 +786,9 @@ Foo f;
                 newview.Caret.MoveTo(New SnapshotPoint(newview.TextBuffer.CurrentSnapshot, 0))
 
                 ' Type the char at the beginning of the file
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(newview, newview.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(newview, newview.TextBuffer, "Z"c),
+                                              Sub() editorOperations.InsertText("Z"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace, "BB")
 
@@ -786,13 +824,12 @@ class Program
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
-                commandHandler.ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
-                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
+                commandHandler.ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"), Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace, "Z")
             End Using
@@ -826,14 +863,15 @@ partial class [|Program|]
                 Dim view = workspace.Documents.First(Function(d) d.Name = "Test.cs").GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim closedDocument = workspace.Documents.First(Function(d) d.Name = "Test2.cs")
                 closedDocument.CloseTextView()
                 Assert.True(workspace.IsDocumentOpen(closedDocument.Id))
-                commandHandler.ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
+                commandHandler.ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c),
+                                              Sub() editorOperations.InsertText("Z"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace, "Z")
             End Using
@@ -847,7 +885,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -861,13 +899,14 @@ partial class [|Program|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
 
-                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer), Sub() editorOperations.OpenLineAbove())
+                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.OpenLineAbove(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -886,7 +925,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -900,8 +939,7 @@ partial class [|Program|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -909,7 +947,9 @@ partial class [|Program|]
                 ' Move caret out of rename session span
                 editorOperations.MoveLineDown(extendSelection:=False)
 
-                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer), Sub() editorOperations.OpenLineAbove())
+                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.OpenLineAbove(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -928,7 +968,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -942,13 +982,14 @@ partial class [|Program|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
 
-                commandHandler.ExecuteCommand(New OpenLineBelowCommandArgs(view, view.TextBuffer), Sub() editorOperations.OpenLineBelow())
+                commandHandler.ExecuteCommand(New OpenLineBelowCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.OpenLineBelow(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -967,7 +1008,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -979,13 +1020,14 @@ partial class [|Program|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
 
-                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer), Sub() editorOperations.OpenLineAbove())
+                commandHandler.ExecuteCommand(New OpenLineAboveCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.OpenLineAbove(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -1003,7 +1045,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -1015,13 +1057,14 @@ partial class [|Program|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
 
-                commandHandler.ExecuteCommand(New OpenLineBelowCommandArgs(view, view.TextBuffer), Sub() editorOperations.OpenLineBelow())
+                commandHandler.ExecuteCommand(New OpenLineBelowCommandArgs(view, view.TextBuffer),
+                                              Sub() editorOperations.OpenLineBelow(),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -1039,9 +1082,9 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -1050,8 +1093,7 @@ partial class [|Program|]
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService),
-                                                               workspace.GetService(Of IWaitIndicator))
+                                                               workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Await WaitForRename(workspace)
@@ -1060,12 +1102,13 @@ partial class [|Program|]
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
+                                              Sub() editorOperations.InsertText("B"), Utilities.TestCommandExecutionContext.Create())
 
                 ' Now save the document, which should commit Rename
-                commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
+                commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -1078,7 +1121,7 @@ partial class [|Program|]
         Public Sub MoveSelectedLinesUpDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New MoveSelectedLinesUpCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New MoveSelectedLinesUpCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1088,7 +1131,7 @@ partial class [|Program|]
         Public Sub MoveSelectedLinesDownDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New MoveSelectedLinesDownCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New MoveSelectedLinesDownCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1098,7 +1141,7 @@ partial class [|Program|]
         Public Sub ReorderParametersDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New ReorderParametersCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New ReorderParametersCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1108,7 +1151,7 @@ partial class [|Program|]
         Public Sub RemoveParametersDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New RemoveParametersCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New RemoveParametersCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1118,7 +1161,7 @@ partial class [|Program|]
         Public Sub ExtractInterfaceDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New ExtractInterfaceCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New ExtractInterfaceCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1128,7 +1171,7 @@ partial class [|Program|]
         Public Sub EncapsulateFieldDuringRename()
             VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New EncapsulateFieldCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New EncapsulateFieldCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1137,7 +1180,7 @@ partial class [|Program|]
         Public Async Function CutDuringRename_InsideIdentifier() As Task
             Await VerifySessionActiveAfterCutPasteInsideIdentifier(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Function
 
@@ -1146,7 +1189,7 @@ partial class [|Program|]
         Public Async Function PasteDuringRename_InsideIdentifier() As Task
             Await VerifySessionActiveAfterCutPasteInsideIdentifier(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Function
 
@@ -1155,7 +1198,7 @@ partial class [|Program|]
         Public Sub CutDuringRename_OutsideIdentifier()
             VerifySessionCommittedAfterCutPasteOutsideIdentifier(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1164,7 +1207,7 @@ partial class [|Program|]
         Public Sub PasteDuringRename_OutsideIdentifier()
             VerifySessionCommittedAfterCutPasteOutsideIdentifier(
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
-                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler)
+                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
                 End Sub)
         End Sub
 
@@ -1188,8 +1231,7 @@ class [|C$$|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1197,7 +1239,9 @@ class [|C$$|]
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c), Sub() editorOperations.InsertText("D"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c),
+                                              Sub() editorOperations.InsertText("D"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Then execute the command
                 Dim commandInvokedString = "/*Command Invoked*/"
@@ -1232,8 +1276,7 @@ class [|C$$|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1268,8 +1311,7 @@ class [|C$$|]
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim commandHandler As New RenameCommandHandler(
                     renameService,
-                    workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GetService(Of IWaitIndicator))
+                    workspace.GetService(Of IEditorOperationsFactoryService))
 
                 Dim session = StartSession(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
@@ -1277,7 +1319,9 @@ class [|C$$|]
                 ' Type first in the main identifier
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c), Sub() editorOperations.InsertText("D"))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c),
+                                              Sub() editorOperations.InsertText("D"),
+                                              Utilities.TestCommandExecutionContext.Create())
 
                 ' Then execute the command
                 Dim commandInvokedString = "commandInvoked"

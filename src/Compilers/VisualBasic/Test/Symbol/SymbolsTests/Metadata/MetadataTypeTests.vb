@@ -2,9 +2,11 @@
 
 Imports System.Collections.Immutable
 Imports CompilationCreationTestHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 
         <Fact>
         Public Sub MetadataNamespaceSymbol01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -59,7 +61,7 @@ End Class
         <WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")>
         <Fact>
         Public Sub MetadataTypeSymbolModule01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Module A
@@ -68,26 +70,25 @@ End Module
 </compilation>, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                             sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                        Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                        Assert.Equal(TypeKind.Module, a.TypeKind)
+                                                    End Sub,
+                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                 Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                 Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                 Assert.Equal(TypeKind.Module, a.TypeKind)
 
-            CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                                                 Dim emittedAttributes = DirectCast(m, PEModuleSymbol).GetCustomAttributesForToken(DirectCast(a, PENamedTypeSymbol).Handle)
+                                                 Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", emittedAttributes.Single().ToString())
+                                             End Sub)
         End Sub
 
         <WorkItem(537324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
         <Fact>
         Public Sub MetadataTypeSymbolClass01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -141,7 +142,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenClass02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -196,7 +197,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenInterface01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -250,13 +251,13 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolStruct01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
 End Class
     </file>
-</compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)
@@ -302,7 +303,7 @@ End Class
 
         <Fact>
         Public Sub MetadataArrayTypeSymbol01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A

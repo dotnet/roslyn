@@ -6,11 +6,16 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.ConvertIfToSwitch
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel) As IAnalyzer
             Return New VisualBasicAnalyzer(syntaxFacts, semanticModel)
@@ -25,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.Convert_If_to_Select_Case
+                    Return VBFeaturesResources.Convert_to_Select_Case
                 End Get
             End Property
 
@@ -151,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides Iterator Function GetIfElseStatementChain(node As ExecutableStatementSyntax) _
                 As IEnumerable(Of (ExpressionSyntax, SyntaxList(Of StatementSyntax)))
-                Dim elseBlockStatements As SyntaxList(Of StatementSyntax) ?
+                Dim elseBlockStatements As SyntaxList(Of StatementSyntax)?
 
                 Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
                 If singleLineIf IsNot Nothing Then
@@ -182,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides Function UnwrapCast(expression As ExpressionSyntax) As ExpressionSyntax
                 Return expression
+            End Function
+
+            Protected Overrides Function CreateSwitchStatement(ifStatement As ExecutableStatementSyntax, expression As ExpressionSyntax, sectionList As List(Of SyntaxNode)) As SyntaxNode
+                Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
             End Function
         End Class
     End Class

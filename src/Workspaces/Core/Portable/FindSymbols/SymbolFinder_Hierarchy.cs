@@ -7,10 +7,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find symbols for members that override the specified member symbol.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindOverridesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -30,50 +32,57 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindOverridesAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            // Method can only have overrides if its a virtual, abstract or override and is not
-            // sealed.
-            var symbol = symbolAndProjectId.Symbol;
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            var symbol = symbolAndProjectId.Symbol?.OriginalDefinition;
             if (symbol.IsOverridable())
             {
                 // To find the overrides, we need to walk down the type hierarchy and check all
-                // derived types.  TODO(cyrusn): This seems extremely costly.  Is there any way to
-                // speed this up?
-                var containingType = symbol.ContainingType.OriginalDefinition;
+                // derived types.
+                var containingType = symbol.ContainingType;
                 var derivedTypes = await FindDerivedClassesAsync(
                     symbolAndProjectId.WithSymbol(containingType),
                     solution, projects, cancellationToken).ConfigureAwait(false);
 
-                var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
                 foreach (var type in derivedTypes)
                 {
-                    foreach (var m in GetMembers(type, symbol.Name))
+                    foreach (var m in type.Symbol.GetMembers(symbol.Name))
                     {
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                        var bestMember = sourceMember.Symbol != null ? sourceMember : m;
-                        var member = bestMember.Symbol;
-                        if (member != null &&
-                            member.IsOverride &&
-                            member.OverriddenMember() != null &&
-                            OriginalSymbolsMatch(member.OverriddenMember().OriginalDefinition, symbol.OriginalDefinition, solution, cancellationToken))
+                        var bestMember = sourceMember ?? m;
+
+                        if (IsOverride(solution, bestMember, symbol, cancellationToken))
                         {
-                            results.Add(bestMember);
+                            results.Add(new SymbolAndProjectId(bestMember, type.ProjectId));
                         }
                     }
                 }
-
-                return results.ToImmutableAndFree();
             }
 
-            return ImmutableArray<SymbolAndProjectId>.Empty;
+            return results.ToImmutableAndFree();
+        }
+
+        internal static bool IsOverride(
+            Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            for (var current = member; current != null; current = current.OverriddenMember())
+            {
+                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
         /// Find symbols for declarations that implement members of the specified interface symbol
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindImplementedInterfaceMembersAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -82,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementedInterfaceMembersAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
             // public and non static.
@@ -102,13 +111,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // method, even if its containing type doesn't state that it implements the
                     // interface.  For example:
                     //
-                    //  interface IFoo { void Foo(); }
+                    //  interface IGoo { void Goo(); }
                     //
-                    //  class Base { public void Foo(); }
+                    //  class Base { public void Goo(); }
                     //
-                    //  class Derived : Base, IFoo { }
+                    //  class Derived : Base, IGoo { }
                     //
-                    // In this case, Base.Foo *does* implement IFoo.Foo in the context of the type
+                    // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
                     // Derived.
                     var containingType = symbolAndProjectId.WithSymbol(
                         symbol.ContainingType.OriginalDefinition);
@@ -122,15 +131,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var interfaceType in GetAllInterfaces(type))
                         {
-                            if (interfaceType.Symbol.MemberNames.Contains(symbol.Name))
+                            // We don't want to look inside this type if we can avoid it. So first
+                            // make sure that the interface even contains a symbol with the same
+                            // name as the symbol we're looking for.
+                            var nameToLookFor = symbol.IsPropertyAccessor()
+                                ? ((IMethodSymbol)symbol).AssociatedSymbol.Name
+                                : symbol.Name;
+                            if (interfaceType.Symbol.MemberNames.Contains(nameToLookFor))
                             {
                                 foreach (var m in GetMembers(interfaceType, symbol.Name))
                                 {
                                     var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod.Symbol != null ? sourceMethod : m;
 
-                                    var implementations = type.FindImplementationsForInterfaceMember(
-                                        bestMethod.Symbol, solution.Workspace, cancellationToken);
+                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
+                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation.Symbol != null &&
@@ -176,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="cancellationToken"></param>
         /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
         public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindDerivedClassesAsync(
                 SymbolAndProjectId.Create(type, projectId: null),
@@ -185,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
-            SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var type = typeAndProjectId.Symbol;
             if (type == null)
@@ -205,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds the symbols that implement an interface or interface member.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var result = await FindImplementationsAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -214,14 +229,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
             var symbol = symbolAndProjectId.Symbol;
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
                                         .Where(IsAccessible)
                                         .ToImmutableArray();
@@ -229,15 +244,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                 {
-                    foreach (var m in t.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
+                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+                    foreach (var implementation in implementations)
                     {
-                        var sourceDef = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                        var bestDef = sourceDef.Symbol != null ? sourceDef : m;
+                        var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
+                        var bestDef = sourceDef.Symbol != null ? sourceDef : implementation;
                         if (IsAccessible(bestDef))
                         {
                             results = results ?? ImmutableArray.CreateBuilder<SymbolAndProjectId>();
@@ -274,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds all the callers of a specified symbol.
         /// </summary>
         public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
             return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
         }
@@ -282,7 +298,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
@@ -322,7 +338,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             ISymbol symbol,
             IImmutableSet<Document> documents,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (symbol != null)
             {
@@ -499,8 +515,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            // Now check forwarded types in symbolToMatchCompilation.
-            verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            {
+                // Now check forwarded types in symbolToMatchCompilation.
+                verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            }
+
             return verifiedCount == count;
         }
 
@@ -555,7 +575,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Resolve forwarded type and verify that the types from different assembly are indeed equivalent.
                         var forwardedType = referencedAssembly.ResolveForwardedType(fullyQualifiedTypeName);
-                        if (forwardedType == expectedForwardedType)
+                        if (Equals(forwardedType, expectedForwardedType))
                         {
                             verifiedKeys.Add(kvp.Key);
                             verifiedCount++;
@@ -583,7 +603,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // compilation from definition project must already exist.
             if (!definitionProject.TryGetCompilation(out definingCompilation))
             {
-                Contract.Requires(false, "How can compilation not exist?");
+                Debug.Assert(false, "How can compilation not exist?");
                 return false;
             }
 

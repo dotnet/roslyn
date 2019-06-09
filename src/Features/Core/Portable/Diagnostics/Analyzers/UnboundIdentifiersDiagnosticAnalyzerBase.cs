@@ -18,12 +18,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
+        protected abstract bool IsNameOf(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
         public bool OpenFileOnly(Workspace workspace) => false;
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKindsOfInterest.ToArray());
         }
 
@@ -64,13 +68,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
         {
-            Func<SyntaxNode, bool> isQualifiedOrSimpleName = (SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
+            bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
             var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {
                 var info = context.SemanticModel.GetSymbolInfo(typeName);
                 if (info.Symbol == null && info.CandidateSymbols.Length == 0)
                 {
+                    // GetSymbolInfo returns no symbols for "nameof" expression, so handle it specially.
+                    if (IsNameOf(typeName))
+                    {
+                        continue;
+                    }
+
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, typeName.GetLocation(), typeName.ToString()));
                 }
                 else if (ConstructorDoesNotExist(typeName, info, context.SemanticModel))

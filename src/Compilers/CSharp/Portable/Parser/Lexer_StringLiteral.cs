@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -222,8 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // We have a string of the form
             //                $" ... "
-            // or, if isVerbatim is true, of the form
+            // or, if isVerbatim is true, of possible forms
             //                $@" ... "
+            //                @$" ... "
             // Where the contents contains zero or more sequences
             //                { STUFF }
             // where these curly braces delimit STUFF in expression "holes".
@@ -316,12 +318,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info, out bool closeQuoteMissing)
             {
-                Debug.Assert(lexer.TextWindow.PeekChar() == '$');
-                lexer.TextWindow.AdvanceChar(); // $
                 if (isVerbatim)
                 {
-                    Debug.Assert(lexer.TextWindow.PeekChar() == '@');
-                    lexer.TextWindow.AdvanceChar(); // @
+                    Debug.Assert(
+                        (lexer.TextWindow.PeekChar() == '@' && lexer.TextWindow.PeekChar(1) == '$') ||
+                        (lexer.TextWindow.PeekChar() == '$' && lexer.TextWindow.PeekChar(1) == '@'));
+
+                    // @$ or $@
+                    lexer.TextWindow.AdvanceChar();
+                    lexer.TextWindow.AdvanceChar();
+                }
+                else
+                {
+                    Debug.Assert(lexer.TextWindow.PeekChar() == '$');
+                    lexer.TextWindow.AdvanceChar(); // $
                 }
 
                 Debug.Assert(lexer.TextWindow.PeekChar() == '"');

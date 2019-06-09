@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.InsertFile,
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
+                RudeEditKind.RefStruct,
+                RudeEditKind.ReadOnlyStruct,
+                RudeEditKind.ReadOnlyReferences,
+                RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
             };
 
             var arg2 = new HashSet<RudeEditKind>()
@@ -57,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
-                RudeEditKind.RenamingCapturedVariable
+                RudeEditKind.RenamingCapturedVariable,
+                RudeEditKind.InternalError,
             };
 
             var arg3 = new HashSet<RudeEditKind>()
@@ -66,7 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.DeleteLambdaWithMultiScopeCapture,
             };
 
-            List<RudeEditKind> errors = new List<RudeEditKind>();
             foreach (RudeEditKind value in Enum.GetValues(typeof(RudeEditKind)))
             {
                 if (value == RudeEditKind.None)

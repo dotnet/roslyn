@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public string TopLevelName;
         public Glyph TopLevelGlyph;
         public bool ShowCheckBoxes;
+
+        [ImportingConstructor]
+        public MockPreviewDialogService()
+        {
+        }
 
         public Solution PreviewChanges(string title, string helpString, string description, string topLevelName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
         {

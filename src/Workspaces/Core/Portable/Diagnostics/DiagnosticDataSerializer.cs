@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private Task<bool> WriteStreamAsync(IPersistentStorage storage, object documentOrProject, string key, Stream stream, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return storage.WriteStreamAsync(document, key, stream, cancellationToken);
             }
@@ -196,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private Task<Stream> ReadStreamAsync(IPersistentStorage storage, string key, object documentOrProject, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return storage.ReadStreamAsync(document, key, cancellationToken);
             }
@@ -208,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return ReadFrom(reader, document.Project, document, cancellationToken);
             }
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
                 list.Add(new DiagnosticData(
                     id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
-                    project.Solution.Workspace, project.Id, location, additionalLocations,
+                    project.Id, location, additionalLocations,
                     title: title,
                     description: description,
                     helpLink: helpLink,
@@ -382,8 +379,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private static Solution GetSolution(object documentOrProject)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return document.Project.Solution;
             }

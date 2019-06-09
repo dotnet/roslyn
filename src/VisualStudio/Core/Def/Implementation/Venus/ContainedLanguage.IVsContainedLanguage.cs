@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Editor;
@@ -78,12 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int SetHost(IVsContainedLanguageHost host)
         {
             // Are we going away due to the contained language being disconnected?
-            if (this.ContainedLanguageHost != null && host == null)
+            if (this.ContainedDocument.ContainedLanguageHost != null && host == null)
             {
                 OnDisconnect();
             }
+            else
+            {
+                ContainedDocument.ContainedLanguageHost = host;
+            }
 
-            this.ContainedLanguageHost = host;
             return VSConstants.S_OK;
         }
 

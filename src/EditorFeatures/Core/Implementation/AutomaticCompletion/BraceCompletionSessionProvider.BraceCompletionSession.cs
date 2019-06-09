@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         }
                         else
                         {
-                            snapshot = edit.Apply();
+                            snapshot = edit.ApplyAndLogExceptions();
                         }
                     }
 
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                                 // handle the command so the backspace does 
                                 // not go through since we've already cleared the braces
                                 handledCommand = true;
-                                edit.Apply();
+                                edit.ApplyAndLogExceptions();
                                 undo.Complete();
                                 EndSession();
                             }
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                                 {
                                     handledCommand = true;
 
-                                    edit.Apply();
+                                    edit.ApplyAndLogExceptions();
 
                                     MoveCaretToClosingPoint();
 

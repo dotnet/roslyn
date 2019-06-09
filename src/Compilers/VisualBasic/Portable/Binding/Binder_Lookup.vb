@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -106,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' A non-empty SingleLookupResult with the result is returned.
         '
         ' For symbols from outside of this compilation the method also checks 
-        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' attribute.
+        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes.
         '
         ' If arity passed in is -1, no arity checks are done.
         Friend Function CheckViability(sym As Symbol,
@@ -152,9 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 unwrappedSym = asAlias.Target
             End If
 
-            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
-                Return SingleLookupResult.Empty
+            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes
+            If unwrappedSym.ContainingModule IsNot Me.ContainingModule Then
+                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() OrElse unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                    Return SingleLookupResult.Empty
+                End If
             End If
 
             If unwrappedSym.Kind = SymbolKind.NamedType AndAlso unwrappedSym.EmbeddedSymbolKind = EmbeddedSymbolKind.EmbeddedAttribute AndAlso
@@ -273,11 +276,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Function CanAddLookupSymbolInfo(sym As Symbol,
                                                     options As LookupOptions,
+                                                    nameSet As LookupSymbolsInfo,
                                                     accessThroughType As TypeSymbol) As Boolean
+            Debug.Assert(sym IsNot Nothing)
+
+            If Not nameSet.CanBeAdded(sym.Name) Then
+                Return False
+            End If
+
             Dim singleResult = CheckViability(sym, -1, options, accessThroughType, useSiteDiagnostics:=Nothing)
 
-            If sym IsNot Nothing AndAlso
-               (options And LookupOptions.MethodsOnly) <> 0 AndAlso
+            If (options And LookupOptions.MethodsOnly) <> 0 AndAlso
                sym.Kind <> SymbolKind.Method Then
                 Return False
             End If
@@ -478,6 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' NOTE: while looking up the symbol in modules we should ignore base class
                 options = options Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
+                Dim currentResult As LookupResult = Nothing
 
                 ' Next, do a lookup in each contained module and merge the results.
                 For Each containedModule As NamedTypeSymbol In container.GetModuleMembers()
@@ -485,7 +495,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Lookup(lookupResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
                         firstModule = False
                     Else
-                        Dim currentResult = LookupResult.GetInstance()
+                        If currentResult Is Nothing Then
+                            currentResult = LookupResult.GetInstance()
+                        Else
+                            currentResult.Clear()
+                        End If
+
                         Lookup(currentResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
 
                         ' Symbols in source take priority over symbols in a referenced assembly.
@@ -499,21 +514,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If Not contenderFromSource Then
                                     ' current is better
                                     lookupResult.SetFrom(currentResult)
-                                    currentResult.Free()
                                     Continue For
                                 End If
 
                             ElseIf contenderFromSource Then
                                 ' contender is better
-                                currentResult.Free()
                                 Continue For
                             End If
                         End If
 
                         lookupResult.MergeAmbiguous(currentResult, s_ambiguousInModuleError)
-                        currentResult.Free()
                     End If
                 Next
+
+                currentResult?.Free()
             End Sub
 
             Private Shared Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
@@ -523,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Add names from the namespace
                 For Each sym In container.GetMembersUnordered()
                     ' UNDONE: filter by options
-                    If binder.CanAddLookupSymbolInfo(sym, options, Nothing) Then
+                    If binder.CanAddLookupSymbolInfo(sym, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                     End If
                 Next
@@ -629,10 +643,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Lookup proceeds up the base class chain.
                 Dim currentType = container
+                Dim currentResult = LookupResult.GetInstance()
+
                 Do
                     Dim hitNonoverloadingSymbol As Boolean = False
 
-                    Dim currentResult = LookupResult.GetInstance()
                     LookupWithoutInheritance(currentResult, currentType, name, arity, options, accessThroughType, binder, useSiteDiagnostics)
                     If result.IsGoodOrAmbiguous AndAlso currentResult.IsGoodOrAmbiguous AndAlso Not LookupResult.CanOverload(result.Symbols(0), currentResult.Symbols(0)) Then
                         ' We hit another good symbol that can't overload this one. That doesn't affect the lookup result, but means we have to stop
@@ -640,7 +655,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hitNonoverloadingSymbol = True
                     End If
                     result.MergeOverloadedOrPrioritized(currentResult, True)
-                    currentResult.Free()
 
                     ' If the type is from a winmd file and implements any of the special WinRT collection
                     ' projections, then we may need to add projected interface members
@@ -668,6 +682,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If methodsOnly Then
                                     Exit Do ' Need to look for extension methods.
                                 End If
+
+                                currentResult.Free()
                                 Return
                             End If
                         End If
@@ -680,7 +696,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         currentType = currentType.GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(binder.BasesBeingResolved, useSiteDiagnostics)
                     End If
-                Loop While currentType IsNot Nothing
+
+                    If currentType Is Nothing Then
+                        Exit Do
+                    End If
+
+                    currentResult.Clear()
+                Loop
+
+                currentResult.Free()
 
                 ClearLookupResultIfNotMethods(methodsOnly, result)
                 LookupForExtensionMethodsIfNeedTo(result, container, name, arity, options, binder, useSiteDiagnostics)
@@ -805,15 +829,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return iFaceSpecial = SpecialType.System_Collections_Generic_IEnumerable_T OrElse
                        iFaceSpecial = SpecialType.System_Collections_Generic_IList_T OrElse
                        iFaceSpecial = SpecialType.System_Collections_Generic_ICollection_T OrElse
-                       iFaceOriginal = idictSymbol OrElse
+                       TypeSymbol.Equals(iFaceOriginal, idictSymbol, TypeCompareKind.ConsiderEverything) OrElse
                        iFaceSpecial = SpecialType.System_Collections_Generic_IReadOnlyList_T OrElse
                        iFaceSpecial = SpecialType.System_Collections_Generic_IReadOnlyCollection_T OrElse
-                       iFaceOriginal = iroDictSymbol OrElse
+                       TypeSymbol.Equals(iFaceOriginal, iroDictSymbol, TypeCompareKind.ConsiderEverything) OrElse
                        iFaceSpecial = SpecialType.System_Collections_IEnumerable OrElse
-                       iFaceOriginal = iListSymbol OrElse
-                       iFaceOriginal = iCollectionSymbol OrElse
-                       iFaceOriginal = inccSymbol OrElse
-                       iFaceOriginal = inpcSymbol
+                       TypeSymbol.Equals(iFaceOriginal, iListSymbol, TypeCompareKind.ConsiderEverything) OrElse
+                       TypeSymbol.Equals(iFaceOriginal, iCollectionSymbol, TypeCompareKind.ConsiderEverything) OrElse
+                       TypeSymbol.Equals(iFaceOriginal, inccSymbol, TypeCompareKind.ConsiderEverything) OrElse
+                       TypeSymbol.Equals(iFaceOriginal, inpcSymbol, TypeCompareKind.ConsiderEverything)
             End Function
 
 
@@ -1230,7 +1254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol Is Nothing Then
                     ' Match the native compiler which reports ERR_XmlFeaturesNotAvailable in this case.
                     Dim useSiteError = ErrorFactory.ErrorInfo(ERRID.ERR_XmlFeaturesNotAvailable)
-                    singleResult = New SingleLookupResult(LookupResultKind.NotReferencable, binder.GetErrorSymbol(name, useSiteError), useSiteError)
+                    singleResult = New SingleLookupResult(LookupResultKind.NotReferencable, Binder.GetErrorSymbol(name, useSiteError), useSiteError)
                 Else
                     Dim reduced = New ReducedExtensionPropertySymbol(DirectCast(symbol, PropertySymbol))
                     singleResult = binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteDiagnostics)
@@ -1311,14 +1335,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(base.IsInterface)
                 Debug.Assert(derived.IsInterface)
 
-                If derived.OriginalDefinition = base.OriginalDefinition Then
+                If TypeSymbol.Equals(derived.OriginalDefinition, base.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
                     Return False
                 End If
 
                 ' if we are not resolving bases we can just go through AllInterfaces list
                 If basesBeingResolved Is Nothing Then
                     For Each i In derived.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        If i = base Then
+                        If TypeSymbol.Equals(i, base, TypeCompareKind.ConsiderEverything) Then
                             Return True
                         End If
                     Next
@@ -1338,7 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As Boolean
 
-                Debug.Assert(base <> derived, "should already be verified for equality")
+                Debug.Assert(Not TypeSymbol.Equals(base, derived, TypeCompareKind.ConsiderEverything), "should already be verified for equality")
                 Debug.Assert(base.IsInterface)
                 Debug.Assert(derived.IsInterface)
 
@@ -1349,7 +1373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not interfaces.IsDefaultOrEmpty Then
                     For Each i In interfaces
-                        If i = base Then
+                        If TypeSymbol.Equals(i, base, TypeCompareKind.ConsiderEverything) Then
                             Return True
                         End If
 
@@ -1722,7 +1746,7 @@ ExitForFor:
                         End If
 
                         ' container of the first new symbol should be container of all others
-                        Debug.Assert(newSymbolContainer = newSymbol.ContainingType)
+                        Debug.Assert(TypeSymbol.Equals(newSymbolContainer, newSymbol.ContainingType, TypeCompareKind.ConsiderEverything))
 
                         ' Are the known and new symbols of the right kinds to overload?
                         Dim cantOverloadEachOther = Not LookupResult.CanOverload(knownSymbol, newSymbol)
@@ -1757,7 +1781,7 @@ ExitForFor:
                                 ' we can do a quick check and remove them here
                                 For k = i + 1 To knownSymbols.Count - 1
                                     Dim otherKnown As Symbol = knownSymbols(k)
-                                    If otherKnown IsNot Nothing AndAlso otherKnown.ContainingType = knownSymbolContainer Then
+                                    If otherKnown IsNot Nothing AndAlso TypeSymbol.Equals(otherKnown.ContainingType, knownSymbolContainer, TypeCompareKind.ConsiderEverything) Then
                                         knownSymbols(k) = Nothing
                                     End If
                                 Next
@@ -1919,7 +1943,7 @@ ExitForFor:
                 If containingMethod IsNot Nothing AndAlso
                    containingMethod.MethodKind = MethodKind.Constructor AndAlso
                    (container.TypeKind = TypeKind.Class OrElse container.TypeKind = TypeKind.Structure) AndAlso
-                   (containingMethod.ContainingType = container OrElse containingMethod.ContainingType.BaseTypeNoUseSiteDiagnostics = container) Then
+                   (TypeSymbol.Equals(containingMethod.ContainingType, container, TypeCompareKind.ConsiderEverything) OrElse TypeSymbol.Equals(containingMethod.ContainingType.BaseTypeNoUseSiteDiagnostics, container, TypeCompareKind.ConsiderEverything)) Then
                     nameSet.AddSymbol(Nothing, WellKnownMemberNames.InstanceConstructorName, 0)
                 End If
             End Sub
@@ -1994,6 +2018,10 @@ ExitForFor:
                                                                     typeParameter As TypeParameterSymbol,
                                                                     options As LookupOptions,
                                                                     binder As Binder)
+                If typeParameter.TypeParameterKind = TypeParameterKind.Cref Then
+                    Return
+                End If
+
                 AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet, typeParameter, options, binder)
 
                 ' Search for extension methods.
@@ -2080,7 +2108,7 @@ ExitForFor:
                     ' validate them.
                     If TypeOf container Is NamedTypeSymbol Then
                         For Each sym In container.GetTypeMembersUnordered()
-                            If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                            If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                                 nameSet.AddSymbol(sym, sym.Name, sym.Arity)
                             End If
                         Next
@@ -2088,7 +2116,7 @@ ExitForFor:
                 ElseIf (options And LookupOptions.LabelsOnly) = 0 Then
                     ' Go through each member of the type.
                     For Each sym In container.GetMembersUnordered()
-                        If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                        If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                             nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                         End If
                     Next

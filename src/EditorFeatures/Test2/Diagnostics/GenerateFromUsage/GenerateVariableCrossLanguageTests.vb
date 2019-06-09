@@ -1,9 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CSharp.GenerateVariable
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
@@ -16,15 +18,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
             _outputHelper = outputHelper
         End Sub
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable.GenerateVariableCodeFixProvider())
+                Return (Nothing, New CSharpGenerateVariableCodeFixProvider())
             Else
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable.GenerateVariableCodeFixProvider())
+                Return (Nothing, New VisualBasicGenerateVariableCodeFixProvider())
             End If
         End Function
 
@@ -40,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             Dim v as CSClass
                             Dim x As String = v.$$Bar
                         end sub

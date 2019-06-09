@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// A field in a display class that represents a captured
     /// variable: either a local, a parameter, or "this".
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class DisplayClassVariable
     {
         internal readonly string Name;
@@ -74,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new DisplayClassVariable(this.Name, this.Kind, otherInstance, otherFields);
         }
 
+        private string GetDebuggerDisplay()
+        {
+            return DisplayClassInstance.GetDebuggerDisplay(DisplayClassFields);
+        }
+
         private static ConsList<FieldSymbol> SubstituteFields(ConsList<FieldSymbol> fields, TypeMap typeMap)
         {
             if (!fields.Any())
@@ -90,19 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             Debug.Assert(!field.IsStatic);
             Debug.Assert(!field.IsReadOnly || GeneratedNames.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
-            Debug.Assert(field.CustomModifiers.Length == 0);
             // CONSIDER: Instead of digging fields out of the unsubstituted type and then performing substitution
             // on each one individually, we could dig fields out of the substituted type.
-            return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.Type).Type);
+            return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.TypeWithAnnotations));
         }
 
         private sealed class EEDisplayClassFieldSymbol : FieldSymbol
         {
             private readonly NamedTypeSymbol _container;
             private readonly string _name;
-            private readonly TypeSymbol _type;
+            private readonly TypeWithAnnotations _type;
 
-            internal EEDisplayClassFieldSymbol(NamedTypeSymbol container, string name, TypeSymbol type)
+            internal EEDisplayClassFieldSymbol(NamedTypeSymbol container, string name, TypeWithAnnotations type)
             {
                 _container = container;
                 _name = name;
@@ -117,11 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             public override Symbol ContainingSymbol
             {
                 get { return _container; }
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override Accessibility DeclaredAccessibility
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             {
                 return _type;
             }

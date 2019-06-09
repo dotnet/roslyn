@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
         }
 
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34465
+            return null;
+        }
+
         protected abstract bool IgnoreCase { get; }
         protected abstract bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node);
         protected abstract Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken);
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private static string GetNodeName(Document document, SyntaxNode node)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             return name;
         }
@@ -138,7 +145,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             cancellationToken.ThrowIfCancellationRequested();
 
             var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
+            var looksGeneric = syntaxFacts.LooksGeneric(node);
 
             var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                 project, SearchQuery.Create(name, this.IgnoreCase),
@@ -157,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             var validSymbols = symbols
                 .OfType<INamedTypeSymbol>()
-                .Where(s => IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, s))
+                .Where(s => IsValidNamedTypeSearchResult(semanticModel, arity, inAttributeContext, looksGeneric, s))
                 .ToImmutableArray();
 
             // Check what the current node binds to.  If it binds to any symbols, but with
@@ -174,12 +183,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static bool IsValidNamedTypeSearchResult(
-            SemanticModel semanticModel, int arity, bool inAttributeContext, INamedTypeSymbol searchResult)
+            SemanticModel semanticModel, int arity, bool inAttributeContext,
+            bool looksGeneric, INamedTypeSymbol searchResult)
         {
             if (arity != 0 && searchResult.GetArity() != arity)
             {
                 // If the user supplied type arguments, then the search result has to match the 
                 // number provided.
+                return false;
+            }
+
+            if (looksGeneric && searchResult.TypeArguments.Length == 0)
+            {
                 return false;
             }
 
@@ -230,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             var symbolAndProjectIds = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                project, SearchQuery.Create(name, this.IgnoreCase), 
+                project, SearchQuery.Create(name, this.IgnoreCase),
                 SymbolFilter.Namespace, cancellationToken).ConfigureAwait(false);
 
             var symbols = symbolAndProjectIds.SelectAsArray(t => t.Symbol);
@@ -289,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static IEnumerable<SymbolResult> GetContainers(
-            IEnumerable<SymbolResult> symbols, Compilation compilation)
+            ImmutableArray<SymbolResult> symbols, Compilation compilation)
         {
             foreach (var symbolResult in symbols)
             {

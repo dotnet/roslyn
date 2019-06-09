@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal partial class UseExplicitTupleNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTupleNameCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId);
 
@@ -25,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -46,14 +51,14 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 editor.ReplaceNode(oldNameNode, newNameNode);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Use_explicitly_provided_tuple_name, 
-                       createChangedDocument, 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Use_explicitly_provided_tuple_name,
+                       createChangedDocument,
                        FeaturesResources.Use_explicitly_provided_tuple_name)
             {
             }

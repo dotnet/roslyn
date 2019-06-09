@@ -6,6 +6,7 @@ Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 

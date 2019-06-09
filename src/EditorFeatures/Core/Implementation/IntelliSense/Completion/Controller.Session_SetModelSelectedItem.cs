@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Utilities;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Switch to hard selection.
                 var selectedItem = selector(model);
-                Contract.Assert(model.TotalItems.Contains(selectedItem) || model.SuggestionModeItem == selectedItem);
+                Debug.Assert(model.TotalItems.Contains(selectedItem) || model.SuggestionModeItem == selectedItem);
 
                 if (model.FilteredItems.Contains(selectedItem))
                 {

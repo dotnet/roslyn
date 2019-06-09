@@ -1,14 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class VisualBasicWarningStateMap
-        Inherits AbstractWarningStateMap
+        Inherits AbstractWarningStateMap(Of ReportDiagnostic)
 
         Public Sub New(tree As SyntaxTree)
-            MyBase.New(tree)
+            MyBase.New(tree, isGeneratedCode:=False)
         End Sub
 
         Protected Overrides Function CreateWarningStateMapEntries(syntaxTree As SyntaxTree) As WarningStateMapEntry()

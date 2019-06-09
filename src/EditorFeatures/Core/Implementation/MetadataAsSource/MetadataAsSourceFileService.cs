@@ -1,15 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         private string _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
 
+        [ImportingConstructor]
         public MetadataAsSourceFileService()
         {
             _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -89,13 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             Location navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 InitializeWorkspace(project);
 
-                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, cancellationToken).ConfigureAwait(false);
-                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType));
+                var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
+                fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
 
                 _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
@@ -107,8 +111,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                    var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    var useDecompiler = allowDecompilation;
+                    if (useDecompiler)
+                    {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                            && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+                    }
+
+                    if (useDecompiler)
+                    {
+                        try
+                        {
+                            var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
+                            if (decompiledSourceService != null)
+                            {
+                                temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                useDecompiler = false;
+                            }
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        {
+                            useDecompiler = false;
+                        }
+                    }
+
+                    if (!useDecompiler)
+                    {
+                        var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
+                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
+                    }
 
                     // We have the content, so write it out to disk
                     var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -231,18 +265,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);
         }
 
-        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, CancellationToken cancellationToken)
+        private async Task<UniqueDocumentKey> GetUniqueDocumentKey(Project project, INamedTypeSymbol topLevelNamedType, bool allowDecompilation, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var peMetadataReference = compilation.GetMetadataReference(topLevelNamedType.ContainingAssembly) as PortableExecutableReference;
 
             if (peMetadataReference.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
+                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
             else
             {
-                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken));
+                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
             }
         }
 
@@ -315,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 {
                     if (Directory.Exists(_rootTemporaryPath))
                     {
-                        bool deletedEverything = true;
+                        var deletedEverything = true;
 
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
@@ -391,23 +425,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             private readonly AssemblyIdentity _assemblyIdentity;
             private readonly string _language;
             private readonly SymbolKey _symbolId;
+            private readonly bool _allowDecompilation;
 
-            public UniqueDocumentKey(string filePath, string language, SymbolKey symbolId)
+            public UniqueDocumentKey(string filePath, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(filePath);
 
                 _filePath = filePath;
                 _language = language;
                 _symbolId = symbolId;
+                _allowDecompilation = allowDecompilation;
             }
 
-            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, string language, SymbolKey symbolId)
+            public UniqueDocumentKey(AssemblyIdentity assemblyIdentity, string language, SymbolKey symbolId, bool allowDecompilation)
             {
                 Contract.ThrowIfNull(assemblyIdentity);
 
                 _assemblyIdentity = assemblyIdentity;
                 _language = language;
                 _symbolId = symbolId;
+                _allowDecompilation = allowDecompilation;
             }
 
             public bool Equals(UniqueDocumentKey other)
@@ -420,7 +457,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 return StringComparer.OrdinalIgnoreCase.Equals(_filePath, other._filePath) &&
                     object.Equals(_assemblyIdentity, other._assemblyIdentity) &&
                     _language == other._language &&
-                    s_symbolIdComparer.Equals(_symbolId, other._symbolId);
+                    s_symbolIdComparer.Equals(_symbolId, other._symbolId) &&
+                    _allowDecompilation == other._allowDecompilation;
             }
 
             public override bool Equals(object obj)
@@ -434,7 +472,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     Hash.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(_filePath ?? string.Empty),
                         Hash.Combine(_assemblyIdentity != null ? _assemblyIdentity.GetHashCode() : 0,
                             Hash.Combine(_language.GetHashCode(),
-                                s_symbolIdComparer.GetHashCode(_symbolId))));
+                                Hash.Combine(s_symbolIdComparer.GetHashCode(_symbolId),
+                                    _allowDecompilation.GetHashCode()))));
             }
         }
     }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static CompletionService GetService(Document document)
-            => document.GetLanguageService<CompletionService>();
+            => document?.GetLanguageService<CompletionService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -85,21 +86,22 @@ namespace Microsoft.CodeAnalysis.Completion
         public abstract Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
-            CompletionTrigger trigger = default(CompletionTrigger),
+            CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the description of the item.
         /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="document">This will be the  original document that
+        /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
         public virtual Task<CompletionDescription> GetDescriptionAsync(
             Document document,
             CompletionItem item,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionDescription.Empty);
         }
@@ -117,9 +119,24 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             char? commitCharacter = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+        }
+
+        /// <summary>
+        /// Preferred overload of <see cref="GetChangeAsync(Document, CompletionItem, char?,
+        /// CancellationToken)"/>.
+        ///
+        /// This overload is passed the value of <see cref="CompletionContext.CompletionListSpan"/>
+        /// which should be used to determine what span should be updated in the original <paramref
+        /// name="document"/> passed in.
+        /// </summary>
+        internal virtual Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, TextSpan completionListSpan,
+            char? commitCharacter = null, CancellationToken cancellationToken = default)
+        {
+            return GetChangeAsync(document, item, commitCharacter, cancellationToken);
         }
 
         /// <summary>
@@ -136,7 +153,14 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
+            return FilterItems(helper, items, filterText);
+        }
 
+        internal static ImmutableArray<CompletionItem> FilterItems(
+            CompletionHelper completionHelper,
+            ImmutableArray<CompletionItem> items,
+            string filterText)
+        {
             var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
             foreach (var item in items)
             {
@@ -147,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
                 else
                 {
-                    var comparison = helper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
+                    var comparison = completionHelper.CompareItems(item, bestItems.First(), filterText, CultureInfo.CurrentCulture);
                     if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.

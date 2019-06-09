@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End If
 
                 ' Classify name -- which should be the last child of the expression (e.g.
-                ' x.<foo>, x...<foo> or x.@foo). Note that the name can be an XmlName in the
+                ' x.<goo>, x...<goo> or x.@goo). Note that the name can be an XmlName in the
                 ' case of an attribute, or an XmlBracketName, in which case, the brackets need
                 ' to be classified as well
                 Dim childNodesAndTokens = syntax.ChildNodesAndTokens()

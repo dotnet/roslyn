@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     [ExportWorkspaceService(typeof(ITemporaryStorageService), "NotKeptAlive"), Shared]
     internal sealed class TestTemporaryStorageService : ITemporaryStorageService
     {
+        [ImportingConstructor]
+        public TestTemporaryStorageService()
+        {
+        }
+
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken))
         {
             return new StreamStorage();
@@ -109,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
                 WriteText(text, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

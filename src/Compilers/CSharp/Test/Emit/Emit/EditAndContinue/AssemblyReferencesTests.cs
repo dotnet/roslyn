@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         /// The baseline metadata might have less (or even different) references than
         /// the current compilation. We shouldn't assume that the reference sets are the same.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_Less()
         {
             // Add some references that are actually not used in the source.
@@ -59,7 +59,7 @@ class C
 }
 ";
 
-            var c1 = CreateCompilation(src1, references);
+            var c1 = CreateEmptyCompilation(src1, references);
             var c2 = c1.WithSource(src2);
             var md1 = AssemblyMetadata.CreateFromStream(c1.EmitToStream());
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
@@ -97,7 +97,7 @@ class C
         /// The baseline metadata might have more references than the current compilation. 
         /// References that aren't found in the compilation are treated as missing.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_More()
         {
             string src1 = @"
@@ -129,9 +129,9 @@ class C
     public static void Main() { F(null); }
 }
 ";
-            var md1 = AssemblyMetadata.CreateFromStream(CreateCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
+            var md1 = AssemblyMetadata.CreateFromStream(CreateEmptyCompilation(srcPE, new[] { MscorlibRef, SystemRef }).EmitToStream());
 
-            var c1 = CreateCompilation(src1, new[] { MscorlibRef });
+            var c1 = CreateEmptyCompilation(src1, new[] { MscorlibRef });
             var c2 = c1.WithSource(src2);
             var baseline = EmitBaseline.CreateInitialBaseline(md1.GetModules()[0], handle => default(EditAndContinueMethodDebugInformation));
 
@@ -169,7 +169,7 @@ class C
         /// <summary>
         /// Symbol matcher considers two source types that only differ in the declaring compilations different.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ChangingCompilationDependencies()
         {
             string srcLib = @"
@@ -194,16 +194,16 @@ class C
     public static int F(D a) { return 3; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -232,7 +232,7 @@ class C
             diff2.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Compilation()
         {
             TestDependencyVersionWildcards(
@@ -293,21 +293,21 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
 
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version0);
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version1);
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", version2);
 
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.ToMetadataReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.ToMetadataReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.ToMetadataReference() });
 
@@ -350,7 +350,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Metadata()
         {
             string srcLib = @"
@@ -378,19 +378,19 @@ class C
     public static int G(D a) { return 4; }
 }
 ";
-            var lib0 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib0 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib0.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1001));
             lib0.VerifyDiagnostics();
 
-            var lib1 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib1 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib1.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1002));
             lib1.VerifyDiagnostics();
 
-            var lib2 = CreateStandardCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
+            var lib2 = CreateCompilation(srcLib, assemblyName: "Lib", options: TestOptions.DebugDll);
             ((SourceAssemblySymbol)lib2.Assembly).lazyAssemblyIdentity = new AssemblyIdentity("Lib", new Version(1, 0, 2000, 1003));
             lib2.VerifyDiagnostics();
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, lib0.EmitToImageReference() }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, lib1.EmitToImageReference() });
             var compilation2 = compilation1.WithSource(src2).WithReferences(new[] { MscorlibRef, lib2.EmitToImageReference() });
 
@@ -415,7 +415,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
         }
 
-        [Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcardsCollisions()
         {
             string srcLib01 = @"
@@ -458,19 +459,19 @@ class C
     public static int F(L0::D a, L1::D b) => 2;
 }
 ";
-            var lib01 = CreateStandardCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib01 = CreateCompilation(srcLib01, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref01 = lib01.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib02 = CreateStandardCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib02 = CreateCompilation(srcLib02, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref02 = lib02.ToMetadataReference(ImmutableArray.Create("L0"));
 
-            var lib11 = CreateStandardCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib11 = CreateCompilation(srcLib11, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref11 = lib11.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var lib12 = CreateStandardCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
+            var lib12 = CreateCompilation(srcLib12, assemblyName: "Lib", options: s_signedDll).VerifyDiagnostics();
             var ref12 = lib12.ToMetadataReference(ImmutableArray.Create("L1"));
 
-            var compilation0 = CreateCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
+            var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
             var v0 = CompileAndVerify(compilation0);
@@ -491,14 +492,14 @@ class C
                 Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
         }
 
-        public void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
+        private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
         {
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
-        public void CurrentComplationVersionWildcards()
+        public void CurrentCompilationVersionWildcards()
         {
             var source0 = MarkedSource(@"
 using System;
@@ -570,12 +571,12 @@ class C
 
             var options = ComSafeDebugDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
+            var compilation0 = CreateCompilation(source0.Tree, options: options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 0)));
             var compilation1 = compilation0.WithSource(source1.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 10)));
             var compilation2 = compilation1.WithSource(source2.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 20)));
             var compilation3 = compilation2.WithSource(source3.Tree).WithOptions(options.WithCurrentLocalTime(new DateTime(2016, 1, 1, 1, 0, 30)));
 
-            var v0 = CompileAndVerify(compilation0, verify: false);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
             var reader0 = md0.MetadataReader;
 

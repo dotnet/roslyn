@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
         {
-            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt) 
+            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
                 => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
 
             SyntaxNode result;
@@ -114,20 +114,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(false);
         }
 
-        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNode)
+        public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {
             leftNode = leftRoot;
-            rightNode = rightRoot;
+            rightNodeOpt = rightRoot;
             while (true)
             {
-                Debug.Assert(leftNode.RawKind == rightNode.RawKind);
+                if (rightNodeOpt != null && leftNode.RawKind != rightNodeOpt.RawKind)
+                {
+                    rightNodeOpt = null;
+                }
+
                 var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
                 if (leftChild.IsToken)
                 {
                     return;
                 }
 
-                rightNode = rightNode.ChildNodesAndTokens()[childIndex].AsNode();
+                if (rightNodeOpt != null)
+                {
+                    var rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens();
+                    if (childIndex >= 0 && childIndex < rightNodeChildNodesAndTokens.Count)
+                    {
+                        rightNodeOpt = rightNodeChildNodesAndTokens[childIndex].AsNode();
+                    }
+                    else
+                    {
+                        rightNodeOpt = null;
+                    }
+                }
+
                 leftNode = leftChild.AsNode();
             }
         }
@@ -187,7 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return propertyBody.Expression;
             }
 
-            return accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault()?.Body;
+            var firstGetter = accessorList?.Accessors.Where(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)).FirstOrDefault();
+            if (firstGetter == null)
+            {
+                return null;
+            }
+
+            return (SyntaxNode)firstGetter.Body ?? firstGetter.ExpressionBody?.Expression;
         }
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
@@ -254,8 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            var anonymousFunction = declaration as AnonymousFunctionExpressionSyntax;
-            if (anonymousFunction != null)
+            if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }

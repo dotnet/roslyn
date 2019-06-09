@@ -48,6 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Public MustOverride Overrides Function GetLocalForFunctionValue() As LocalSymbol
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
@@ -75,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: additional filtering based on options?
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 For Each param In _parameterMap.Values
-                    If originalBinder.CanAddLookupSymbolInfo(param, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(param, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(param, param.Name, 0)
                     End If
                 Next

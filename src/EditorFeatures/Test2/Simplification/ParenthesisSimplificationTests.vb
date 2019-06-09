@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -632,12 +632,12 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[{|Simplify:(0)|}]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
         </Document>
@@ -652,18 +652,17 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[0]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <WorkItem(619292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619292")>
@@ -823,7 +822,7 @@ class C
         <Document>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -842,7 +841,7 @@ class foo
 <code>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -1011,7 +1010,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation3() As Task
             Dim input =
@@ -1044,7 +1043,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation4() As Task
             Dim input =
@@ -1079,7 +1078,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation5() As Task
             Dim input =
@@ -1114,7 +1113,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation6() As Task
             Dim input =
@@ -1185,6 +1184,84 @@ class Program
         var x = new List&lt;int&gt;();
         int i = (x?.Count).GetValueOrDefault();
     }
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInExpressionBodiedProperty() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    object Value => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    object Value => new object();
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInExpressionBodiedMethod() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    object GetValue() => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    object GetValue() => new object();
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInLambdaExpression() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    Func&lt;object&gt; Value => () => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    Func&lt;object&gt; Value => () => new object();
 }
 </code>
 

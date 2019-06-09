@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,6 +13,18 @@ namespace Microsoft.CodeAnalysis
             foreach (var item in builder)
             {
                 if (predicate(item))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool Any<T, A>(this ArrayBuilder<T> builder, Func<T, A, bool> predicate, A arg)
+        {
+            foreach (var item in builder)
+            {
+                if (predicate(item, arg))
                 {
                     return true;
                 }
@@ -143,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
         }
 
-        public static void AddIfNotNull<T> (this ArrayBuilder<T> builder, T? value)
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T? value)
             where T : struct
         {
             if (value != null)
@@ -159,6 +172,15 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.Add(value);
             }
+        }
+
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        {
+            foreach (var item in builder)
+            {
+                getNested(item)?.FreeAll(getNested);
+            }
+            builder.Free();
         }
     }
 }

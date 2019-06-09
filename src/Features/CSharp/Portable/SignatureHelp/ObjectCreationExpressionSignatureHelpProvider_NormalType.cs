@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetNormalTypeConstructors(
+        private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
             Document document,
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
@@ -31,8 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                                    .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            return accessibleConstructors.SelectAsArray(c =>
+            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+
+            var items = accessibleConstructors.SelectAsArray(c =>
                 ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+
+            return (items, selectedItem);
         }
 
         private SignatureHelpItem ConvertNormalTypeConstructor(

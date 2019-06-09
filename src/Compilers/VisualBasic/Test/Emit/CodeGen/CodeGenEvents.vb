@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -376,8 +377,10 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub SimpleRaiseHandlerWithBlockEvent()
-            CompileAndVerify(
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
+        Public Sub SimpleRaiseHandlerWithBlockEvent_01()
+            Dim verifier = CompileAndVerify(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -426,6 +429,204 @@ End Module
   IL_0016:  ret
 }
     ]]>)
+
+            Dim compilation = verifier.Compilation
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim add = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().First()
+
+            Assert.Equal("AddHandler E, Nothing", add.ToString())
+
+            compilation.VerifyOperationTree(add, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler E, Nothing')
+  Expression: 
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler E, Nothing')
+      Event Reference: 
+        IEventReferenceOperation: Event Program.E As Program.del1 (Static) (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+          Instance Receiver: 
+            null
+      Handler: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(add.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim remove = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().Last()
+
+            Assert.Equal("RemoveHandler E, Nothing", remove.ToString())
+
+            compilation.VerifyOperationTree(remove, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandler E, Nothing')
+  Expression: 
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandler E, Nothing')
+      Event Reference: 
+        IEventReferenceOperation: Event Program.E As Program.del1 (Static) (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+          Instance Receiver: 
+            null
+      Handler: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(remove.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim raise = tree.GetRoot().DescendantNodes().OfType(Of RaiseEventStatementSyntax)().Single()
+
+            Assert.Equal("RaiseEvent E(42)", raise.ToString())
+
+            compilation.VerifyOperationTree(raise, expectedOperationTree:=
+            <![CDATA[
+IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent E(42)')
+  Event Reference: 
+    IEventReferenceOperation: Event Program.E As Program.del1 (Static) (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+      Instance Receiver: 
+        null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '42')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(raise.Name).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
+        Public Sub SimpleRaiseHandlerWithBlockEvent_02()
+            Dim verifier = CompileAndVerify(
+    <compilation>
+        <file name="a.vb">
+Imports System
+
+Class Program
+
+    Delegate Sub del1(ByRef x As Integer)
+
+    Custom Event E As del1
+        AddHandler(value As del1)
+            System.Console.Write("Add")
+        End AddHandler
+
+        RemoveHandler(value As del1)
+            System.Console.Write("Remove")
+        End RemoveHandler
+
+        RaiseEvent(ByRef x As Integer)
+            System.Console.Write("Raise")
+        End RaiseEvent
+    End Event
+
+    Shared Sub Main()
+        Call New Program().Test()
+    End Sub
+
+    Sub Test()
+        AddHandler E, Nothing
+        RemoveHandler E, Nothing
+        RaiseEvent E(42)
+    End Sub
+End Class
+
+    </file>
+    </compilation>, expectedOutput:="AddRemoveRaise").
+                VerifyIL("Program.Test",
+            <![CDATA[
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       "Sub Program.add_E(Program.del1)"
+  IL_0007:  ldarg.0
+  IL_0008:  ldnull
+  IL_0009:  call       "Sub Program.remove_E(Program.del1)"
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   42
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "Sub Program.raise_E(ByRef Integer)"
+  IL_0019:  ret
+}
+    ]]>)
+
+            Dim compilation = verifier.Compilation
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim add = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().First()
+
+            Assert.Equal("AddHandler E, Nothing", add.ToString())
+
+            compilation.VerifyOperationTree(add, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler E, Nothing')
+  Expression: 
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler E, Nothing')
+      Event Reference: 
+        IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+      Handler: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(add.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim remove = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().Last()
+
+            Assert.Equal("RemoveHandler E, Nothing", remove.ToString())
+
+            compilation.VerifyOperationTree(remove, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandler E, Nothing')
+  Expression: 
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandler E, Nothing')
+      Event Reference: 
+        IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+      Handler: 
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Program.del1, Constant: null, IsImplicit) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(remove.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim raise = tree.GetRoot().DescendantNodes().OfType(Of RaiseEventStatementSyntax)().Single()
+
+            Assert.Equal("RaiseEvent E(42)", raise.ToString())
+
+            compilation.VerifyOperationTree(raise, expectedOperationTree:=
+            <![CDATA[
+IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent E(42)')
+  Event Reference: 
+    IEventReferenceOperation: Event Program.E As Program.del1 (OperationKind.EventReference, Type: Program.del1) (Syntax: 'E')
+      Instance Receiver: 
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'E')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '42')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+
+            Assert.Equal("Event Program.E As Program.del1", model.GetSymbolInfo(raise.Name).Symbol.ToTestDisplayString())
         End Sub
 
         <Fact()>
@@ -979,13 +1180,13 @@ Class cls
 End Class
 
 Module Program
-    Sub foo(ByVal x As String)
+    Sub goo(ByVal x As String)
         Console.WriteLine("{0}", x)
     End Sub
 
     Sub Main(args As String())
-        AddHandler ev1, AddressOf foo 
-        AddHandler ev1, AddressOf foo
+        AddHandler ev1, AddressOf goo 
+        AddHandler ev1, AddressOf goo
         RaiseEv1()
     End Sub
 End Module
@@ -1020,22 +1221,22 @@ option strict off
 Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As String, y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(x As String, y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1053,23 +1254,23 @@ End Module]]>,
             ' WARNING: Roslyn compiler produced errors while Native compiler didn't. This is an intentional breaking change, see associated bug. 
             vbCompilation.AssertTheseDiagnostics(
 <expected>
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                         ~~
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                                    ~~
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                                                ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                        ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                                   ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                                               ~~
 </expected>)
         End Sub
@@ -1092,32 +1293,32 @@ BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compa
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1194,12 +1395,12 @@ PASS
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1249,12 +1450,12 @@ PASS
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1270,12 +1471,12 @@ End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"))
         End Sub
 
 
@@ -1331,7 +1532,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1357,7 +1558,7 @@ End Namespace
   .locals init (Project1.EventSource.MyEventEventHandler V_0,
   Project1.OuterClass V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1438,7 +1639,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1463,7 +1664,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1536,7 +1737,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1561,7 +1762,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1636,7 +1837,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1661,7 +1862,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1765,7 +1966,7 @@ End Class
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -1986,7 +2187,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2014,7 +2215,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
 "1
@@ -2030,7 +2231,7 @@ End Class
 3
 4")
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation2, expectedOutput:=
 "1
@@ -2042,7 +2243,7 @@ End Class
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_03()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2130,7 +2331,7 @@ End Module
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_04()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2235,7 +2436,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2269,7 +2470,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
 
             compilation2.AssertTheseDiagnostics(
 <expected>
@@ -2299,14 +2500,14 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
 </expected>
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_06()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2395,7 +2596,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1, TestOptions.ReleaseDll)
 
             Dim source2 =
 <compilation>
@@ -2429,7 +2630,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.EmitToImageReference()}, TestOptions.ReleaseExe)
             Dim expected =
 <expected>
 BC30284: property 'Button1' cannot be declared 'Overrides' because it does not override a property in a base class.
@@ -2448,14 +2649,14 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
             compilation2 = CreateCompilationWithMscorlib45AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
 
-            compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
+            compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2, {compilation1.ToMetadataReference()}, TestOptions.ReleaseExe)
             compilation2.AssertTheseDiagnostics(expected)
         End Sub
 
         <Fact>
         <WorkItem(7659, "https://github.com/dotnet/roslyn/issues/7659")>
         Public Sub HandlesOnMultipleLevels_08()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button
@@ -2524,7 +2725,7 @@ End Class
         <WorkItem(14104, "https://github.com/dotnet/roslyn/issues/14104")>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub HandlesOnMultipleLevels_09()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Class Button

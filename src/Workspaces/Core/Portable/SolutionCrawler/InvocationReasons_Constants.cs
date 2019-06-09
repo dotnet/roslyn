@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.DocumentRemoved,
                                     PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    PredefinedInvocationReasons.SemanticChanged,
+                                    PredefinedInvocationReasons.HighPriority));
 
         public static readonly InvocationReasons ProjectParseOptionChanged =
             new InvocationReasons(
@@ -56,8 +57,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
                                     PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged,
-                                    PredefinedInvocationReasons.HighPriority));
+                                    PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons AdditionalDocumentChanged =
             new InvocationReasons(
@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons SyntaxChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.HighPriority));
+                                    PredefinedInvocationReasons.SyntaxChanged));
 
         public static readonly InvocationReasons SemanticChanged =
             new InvocationReasons(

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -11,9 +10,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 private readonly SnapshotPoint _subjectBufferCaretPosition;
                 private readonly SourceText _text;
                 private readonly ImmutableHashSet<string> _roles;
- 
+
                 private Document _documentOpt;
                 private bool _useSuggestionMode;
                 private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
@@ -61,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     CompletionTrigger trigger,
                     ImmutableHashSet<string> roles,
                     OptionSet options)
+                    : base(session.ThreadingContext)
                 {
                     _session = session;
                     _completionService = completionService;
@@ -92,17 +92,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         {
                             // both completionService and options can be null if given buffer is not registered to workspace yet.
                             // could happen in razor more frequently
+                            Logger.Log(FunctionId.Completion_ModelComputer_DoInBackground,
+                                (c, o) => $"service: {c != null}, options: {o != null}", _completionService, _options);
+
                             return null;
                         }
 
                         // get partial solution from background thread.
-                        _documentOpt = await _text.GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                        _documentOpt = _text.GetDocumentWithFrozenPartialSemantics(cancellationToken);
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await GetCompletionListAsync(_completionService, _trigger, cancellationToken).ConfigureAwait(false);
+                        var completionList = _documentOpt == null
+                            ? null
+                            : await _completionService.GetCompletionsAsync(
+                                _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
+                            Logger.Log(FunctionId.Completion_ModelComputer_DoInBackground,
+                                d => $"No completionList, document: {d != null}, document open: {d?.IsOpen()}", _documentOpt);
+
                             return null;
                         }
 
@@ -114,13 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             useSuggestionMode: suggestionMode,
                             trigger: _trigger);
                     }
-                }
-
-                private async Task<CompletionList> GetCompletionListAsync(CompletionService completionService, CompletionTrigger trigger, CancellationToken cancellationToken)
-                {
-                    return _documentOpt != null
-                        ? await completionService.GetCompletionsAsync(_documentOpt, _subjectBufferCaretPosition, trigger, _roles, _options, cancellationToken).ConfigureAwait(false)
-                        : null;
                 }
             }
         }

@@ -89,6 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
 
+            Private ReadOnly Property IObjectWritable_ShouldReuseInSerialization As Boolean Implements IObjectWritable.ShouldReuseInSerialization
+                Get
+                    Return ShouldCacheTriviaInfo(_leadingTrivia, _trailingTrivia)
+                End Get
+            End Property
+
             Public Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
                 writer.WriteValue(_leadingTrivia)
                 writer.WriteValue(_trailingTrivia)
@@ -189,6 +195,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.ClearFlags(NodeFlags.IsNotMissing)
             End If
         End Sub
+
+        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
+            Get
+                Return MyBase.ShouldReuseInSerialization AndAlso
+                    Me.FullWidth < Scanner.MAX_CACHED_TOKENSIZE
+            End Get
+        End Property
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)

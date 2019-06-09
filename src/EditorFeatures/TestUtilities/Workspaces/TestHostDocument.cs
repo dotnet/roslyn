@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -33,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly SourceCodeKind _sourceCodeKind;
         private readonly string _filePath;
         private readonly IReadOnlyList<string> _folders;
+        private readonly IDocumentServiceProvider _documentServiceProvider;
 
         public DocumentId Id
         {
@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IDictionary<string, ImmutableArray<TextSpan>> spans,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             IReadOnlyList<string> folders = null,
-            bool isLinkFile = false)
+            bool isLinkFile = false,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             Contract.ThrowIfNull(textBuffer);
             Contract.ThrowIfNull(filePath);
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.CursorPosition = cursorPosition;
             _sourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
+            _documentServiceProvider = documentServiceProvider;
 
             this.SelectedSpans = new List<TextSpan>();
             if (spans.ContainsKey(string.Empty))
@@ -135,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument(
-            string text = "", string displayName = "", 
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, 
+            string text = "", string displayName = "",
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             DocumentId id = null, string filePath = null,
             IReadOnlyList<string> folders = null)
         {
@@ -194,16 +196,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return Task.FromResult(TextAndVersion.Create(text, VersionStamp.Create(), _hostDocument.FilePath));
             }
         }
-        
+
         public IWpfTextView GetTextView()
         {
             if (_textView == null)
             {
-                TestWorkspace.ResetThreadAffinity();
+                WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
-                WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
+                var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();
 
-                _textView = _exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(this.TextBuffer);
+                // Every default role but outlining. Starting in 15.2, the editor
+                // OutliningManager imports JoinableTaskContext in a way that's 
+                // difficult to satisfy in our unit tests. Since we don't directly
+                // depend on it, just disable it
+                var roles = factory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
+                    PredefinedTextViewRoles.Document,
+                    PredefinedTextViewRoles.Editable,
+                    PredefinedTextViewRoles.Interactive,
+                    PredefinedTextViewRoles.Zoomable);
+                _textView = factory.CreateTextView(this.TextBuffer, roles);
                 if (this.CursorPosition.HasValue)
                 {
                     _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextSnapshot, CursorPosition.Value));
@@ -273,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public DocumentInfo ToDocumentInfo()
         {
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated);
+            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
         }
     }
 }

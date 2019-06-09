@@ -8,15 +8,15 @@ using EnvDTE80;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class VisualStudio_InProc : InProcComponent
+    internal partial class VisualStudio_InProc : InProcComponent
     {
         private VisualStudio_InProc() { }
 
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
 
-        new public void WaitForApplicationIdle()
-            => InProcComponent.WaitForApplicationIdle();
+        public new void WaitForApplicationIdle(TimeSpan timeout)
+            => InProcComponent.WaitForApplicationIdle(timeout);
 
         new public void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();
@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void ActivateMainWindow()
-            => InvokeOnUIThread(() => {
+            => InvokeOnUIThread(cancellationToken =>
+            {
                 var dte = GetDTE();
 
                 var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;

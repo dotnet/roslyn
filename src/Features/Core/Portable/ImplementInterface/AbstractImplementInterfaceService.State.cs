@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     var allMembersImplemented = state.UnimplementedMembers.Length == 0;
                     var allMembersImplementedExplicitly = state.UnimplementedExplicitMembers.Length == 0;
 
-                    return !allMembersImplementedExplicitly && !allMembersImplemented ? state : null;
+                    return !allMembersImplementedExplicitly || !allMembersImplemented ? state : null;
                 }
                 else
                 {

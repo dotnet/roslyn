@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -571,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BinaryOperatorKind.EnumAnd:
                 case BinaryOperatorKind.EnumOr:
                 case BinaryOperatorKind.EnumXor:
-                    Debug.Assert(expression.Left.Type == expression.Right.Type);
+                    Debug.Assert(TypeSymbol.Equals(expression.Left.Type, expression.Right.Type, TypeCompareKind.ConsiderEverything2));
                     enumType = null;
                     break;
                 case BinaryOperatorKind.UnderlyingAndEnumSubtraction:

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _reducedFrom;
         private readonly TypeMap _typeMap;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         /// <summary>
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the given method is a constructed method, the same type arguments
             // are applied to construct the result from the reduced form.
-            Debug.Assert(!method.TypeArguments.IsEmpty);
-            return reducedMethod.Construct(method.TypeArguments);
+            Debug.Assert(!method.TypeArgumentsWithAnnotations.IsEmpty);
+            return reducedMethod.Construct(method.TypeArgumentsWithAnnotations);
         }
 
         private ReducedExtensionMethodSymbol(MethodSymbol reducedFrom)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _reducedFrom = reducedFrom;
             _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
-            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(reducedFrom.TypeArguments);
+            _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
         internal override MethodSymbol CallsiteReducedFromMethod
@@ -108,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _reducedFrom.Parameters[0].Type;
             }
         }
+
+        protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+            _reducedFrom.Parameters[0].TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get { return _typeArguments; }
         }
@@ -331,20 +334,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.IsVararg; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _reducedFrom.RefKind; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType).Type; }
+            get { return _typeMap.SubstituteType(_reducedFrom.ReturnTypeWithAnnotations); }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
-        }
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => _reducedFrom.ReturnTypeAnnotationAttributes;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -377,6 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
@@ -454,17 +458,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this._underlyingParameter.Ordinal - 1; }
             }
 
-            public override TypeSymbol Type
+            public override TypeWithAnnotations TypeWithAnnotations
             {
-                get { return _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type).Type; }
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers);
-                }
+                get { return _containingMethod._typeMap.SubstituteType(this._underlyingParameter.TypeWithAnnotations); }
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers

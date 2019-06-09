@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
             {
-                return EncodedStringText.Create(stream, new Lazy<Encoding>(getEncoding), readEncodingOpt, algorithm);
+                return EncodedStringText.TestAccessor.Create(stream, new Lazy<Encoding>(getEncoding), readEncodingOpt, algorithm, canBeEmbedded: false);
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisGetEncoding()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisFile()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 Assert.Throws(typeof(DecoderFallbackException), () =>
                 {
-                    EncodedStringText.Decode(stream, utf8, SourceHashAlgorithm.Sha1);
+                    EncodedStringText.TestAccessor.Decode(stream, utf8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: false, canBeEmbedded: false);
                 });
 
                 Assert.True(stream.CanRead);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in encodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 foreach (var readEncoding in readEncodings)
                 {
-                    var text = CreateMemoryStreamBasedEncodedText("foo", writeEncoding, readEncoding);
+                    var text = CreateMemoryStreamBasedEncodedText("goo", writeEncoding, readEncoding);
                     Assert.Equal(1, text.Lines.Count);
                     Assert.Equal(3, text.Lines[0].Span.Length);
                 }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()

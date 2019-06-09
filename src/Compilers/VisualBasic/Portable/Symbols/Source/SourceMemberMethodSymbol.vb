@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -685,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' if was found in one of bases, need to override it
-                If witheventsProperty.ContainingType <> Me.ContainingType Then
+                If Not TypeSymbol.Equals(witheventsProperty.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything) Then
                     witheventsPropertyInCurrentClass = DirectCast(Me.ContainingType, SourceNamedTypeSymbol).GetOrAddWithEventsOverride(witheventsProperty)
                 Else
                     witheventsPropertyInCurrentClass = witheventsProperty

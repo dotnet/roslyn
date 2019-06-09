@@ -54,24 +54,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to skip over any nodes that could have associated binders, especially
         /// if changes are made later.
         /// 
-        /// "Local binder" is a vague term that refers to binders that represent
-        /// scopes for names (e.g. BlockBinders) rather than binders that tweak
-        /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
+        /// "Local binder" is a term that refers to binders that are
         /// created by LocalBinderFactory.
         /// </summary>
         internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
-            SyntaxKind kind;
-            return syntax.IsAnonymousFunction() ||
-                syntax is StatementSyntax ||
-                (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
-                kind == SyntaxKind.CatchFilterClause ||
-                kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.EqualsValueClause ||
-                kind == SyntaxKind.Attribute ||
-                kind == SyntaxKind.ArgumentList ||
-                kind == SyntaxKind.ArrowExpressionClause ||
-                IsValidScopeDesignator(syntax as ExpressionSyntax);
+            SyntaxKind kind = syntax.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.CatchClause:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.CatchFilterClause:
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.EqualsValueClause:
+                case SyntaxKind.Attribute:
+                case SyntaxKind.ArgumentList:
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.SwitchExpressionArm:
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.ConstructorDeclaration:
+                    return true;
+                default:
+                    return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
+
+            }
         }
 
         internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
@@ -98,6 +108,88 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Is this a context in which a stackalloc expression could be converted to the corresponding pointer
+        /// type? The only context that permits it is the initialization of a local variable declaration (when
+        /// the declaration appears as a statement or as the first part of a for loop).
+        /// </summary>
+        internal static bool IsLocalVariableDeclarationInitializationForPointerStackalloc(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            SyntaxNode equalsValueClause = node.Parent;
+
+            if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+            {
+                return false;
+            }
+
+            SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+            if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                return false;
+            }
+
+            SyntaxNode variableDeclaration = variableDeclarator.Parent;
+            if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
+            {
+                return false;
+            }
+
+            return
+                variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
+        }
+
+        /// <summary>
+        /// Because the instruction cannot have any values on the stack before CLR execution
+        /// we limited it to assignments and conditional expressions in C# 7.
+        /// See https://github.com/dotnet/roslyn/issues/22046.
+        /// In C# 8 we relaxed
+        /// that by rewriting the code to move it to the statement level where the stack is empty.
+        /// </summary>
+        internal static bool IsLegalCSharp73SpanStackAllocPosition(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            if (node.Parent.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
+            }
+
+            while (node.Parent.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                node = node.Parent;
+            }
+
+            SyntaxNode parentNode = node.Parent;
+
+            if (parentNode is null)
+            {
+                return false;
+            }
+
+            switch (parentNode.Kind())
+            {
+                // In case of a declaration of a Span<T> variable
+                case SyntaxKind.EqualsValueClause:
+                    {
+                        SyntaxNode variableDeclarator = parentNode.Parent;
+
+                        return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
+                            variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
+                    }
+                // In case of reassignment to a Span<T> variable
+                case SyntaxKind.SimpleAssignmentExpression:
+                    {
+                        return parentNode.Parent.IsKind(SyntaxKind.ExpressionStatement);
+                    }
+            }
+
+            return false;
         }
 
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
@@ -148,28 +240,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        internal static RefKind GetRefKind(this TypeSyntax syntax)
         {
-            refKind = RefKind.None;
+            syntax.SkipRef(out var refKind);
+            return refKind;
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
+        {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
-                refKind = RefKind.Ref;
                 syntax = ((RefTypeSyntax)syntax).Type;
             }
 
             return syntax;
         }
 
-        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                var refType = (RefTypeSyntax)syntax;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
+                    RefKind.RefReadOnly :
+                    RefKind.Ref;
+
+                syntax = refType.Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
+            this ExpressionSyntax syntax,
+            DiagnosticBag diagnostics,
+            out RefKind refKind)
         {
             refKind = RefKind.None;
             if (syntax?.Kind() == SyntaxKind.RefExpression)
             {
                 refKind = RefKind.Ref;
                 syntax = ((RefExpressionSyntax)syntax).Expression;
+
+                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
             }
 
             return syntax;
+        }
+
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        {
+            if (IsDeconstructionCompatibleArgument(expression))
+            {
+                diagnostics.Add(ErrorCode.ERR_VarInvocationLvalueReserved, expression.GetLocation());
+            }
+        }
+
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
+        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
+        {
+            if (expression.Kind() == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                var invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).IsVar;
+            }
+
+            return false;
         }
     }
 }

@@ -59,5 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt != null &&
                 (receiverOpt.Kind == BoundKind.ThisReference || receiverOpt.Kind == BoundKind.BaseReference);
         }
+
+        public static T MakeCompilerGenerated<T>(this T node) where T : BoundNode
+        {
+            node.WasCompilerGenerated = true;
+            return node;
+        }
     }
 }

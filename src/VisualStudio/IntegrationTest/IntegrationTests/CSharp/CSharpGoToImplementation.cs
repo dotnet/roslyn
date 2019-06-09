@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -13,34 +15,34 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(CSharpGoToImplementation))
+        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+                    : base(instanceFactory, testOutputHelper, nameof(CSharpGoToImplementation))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
             VisualStudio.Editor.SetText(
-@"class Implementation : IFoo
+@"class Implementation : IGoo
 {
 }");
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
             VisualStudio.Editor.SetText(
-@"interface IFoo 
+@"interface IGoo 
 {
 }");
-            VisualStudio.Editor.PlaceCaret("interface IFoo");
+            VisualStudio.Editor.PlaceCaret("interface IGoo");
             VisualStudio.Editor.GoToImplementation();
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -49,8 +51,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.SetText(
 @"class Implementation : IBar
 {
-}");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
+}
+");
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "FileImplementation.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
             VisualStudio.Editor.SetText(
@@ -65,7 +68,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 
         // TODO: Enable this once the GoToDefinition tests are merged
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
             var project = new ProjectUtils.Project(ProjectName);

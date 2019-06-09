@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,18 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
+    [UseExportProvider]
     public class CodeFixServiceTests
     {
         [Fact]
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             {
                 var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
                 var fixService = new CodeFixService(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
                 var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 var document = project.Documents.Single();
-                var unused = await fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+                var unused = await fixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
 
                 var fixer1 = fixers.Single().Value as MockFixer;
                 var fixer2 = reference.Fixer as MockFixer;
@@ -78,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             await GetAddedFixesAsync(new ErrorCases.ExceptionInGetFixAllProvider());
         }
 
-        public async Task GetDefaultFixesAsync(CodeFixProvider codefix)
+        private async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        public async Task GetAddedFixesAsync(CodeFixProvider codefix)
+        private async Task GetAddedFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
@@ -121,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        public async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
+        private async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using (var workspace = tuple.Item1)
             {
                 GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
-                var unused = await tuple.Item3.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+                var unused = await tuple.Item3.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
@@ -145,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
             var errorLogger = logger.First().Value;
             var fixService = new CodeFixService(
-                    diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
             return Tuple.Create(workspace, diagnosticService, fixService, errorLogger);
         }
 
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 Called = true;
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 

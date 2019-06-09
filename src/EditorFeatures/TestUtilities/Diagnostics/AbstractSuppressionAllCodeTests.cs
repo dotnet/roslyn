@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagnostic>
     {
         protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
@@ -149,14 +151,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            {
-                return DiagnosticAnalyzerCategory.SyntaxAnalysis;
-            }
+                => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
             public override void Initialize(AnalysisContext analysisContext)
             {
                 analysisContext.RegisterSyntaxTreeAction(
-                    (context) =>
+                    context =>
                     {
                         foreach (var node in AllNodes)
                         {

@@ -12,24 +12,39 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), WorkspaceKind.RemoteTemporaryWorkspace), Shared]
     internal class TemporaryWorkspaceOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;
+        private readonly ImmutableArray<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
 
         [ImportingConstructor]
         public TemporaryWorkspaceOptionsServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders)
+            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
         {
             _providers = optionProviders.ToImmutableArray();
+            _documentOptionsProviderFactories = documentOptionsProviderFactories.ToImmutableArray();
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             // give out new option service per workspace
-            return new OptionServiceFactory.OptionService(
+            var service = new OptionServiceFactory.OptionService(
                 new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>()),
                 workspaceServices);
+
+            foreach (var factory in _documentOptionsProviderFactories)
+            {
+                var documentOptionsProvider = factory.TryCreate(workspaceServices.Workspace);
+
+                if (documentOptionsProvider != null)
+                {
+                    service.RegisterDocumentOptionsProvider(documentOptionsProvider);
+                }
+            }
+
+            return service;
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -143,8 +143,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 return;
             }
 
-            var context = selectedItem.Tag as ActivityLevel;
-            if (context != null && context.Children != null && context.Children.Any())
+            if (selectedItem.Tag is ActivityLevel context && context.Children != null && context.Children.Any())
             {
                 _detailsListView = CreateContent(context.Children, useWrapPanel: false);
                 _mainGrid.Children.Add(_detailsListView);

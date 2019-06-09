@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), TestWorkspace.WorkspaceName), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return UseBaseIndentation;
             }
 
-            public IFormattingRule CreateRule(Document document, int position)
+            public AbstractFormattingRule CreateRule(Document document, int position)
             {
                 if (BaseIndentation == 0)
                 {
-                    return new NoOpFormattingRule();
+                    return NoOpFormattingRule.Instance;
                 }
 
                 var root = document.GetSyntaxRootAsync().Result;

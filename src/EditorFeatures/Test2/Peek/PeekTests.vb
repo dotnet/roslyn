@@ -1,8 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Peek
@@ -13,6 +12,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
+    <[UseExportProvider]>
     Public Class PeekTests
         <WpfFact, WorkItem(820706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820706"), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub TestInvokeInEmptyFile()
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
         Public Sub TestPeekDefinitionWhenInvokedOnLiteral()
             Using workspace = TestWorkspace.Create(<Workspace>
                                                        <Project Language="C#" CommonReferences="true">
-                                                           <Document>class C { string s = $$"Foo"; }</Document>
+                                                           <Document>class C { string s = $$"Goo"; }</Document>
                                                        </Project>
                                                    </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)

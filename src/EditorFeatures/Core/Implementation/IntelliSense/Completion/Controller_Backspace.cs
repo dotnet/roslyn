@@ -4,23 +4,25 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<BackspaceKeyCommandArgs>.GetCommandState(BackspaceKeyCommandArgs args, System.Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<BackspaceKeyCommandArgs>.ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             ExecuteBackspaceOrDelete(args.TextView, nextHandler, isDelete: false);
         }
@@ -36,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 deletedChar = viewBufferCaretPoint.Position >= 0 && viewBufferCaretPoint.Position < textView.TextBuffer.CurrentSnapshot.Length
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint.Position]
-                    : default(char?);
+                    : default;
             }
             else
             {
                 // backspace
                 deletedChar = viewBufferCaretPoint > 0
                     ? textView.TextBuffer.CurrentSnapshot[viewBufferCaretPoint - 1]
-                    : default(char?);
+                    : default;
             }
 
             if (sessionOpt == null)
@@ -75,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var textBeforeDeletion = SubjectBuffer.AsTextContainer().CurrentText;
-                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemanticsAsync(CancellationToken.None)
-                                                               .WaitAndGetResult(CancellationToken.None);
+                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemantics(CancellationToken.None);
 
                 this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
                 this.TextView.Caret.PositionChanged -= OnCaretPositionChanged;
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the context span and see if we're outside it.
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var contextSpan = completionService.GetDefaultCompletionListSpan(text, caretPoint);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));

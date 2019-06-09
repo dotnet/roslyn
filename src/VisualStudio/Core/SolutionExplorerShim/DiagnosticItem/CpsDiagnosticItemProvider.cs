@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(CpsDiagnosticItemProvider))]
     [Order]
@@ -121,7 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 var workspace = TryGetWorkspace();
                 var analyzerService = GetAnalyzerService();
-                return new CpsDiagnosticItemSource(workspace, projectId, item, _commandHandler, analyzerService);
+
+                var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
+                var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
+                if (hierarchy.GetCanonicalName(itemId, out string projectCanonicalName) == VSConstants.S_OK)
+                {
+                    return new CpsDiagnosticItemSource(workspace, projectCanonicalName, projectId, item, _commandHandler, analyzerService);
+                }
             }
 
             return null;

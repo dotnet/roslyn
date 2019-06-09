@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -21,41 +22,47 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            var document = completionContext.Document;
-            var position = completionContext.Position;
-            var cancellationToken = completionContext.CancellationToken;
-
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var node = GetPartialTypeSyntaxNode(tree, position, cancellationToken);
-
-            if (node != null)
+            try
             {
-                var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
-                var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
+                var document = completionContext.Document;
+                var position = completionContext.Position;
+                var cancellationToken = completionContext.CancellationToken;
 
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as INamedTypeSymbol;
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var node = GetPartialTypeSyntaxNode(tree, position, cancellationToken);
 
-                if (declaredSymbol != null)
+                if (node != null)
                 {
-                    var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
-                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
+                    var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
+                    var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
-                    if (items != null)
+                    if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
-                        completionContext.AddItems(items);
+                        var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
+                        var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
+
+                        if (items != null)
+                        {
+                            completionContext.AddItems(items);
+                        }
                     }
                 }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
         private CompletionItem CreateCompletionItem(
             INamedTypeSymbol symbol, SyntaxContext context)
         {
-            var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
+            var (displayText, suffix, insertionText) = GetDisplayAndSuffixAndInsertionText(symbol, context);
 
             return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayAndInsertionText.Item1,
-                insertionText: displayAndInsertionText.Item2,
+                displayText: displayText,
+                displayTextSuffix: suffix,
+                insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 properties: GetProperties(symbol, context),
@@ -73,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
 
         protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {

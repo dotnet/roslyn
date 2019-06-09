@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis.Editing
             editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, new[] { parameter }));
         }
 
+        public static void InsertParameter(this SyntaxEditor editor, SyntaxNode declaration, int index, SyntaxNode parameter)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, new[] { parameter }));
+        }
+
         public static void AddAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
         {
             editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));

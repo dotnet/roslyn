@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Xunit
 
 Friend Module Extensions
@@ -122,7 +124,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttribute(this As Symbol, c As NamedTypeSymbol) As VisualBasicAttributeData
-        Return this.GetAttributes().Where(Function(a) a.AttributeClass = c).First()
+        Return this.GetAttributes().Where(Function(a) TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything)).First()
     End Function
 
     <Extension>
@@ -132,7 +134,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, c As NamedTypeSymbol) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.AttributeClass = c)
+        Return this.GetAttributes().Where(Function(a) TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything))
     End Function
 
     <Extension>
@@ -220,7 +222,7 @@ Friend Module Extensions
 
     ''' For argument is not simple 'Type' (generic or array)
     Private Function IsEqual(typeSym As TypeSymbol, expType As Type) As Boolean
-        '' namedType
+        Dim expTypeInfo = expType.GetTypeInfo()
         Dim typeSymTypeKind As TypeKind = typeSym.TypeKind
         If typeSymTypeKind = TypeKind.Interface OrElse typeSymTypeKind = TypeKind.Class OrElse
             typeSymTypeKind = TypeKind.Structure OrElse typeSymTypeKind = TypeKind.Delegate Then
@@ -231,7 +233,7 @@ Friend Module Extensions
                 Return typeSym.Name = expType.Name
             End If
             ' generic
-            If Not (expType.IsGenericType) Then
+            If Not (expTypeInfo.IsGenericType) Then
                 Return False
             End If
 
@@ -244,7 +246,7 @@ Friend Module Extensions
             If Not (typeSym.Name = nameOnly) Then
                 Return False
             End If
-            Dim expArgs = expType.GetGenericArguments()
+            Dim expArgs = expTypeInfo.GenericTypeArguments()
             Dim actArgs = namedType.TypeArguments()
             If Not (expArgs.Count = actArgs.Length) Then
                 Return False
@@ -265,7 +267,7 @@ Friend Module Extensions
             If Not IsEqual(arySym.ElementType, expType.GetElementType()) Then
                 Return False
             End If
-            If Not IsEqual(arySym.BaseType, expType.BaseType) Then
+            If Not IsEqual(arySym.BaseType, expTypeInfo.BaseType) Then
                 Return False
             End If
             Return arySym.Rank = expType.GetArrayRank()
@@ -297,4 +299,28 @@ Friend Module Extensions
         Return ret
     End Function
 
+    <Extension>
+    Public Function BaseType(symbol As TypeSymbol) As NamedTypeSymbol
+        Return symbol.BaseTypeNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function Interfaces(symbol As TypeSymbol) As ImmutableArray(Of NamedTypeSymbol)
+        Return symbol.InterfacesNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function AllInterfaces(symbol As TypeSymbol) As ImmutableArray(Of NamedTypeSymbol)
+        Return symbol.AllInterfacesNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function TypeArguments(symbol As NamedTypeSymbol) As ImmutableArray(Of TypeSymbol)
+        Return symbol.TypeArgumentsNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function ConstraintTypes(symbol As TypeParameterSymbol) As ImmutableArray(Of TypeSymbol)
+        Return symbol.ConstraintTypesNoUseSiteDiagnostics
+    End Function
 End Module

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -442,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     left As BoundExpression,
                                     right As BoundExpression) As BoundExpression
 
-            Debug.Assert(left.Type = right.Type)
+            Debug.Assert(TypeSymbol.Equals(left.Type, right.Type, TypeCompareKind.ConsiderEverything))
             Debug.Assert(left.Type.IsBooleanType)
 
             Return MakeBinaryExpression(syntax, binaryOpKind, left, right, False, left.Type)

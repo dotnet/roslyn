@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
     internal partial class CSharpGenerateEnumMemberService :
         AbstractGenerateEnumMemberService<CSharpGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateEnumMemberService()
+        {
+        }
+
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
         {
             return node is IdentifierNameSyntax;
@@ -45,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             return false;
         }

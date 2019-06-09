@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -36,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _underlyingParameter.Type; }
+            get { return _underlyingParameter.TypeWithAnnotations; }
         }
 
         public sealed override RefKind RefKind
@@ -71,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            _underlyingParameter.AddSynthesizedAttributes(compilationState, ref attributes);
+            _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
 
         internal sealed override ConstantValue ExplicitDefaultConstantValue
@@ -109,11 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override string MetadataName
         {
             get { return _underlyingParameter.MetadataName; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _underlyingParameter.CustomModifiers; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -156,7 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            // https://github.com/dotnet/roslyn/issues/30073: Consider moving to leaf types
+            get { return _underlyingParameter.FlowAnalysisAnnotations; }
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }

@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -13,7 +14,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal partial class InvisibleEditor : IInvisibleEditor
+    internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInvisibleEditor
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly string _filePath;
@@ -28,15 +29,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
 
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, bool needsSave, bool needsUndoDisabled)
+        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, AbstractProject projectOpt, bool needsSave, bool needsUndoDisabled)
+            : this(serviceProvider, filePath, projectOpt?.Hierarchy, needsSave, needsUndoDisabled)
+        {
+        }
+
+        /// <remarks>
+        /// <para>The optional project is used to obtain an <see cref="IVsProject"/> instance. When this instance is
+        /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the
+        /// specified file within a project. If no project is specified, Visual Studio falls back to using
+        /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
+        /// projects in the solution.</para>
+        /// </remarks>
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy hierarchyOpt, bool needsSave, bool needsUndoDisabled)
+            : base(serviceProvider.GetMefService<IThreadingContext>(), assertIsForeground: true)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
+            var vsProject = TryGetProjectOfHierarchy(hierarchyOpt);
             var invisibleEditorPtr = IntPtr.Zero;
-            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, null, 0, null, out invisibleEditorPtr));
+            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out invisibleEditorPtr));
 
             try
             {
@@ -76,6 +92,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        private IVsProject TryGetProjectOfHierarchy(IVsHierarchy hierarchyOpt)
+        {
+            // The invisible editor manager will fail in cases where the IVsProject passed to it is not consistent with
+            // the IVsProject known to IVsSolution (e.g. if the object is a wrapper like AbstractHostObject created by
+            // the CPS-based project system). This method returns an IVsProject instance known to the solution, or null
+            // if the project could not be determined.
+            if (hierarchyOpt == null)
+            {
+                return null;
+            }
+
+            if (!hierarchyOpt.TryGetProjectGuid(out var projectGuid))
+            {
+                return null;
+            }
+
+            var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
+            if (!ErrorHandler.Succeeded(solution.GetProjectOfGuid(projectGuid, out var projectHierarchy)))
+            {
+                return null;
+            }
+
+            return projectHierarchy as IVsProject;
+        }
+
         public IVsTextLines VsTextLines
         {
             get
@@ -102,6 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public void Dispose()
         {
+            AssertIsForeground();
+
             _buffer = null;
             _vsTextLines = null;
 
@@ -145,9 +188,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+#pragma warning disable CA1821 // Remove empty Finalizers
+#if DEBUG
         ~InvisibleEditor()
         {
             Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
         }
+#endif
+#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

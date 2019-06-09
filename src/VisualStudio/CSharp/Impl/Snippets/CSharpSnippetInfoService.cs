@@ -1,16 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
@@ -23,11 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         // #region and #endregion when appears in the completion list as snippets
         // we should format the snippet on commit. 
         private ISet<string> _formatTriggeringSnippets = new HashSet<string>(new string[] { "#region", "#endregion" });
+
         [ImportingConstructor]
         public CSharpSnippetInfoService(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(serviceProvider, Guids.CSharpLanguageServiceId, asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
         {
         }
 

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SymbolDisplay
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -34,22 +35,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             semanticModelOpt As SemanticModel,
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
-            isFirstSymbolVisited As Boolean)
+            isFirstSymbolVisited As Boolean,
+            Optional inNamespaceOrType As Boolean = False)
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
 
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
-        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor
+        Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(
                     Me.builder,
-                        Me.format,
+                    Me.format,
                     Me.semanticModelOpt,
                     Me.positionOpt,
-                        Me._escapeKeywordIdentifiers,
-                    isFirstSymbolVisited:=False)
+                    Me._escapeKeywordIdentifiers,
+                    isFirstSymbolVisited:=False,
+                    inNamespaceOrType:=inNamespaceOrType)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,
@@ -247,7 +250,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' testing purposes we occasionally may print them out.  In this case, give them 
             ' a reasonable name so that tests can clearly describe what these are.
             Dim name = If(symbol.Name, "<anonymous local>")
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+
+            If symbol.IsConst Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, name, noEscaping:=False))
+            Else
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
+            End If
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()
@@ -313,7 +321,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddKeyword(SyntaxKind.PrivateKeyword)
                     Case Accessibility.Internal
                         AddKeyword(SyntaxKind.FriendKeyword)
-                    Case Accessibility.ProtectedAndInternal, Accessibility.Protected
+                    Case Accessibility.Protected
+                        AddKeyword(SyntaxKind.ProtectedKeyword)
+                    Case Accessibility.ProtectedAndInternal
+                        AddKeyword(SyntaxKind.PrivateKeyword)
+                        AddSpace()
                         AddKeyword(SyntaxKind.ProtectedKeyword)
                     Case Accessibility.ProtectedOrInternal
                         AddKeyword(SyntaxKind.ProtectedKeyword)

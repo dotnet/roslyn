@@ -112,7 +112,7 @@ namespace CSharpSyntaxGenerator
 
             try
             {
-                using (var outFile = new StreamWriter(File.Open(outputFile, FileMode.Create)))
+                using (var outFile = new StreamWriter(File.Open(outputFile, FileMode.Create), Encoding.UTF8))
                 {
                     outFile.Write(text);
                 }

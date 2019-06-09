@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _labels.GetLabels();
         }
-        
+
         internal override bool IsLabelsScopeBinder
         {
             get

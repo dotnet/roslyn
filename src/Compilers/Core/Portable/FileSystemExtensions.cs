@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             string xmlDocPath = null,
             string win32ResourcesPath = null,
             IEnumerable<ResourceDescription> manifestResources = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (compilation == null)
             {

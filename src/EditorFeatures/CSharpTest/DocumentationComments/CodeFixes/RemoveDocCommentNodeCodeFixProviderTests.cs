@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         private async Task TestAsync(string initial, string expected)
         {
             var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
-            await TestAsync(initial, expected, parseOptions: parseOptions, ignoreTrivia: false);
+            await TestAsync(initial, expected, parseOptions: parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
         public async Task RemovesDuplicateParamTag()
         {
-            var initial = 
+            var initial =
 @"class Program
 {
     /// <summary>

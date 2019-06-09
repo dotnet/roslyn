@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable span represented by a pair of line number and index within the line.
     /// </summary>
-    public struct LinePositionSpan : IEquatable<LinePositionSpan>
+    public readonly struct LinePositionSpan : IEquatable<LinePositionSpan>
     {
         private readonly LinePosition _start;
         private readonly LinePosition _end;

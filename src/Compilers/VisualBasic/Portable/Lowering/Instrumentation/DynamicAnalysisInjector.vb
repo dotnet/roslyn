@@ -1,11 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports System.Collections.Immutable
-Imports System.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -18,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _method As MethodSymbol
         Private ReadOnly _methodBody As BoundStatement
-        Private ReadOnly _createPayload As MethodSymbol
+        Private ReadOnly _createPayloadForMethodsSpanningSingleFile As MethodSymbol
+        Private ReadOnly _createPayloadForMethodsSpanningMultipleFiles As MethodSymbol
         Private ReadOnly _spansBuilder As ArrayBuilder(Of SourceSpan)
         Private _dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
         Private ReadOnly _methodEntryInstrumentation As BoundStatement
@@ -28,7 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _debugDocumentProvider As DebugDocumentProvider
         Private ReadOnly _methodBodyFactory As SyntheticBoundNodeFactory
 
-        Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
+        Public Shared Function TryCreate(
+            method As MethodSymbol,
+            methodBody As BoundStatement,
+            methodBodyFactory As SyntheticBoundNodeFactory,
+            diagnostics As DiagnosticBag,
+            debugDocumentProvider As DebugDocumentProvider,
+            previous As Instrumenter) As DynamicAnalysisInjector
+
             ' Do not instrument implicitly-declared methods, except for constructors.
             ' Instrument implicit constructors in order to instrument member initializers.
             If method.IsImplicitlyDeclared AndAlso Not method.IsAnyConstructor Then
@@ -45,20 +54,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim createPayload As MethodSymbol = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics)
+            Dim createPayloadForMethodsSpanningSingleFile As MethodSymbol = GetCreatePayloadOverload(
+                methodBodyFactory.Compilation,
+                WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+                methodBody.Syntax,
+                diagnostics)
+
+            Dim createPayloadForMethodsSpanningMultipleFiles As MethodSymbol = GetCreatePayloadOverload(
+                methodBodyFactory.Compilation,
+                WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+                methodBody.Syntax,
+                diagnostics)
 
             ' Do not instrument any methods if CreatePayload is not present.
-            If createPayload Is Nothing Then
+            If createPayloadForMethodsSpanningSingleFile Is Nothing OrElse createPayloadForMethodsSpanningMultipleFiles Is Nothing Then
                 Return Nothing
             End If
 
             ' Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
             ' CreatePayload will fail at run time with an infinite recursion if it is instrumented.
-            If method.Equals(createPayload) Then
+            If method.Equals(createPayloadForMethodsSpanningSingleFile) OrElse method.Equals(createPayloadForMethodsSpanningMultipleFiles) Then
                 Return Nothing
             End If
 
-            Return New DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous)
+            Return New DynamicAnalysisInjector(
+                method,
+                methodBody,
+                methodBodyFactory,
+                createPayloadForMethodsSpanningSingleFile,
+                createPayloadForMethodsSpanningMultipleFiles,
+                diagnostics,
+                debugDocumentProvider,
+                previous)
         End Function
 
         Private Shared Function HasValidMappedLineSpan(syntax As SyntaxNode) As Boolean
@@ -71,9 +98,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Sub New(method As MethodSymbol, methodBody As BoundStatement, methodBodyFactory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
+        Private Sub New(
+            method As MethodSymbol,
+            methodBody As BoundStatement,
+            methodBodyFactory As SyntheticBoundNodeFactory,
+            createPayloadForMethodsSpanningSingleFile As MethodSymbol,
+            createPayloadForMethodsSpanningMultipleFiles As MethodSymbol,
+            diagnostics As DiagnosticBag,
+            debugDocumentProvider As DebugDocumentProvider,
+            previous As Instrumenter)
+
             MyBase.New(previous)
-            _createPayload = createPayload
+            _createPayloadForMethodsSpanningSingleFile = createPayloadForMethodsSpanningSingleFile
+            _createPayloadForMethodsSpanningMultipleFiles = createPayloadForMethodsSpanningMultipleFiles
             _method = method
             _methodBody = methodBody
             _spansBuilder = ArrayBuilder(Of SourceSpan).GetInstance()
@@ -128,6 +165,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Private Shared Function GetCreatePayloadStatement(
+            dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
+            methodBodySyntax As SyntaxNode,
+            methodPayload As LocalSymbol,
+            createPayloadForMethodsSpanningSingleFile As MethodSymbol,
+            createPayloadForMethodsSpanningMultipleFiles As MethodSymbol,
+            mvid As BoundExpression,
+            methodToken As BoundExpression,
+            payloadSlot As BoundExpression,
+            methodBodyFactory As SyntheticBoundNodeFactory,
+            debugDocumentProvider As DebugDocumentProvider) As BoundExpressionStatement
+
+            Dim createPayloadOverload As MethodSymbol
+            Dim fileIndexOrIndicesArgument As BoundExpression
+
+            If dynamicAnalysisSpans.IsEmpty Then
+                createPayloadOverload = createPayloadForMethodsSpanningSingleFile
+
+                ' For a compiler generated method that has no 'real' spans, we emit the index for
+                ' the document corresponding to the syntax node that is associated with its bound node.
+                Dim document = GetSourceDocument(debugDocumentProvider, methodBodySyntax)
+                fileIndexOrIndicesArgument = methodBodyFactory.SourceDocumentIndex(document)
+            Else
+                Dim documents = PooledHashSet(Of DebugSourceDocument).GetInstance()
+                Dim fileIndices = ArrayBuilder(Of BoundExpression).GetInstance()
+
+                For Each span In dynamicAnalysisSpans
+                    Dim document = span.Document
+                    If documents.Add(document) Then
+                        fileIndices.Add(methodBodyFactory.SourceDocumentIndex(document))
+                    End If
+                Next
+
+                documents.Free()
+
+                ' At this point, we should have at least one document since we have already
+                ' handled the case where method has no 'real' spans (and therefore no documents) above.
+                If fileIndices.Count = 1 Then
+                    createPayloadOverload = createPayloadForMethodsSpanningSingleFile
+                    fileIndexOrIndicesArgument = fileIndices.Single()
+                Else
+                    createPayloadOverload = createPayloadForMethodsSpanningMultipleFiles
+
+                    ' Order of elements in fileIndices should be deterministic because these
+                    ' elements were added based on order of spans in dynamicAnalysisSpans above.
+                    fileIndexOrIndicesArgument = methodBodyFactory.Array(
+                        methodBodyFactory.SpecialType(SpecialType.System_Int32), fileIndices.ToImmutable())
+                End If
+
+                fileIndices.Free()
+            End If
+
+            Return methodBodyFactory.Assignment(
+                methodBodyFactory.Local(methodPayload, isLValue:=True),
+                methodBodyFactory.Call(
+                    Nothing,
+                    createPayloadOverload,
+                    mvid,
+                    methodToken,
+                    fileIndexOrIndicesArgument,
+                    payloadSlot,
+                    methodBodyFactory.Literal(dynamicAnalysisSpans.Length)))
+        End Function
 
         Public Overrides Function CreateBlockPrologue(trueOriginal As BoundBlock, original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
             Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(trueOriginal, original, synthesizedLocal)
@@ -137,23 +237,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' In the future there will be multiple analysis kinds.
                 Const analysisKind As Integer = 0
 
-                Dim modulePayloadType As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(_payloadType, ImmutableArray(Of CustomModifier).Empty, 1, _methodBodyFactory.Compilation.Assembly)
+                Dim modulePayloadType As ArrayTypeSymbol =
+                    ArrayTypeSymbol.CreateVBArray(_payloadType, ImmutableArray(Of CustomModifier).Empty, 1, _methodBodyFactory.Compilation.Assembly)
 
                 ' Synthesize the initialization of the instrumentation payload array, using concurrency-safe code
                 '
                 ' Dim payload = PID.PayloadRootField(methodIndex)
                 ' If payload Is Nothing Then
-                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndex, PID.PayloadRootField(methodIndex), payloadLength)
+                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, fileIndexOrIndices, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
-                Dim payloadInitialization As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=False, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))))
+                Dim payloadInitialization As BoundStatement =
+                    _methodBodyFactory.Assignment(
+                        _methodBodyFactory.Local(_methodPayload, isLValue:=True),
+                        _methodBodyFactory.ArrayAccess(
+                            _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False),
+                            isLValue:=False,
+                            indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method))))
+
                 Dim mvid As BoundExpression = _methodBodyFactory.ModuleVersionId(isLValue:=False)
                 Dim methodToken As BoundExpression = _methodBodyFactory.MethodDefIndex(_method)
-                Dim fileIndex As BoundExpression = _methodBodyFactory.SourceDocumentIndex(GetSourceDocument(_methodBody.Syntax))
-                Dim payloadSlot As BoundExpression = _methodBodyFactory.ArrayAccess(_methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
-                Dim createPayloadCall As BoundStatement = _methodBodyFactory.Assignment(_methodBodyFactory.Local(_methodPayload, isLValue:=True), _methodBodyFactory.Call(Nothing, _createPayload, mvid, methodToken, fileIndex, payloadSlot, _methodBodyFactory.Literal(_dynamicAnalysisSpans.Length)))
 
-                Dim payloadNullTest As BoundExpression = _methodBodyFactory.Binary(BinaryOperatorKind.Equals, _methodBodyFactory.SpecialType(SpecialType.System_Boolean), _methodBodyFactory.Local(_methodPayload, False), _methodBodyFactory.Null(_payloadType))
+                Dim payloadSlot As BoundExpression =
+                    _methodBodyFactory.ArrayAccess(
+                        _methodBodyFactory.InstrumentationPayloadRoot(analysisKind, modulePayloadType, isLValue:=False),
+                        isLValue:=True,
+                        indices:=ImmutableArray.Create(_methodBodyFactory.MethodDefIndex(_method)))
+
+                Dim createPayloadCall As BoundStatement =
+                    GetCreatePayloadStatement(
+                        _dynamicAnalysisSpans,
+                        _methodBody.Syntax,
+                        _methodPayload,
+                        _createPayloadForMethodsSpanningSingleFile,
+                        _createPayloadForMethodsSpanningMultipleFiles,
+                        mvid,
+                        methodToken,
+                        payloadSlot,
+                        _methodBodyFactory,
+                        _debugDocumentProvider)
+
+                Dim payloadNullTest As BoundExpression =
+                    _methodBodyFactory.Binary(
+                        BinaryOperatorKind.Equals,
+                        _methodBodyFactory.SpecialType(SpecialType.System_Boolean),
+                        _methodBodyFactory.Local(_methodPayload, False),
+                        _methodBodyFactory.Null(_payloadType))
+
                 Dim payloadIf As BoundStatement = _methodBodyFactory.If(payloadNullTest, createPayloadCall)
 
                 Debug.Assert(synthesizedLocal Is Nothing)
@@ -300,18 +430,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(rewritten IsNot Nothing, statementFactory.StatementList(analysisPoint, rewritten), analysisPoint)
         End Function
 
-        Private Function GetSourceDocument(syntax As SyntaxNode) As Cci.DebugSourceDocument
-            Return GetSourceDocument(syntax, syntax.GetLocation().GetMappedLineSpan())
+        Private Shared Function GetSourceDocument(debugDocumentProvider As DebugDocumentProvider, syntax As SyntaxNode) As Cci.DebugSourceDocument
+            Return GetSourceDocument(debugDocumentProvider, syntax, syntax.GetLocation().GetMappedLineSpan())
         End Function
 
-        Private Function GetSourceDocument(syntax As SyntaxNode, span As FileLinePositionSpan) As Cci.DebugSourceDocument
+        Private Shared Function GetSourceDocument(debugDocumentProvider As DebugDocumentProvider, syntax As SyntaxNode, span As FileLinePositionSpan) As Cci.DebugSourceDocument
             Dim path As String = span.Path
             ' If the path for the syntax node is empty, try the path for the entire syntax tree.
             If path.Length = 0 Then
                 path = syntax.SyntaxTree.FilePath
             End If
 
-            Return _debugDocumentProvider.Invoke(path, basePath:="")
+            Return debugDocumentProvider.Invoke(path, basePath:="")
         End Function
 
         Private Function AddAnalysisPoint(syntaxForSpan As SyntaxNode, alternateSpan As Text.TextSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
@@ -323,13 +453,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function AddAnalysisPoint(syntaxForSpan As SyntaxNode, span As FileLinePositionSpan, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
-
             ' Add an entry in the spans array.
             Dim spansIndex As Integer = _spansBuilder.Count
-            _spansBuilder.Add(New SourceSpan(GetSourceDocument(syntaxForSpan, span), span.StartLinePosition.Line, span.StartLinePosition.Character, span.EndLinePosition.Line, span.EndLinePosition.Character))
+            _spansBuilder.Add(New SourceSpan(
+                GetSourceDocument(_debugDocumentProvider, syntaxForSpan, span),
+                span.StartLinePosition.Line,
+                span.StartLinePosition.Character,
+                span.EndLinePosition.Line,
+                span.EndLinePosition.Character))
 
             ' Generate "_payload(pointIndex) = True".
-            Dim payloadCell As BoundArrayAccess = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload, isLValue:=False), isLValue:=True, indices:=ImmutableArray.Create(Of BoundExpression)(statementFactory.Literal(spansIndex)))
+            Dim payloadCell As BoundArrayAccess =
+                statementFactory.ArrayAccess(
+                    statementFactory.Local(_methodPayload, isLValue:=False),
+                    isLValue:=True,
+                    indices:=ImmutableArray.Create(Of BoundExpression)(statementFactory.Literal(spansIndex)))
+
             Return statementFactory.Assignment(payloadCell, statementFactory.Literal(True))
         End Function
 
@@ -371,8 +510,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement.Syntax
         End Function
 
-        Private Shared Function GetCreatePayload(compilation As VisualBasicCompilation, syntax As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
-            Return DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, syntax, diagnostics), MethodSymbol)
+        Private Shared Function GetCreatePayloadOverload(compilation As VisualBasicCompilation, overload As WellKnownMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+            Return DirectCast(Binder.GetWellKnownTypeMember(compilation, overload, syntax, diagnostics), MethodSymbol)
         End Function
 
         ' If the method, property, etc. has attributes, the attributes are excluded from the span of the method definition.

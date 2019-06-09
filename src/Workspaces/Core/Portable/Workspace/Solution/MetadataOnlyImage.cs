@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
@@ -65,6 +66,15 @@ namespace Microsoft.CodeAnalysis
                             {
                                 workspace.LogTestMessage("  " + diagnostic.GetMessage());
                             }
+
+                            // log emit failures so that we can improve most common cases
+                            Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                            {
+                                // log errors in the format of
+                                // CS0001:1;CS002:10;...
+                                var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                                m["Errors"] = string.Join(";", groups);
+                            }));
                         }
                     }
                 }
@@ -81,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// A map to ensure that the streams from the temporary storage service that back the metadata we create stay alive as long
         /// as the metadata is alive.
         /// </summary>
-        private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime 
+        private static readonly ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess> s_lifetime
             = new ConditionalWeakTable<AssemblyMetadata, ISupportDirectMemoryAccess>();
 
         public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
@@ -109,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                 s_lifetime.Add(metadata, supportNativeMemory);
             }
             else
-            { 
+            {
                 // Otherwise, we just let it use stream. Unfortunately, if we give stream, compiler will
                 // internally copy it to native memory again. since compiler owns lifetime of stream,
                 // it would be great if compiler can be little bit smarter on how it deals with stream.

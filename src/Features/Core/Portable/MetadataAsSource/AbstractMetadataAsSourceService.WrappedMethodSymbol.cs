@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public INamedTypeSymbol AssociatedAnonymousDelegate => _symbol.AssociatedAnonymousDelegate;
 
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
+
+            public bool IsReadOnly => _symbol.IsReadOnly;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
+            public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;
+
             public IMethodSymbol ReducedFrom =>
                     // This implementation feels incorrect!
                     _symbol.ReducedFrom;
@@ -77,7 +81,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool ReturnsByRef => _symbol.ReturnsByRef;
 
+            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
+
+            public RefKind RefKind => _symbol.RefKind;
+
             public ITypeSymbol ReturnType => _symbol.ReturnType;
+
+            public NullableAnnotation ReturnNullableAnnotation => _symbol.ReturnNullableAnnotation;
 
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()
             {
@@ -89,6 +99,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => _symbol.ReturnTypeCustomModifiers;
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
+
+            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => _symbol.TypeArgumentsNullableAnnotations;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -147,6 +147,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     builder.Append("Friend")
                 Case Accessibility.ProtectedOrFriend
                     builder.Append("Protected Friend")
+                Case Accessibility.ProtectedAndFriend
+                    builder.Append("Private Protected")
                 Case Accessibility.Public
                     builder.Append("Public")
             End Select

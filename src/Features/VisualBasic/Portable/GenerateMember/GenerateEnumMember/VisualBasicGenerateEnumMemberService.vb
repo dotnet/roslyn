@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateEnumMember
     <ExportLanguageService(GetType(IGenerateEnumMemberService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicGenerateEnumMemberService
         Inherits AbstractGenerateEnumMemberService(Of VisualBasicGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function IsIdentifierNameGeneration(node As SyntaxNode) As Boolean
             Return TypeOf node Is IdentifierNameSyntax

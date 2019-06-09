@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return string.Join("; ", 
+            return string.Join("; ",
                 UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
                 Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
                 ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static Imports FromSyntax(
             CSharpSyntaxNode declarationSyntax,
             InContainerBinder binder,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             bool inUsing)
         {
             SyntaxList<UsingDirectiveSyntax> usingDirectives;
@@ -97,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // define all of the extern aliases first. They may used by the target of a using
 
-            // using Bar=Foo::Bar;
-            // using Foo::Baz;
-            // extern alias Foo;
+            // using Bar=Goo::Bar;
+            // using Goo::Baz;
+            // extern alias Goo;
 
             var diagnostics = new DiagnosticBag();
 
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
-                        var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved);
+                        var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                         if (imported.Kind == SymbolKind.Namespace)
                         {
                             if (usingDirective.StaticKeyword != default(SyntaxToken))
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     qualifiedName = SyntaxFactory.QualifiedName(left: qualifiedName, right: SyntaxFactory.IdentifierName(identifiers[j]));
                 }
 
-                var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics);
+                var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics).NamespaceOrTypeSymbol;
                 if (uniqueUsings.Add(imported))
                 {
                     boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null));
@@ -564,15 +565,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check constraints within named aliases.
 
             // Force resolution of named aliases.
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.GetAliasTarget(basesBeingResolved: null);
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.CheckConstraints(semanticDiagnostics);
+            }
+
+            var corLibrary = _compilation.SourceAssembly.CorLibrary;
+            var conversions = new TypeConversions(corLibrary);
+            foreach (var @using in Usings)
+            {
+                // Check if `using static` directives meet constraints.
+                if (@using.NamespaceOrType.IsType)
+                {
+                    var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
+                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
+                }
             }
 
             // Force resolution of extern aliases.
@@ -609,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -627,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -672,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -823,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddLookupSymbolsInfoInAliases(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            foreach (var usingAlias in this.UsingAliases.Values)
+            foreach (var (_, usingAlias) in this.UsingAliases)
             {
                 AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
             }
@@ -837,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddAliasSymbolToResult(LookupSymbolsInfo result, AliasSymbol aliasSymbol, LookupOptions options, Binder originalBinder)
         {
             var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
-            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
+            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, result, accessThroughType: null, aliasSymbol: aliasSymbol))
             {
                 result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
             }
@@ -858,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var member in namespaceSymbol.NamespaceOrType.GetMembersUnordered())
                 {
-                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, null))
+                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, result, null))
                     {
                         result.AddSymbol(member, member.Name, member.GetArity());
                     }

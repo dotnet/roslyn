@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return token.Parent != null
                 ? token.Parent.FirstAncestorOrSelf(predicate)
-                : default(T);
+                : default;
         }
 
         public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)
@@ -166,5 +166,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
         }
+
+        public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
+            => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
     }
 }

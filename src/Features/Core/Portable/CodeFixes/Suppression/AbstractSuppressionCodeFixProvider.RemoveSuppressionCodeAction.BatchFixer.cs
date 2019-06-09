@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 protected override async Task AddDocumentFixesAsync(
-                    Document document, ImmutableArray<Diagnostic> diagnostics, 
+                    Document document, ImmutableArray<Diagnostic> diagnostics,
                     ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
                     FixAllState fixAllState, CancellationToken cancellationToken)
                 {
@@ -50,16 +51,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
                         {
-                            var codeAction = removeSuppressionFix.Action as RemoveSuppressionCodeAction;
-                            if (codeAction != null)
+                            if (removeSuppressionFix.Action is RemoveSuppressionCodeAction codeAction)
                             {
                                 if (fixAllState.IsFixMultiple)
                                 {
                                     codeAction = codeAction.CloneForFixMultipleContext();
                                 }
 
-                                var pragmaRemoveAction = codeAction as PragmaRemoveAction;
-                                if (pragmaRemoveAction != null)
+                                if (codeAction is PragmaRemoveAction pragmaRemoveAction)
                                 {
                                     pragmaActionsBuilder.Add(pragmaRemoveAction);
                                     pragmaDiagnosticsBuilder.Add(diagnostic);
@@ -86,16 +85,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 protected async override Task AddProjectFixesAsync(
-                    Project project, ImmutableArray<Diagnostic> diagnostics, 
-                    ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag, 
+                    Project project, ImmutableArray<Diagnostic> diagnostics,
+                    ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> bag,
                     FixAllState fixAllState, CancellationToken cancellationToken)
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
                         var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
                             project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
-                        var removeSuppressionCodeAction = removeSuppressionFixes.SingleOrDefault()?.Action as RemoveSuppressionCodeAction;
-                        if (removeSuppressionCodeAction != null)
+                        if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {
                             if (fixAllState.IsFixMultiple)
                             {
@@ -108,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public override async Task<CodeAction> TryGetMergedFixAsync(
-                    ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes, 
-                    FixAllState fixAllState, 
+                    ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
+                    FixAllState fixAllState,
                     CancellationToken cancellationToken)
                 {
                     // Batch all the attribute removal fixes into a single fix.
@@ -123,8 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var newBatchOfFixes = new List<(Diagnostic diagnostic, CodeAction action)>();
                     foreach (var codeAction in batchOfFixes)
                     {
-                        var attributeRemoveFix = codeAction.action as AttributeRemoveAction;
-                        if (attributeRemoveFix != null)
+                        if (codeAction.action is AttributeRemoveAction attributeRemoveFix)
                         {
                             attributeRemoveFixes.Add(attributeRemoveFix);
                         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBIteratorTests
         Inherits BasicTestBase
 
-        <Fact, WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleIterator()
             Dim source =
 <compilation>
@@ -75,7 +76,8 @@ End Class
 ", sequencePoints:="C+VB$StateMachine_1_F.MoveNext")
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorLambdaWithForEach()
             Dim source =
 <compilation>
@@ -102,9 +104,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-0" name="MoveNext">
@@ -116,11 +121,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x2c" startLine="7" startColumn="13" endLine="7" endColumn="33"/>
-                <entry offset="0x2d" startLine="8" startColumn="17" endLine="8" endColumn="24"/>
-                <entry offset="0x48" startLine="9" startColumn="17" endLine="9" endColumn="24"/>
-                <entry offset="0x68" startLine="10" startColumn="13" endLine="10" endColumn="25"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x2c" startLine="7" startColumn="13" endLine="7" endColumn="33" document="1"/>
+                <entry offset="0x2d" startLine="8" startColumn="17" endLine="8" endColumn="24" document="1"/>
+                <entry offset="0x48" startLine="9" startColumn="17" endLine="9" endColumn="24" document="1"/>
+                <entry offset="0x68" startLine="10" startColumn="13" endLine="10" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6a">
                 <importsforward declaringType="Program" methodName="Main" parameterNames="args"/>
@@ -130,7 +135,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996"), WorkItem(789705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789705")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -141,12 +147,12 @@ Imports System.Collections.Generic
 Module Module1
 
     Sub Main()
-        For Each i In Foo
+        For Each i In Goo
             Console.Write(i)
         Next
     End Sub
 
-    Iterator Function Foo() As IEnumerable(Of Integer)
+    Iterator Function Goo() As IEnumerable(Of Integer)
         Dim arr(1) As Integer
         arr(0) = 42
 
@@ -166,15 +172,18 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             ' VERY IMPORTANT!!!! We must have locals named $VB$ResumableLocal_x$1 and $VB$ResumableLocal_x$2 here
             '                    Even though they do not really exist in IL, EE will rely on them for scoping     
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext">
+        <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
             <customDebugInfo>
                 <hoistedLocalScopes format="portable">
                     <slot startOffset="0x41" endOffset="0x183"/>
@@ -193,27 +202,27 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x41" startLine="12" startColumn="5" endLine="12" endColumn="55"/>
-                <entry offset="0x42" startLine="13" startColumn="13" endLine="13" endColumn="19"/>
-                <entry offset="0x4e" startLine="14" startColumn="9" endLine="14" endColumn="20"/>
-                <entry offset="0x58" startLine="16" startColumn="9" endLine="16" endColumn="26"/>
-                <entry offset="0x6b" hidden="true"/>
-                <entry offset="0x80" startLine="17" startColumn="13" endLine="17" endColumn="20"/>
-                <entry offset="0xa0" startLine="18" startColumn="13" endLine="18" endColumn="20"/>
-                <entry offset="0xc0" startLine="19" startColumn="9" endLine="19" endColumn="13"/>
-                <entry offset="0xc1" hidden="true"/>
-                <entry offset="0xcf" hidden="true"/>
-                <entry offset="0xe0" hidden="true"/>
-                <entry offset="0xe3" startLine="21" startColumn="9" endLine="21" endColumn="28"/>
-                <entry offset="0xf5" hidden="true"/>
-                <entry offset="0x10e" startLine="22" startColumn="13" endLine="22" endColumn="44"/>
-                <entry offset="0x133" startLine="23" startColumn="13" endLine="23" endColumn="44"/>
-                <entry offset="0x158" startLine="24" startColumn="9" endLine="24" endColumn="13"/>
-                <entry offset="0x159" hidden="true"/>
-                <entry offset="0x167" hidden="true"/>
-                <entry offset="0x17b" hidden="true"/>
-                <entry offset="0x181" startLine="26" startColumn="5" endLine="26" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x41" startLine="12" startColumn="5" endLine="12" endColumn="55" document="1"/>
+                <entry offset="0x42" startLine="13" startColumn="13" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x4e" startLine="14" startColumn="9" endLine="14" endColumn="20" document="1"/>
+                <entry offset="0x58" startLine="16" startColumn="9" endLine="16" endColumn="26" document="1"/>
+                <entry offset="0x6b" hidden="true" document="1"/>
+                <entry offset="0x80" startLine="17" startColumn="13" endLine="17" endColumn="20" document="1"/>
+                <entry offset="0xa0" startLine="18" startColumn="13" endLine="18" endColumn="20" document="1"/>
+                <entry offset="0xc0" startLine="19" startColumn="9" endLine="19" endColumn="13" document="1"/>
+                <entry offset="0xc1" hidden="true" document="1"/>
+                <entry offset="0xcf" hidden="true" document="1"/>
+                <entry offset="0xe0" hidden="true" document="1"/>
+                <entry offset="0xe3" startLine="21" startColumn="9" endLine="21" endColumn="28" document="1"/>
+                <entry offset="0xf5" hidden="true" document="1"/>
+                <entry offset="0x10e" startLine="22" startColumn="13" endLine="22" endColumn="44" document="1"/>
+                <entry offset="0x133" startLine="23" startColumn="13" endLine="23" endColumn="44" document="1"/>
+                <entry offset="0x158" startLine="24" startColumn="9" endLine="24" endColumn="13" document="1"/>
+                <entry offset="0x159" hidden="true" document="1"/>
+                <entry offset="0x167" hidden="true" document="1"/>
+                <entry offset="0x17b" hidden="true" document="1"/>
+                <entry offset="0x181" startLine="26" startColumn="5" endLine="26" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x183">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -232,7 +241,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -255,13 +265,16 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_$0".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
             <customDebugInfo>
@@ -270,15 +283,15 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" hidden="true"/>
-                <entry offset="0x24" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x30" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x3c" startLine="9" startColumn="13" endLine="9" endColumn="53"/>
-                <entry offset="0x43" startLine="11" startColumn="9" endLine="11" endColumn="20"/>
-                <entry offset="0x74" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
-                <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
-                <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" hidden="true" document="1"/>
+                <entry offset="0x24" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x30" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x3c" startLine="9" startColumn="13" endLine="9" endColumn="53" document="1"/>
+                <entry offset="0x43" startLine="11" startColumn="9" endLine="11" endColumn="20" document="1"/>
+                <entry offset="0x74" startLine="12" startColumn="9" endLine="12" endColumn="21" document="1"/>
+                <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21" document="1"/>
+                <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x98">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -291,7 +304,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -312,22 +326,25 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the single-mangled name "$VB$Closure_0".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" hidden="true"/>
-                <entry offset="0x1f" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x26" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="20"/>
-                <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" hidden="true" document="1"/>
+                <entry offset="0x1f" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x26" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="20" document="1"/>
+                <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x56">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -340,7 +357,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -360,11 +378,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
             <customDebugInfo>
@@ -374,13 +395,13 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x20" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x27" startLine="8" startColumn="9" endLine="8" endColumn="20"/>
-                <entry offset="0x4e" startLine="9" startColumn="9" endLine="9" endColumn="21"/>
-                <entry offset="0x5a" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
-                <entry offset="0x66" startLine="11" startColumn="5" endLine="11" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x20" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x27" startLine="8" startColumn="9" endLine="8" endColumn="20" document="1"/>
+                <entry offset="0x4e" startLine="9" startColumn="9" endLine="9" endColumn="21" document="1"/>
+                <entry offset="0x5a" startLine="10" startColumn="9" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0x66" startLine="11" startColumn="5" endLine="11" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
@@ -396,7 +417,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
@@ -414,19 +436,22 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
 
             ' Goal: We're looking for the unmangled names "x" and "y".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x1b" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x1d" startLine="8" startColumn="9" endLine="8" endColumn="20"/>
-                <entry offset="0x3a" startLine="9" startColumn="5" endLine="9" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x1b" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x1d" startLine="8" startColumn="9" endLine="8" endColumn="20" document="1"/>
+                <entry offset="0x3a" startLine="9" startColumn="5" endLine="9" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3c">
                 <namespace name="System" importlevel="file"/>
@@ -446,7 +471,8 @@ End Class
         ''' Sequence points of MoveNext method shall not be affected by DebuggerHidden attribute. 
         ''' The method contains user code that can be edited during debugging and might need remapping.
         ''' </summary>
-        <Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DebuggerHiddenIterator()
             Dim source =
 <compilation>
@@ -457,13 +483,13 @@ Imports System.Diagnostics
 Module Module1
 
     Sub Main()
-        For Each i In Foo
+        For Each i In Goo
             Console.Write(i)
         Next
     End Sub
 
     &lt;DebuggerHidden&gt;
-    Iterator Function Foo() As IEnumerable(Of Integer)
+    Iterator Function Goo() As IEnumerable(Of Integer)
         Yield 1
         Yield 2
     End Function
@@ -472,12 +498,15 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_Foo.MoveNext",
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_Foo" name="MoveNext">
+        <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="20" offset="-1"/>
@@ -485,11 +514,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x2c" startLine="13" startColumn="5" endLine="13" endColumn="55"/>
-                <entry offset="0x2d" startLine="14" startColumn="9" endLine="14" endColumn="16"/>
-                <entry offset="0x48" startLine="15" startColumn="9" endLine="15" endColumn="16"/>
-                <entry offset="0x63" startLine="16" startColumn="5" endLine="16" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x2c" startLine="13" startColumn="5" endLine="13" endColumn="55" document="1"/>
+                <entry offset="0x2d" startLine="14" startColumn="9" endLine="14" endColumn="16" document="1"/>
+                <entry offset="0x48" startLine="15" startColumn="9" endLine="15" endColumn="16" document="1"/>
+                <entry offset="0x63" startLine="16" startColumn="5" endLine="16" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x65">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -499,7 +528,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic
@@ -508,7 +538,7 @@ Public Class C
        Yield 1
     End Function
 End Class"
-            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics()
 
             Dim peStream = New MemoryStream()

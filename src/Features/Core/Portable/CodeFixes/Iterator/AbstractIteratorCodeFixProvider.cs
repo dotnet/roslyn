@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
 {
     internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider
     {
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            return null;
+        }
+
         protected abstract Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root);
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
             return node != null;
         }
     }

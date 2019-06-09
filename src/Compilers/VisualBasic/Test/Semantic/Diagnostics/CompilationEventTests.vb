@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -92,7 +93,7 @@ End Namespace
         </file>
     </compilation>
             Dim q = New AsyncQueue(Of CompilationEvent)()
-            CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(<empty>  @ TestQueuedSymbols.vb: (0,0)-(25,0))",
@@ -109,6 +110,7 @@ End Namespace
                 "SymbolDeclaredCompilationEvent(I C(Of T1).I As Integer @ TestQueuedSymbols.vb: (7,15)-(7,16))",
                 "SymbolDeclaredCompilationEvent(C C(Of T1) @ TestQueuedSymbols.vb: (1,4)-(11,13), TestQueuedSymbols.vb: (12,4)-(15,13))",
                 "SymbolDeclaredCompilationEvent(M Sub C(Of T1).M(x1 As Integer) @ TestQueuedSymbols.vb: (2,8)-(2,44))",
+                "SymbolDeclaredCompilationEvent(M Sub C(Of T1).M(x1 As Integer) @ TestQueuedSymbols.vb: (13,8)-(13,36))",
                 "SymbolDeclaredCompilationEvent(M2 Sub Mod1.M2() @ TestQueuedSymbols.vb: (17,8)-(17,24))",
                 "SymbolDeclaredCompilationEvent(get_P Property Get C(Of T1).P() As Integer)",
                 "SymbolDeclaredCompilationEvent(set_P Property Set C(Of T1).P(AutoPropertyValue As Integer))",
@@ -134,10 +136,10 @@ End Module
     </compilation>
             Dim q = New AsyncQueue(Of CompilationEvent)()
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
             compilation.VerifyDiagnostics()

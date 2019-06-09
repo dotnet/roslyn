@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -22,18 +24,24 @@ class C
 
 struct S
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }";
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpNavigationBar))
+        public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpNavigationBar))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public override async Task DisposeAsync()
+        {
+            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            await base.DisposeAsync();
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -53,7 +61,7 @@ struct S
             VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar2()
         {
             SetUpEditor(TestSource);
@@ -71,34 +79,34 @@ struct S
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
-            VerifyRightSelected("Foo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VerifyRightSelected("Goo()");
+            VisualStudio.Editor.Verify.CurrentLineText("struct $$S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar3()
         {
             SetUpEditor(@"
 struct S$$
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }");
             VisualStudio.Editor.ExpandMemberNavBar();
             var expectedItems = new[]
             {
                 "Bar()",
-                "Foo()",
+                "Goo()",
             };
             Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
             VisualStudio.Editor.SelectMemberNavBarItem("Bar()");
             VisualStudio.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
 
             VisualStudio.ExecuteCommand("Edit.LineUp");
-            VerifyRightSelected("Foo()");
+            VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void TestSplitWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -110,7 +118,7 @@ class C
 
 struct S
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }");
             VisualStudio.ExecuteCommand("Window.Split");
@@ -118,12 +126,12 @@ struct S
             VerifyLeftSelected("C");
             VerifyRightSelected("this[int index]");
             VisualStudio.ExecuteCommand("Window.NextSplitPane");
-            VisualStudio.Editor.PlaceCaret("Foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
             VerifyLeftSelected("S");
-            VerifyRightSelected("Foo()");
+            VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");

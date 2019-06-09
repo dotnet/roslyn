@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             if (lastToken.Kind() == SyntaxKind.None)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
                 {
-                    return default(SyntaxToken);
+                    return default;
                 }
 
                 lastToken = nextToken;
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 }
                 else
                 {
-                    text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix) 
+                    text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix)
                         ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length)
                         : text;
                 }
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                Action completeSingleLineCommentGroup = () =>
+                void completeSingleLineCommentGroup()
                 {
                     if (startComment != null)
                     {
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         startComment = null;
                         endComment = null;
                     }
-                };
+                }
 
                 // Iterate through trivia and collect the following:
                 //    1. Groups of contiguous single-line comments that are only separated by whitespace
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static BlockSpan CreateBlockSpan(
-            TextSpan textSpan, TextSpan hintSpan, 
+            TextSpan textSpan, TextSpan hintSpan,
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -249,13 +250,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             return CreateBlockSpan(
                 node.Span,
                 bannerText,
-                autoCollapse, 
+                autoCollapse,
                 type,
                 isCollapsible);
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken, 
+            SyntaxNode node, SyntaxToken syntaxToken,
             string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, 
+            SyntaxNode node, SyntaxToken startToken,
             int endPos, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, 
+            SyntaxNode node, SyntaxToken startToken,
             SyntaxToken endToken, string bannerText, bool autoCollapse,
             string type, bool isCollapsible)
         {
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken syntaxToken, 
+            SyntaxNode node, SyntaxToken syntaxToken,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // Adds everything after 'syntaxToken' up to and including the end 
         // of node as a region.  The snippet to display is just "..."
         public static BlockSpan? CreateBlockSpan(
-            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken, 
+            SyntaxNode node, SyntaxToken startToken, SyntaxToken endToken,
             bool autoCollapse, string type, bool isCollapsible)
         {
             return CreateBlockSpan(
@@ -361,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // snippet shown is the text from the first line of the first 
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
-            IEnumerable<SyntaxNode> syntaxList, bool autoCollapse, 
+            IEnumerable<SyntaxNode> syntaxList, bool autoCollapse,
             string type, bool isCollapsible)
         {
             if (syntaxList.IsEmpty())

@@ -1,35 +1,26 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Projection
+Imports Microsoft.CodeAnalysis.QuickInfo
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public Class SemanticQuickInfoSourceTests
         Inherits AbstractSemanticQuickInfoSourceTests
 
-        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
-            Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
+        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+            Dim service = workspace.Services _
+                .GetLanguageServices(LanguageNames.VisualBasic) _
+                .GetService(Of QuickInfoService)
 
-            Dim provider = New SemanticQuickInfoProvider(
-             workspace.GetService(Of IProjectionBufferFactoryService),
-             workspace.GetService(Of IEditorOptionsFactoryService),
-             workspace.GetService(Of ITextEditorFactoryService),
-             workspace.GetService(Of IGlyphService),
-             workspace.GetService(Of ClassificationTypeMap))
-
-            Await TestSharedAsync(workspace, provider, position, expectedResults)
+            Await TestSharedAsync(workspace, service, position, expectedResults)
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -40,36 +31,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                     edit.Apply()
                 End Using
 
-                Await TestSharedAsync(workspace, provider, position, expectedResults)
+                Await TestSharedAsync(workspace, service, position, expectedResults)
             End If
         End Function
 
-        Private Async Function TestSharedAsync(workspace As TestWorkspace, provider As SemanticQuickInfoProvider, position As Integer, expectedResults() As Action(Of Object)) As Task
-            Dim state = Await provider.GetItemAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
-                                         position, cancellationToken:=CancellationToken.None)
-
-            If state IsNot Nothing Then
-                WaitForDocumentationComment(state.Content)
-            End If
+        Private Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
+            Dim info = Await service.GetQuickInfoAsync(
+                workspace.CurrentSolution.Projects.First().Documents.First(),
+                position, cancellationToken:=CancellationToken.None)
 
             If expectedResults Is Nothing Then
-                Assert.Null(state)
+                Assert.Null(info)
             Else
-                Assert.NotNull(state)
+                Assert.NotNull(info)
 
                 For Each expected In expectedResults
-                    expected(state.Content)
+                    expected(info)
                 Next
             End If
         End Function
 
-        Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
+        Private Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
             Using workspace = TestWorkspace.Create(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
-        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
@@ -79,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End Using
         End Function
 
-        Protected Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupWithImports =
              "Imports System" & vbCrLf &
              "Imports System.Collections.Generic" & vbCrLf &
@@ -89,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestAsync(markupWithImports, expectedResults)
         End Function
 
-        Protected Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              markup & vbCrLf &
@@ -98,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestWithImportsAsync(markupInClass, expectedResults)
         End Function
 
-        Protected Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              "Sub M()" & vbCrLf &
@@ -369,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Public Async Function TestParameter() As Task
             Await TestWithImportsAsync(<Text>
                     Module C
-                        Shared Sub Foo(Of T1 As Class)
+                        Shared Sub Goo(Of T1 As Class)
                             Console.Wr$$ite(5)
                         End Sub
                     End Class
@@ -522,7 +510,7 @@ End Class
         End Function
 
         <WorkItem(538773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538773")>
-        <Fact>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOverriddenMethod() As Task
             Await TestAsync(<Text>
 Class A
@@ -575,7 +563,7 @@ End class",
             MainDescription("Integer()"))
         End Function
 
-        <WorkItem(539240, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
+        <WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation2() As Task
             Await TestAsync(<Text>
@@ -595,7 +583,7 @@ End class
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInFieldDeclaration() As Task
-            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -617,7 +605,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInLocalDeclaration() As Task
-            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -638,7 +626,7 @@ End Module
         Public Async Function TestDefaultProperty1() As Task
             Await TestAsync(<Text>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -656,20 +644,20 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.F$$oo(4)
+        a = b.G$$oo(4)
     End Sub
 End Module
 
 
 </Text>.NormalizedValue,
-            MainDescription("ReadOnly Property X.Foo As Y"))
+            MainDescription("ReadOnly Property X.Goo As Y"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDefaultProperty2() As Task
             Await TestAsync(<Text>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -687,7 +675,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.I$$tem(4)
+        a = b.Goo.I$$tem(4)
     End Sub
 End Module
 
@@ -715,7 +703,7 @@ End Module</Text>.NormalizedValue, Nothing)
         <WorkItem(541353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541353")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnboundMethodInvocation() As Task
-            Await TestInMethodAsync("Me.Fo$$o()", Nothing)
+            Await TestInMethodAsync("Me.Go$$o()", Nothing)
         End Function
 
         <WorkItem(541582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541582")>
@@ -924,13 +912,13 @@ End Module]]></Text>.NormalizedValue,
             Await TestAsync(<Text><![CDATA[
 Class C
     Sub S
-        Dim x = $$New With {Key .Foo = x}
+        Dim x = $$New With {Key .Goo = x}
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Foo As ? }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
         End Function
 
         <WorkItem(543242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543242")>
@@ -940,7 +928,7 @@ End Class
 Option Infer On
 Option Strict On
 Public Class D
-    Public Sub foo()
+    Public Sub goo()
         GoTo $$oo
     End Sub
 End Class]]></Text>.NormalizedValue,
@@ -987,13 +975,13 @@ Imports System
 
 Module Program
     Sub Main
-        Dim $$a = Function() New With {.Foo = "Foo"}
+        Dim $$a = Function() New With {.Goo = "Goo"}
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As <Function() As 'a>"),
             AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} New With {{ .Foo As String }}"))
+                           $"    'a {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -1059,12 +1047,12 @@ End Module
 Imports System
 
 Module Program
-    Function Foo() As Integer
-        Fo$$o = 1
+    Function Goo() As Integer
+        Go$$o = 1
     End Function
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription("Function Program.Foo() As Integer"))
+            MainDescription("Function Program.Goo() As Integer"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1076,7 +1064,7 @@ End Module
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTernaryConditionalExpression() As Task
-            Await TestInMethodAsync("Dim x = If$$(True, ""Foo"", ""Bar"")",
+            Await TestInMethodAsync("Dim x = If$$(True, ""Goo"", ""Bar"")",
                 MainDescription($"If({VBWorkspaceResources.condition} As Boolean, {VBWorkspaceResources.expressionIfTrue}, {VBWorkspaceResources.expressionIfFalse}) As String"),
                 Documentation(VBWorkspaceResources.If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse))
         End Function
@@ -1084,7 +1072,7 @@ End Module
         <WorkItem(957082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAddHandlerStatement() As Task
-            Await TestInMethodAsync("$$AddHandler foo, bar",
+            Await TestInMethodAsync("$$AddHandler goo, bar",
                 MainDescription($"AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}"),
                 Documentation(VBWorkspaceResources.Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time),
                 SymbolGlyph(Glyph.Keyword))
@@ -1093,7 +1081,7 @@ End Module
         <WorkItem(957082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestRemoveHandlerStatement() As Task
-            Await TestInMethodAsync("$$RemoveHandler foo, bar",
+            Await TestInMethodAsync("$$RemoveHandler goo, bar",
                 MainDescription($"RemoveHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}"),
                 Documentation(VBWorkspaceResources.Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time),
                 SymbolGlyph(Glyph.Keyword))
@@ -1257,14 +1245,14 @@ end class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMidAssignmentStatement1() As Task
-            Await TestInMethodAsync("$$Mid(""foo"", 0) = ""bar""",
+            Await TestInMethodAsync("$$Mid(""goo"", 0) = ""bar""",
                 MainDescription($"Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}"),
                 Documentation(VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestMidAssignmentStatement2() As Task
-            Await TestInMethodAsync("$$Mid(""foo"", 0, 0) = ""bar""",
+            Await TestInMethodAsync("$$Mid(""goo"", 0, 0) = ""bar""",
                 MainDescription($"Mid({VBWorkspaceResources.stringName}, {VBWorkspaceResources.startIndex}, [{VBWorkspaceResources.length}]) = {VBWorkspaceResources.stringExpression}"),
                 Documentation(VBWorkspaceResources.Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string))
         End Function
@@ -1404,7 +1392,7 @@ Class Test
 
         End Set
     End Property
-    Sub Foo()
+    Sub Goo()
         Dim x As New Test
         x.Pr$$op(0) = 0
     End Sub
@@ -1421,17 +1409,17 @@ End Class
 Imports System.Threading.Tasks
 
 Class C
-    Async Function foo() As Task
-        fo$$o()
+    Async Function goo() As Task
+        go$$o()
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.goo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage_colon, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage_colon, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo()")
 
             Await TestFromXmlAsync(markup,
                  MainDescription(description), Usage(doc))
@@ -1461,12 +1449,12 @@ Imports System
 
 Class C
     <Obsolete>
-    Sub Foo()
-        Fo$$o()
+    Sub Goo()
+        Go$$o()
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Foo()"))
+                MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Goo()"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1490,7 +1478,7 @@ End Class
         Public Async Function TestEnumMemberNameFromSource1() As Task
             Dim code =
 <Code>
-Enum Foo
+Enum Goo
     A = 1 &lt;&lt; 0
     B = 1 &lt;&lt; 1
     C = 1 &lt;&lt; 2
@@ -1498,20 +1486,20 @@ End Enum
 
 Class C
     Sub M()
-        Dim e = Foo.B$$
+        Dim e = Goo.B$$
     End Sub
 End Class
 </Code>.NormalizedValue()
 
             Await TestAsync(code,
-                MainDescription("Foo.B = 1 << 1"))
+                MainDescription("Goo.B = 1 << 1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEnumMemberNameFromSource2() As Task
             Dim code =
 <Code>
-Enum Foo
+Enum Goo
     A
     B
     C
@@ -1519,34 +1507,34 @@ End Enum
 
 Class C
     Sub M()
-        Dim e = Foo.B$$
+        Dim e = Goo.B$$
     End Sub
 End Class
 </Code>.NormalizedValue()
 
             Await TestAsync(code,
-                MainDescription("Foo.B = 1"))
+                MainDescription("Goo.B = 1"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTextOnlyDocComment() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
-        '''foo
+        '''goo
         ''' </summary>
 Class C$$
-End Class]]></text>.NormalizedValue(), Documentation("foo"))
+End Class]]></text>.NormalizedValue(), Documentation("goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTrimConcatMultiLine() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
-        ''' foo
+        ''' goo
         ''' bar
         ''' </summary>
 Class C$$
-End Class]]></text>.NormalizedValue(), Documentation("foo bar"))
+End Class]]></text>.NormalizedValue(), Documentation("goo bar"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1576,10 +1564,10 @@ End Class]]></text>.NormalizedValue(), Documentation("green"))
         Public Async Function TestNewlineAfterPara() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>
-        ''' <para>foo</para>
+        ''' <para>goo</para>
         ''' </summary>
 Class C$$
-End Class]]></text>.NormalizedValue(), Documentation("foo"))
+End Class]]></text>.NormalizedValue(), Documentation("goo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1587,12 +1575,12 @@ End Class]]></text>.NormalizedValue(), Documentation("foo"))
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
 Public Class C
-            ''' <typeparam name="T">A type parameter of <see cref="Foo(Of T) (string(), T)"/></typeparam>
-            ''' <param name="args">First parameter of <see cref="Foo(Of T) (string(), T)"/></param>
-            ''' <param name="otherParam">Another parameter of <see cref="Foo(Of T)(string(), T)"/></param>
-            Public Function Foo(Of T)(arg$$s As String(), otherParam As T)
+            ''' <typeparam name="T">A type parameter of <see cref="Goo(Of T) (string(), T)"/></typeparam>
+            ''' <param name="args">First parameter of <see cref="Goo(Of T) (string(), T)"/></param>
+            ''' <param name="otherParam">Another parameter of <see cref="Goo(Of T)(string(), T)"/></param>
+            Public Function Goo(Of T)(arg$$s As String(), otherParam As T)
     End Function
-        End Class]]></text>.NormalizedValue(), Documentation("First parameter of C.Foo(Of T)(String(), T)"))
+        End Class]]></text>.NormalizedValue(), Documentation("First parameter of C.Goo(Of T)(String(), T)"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1600,12 +1588,12 @@ Public Class C
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
 Public Class C
-            ''' <typeparam name="T">A type parameter of <see cref="Foo(Of T) (string(), T)"/></typeparam>
-            ''' <param name="args">First parameter of <see cref="Foo(Of T) (string(), T)"/></param>
-            ''' <param name="otherParam">Another parameter of <see cref="Foo(Of T)(string(), T)"/></param>
-            Public Function Foo(Of T)(args As String(), otherP$$aram As T)
+            ''' <typeparam name="T">A type parameter of <see cref="Goo(Of T) (string(), T)"/></typeparam>
+            ''' <param name="args">First parameter of <see cref="Goo(Of T) (string(), T)"/></param>
+            ''' <param name="otherParam">Another parameter of <see cref="Goo(Of T)(string(), T)"/></param>
+            Public Function Goo(Of T)(args As String(), otherP$$aram As T)
             End Function
-        End Class]]></text>.NormalizedValue(), Documentation("Another parameter of C.Foo(Of T)(String(), T)"))
+        End Class]]></text>.NormalizedValue(), Documentation("Another parameter of C.Goo(Of T)(String(), T)"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1613,12 +1601,12 @@ Public Class C
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
 Public Class C
-            ''' <typeparam name="T">A type parameter of <see cref="Foo(Of T) (string(), T)"/></typeparam>
-            ''' <param name="args">First parameter of <see cref="Foo(Of T) (string(), T)"/></param>
-            ''' <param name="otherParam">Another parameter of <see cref="Foo(Of T)(string(), T)"/></param>
-            Public Function Foo(Of T$$)( args as String(), otherParam as T)
+            ''' <typeparam name="T">A type parameter of <see cref="Goo(Of T) (string(), T)"/></typeparam>
+            ''' <param name="args">First parameter of <see cref="Goo(Of T) (string(), T)"/></param>
+            ''' <param name="otherParam">Another parameter of <see cref="Goo(Of T)(string(), T)"/></param>
+            Public Function Goo(Of T$$)( args as String(), otherParam as T)
     End Function
-        End Class]]></text>.NormalizedValue(), Documentation("A type parameter of C.Foo(Of T)(String(), T)"))
+        End Class]]></text>.NormalizedValue(), Documentation("A type parameter of C.Goo(Of T)(String(), T)"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1626,10 +1614,10 @@ Public Class C
             Await TestAsync(<text><![CDATA[
 ''' <summary></summary>
 Public Class C
-            ''' <typeparam name="T">A type parameter of <see cref="foo(Of T) (string, T)"/></typeparam>
-            Public Function Foo(Of T$$)( args as String(), otherParam as T)
+            ''' <typeparam name="T">A type parameter of <see cref="goo(Of T) (string, T)"/></typeparam>
+            Public Function Goo(Of T$$)( args as String(), otherParam as T)
     End Function
-        End Class]]></text>.NormalizedValue(), Documentation("A type parameter of foo(Of T) (string, T)"))
+        End Class]]></text>.NormalizedValue(), Documentation("A type parameter of goo(Of T) (string, T)"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1757,6 +1745,53 @@ End Class]]></text>.NormalizedValue(),
                         Text("cref."))))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestIntegerLiteral() As Task
+            Await TestInMethodAsync("Dim f = 37$$",
+                                    MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestDateLiteral() As Task
+            Await TestInMethodAsync("Dim f = #8/23/1970 $$3:45:39 AM#",
+                                    MainDescription("Structure System.DateTime"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestTrueKeyword() As Task
+            Await TestInMethodAsync("Dim f = True$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestFalseKeyword() As Task
+            Await TestInMethodAsync("Dim f = False$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteral() As Task
+            Await TestInMethodAsync("Dim f As String = Nothing$$",
+                                    MainDescription("Class System.String"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralWithNoType() As Task
+            Await TestInMethodAsync("Dim f = Nothing$$",
+                                    MainDescription("Class System.Object"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Await TestAsync("
+Option Strict On
+Class C
+    Dim f = Nothing$$
+End Class",
+                            MainDescription("Class System.Object"))
+        End Function
+
         ''' <Remarks>
         ''' As a part of fix for 756226, quick info for VB Await keyword now displays the type inferred from the AwaitExpression. This is C# behavior.
         ''' In Dev12, quick info for VB Await keyword was the syntactic help "Await &lt;expression&gt;".
@@ -1766,19 +1801,20 @@ End Class]]></text>.NormalizedValue(),
         <WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(522342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522342")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnTaskReturningAsync() As Task
-            Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferencesNet45="true">
-                                 <Document FilePath="SourceDocument">
+            Dim markup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document FilePath="SourceDocument">
 Imports System.Threading.Tasks
 
 Class C
-    Async Function foo() As Task
-        Aw$$ait foo()
+    Async Function goo() As Task
+        Aw$$ait goo()
     End Function
 End Class
         </Document>
-                             </Project>
-                         </Workspace>.ToString()
+                    </Project>
+                </Workspace>.ToString()
 
             Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
 
@@ -1794,12 +1830,12 @@ End Class
 Imports System.Threading.Tasks
 
 Class C
-    Async Function foo() As Task(Of Integer)
-        Dim x = Aw$$ait foo()
+    Async Function goo() As Task(Of Integer)
+        Dim x = Aw$$ait goo()
         Return 42
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 
@@ -1817,7 +1853,7 @@ End Class
 Imports System.Threading.Tasks
 
 Class C
-    Async Sub Foo()
+    Async Sub Goo()
         Aw$$ait Task.Delay(10)
     End Sub
 End Class
@@ -1912,7 +1948,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class AsyncExample
-    Sub Foo()
+    Sub Goo()
         Dim v as Tas$$k = Nothing
     End Sub
 End Class
@@ -1934,7 +1970,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class AsyncExample
-    Sub Foo()
+    Sub Goo()
         Dim v as Tas$$k(Of Integer) = Nothing
     End Sub
 End Class
@@ -1992,28 +2028,28 @@ End Class
         <WorkItem(792629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792629")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericMethodWithConstraintsAtDeclaration() As Task
-            Await TestInClassAsync("Private Function Fo$$o(Of TIn As Class, TOut)(arg As TIn) As TOut
-    Foo(Of TIn, TOut)(Nothing)
+            Await TestInClassAsync("Private Function Go$$o(Of TIn As Class, TOut)(arg As TIn) As TOut
+    Goo(Of TIn, TOut)(Nothing)
 End Function",
-             MainDescription("Function C.Foo(Of TIn As Class, TOut)(arg As TIn) As TOut"))
+             MainDescription("Function C.Goo(Of TIn As Class, TOut)(arg As TIn) As TOut"))
         End Function
 
         <WorkItem(792629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792629")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestGenericMethodWithMultipleConstraintsAtDeclaration() As Task
-            Await TestInClassAsync("Private Function Fo$$o(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut
-    Foo(Of TIn, TOut)(Nothing)
+            Await TestInClassAsync("Private Function Go$$o(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut
+    Goo(Of TIn, TOut)(Nothing)
 End Function",
-             MainDescription("Function C.Foo(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut"))
+             MainDescription("Function C.Goo(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut"))
         End Function
 
         <WorkItem(792629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792629")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestUnConstructedGenericMethodWithConstraintsAtInvocation() As Task
-            Await TestInClassAsync("Private Function Foo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut
-    F$$oo(Of TIn, TOut)(Nothing)
+            Await TestInClassAsync("Private Function Goo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut
+    G$$oo(Of TIn, TOut)(Nothing)
 End Function",
-             MainDescription("Function C.Foo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut"))
+             MainDescription("Function C.Goo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut"))
         End Function
 
         <WorkItem(991466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")>
@@ -2022,26 +2058,26 @@ End Function",
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
                                  <Document FilePath="SourceDocument">
-Imports I = IFoo
+Imports I = IGoo
 Class C
     Implements I$$
 
-    Public Sub Bar() Implements IFoo.Bar
+    Public Sub Bar() Implements IGoo.Bar
         Throw New NotImplementedException()
     End Sub
 End Class
 
 ''' &lt;summary&gt;
-''' summary for interface IFoo
+''' summary for interface IGoo
 ''' &lt;/summary&gt;
-Interface IFoo
+Interface IGoo
     Sub Bar()
 End Interface
         </Document>
                              </Project>
                          </Workspace>.ToString()
 
-            Await TestFromXmlAsync(markup, MainDescription("Interface IFoo"), Documentation("summary for interface IFoo"))
+            Await TestFromXmlAsync(markup, MainDescription("Interface IGoo"), Documentation("summary for interface IGoo"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -2072,6 +2108,80 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = Sub$$()
+            x = x + 1
+        End Sub
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures2() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = S$$ub() x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures3() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a) x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures4() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            x = x + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures5() As Task
+            Await TestAsync("
+Class C
+    Sub M([Me] As Integer)
+        Dim x As Integer = 0
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            M(1)
+            x = x + 1
+            [Me] = [Me] + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} Me, [Me], x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")>
         Public Async Function TestQuickInfoWithNonStandardSeeAttributesAppear() As Task
             Await TestAsync("
@@ -2088,6 +2198,246 @@ Class C
 End Class
 ",
                  Documentation("String http://microsoft.com Nothing cat"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Async Function TestGenericMethodInDocComment() As Task
+            Await TestWithImportsAsync(<Text><![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+        F(Of T)()
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F$$(Of T)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+                ]]></Text>.NormalizedValue,
+             MainDescription("Function Test.F(Of T)() As T"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function PropertyWithSameNameAsOtherType() As Task
+            Await TestAsync("
+Imports ConsoleApp3.ConsoleApp
+
+Module Program
+    Public B As A
+    Public A As B
+
+    Sub Main()
+        B = ConsoleApp.B.F$$()
+    End Sub
+End Module
+Namespace ConsoleApp
+    Class A
+    End Class
+
+    Class B
+        Public Shared Function F() As A
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+",
+            MainDescription("Function ConsoleApp.B.F() As ConsoleApp.A"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function PropertyWithSameNameAsOtherType2() As Task
+            Await TestAsync("
+Module Program
+    Public Bar As List(Of Bar)
+
+    Sub Main()
+        Tes$$t(Of Bar)()
+    End Sub
+
+    Sub Test(Of T)()
+    End Sub
+End Module
+
+Class Bar
+End Class
+",
+            MainDescription("Sub Program.Test(Of Bar)()"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_01() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_02() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_03() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_04() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function BuiltInOperatorWithUserDefinedEquivalent() As Task
+            Await TestAsync(
+"
+class X
+    sub N(a as string, b as string)
+        dim v = a $$= b
+    end sub
+end class",
+                MainDescription("Operator String.=(a As String, b As String) As Boolean"),
+                SymbolGlyph(Glyph.Operator))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestGetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        G$$et
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        Get
+            Return 0
+        End Get
+        S$$et(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
         End Function
     End Class
 End Namespace

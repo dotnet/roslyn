@@ -1,12 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.GraphModel.Schemas
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class ContainsChildrenGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForDocument() As Task
@@ -67,6 +69,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
+        <WorkItem(27805, "https://github.com/dotnet/roslyn/issues/27805")>
+        <WorkItem(233666, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/233666")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function ContainsChildrenForFileWithIllegalPath() As Task
+            Using testState = ProgressionTestState.Create(<Workspace/>)
+                Dim graph = New Graph
+                graph.Nodes.GetOrCreate(
+                    GraphNodeId.GetNested(GraphNodeId.GetPartial(CodeGraphNodeIdName.File, New Uri("C:\path\to\""some folder\App.config""", UriKind.RelativeOrAbsolute))),
+                    label:=String.Empty,
+                    CodeNodeCategories.File)
+
+                ' Just making sure it doesn't throw.
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(graph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
+            End Using
+        End Function
+
         <WorkItem(789685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789685")>
         <WorkItem(794846, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/794846")>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
@@ -82,14 +100,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
 
-                ''' To simulate the situation where a solution is not yet loaded and project info is not available,
-                ''' remove a project from the solution.
+                ' To simulate the situation where a solution is not yet loaded and project info is not available,
+                ' remove a project from the solution.
 
                 Dim oldSolution = testState.GetSolution()
                 Dim newSolution = oldSolution.RemoveProject(oldSolution.ProjectIds.FirstOrDefault())
                 Dim outputContext = Await testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
 
-                ''' ContainsChildren should be set to false, so following updates will be tractable.
+                ' ContainsChildren should be set to false, so following updates will be tractable.
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

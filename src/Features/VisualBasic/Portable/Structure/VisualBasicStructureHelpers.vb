@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -131,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim attributeOwner = firstToken.Parent.Parent
                 For Each child In attributeOwner.ChildNodesAndTokens
                     If child.Kind() <> SyntaxKind.AttributeList Then
-                        Return TextSpan.FromBounds(child.SpanStart, child.Span.End)
+                        Return TextSpan.FromBounds(child.SpanStart, blockNode.Span.End)
                     End If
                 Next
             End If

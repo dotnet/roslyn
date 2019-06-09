@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => GetTypeName(GetInfo(destructor), destructor);
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationDestructorInfo info)
-            => info?._statements ?? default(ImmutableArray<SyntaxNode>);
+            => info?._statements ?? default;
 
         private static string GetTypeName(CodeGenerationDestructorInfo info, IMethodSymbol constructor)
             => info == null ? constructor.ContainingType.Name : info._typeName;

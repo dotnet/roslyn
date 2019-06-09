@@ -1,10 +1,13 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Text.Operations
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class DocumentationCommentTests
@@ -47,7 +50,7 @@ End Class
             Const code = "
 Class C
     ''$$
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -58,10 +61,10 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <param name=""i""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -115,7 +118,7 @@ End Class
 Class C
     ''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -124,7 +127,7 @@ End Class
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -203,14 +206,14 @@ End Class
         Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     ''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
@@ -296,14 +299,14 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestPressingEnter_Class3()
             Const code = "
-'''$$<Foo()> Class C
+'''$$<Goo()> Class C
 End Class
 "
             Const expected = "
 ''' <summary>
 ''' $$
 ''' </summary>
-<Foo()> Class C
+<Goo()> Class C
 End Class
 "
             VerifyPressingEnter(code, expected)
@@ -314,7 +317,7 @@ End Class
         Public Sub TestPressingEnter_Module()
             Const code = "
 '''$$Module M
-   Dim x As Integer
+    Dim x As Integer
 End Module
 "
             Const expected = "
@@ -333,7 +336,7 @@ End Module
             Const code = "
 Class C
     '''$$
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -344,9 +347,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -358,7 +361,7 @@ End Class
         Public Sub TestPressingEnter_Method2()
             Const code = "
 Class C
-    '''$$Function M(Of T)(foo As Integer) As Integer
+    '''$$Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -369,9 +372,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -493,7 +496,7 @@ End Class
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -503,7 +506,7 @@ Class C
     '''
     ''' $$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -589,14 +592,14 @@ End Class
         Public Sub TestPressingEnter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''
 $$
     End Sub
@@ -614,7 +617,7 @@ $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
@@ -626,7 +629,7 @@ $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
@@ -838,7 +841,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-
+    
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
@@ -857,7 +860,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-
+    
 End Class
 "
             VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
@@ -906,7 +909,7 @@ End Class
         Public Sub TestCommand_Method2()
             Const code = "
 Class C
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -917,9 +920,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -932,7 +935,7 @@ End Class
             Const code = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -940,7 +943,7 @@ End Class
             Const expected = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -1197,13 +1200,13 @@ End Class
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
+            editorOperationsFactoryService As IEditorOperationsFactoryService) As VSCommanding.ICommandHandler
 
             Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function
 
         Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
+            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

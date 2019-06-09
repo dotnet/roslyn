@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Using edit = subjectBuffer.CreateEdit()
                 Dim aligningWhitespace = subjectBuffer.CurrentSnapshot.GetAligningWhitespace(state.TokenToLeft.Parent.Span.Start)
                 edit.Insert(state.CaretPosition, state.NewLineCharacter + aligningWhitespace)
-                edit.Apply()
+                edit.ApplyAndLogExceptions()
             End Using
 
             ' And now just send down a normal enter

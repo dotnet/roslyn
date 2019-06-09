@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+//#define PARSING_TESTS_DUMP
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -55,7 +57,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseStatement(text);
+            UsingStatement(text, options: null, expectedErrors);
+        }
+
+        internal void UsingStatement(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseStatement(text, options: options);
+            // we validate the text roundtrips
+            Assert.Equal(text, node.ToFullString());
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
+
+        internal void UsingDeclaration(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingDeclaration(text, offset: 0, options, consumeFullText: true, expectedErrors: expectedErrors);
+        }
+
+        internal void UsingDeclaration(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseMemberDeclaration(text, offset, options, consumeFullText);
+            if (consumeFullText)
+            {
+                // we validate the text roundtrips
+                Assert.Equal(text, node.ToFullString());
+            }
+
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
+
+        internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            // https://github.com/dotnet/roslyn/issues/29819 Revert options coalesce
+            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options ?? TestOptions.Regular8), expectedErrors);
+        }
+
+        private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
@@ -65,12 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-            UsingNode(node);
+            UsingExpression(text, options: null, expectedErrors);
         }
 
         /// <summary>
@@ -91,11 +127,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>
-        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
+        protected CSharpSyntaxNode UsingNode(string text)
         {
-            var root = ParseNode(text, options);
+            var root = ParseNode(text, options: null);
             UsingNode(root);
             return root;
+        }
+
+        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = ParseNode(text, options);
+            UsingNode(text, node, expectedErrors);
+            return node;
         }
 
         /// <summary>
@@ -148,7 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected void EOF()
         {
-            Assert.False(_treeEnumerator.MoveNext());
+            if (_treeEnumerator.MoveNext())
+            {
+                Assert.False(true, "Found unexpected node or token of kind: " + _treeEnumerator.Current.Kind());
+            }
         }
 
         private IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)

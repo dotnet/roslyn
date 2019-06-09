@@ -54,31 +54,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return names1.Count - names2.Count;
         }
 
-        public static IEnumerable<INamedTypeSymbol> GetAllTypes(
-            this INamespaceSymbol namespaceSymbol,
-            CancellationToken cancellationToken)
-        {
-            var stack = new Stack<INamespaceOrTypeSymbol>();
-            stack.Push(namespaceSymbol);
-
-            while (stack.Count > 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var current = stack.Pop();
-                var currentNs = current as INamespaceSymbol;
-                if (currentNs != null)
-                {
-                    stack.Push(currentNs.GetMembers());
-                }
-                else
-                {
-                    var namedType = (INamedTypeSymbol)current;
-                    stack.Push(namedType.GetTypeMembers());
-                    yield return namedType;
-                }
-            }
-        }
-
         public static IEnumerable<INamespaceOrTypeSymbol> GetAllNamespacesAndTypes(
             this INamespaceSymbol namespaceSymbol,
             CancellationToken cancellationToken)
@@ -104,11 +79,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static IEnumerable<INamespaceSymbol> GetAllNamespaces(
+            this INamespaceSymbol namespaceSymbol,
+            CancellationToken cancellationToken)
+        {
+            var stack = new Stack<INamespaceSymbol>();
+            stack.Push(namespaceSymbol);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+                if (current is INamespaceSymbol childNamespace)
+                {
+                    stack.Push(childNamespace.GetNamespaceMembers());
+                    yield return childNamespace;
+                }
+            }
+        }
+
         public static IEnumerable<INamedTypeSymbol> GetAllTypes(
             this IEnumerable<INamespaceSymbol> namespaceSymbols,
             CancellationToken cancellationToken)
         {
-            return namespaceSymbols.SelectMany(n => GetAllTypes(n, cancellationToken));
+            return namespaceSymbols.SelectMany(n => n.GetAllTypes(cancellationToken));
         }
 
         /// <summary>
@@ -183,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Assume that any namespace in our own assembly is accessible to us.  This saves a
                 // lot of cpu time checking namespaces.
-                if (constituent.ContainingAssembly == assembly)
+                if (Equals(constituent.ContainingAssembly, assembly))
                 {
                     return true;
                 }

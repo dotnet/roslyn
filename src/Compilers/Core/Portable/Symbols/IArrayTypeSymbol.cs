@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is this a zero-based one-dimensional array, i.e. SZArray in CLR terms.
         /// SZArray is an array type encoded in metadata with ELEMENT_TYPE_SZARRAY (always single-dim array with 0 lower bound).
-        /// Non-SZArray type is ecoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
+        /// Non-SZArray type is encoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
         /// non-SZArray can also be a single-dim array with 0 lower bound, the encoding of these types in metadata is distinct.
         /// </summary>
         bool IsSZArray { get; }
@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         /// Gets the type of the elements stored in the array.
         /// </summary>
         ITypeSymbol ElementType { get; }
+
+        /// <summary>
+        /// Gets the top-level nullability of the elements stored in the array. 
+        /// </summary>
+        NullableAnnotation ElementNullableAnnotation { get; }
 
         /// <summary>
         /// Custom modifiers associated with the array type, or an empty array if there are none.

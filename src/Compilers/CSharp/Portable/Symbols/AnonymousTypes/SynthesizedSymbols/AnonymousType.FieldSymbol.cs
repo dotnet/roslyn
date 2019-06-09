@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _property = property;
             }
 
-            internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             {
-                return _property.Type;
+                return _property.TypeWithAnnotations;
             }
 
             public override string Name
@@ -55,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override int? TypeLayoutOffset
             {
                 get { return null; }
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override Symbol AssociatedSymbol
@@ -136,9 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
-                base.AddSynthesizedAttributes(compilationState, ref attributes);
+                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingSymbol).Manager;
 

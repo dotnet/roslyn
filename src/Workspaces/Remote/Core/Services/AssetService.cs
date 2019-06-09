@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -15,23 +16,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetService
+    internal class AssetService : IAssetProvider
     {
-        // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
-        private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy"));
-
-        private readonly int _sessionId;
+        private readonly ISerializerService _serializerService;
+        private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int sessionId, AssetStorage assetStorage)
+        public AssetService(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
         {
-            _sessionId = sessionId;
+            _scopeId = scopeId;
             _assetStorage = assetStorage;
-        }
-
-        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
+            _serializerService = serializerService;
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
@@ -41,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            T asset;
-            if (_assetStorage.TryGetAsset(checksum, out asset))
+            if (_assetStorage.TryGetAsset(checksum, out T asset))
             {
                 return asset;
             }
@@ -115,8 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            object unused;
-            return _assetStorage.TryGetAsset(checksum, out unused);
+            return _assetStorage.TryGetAsset(checksum, out object unused);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
@@ -150,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
             }
 
-            var source = _assetStorage.TryGetAssetSource(_sessionId);
+            var source = _assetStorage.AssetSource;
             cancellationToken.ThrowIfCancellationRequested();
 
             Contract.ThrowIfNull(source);
@@ -158,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 // ask one of asset source for data
-                return await source.RequestAssetsAsync(_sessionId, checksums, cancellationToken).ConfigureAwait(false);
+                return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {

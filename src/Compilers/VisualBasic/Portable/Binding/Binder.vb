@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -326,6 +327,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ''' <summary>
+        ''' Additional members associated with the binding context
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
+        ''' </summary>
+        Public Overridable ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return m_containingBinder.AdditionalContainingMembers
+            End Get
+        End Property
+
         Friend ReadOnly Property ContainingModule As ModuleSymbol
             Get
                 ' If there's a containing member, it either is or has a containing module.
@@ -523,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim parameterType = parameter.Type
                 If parameterType.OriginalDefinition.SpecialType <> SpecialType.System_Collections_Generic_IEnumerable_T OrElse
-                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
+                        Not TypeSymbol.Equals(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0), Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement), TypeCompareKind.ConsiderEverything) Then
                     Continue For
                 End If
 

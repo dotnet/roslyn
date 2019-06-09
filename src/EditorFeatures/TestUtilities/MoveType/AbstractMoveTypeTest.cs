@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,13 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedCode = null,
             bool expectedCodeAction = true,
-            bool ignoreTrivia = true,
-            string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            var testOptions = new TestParameters(
-                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, 
-                fixProviderData: fixProviderData);
+            var testOptions = new TestParameters(fixProviderData: fixProviderData);
             using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
@@ -48,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
+                        testOptions, workspace, expectedText, codeActionTitle);
 
                     // the original source document does not exist in the new solution.
                     var newSolution = oldSolutionAndNewSolution.Item2;
@@ -59,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, testOptions);
+                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
 
-                    if (actions != null)
+                    if (actions.Length > 0)
                     {
                         var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameTypeCodeActionTitle));
                         Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
@@ -74,13 +70,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedDocumentName = null,
             bool expectedCodeAction = true,
-            bool ignoreTrivia = true,
             IList<string> destinationDocumentContainers = null,
-            string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
-            var testOptions = new TestParameters(
-                fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            var testOptions = new TestParameters(fixProviderData: fixProviderData);
             using (var workspace = CreateWorkspaceFromOptions(originalCode, testOptions))
             {
                 if (expectedCodeAction)
@@ -93,25 +86,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
 
-                    // a new document with the same text as old document is added.
                     var oldSolutionAndNewSolution = await TestOperationAsync(
-                        testOptions, workspace, expectedText, codeActionTitle, ignoreTrivia);
+                        testOptions, workspace, expectedText, codeActionTitle);
 
-                    // the original source document does not exist in the new solution.
+                    // The code action updated the Name of the file in-place
                     var newSolution = oldSolutionAndNewSolution.Item2;
-                    Assert.Null(newSolution.GetDocument(oldDocumentId));
+                    var newDocument = newSolution.GetDocument(oldDocumentId);
+                    Assert.Equal(expectedDocumentName, newDocument.Name);
 
                     if (destinationDocumentContainers != null)
                     {
-                        var newDocument = newSolution.Projects.First().Documents.First();
                         Assert.Equal(destinationDocumentContainers, newDocument.Folders);
                     }
                 }
                 else
                 {
-                    var actions = await GetCodeActionsAsync(workspace, testOptions);
+                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
 
-                    if (actions != null)
+                    if (actions.Length > 0)
                     {
                         var renameFileAction = actions.Any(action => action.Title.StartsWith(RenameFileCodeActionTitle));
                         Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
@@ -124,10 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             TestParameters parameters,
             Workspaces.TestWorkspace workspace,
             string expectedCode,
-            string operation,
-            bool ignoreTrivia)
+            string operation)
         {
-            var actions = await GetCodeActionsAsync(workspace, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(CancellationToken.None);
 
@@ -137,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 conflictSpans: ImmutableArray<TextSpan>.Empty,
                 renameSpans: ImmutableArray<TextSpan>.Empty,
                 warningSpans: ImmutableArray<TextSpan>.Empty,
-                ignoreTrivia: ignoreTrivia,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
                 expectedChangedDocumentId: null);
         }
 
@@ -149,10 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
             bool expectedCodeAction = true,
             int index = 0,
-            bool ignoreTrivia = true,
             Action<Workspace> onAfterWorkspaceCreated = null)
         {
-            var testOptions = new TestParameters();
+            var testOptions = new TestParameters(index: index);
             if (expectedCodeAction)
             {
                 using (var workspace = CreateWorkspaceFromFile(originalCode, testOptions))
@@ -166,9 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     // Verify the newly added document and its text
                     var oldSolutionAndNewSolution = await TestAddDocumentAsync(
-                        testOptions, workspace,
-                        destinationDocumentText, index, expectedDocumentName,
-                        destinationDocumentContainers, ignoreTrivia);
+                        testOptions, workspace, destinationDocumentText,
+                        expectedDocumentName, destinationDocumentContainers);
 
                     // Verify source document's text after moving type.
                     var oldSolution = oldSolutionAndNewSolution.Item1;
@@ -177,16 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     Assert.True(changedDocumentIds.Contains(sourceDocumentId), "source document was not changed.");
 
                     var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
-
-                    if (ignoreTrivia)
-                    {
-                        TokenUtilities.AssertTokensEqual(
-                            expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString(), GetLanguage());
-                    }
-                    else
-                    {
-                        Assert.Equal(expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString());
-                    }
+                    Assert.Equal(expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString());
                 }
             }
             else

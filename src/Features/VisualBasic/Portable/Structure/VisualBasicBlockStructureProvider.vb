@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     <ExportLanguageServiceFactory(GetType(BlockStructureService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicBlockStructureServiceFactory
         Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicBlockStructureService(languageServices.WorkspaceServices.Workspace)
@@ -79,6 +83,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             builder.Add(Of XmlDocumentSyntax, XmlExpressionStructureProvider)()
             builder.Add(Of XmlElementSyntax, XmlExpressionStructureProvider)()
             builder.Add(Of XmlProcessingInstructionSyntax, XmlExpressionStructureProvider)()
+            builder.Add(Of LiteralExpressionSyntax, StringLiteralExpressionStructureProvider)()
+            builder.Add(Of InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider)()
 
             Return builder.ToImmutable()
         End Function

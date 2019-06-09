@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                Contract.Requires(oldIndex >= 0);
+                Debug.Assert(oldIndex >= 0);
                 _nodes[oldIndex] = new Node(instance, DateTime.UtcNow);
             }
 
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_nodes[i].Data != null && _nodes[i].LastTouched < expirationTime)
                     {
-                        _nodes[i] = default(Node);
+                        _nodes[i] = default;
                     }
                 }
             }
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly SemaphoreSlim _gate;
 
             public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS) :
-                base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                base(AsynchronousOperationListenerProvider.NullListener,
                      backOffTimeSpanInMS,
                      CancellationToken.None)
             {
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void Touch()
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return _gate.WaitAsync(cancellationToken);
                 }
 
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

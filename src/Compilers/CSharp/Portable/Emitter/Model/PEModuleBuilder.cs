@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -25,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private readonly NoPia.EmbeddedTypesManager _embeddedTypesManagerOpt;
         public override NoPia.EmbeddedTypesManager EmbeddedTypesManagerOpt
-        {
-            get { return _embeddedTypesManagerOpt; }
-        }
+            => _embeddedTypesManagerOpt;
 
         // Gives the name of this module (may not reflect the name of the underlying symbol).
         // See Assembly.MetadataName.
@@ -39,6 +38,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// The compiler-generated implementation type for each fixed-size buffer.
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
+
+        private bool _needsGeneratedIsReadOnlyAttribute_Value;
+        private bool _needsGeneratedIsUnmanagedAttribute_Value;
+        private bool _needsGeneratedAttributes_IsFrozen;
+        private bool _needsGeneratedNullableAttribute_Value;
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
+        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        protected bool NeedsGeneratedIsReadOnlyAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
+        /// </summary>
+        protected bool NeedsGeneratedIsByRefLikeAttribute
+        {
+            get
+            {
+                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
+            }
+        }
+
+        internal bool NeedsGeneratedIsUnmanagedAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedIsUnmanagedAttribute || _needsGeneratedIsUnmanagedAttribute_Value;
+            }
+        }
+
+        protected bool NeedsGeneratedNullableAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return Compilation.NeedsGeneratedNullableAttribute || _needsGeneratedNullableAttribute_Value;
+            }
+        }
 
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
@@ -83,9 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly
+                .GetCustomAttributesToEmit(this, isRefAssembly, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -95,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes()
         {
-            return SourceModule.GetCustomAttributesToEmit(this.CompilationState);
+            return SourceModule.GetCustomAttributesToEmit(this);
         }
 
         internal sealed override AssemblySymbol CorLibrary
@@ -358,9 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (context.MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }
@@ -376,9 +424,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return false; }
         }
 
-        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(CodeAnalysis.Emit.EmitContext context)
+        internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            foreach (var type in GetAdditionalTopLevelTypes())
+            foreach (var type in GetAdditionalTopLevelTypes(context.Diagnostics))
+            {
+                yield return type;
+            }
+
+            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
             {
                 yield return type;
             }
@@ -405,7 +458,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -1077,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return Cci.TypeMemberVisibility.Family;
                     }
 
-                case Accessibility.ProtectedAndInternal: // Not supported by language, but we should be able to import it.
+                case Accessibility.ProtectedAndInternal:
                     Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
                     return Cci.TypeMemberVisibility.FamilyAndAssembly;
 
@@ -1109,6 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1384,6 +1443,162 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             return new SynthesizedPrivateImplementationDetailsStaticConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics));
+        }
+
+        internal abstract SynthesizedAttributeData SynthesizeEmbeddedAttribute();
+
+        internal SynthesizedAttributeData SynthesizeIsReadOnlyAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsReadOnlyAttribute();
+        }
+
+        internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsUnmanagedAttribute();
+        }
+
+        internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsByRefLikeAttribute();
+        }
+
+        /// <summary>
+        /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
+        /// is a constructed type with a nullable reference type present in its type argument tree,
+        /// returns a synthesized NullableAttribute with encoded nullable transforms array.
+        /// </summary>
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeWithAnnotations type)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            var flagsBuilder = ArrayBuilder<byte>.GetInstance();
+            type.AddNullableTransforms(flagsBuilder);
+
+            Debug.Assert(flagsBuilder.Any());
+            Debug.Assert(flagsBuilder.Contains(NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.Contains(NullableAnnotationExtensions.AnnotatedAttributeValue));
+
+            WellKnownMember constructor;
+            ImmutableArray<TypedConstant> arguments;
+            NamedTypeSymbol byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+            Debug.Assert((object)byteType != null);
+
+            if (flagsBuilder.All(flag => flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue) || flagsBuilder.All(flag => flag == NullableAnnotationExtensions.AnnotatedAttributeValue))
+            {
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte;
+                arguments = ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive, flagsBuilder[0]));
+            }
+            else
+            {
+                var constantsBuilder = ArrayBuilder<TypedConstant>.GetInstance(flagsBuilder.Count);
+
+                foreach (byte flag in flagsBuilder)
+                {
+                    Debug.Assert(flag == NullableAnnotationExtensions.ObliviousAttributeValue || flag == NullableAnnotationExtensions.NotAnnotatedAttributeValue || flag == NullableAnnotationExtensions.AnnotatedAttributeValue);
+                    constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
+                }
+
+                var byteArray = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
+                constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
+                arguments = ImmutableArray.Create(new TypedConstant(byteArray, constantsBuilder.ToImmutableAndFree()));
+            }
+
+            flagsBuilder.Free();
+            return SynthesizeNullableAttribute(constructor, arguments);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeNullableAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedIsReadOnlyAttribute_Value || Compilation.NeedsGeneratedIsReadOnlyAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureIsUnmanagedAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedIsUnmanagedAttribute_Value || Compilation.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedIsUnmanagedAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureNullableAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedNullableAttribute_Value || Compilation.NeedsGeneratedNullableAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfNullableAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedNullableAttribute_Value = true;
+            }
         }
     }
 }

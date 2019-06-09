@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -402,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Return Nothing
                     End If
 
-                    Return TupleTypeSymbol.Create(otherDef, type.TupleElementNames)
+                    Return otherDef
                 End If
 
                 Debug.Assert(type.IsDefinition)
@@ -652,10 +653,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Sub
 
                 Public Overloads Function Equals(source As TypeSymbol, other As TypeSymbol) As Boolean
-                    Dim visitedSource = _matcher.Visit(source)
-                    Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, _deepTranslatorOpt.Visit(other), other)
+                    Dim visitedSource = DirectCast(_matcher.Visit(source), TypeSymbol)
+                    Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, DirectCast(_deepTranslatorOpt.Visit(other), TypeSymbol), other)
 
-                    Return visitedSource = visitedOther
+                    ' If both visitedSource and visitedOther are Nothing, return false meaning that the method was not able to verify the equality.
+                    Return visitedSource IsNot Nothing AndAlso visitedOther IsNot Nothing AndAlso visitedSource.IsSameType(visitedOther, TypeCompareKind.IgnoreTupleNames)
                 End Function
             End Class
         End Class
@@ -692,6 +694,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
+                If type.IsTupleType Then
+                    type = type.TupleUnderlyingType
+                    Debug.Assert(Not type.IsTupleType)
+                End If
+
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
                     Dim translatedTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v) New TypeWithModifiers(DirectCast(v.Visit(t.Type), TypeSymbol),

@@ -26,7 +26,7 @@ namespace RunTests.Cache
         }
 
         /// <summary>
-        /// There are some DLLs whose abscence is expected and should not be considered an error.  These
+        /// There are some DLLs whose absence is expected and should not be considered an error.  These
         /// are assemblies which are either light up components or are a part of the VS reference graph
         /// which are never deployed for our tests.
         ///

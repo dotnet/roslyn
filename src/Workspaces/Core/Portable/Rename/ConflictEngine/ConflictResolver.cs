@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private static readonly string s_metadataNameSeparators = " .,:<`>()\r\n";
+        private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
         /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically resolves them where possible.
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
         /// <param name="optionSet">The option for rename</param>
-        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to 
+        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to
         /// indicate if the new symbols that the reference binds to should be considered to be ok or
         /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
         /// 'null' means that the default conflict check should be used.</param>
@@ -87,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
-            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+            var renameRewriterService = document.GetLanguageService<IRenameRewriterLanguageService>();
             var complexifiedTarget = renameRewriterService.GetExpansionTargetForLocation(tokenOrNode);
             return complexifiedTarget;
         }
 
         private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, IEnumerable<ISymbol> newReferencedSymbols)
         {
-            var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
+            var renameRewriterService = document.GetLanguageService<IRenameRewriterLanguageService>();
             var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode, newReferencedSymbols);
             return isConflict;
         }
@@ -180,14 +181,31 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             try
             {
+                var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+
                 if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
                 {
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
                                                            .Where(s => !s.Equals(renamedSymbol) &&
-                                                                       string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
-                                                                       (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method));
+                                                                       string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
-                    AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+                    IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;
+
+                    // Possibly overloaded symbols are excluded here and handled elsewhere
+                    var semanticFactsService = project.LanguageServices.GetService<ISemanticFactsService>();
+                    if (semanticFactsService.SupportsParameterizedProperties)
+                    {
+                        otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
+                            .Where(s => !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
+                                !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
+                    }
+                    else
+                    {
+                        otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
+                            .Where(s => s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method);
+                    }
+
+                    AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
                 }
 
 
@@ -219,8 +237,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies
                 if (renamedSymbol.ContainingAssembly != null)
                 {
-                    var project = conflictResolution.NewSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
-
                     // There also might be language specific rules we need to include
                     var languageRenameService = project.LanguageServices.GetService<IRenameRewriterLanguageService>();
                     var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(

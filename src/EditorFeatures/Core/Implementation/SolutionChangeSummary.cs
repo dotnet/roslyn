@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 
@@ -26,10 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor
                                       p.GetRemovedDocuments().Count() +
                                       p.GetAddedAdditionalDocuments().Count() +
                                       p.GetChangedAdditionalDocuments().Count() +
-                                      p.GetRemovedAdditionalDocuments().Count();
+                                      p.GetRemovedAdditionalDocuments().Count() +
+                                      p.GetAddedAnalyzerConfigDocuments().Count() +
+                                      p.GetChangedAnalyzerConfigDocuments().Count() +
+                                      p.GetRemovedAnalyzerConfigDocuments().Count();
 
                 if (p.GetAddedDocuments().Any() || p.GetRemovedDocuments().Any() ||
                     p.GetAddedAdditionalDocuments().Any() || p.GetRemovedAdditionalDocuments().Any() ||
+                    p.GetAddedAnalyzerConfigDocuments().Any() || p.GetRemovedAnalyzerConfigDocuments().Any() ||
                     p.GetAddedMetadataReferences().Any() || p.GetRemovedMetadataReferences().Any() ||
                     p.GetAddedProjectReferences().Any() || p.GetRemovedProjectReferences().Any() ||
                     p.GetAddedAnalyzerReferences().Any() || p.GetRemovedAnalyzerReferences().Any())

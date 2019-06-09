@@ -2,28 +2,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
     internal class ElasticTriviaFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             if (!node.ContainsAnnotations)
             {
@@ -37,14 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var basePropertyDeclaration = node as BasePropertyDeclarationSyntax;
-            if (basePropertyDeclaration != null && basePropertyDeclaration.AccessorList != null &&
+            if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
                 basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
                 var tokens = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 
-                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElastic));
+                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
             }
         }
 
@@ -54,36 +53,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var lastTokenOfType = GetLastTokenOfType(node);
             if (initializer != null && lastTokenOfType != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElastic);
+                AddSuppressWrappingIfOnSingleLineOperation(list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
-            var anonymousCreationNode = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousCreationNode != null)
+            if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElastic);
+                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
         }
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            switch (node)
             {
-                return objectCreationNode.Initializer;
-            }
-
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
-            {
-                return arrayCreationNode.Initializer;
-            }
-
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
-            {
-                return implicitArrayNode.Initializer;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Initializer;
+                case ArrayCreationExpressionSyntax arrayCreationNode:
+                    return arrayCreationNode.Initializer;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
+                    return implicitArrayNode.Initializer;
             }
 
             return null;
@@ -91,20 +81,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            if (node is ObjectCreationExpressionSyntax objectCreationNode)
             {
                 return objectCreationNode.Type.GetLastToken();
             }
 
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
+            if (node is ArrayCreationExpressionSyntax arrayCreationNode)
             {
                 return arrayCreationNode.Type.GetLastToken();
             }
 
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
+            if (node is ImplicitArrayCreationExpressionSyntax implicitArrayNode)
             {
                 return implicitArrayNode.CloseBracketToken;
             }
@@ -112,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
             if (operation == null)
@@ -234,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
             if (operation == null)

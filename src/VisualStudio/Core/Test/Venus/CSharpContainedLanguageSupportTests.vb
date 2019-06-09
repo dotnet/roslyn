@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.TextManager.Interop
@@ -540,7 +540,7 @@ public class _Default
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
-                    additionalFormattingRule:=New BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -589,7 +589,7 @@ protected void Button1_Click(object sender, EventArgs e)
                     eventHandlerName:="Button1_Click",
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
-                    additionalFormattingRule:=New BlankLineInGeneratedMethodFormattingRule(),
+                    additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -867,14 +867,14 @@ public partial class _Default
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableClass()
-            Dim code As String = <text>public partial class Foo { }</text>.Value
+            Dim code As String = <text>public partial class Goo { }</text>.Value
 
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASS,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
@@ -885,14 +885,14 @@ public partial class _Default
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableNamespace()
-            Dim code As String = <text>namespace Foo { }</text>.Value
+            Dim code As String = <text>namespace Goo { }</text>.Value
 
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_NAMESPACE,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)

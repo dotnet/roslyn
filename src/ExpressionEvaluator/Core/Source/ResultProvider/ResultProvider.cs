@@ -1,5 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System;
 using System.Collections.ObjectModel;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(index >= numRows);
             Debug.Assert(initialRequestSize >= numRows);
             var initialChildren = new DkmEvaluationResult[numRows];
-            CompletionRoutine<Exception> onException = e => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
+            void onException(Exception e) => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
             var wl = new WorkList(workList, onException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, initialChildren, 0, numRows, wl, inspectionContext,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var numRows = rows.Count;
             Debug.Assert(count >= numRows);
             var results = new DkmEvaluationResult[numRows];
-            CompletionRoutine<Exception> onException = e => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
+            void onException(Exception e) => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
             var wl = new WorkList(workList, onException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, results, 0, numRows, wl, inspectionContext,
@@ -459,6 +459,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // which typically appears to be set to the default value ("Other").
                 var category = (result.Category != DkmEvaluationResultCategory.Other) ? result.Category : value.Category;
 
+                var nullableMemberInfo = value.GetDataItem<NullableMemberInfo>();
+
                 // Valid value
                 return DkmSuccessEvaluationResult.Create(
                     InspectionContext: inspectionContext,
@@ -469,10 +471,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Value: display,
                     EditableValue: result.EditableValue,
                     Type: typeName,
-                    Category: category,
-                    Access: value.Access,
-                    StorageType: value.StorageType,
-                    TypeModifierFlags: value.TypeModifierFlags,
+                    Category: nullableMemberInfo?.Category ?? category,
+                    Access: nullableMemberInfo?.Access ?? value.Access,
+                    StorageType: nullableMemberInfo?.StorageType ?? value.StorageType,
+                    TypeModifierFlags: nullableMemberInfo?.TypeModifierFlags ?? value.TypeModifierFlags,
                     Address: value.Address,
                     CustomUIVisualizers: customUIVisualizers,
                     ExternalModules: null,
@@ -557,6 +559,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
+                    // nullableValue is taken from an internal field.
+                    // It may have different category, access, etc comparing the original member.
+                    // For example, the orignal member can be a property not a field.
+                    // Save original member values to restore them later.
+                    if (value != nullableValue)
+                    {
+                        var nullableMemberInfo = new NullableMemberInfo(value.Category, value.Access, value.StorageType, value.TypeModifierFlags);
+                        nullableValue.SetDataItem(DkmDataCreationDisposition.CreateAlways, nullableMemberInfo);
+                    }
+
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
                     // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
@@ -760,8 +772,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var targetType = displayInfo.TargetType;
                 var attribute = displayInfo.Attribute;
-                CompletionRoutine<Exception> onException =
-                    e => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
+                void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
 
                 var innerWorkList = workList.InnerWorkList;
                 EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Name,
@@ -789,18 +800,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine =
-                result =>
+            void completionRoutine(DkmEvaluateDebuggerDisplayStringAsyncResult result)
+            {
+                try
                 {
-                    try
-                    {
-                        onCompleted(result);
-                    }
-                    catch (Exception e)
-                    {
-                        onException(e);
-                    }
-                };
+                    onCompleted(result);
+                }
+                catch (Exception e)
+                {
+                    onException(e);
+                }
+            }
             if (str == null)
             {
                 completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
@@ -871,19 +881,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine =
-                result =>
+            void completionRoutine(DkmEvaluationAsyncResult result)
+            {
+                try
                 {
-                    try
-                    {
-                        results[index] = result.Result;
-                        GetEvaluationResultsAndContinue(parent, rows, results, index + 1, numRows, workList, inspectionContext, onCompleted, onException);
-                    }
-                    catch (Exception e)
-                    {
-                        onException(e);
-                    }
-                };
+                    results[index] = result.Result;
+                    GetEvaluationResultsAndContinue(parent, rows, results, index + 1, numRows, workList, inspectionContext, onCompleted, onException);
+                }
+                catch (Exception e)
+                {
+                    onException(e);
+                }
+            }
             if (index < numRows)
             {
                 GetChild(
@@ -1059,6 +1068,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
                 _state = State.Executed;
+            }
+        }
+
+        private class NullableMemberInfo : DkmDataItem
+        {
+            public readonly DkmEvaluationResultCategory Category;
+            public readonly DkmEvaluationResultAccessType Access;
+            public readonly DkmEvaluationResultStorageType StorageType;
+            public readonly DkmEvaluationResultTypeModifierFlags TypeModifierFlags;
+
+            public NullableMemberInfo(DkmEvaluationResultCategory category, DkmEvaluationResultAccessType access, DkmEvaluationResultStorageType storageType, DkmEvaluationResultTypeModifierFlags typeModifierFlags)
+            {
+                Category = category;
+                Access = access;
+                StorageType = storageType;
+                TypeModifierFlags = typeModifierFlags;
             }
         }
     }

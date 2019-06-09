@@ -1,4 +1,4 @@
-Namespace Microsoft.CodeAnalysis.VisualBasic
+﻿Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Module ErrorFacts
         Public Function IsWarning(code as ERRID) As Boolean
             Select Case code
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsFatal(code as ERRID) As Boolean
             Select Case code
-                Case ERRID.FTL_InputFileNameTooLong
+                Case ERRID.FTL_InvalidInputFileName
                     Return True
                 Case Else
                     Return False

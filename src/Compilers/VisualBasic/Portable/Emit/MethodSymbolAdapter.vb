@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return privateImplClass
             End If
 
-            Return Me.ContainingType
+            Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch
@@ -457,13 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
-            Get
-                Return GetReturnValueCustomAttributesToEmit()
-            End Get
-        End Property
-
-        Private Function GetReturnValueCustomAttributesToEmit() As IEnumerable(Of Cci.ICustomAttribute)
+        Private Function IMethodDefinitionGetReturnValueAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.GetReturnValueAttributes
             CheckDefinitionInvariant()
 
             Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)

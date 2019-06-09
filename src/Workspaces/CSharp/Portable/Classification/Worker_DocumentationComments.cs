@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         }
 
                         break;
+
+                    case SyntaxKind.SkippedTokensTrivia:
+                        AddClassification(t, ClassificationTypeNames.XmlDocCommentText);
+                        break;
                 }
             }
         }
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // For example:
             //
             //     /**<summary>
-            //      ********* Foo
+            //      ********* Goo
             //      ******* </summary>*/
 
             // PERFORMANCE:

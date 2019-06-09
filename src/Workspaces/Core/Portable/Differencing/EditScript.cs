@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 //   i. k := FindPos(x)
                 //  ii. Append INS((w, a, value(x)), z, k) to E for a new identifier w.
                 // iii. Add (w, x) to M' and apply INS((w, a, value(x)), z, k) to T1.          
-                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default(TNode), newNode: x));
+                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default, newNode: x));
 
                 // NOTE:
                 // We don't update M' here.
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (!_match.HasPartnerInTree2(w))
                 {
-                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
+                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default));
                 }
             }
         }

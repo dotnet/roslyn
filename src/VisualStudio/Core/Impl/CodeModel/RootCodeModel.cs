@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -80,10 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     vsProjectItems.AddFromFile(absoluteFilePath);
                 }
 
-                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(_projectId);
-                var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
-
-                return projectCodeModel.GetOrCreateFileCodeModel(absoluteFilePath);
+                return this.State.ProjectCodeModelFactory.GetProjectCodeModel(_projectId).GetOrCreateFileCodeModel(absoluteFilePath);
             }
 
             throw Exceptions.ThrowEInvalidArg();

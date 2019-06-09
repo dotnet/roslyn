@@ -312,22 +312,22 @@ class C
     void Main()
     {
         int
-            foo() => 5;
+            goo() => 5;
 
         int
-            foo() { return 5; }
+            goo() { return 5; }
 
         int
-            foo<T>() => 5;
+            goo<T>() => 5;
 
         int
-            foo<T>() { return 5; }
+            goo<T>() { return 5; }
 
         int
-            foo<T>() where T : IFace => 5;
+            goo<T>() where T : IFace => 5;
 
         int
-            foo<T>() where T : IFace { return 5; }
+            goo<T>() where T : IFace { return 5; }
     }
 }");
             Assert.NotNull(file);
@@ -339,43 +339,43 @@ class C
     void M()
     {
         int
-            foo() where T : IFace => 5;
+            goo() where T : IFace => 5;
         int
-            foo() where T : IFace { return 5; }
+            goo() where T : IFace { return 5; }
         int
-            foo<T>) { }
+            goo<T>) { }
     }
 }";
             file = ParseFile(errorText);
 
-            CreateStandardCompilation(errorText).VerifyDiagnostics(
+            CreateCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
-                //             foo<T>) { }
+                //             goo<T>) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace => 5;
+                //             goo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
-                // (9,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
-                //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(9, 13),
+                // (9,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(9, 13),
                 // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace { return 5; }
+                //             goo() where T : IFace { return 5; }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
-                // (11,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(11, 13),
-                // (11,13): error CS0161: 'foo<T>()': not all code paths return a value
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "foo").WithArguments("foo<T>()").WithLocation(11, 13),
-                // (7,13): warning CS0168: The variable 'foo' is declared but never used
-                //             foo() where T : IFace => 5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(7, 13),
-                // (9,13): warning CS0168: The variable 'foo' is declared but never used
-                //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(9, 13),
-                // (11,13): warning CS0168: The variable 'foo' is declared but never used
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(11, 13));
+                // (11,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(11, 13),
+                // (11,13): error CS0161: 'goo<T>()': not all code paths return a value
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "goo").WithArguments("goo<T>()").WithLocation(11, 13),
+                // (7,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace => 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(7, 13),
+                // (9,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(9, 13),
+                // (11,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
@@ -415,21 +415,6 @@ class C
                 // (3,22): error CS1513: } expected
                 //         async public virtual M() {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "virtual").WithLocation(3, 22),
-                // (3,30): error CS1520: Method must have a return type
-                //         async public virtual M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 30),
-                // (4,23): error CS1520: Method must have a return type
-                //         unsafe public M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(4, 23),
-                // (5,24): error CS1520: Method must have a return type
-                //         async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(5, 24),
-                // (6,39): error CS1520: Method must have a return type
-                //         unsafe private async override M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(6, 39),
-                // (7,39): error CS1520: Method must have a return type
-                //         async virtual override sealed M() {}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(7, 39),
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
@@ -456,12 +441,12 @@ class c
             Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(6, 13),
-                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(6, 13),
+                // (10,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int local() { return 0; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "local").WithArguments("local functions", "7.0").WithLocation(10, 13)
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
@@ -621,6 +606,367 @@ class c
     }
 }");
             file.SyntaxTree.GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void StaticFunctions()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static void F() { }
+    }
+}";
+
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void F() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void AsyncStaticFunctions()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static async void F1() { }
+        async static void F2() { }
+    }
+}";
+
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static async void F1() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
+                // (6,15): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         async static void F2() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 15)
+            };
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularPreview);
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F1");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F2");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void DuplicateStatic()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        static static void F1() { }
+        static async static void F2() { }
+    }
+}";
+
+            var expected = new[]
+            {
+                // (5,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 9),
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                // (5,16): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 16),
+                // (6,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 9),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22),
+                // (6,22): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(6, 22)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.Regular8,
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+            checkNodes();
+
+            UsingDeclaration(text, options: TestOptions.RegularPreview,
+                // (5,16): error CS1031: Type expected
+                //         static static void F1() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(5, 16),
+                // (6,22): error CS1031: Type expected
+                //         static async static void F2() { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithArguments("static").WithLocation(6, 22));
+            checkNodes();
+
+            void checkNodes()
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VoidKeyword);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F1");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.LocalFunctionStatement);
+                                {
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.AsyncKeyword);
+                                    N(SyntaxKind.StaticKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "F2");
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void ReturnTypeBeforeStatic()
+        {
+            const string text =
+@"class Program
+{
+    void M()
+    {
+        void static F() { }
+    }
+}";
+            var expected = new[]
+            {
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular7_3, expected);
+            UsingDeclaration(text, options: TestOptions.RegularDefault, expected);
+
+            expected = new[]
+            {
+                // (5,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 9),
+                // (5,14): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "static").WithLocation(5, 14),
+                // (5,14): error CS1002: ; expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 14),
+                // (5,22): error CS1001: Identifier expected
+                //         void static F() { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(5, 22)
+            };
+
+            UsingDeclaration(text, options: TestOptions.Regular8, expected);
+
+            UsingDeclaration(text, options: TestOptions.RegularPreview, expected);
         }
     }
 }

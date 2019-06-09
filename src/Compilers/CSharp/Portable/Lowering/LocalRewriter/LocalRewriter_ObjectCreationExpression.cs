@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -36,7 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            rewrittenArguments = MakeArguments(node.Syntax, rewrittenArguments, node.Constructor, node.Constructor, node.Expanded, node.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps);
+            rewrittenArguments = MakeArguments(
+                node.Syntax,
+                rewrittenArguments,
+                node.Constructor,
+                node.Constructor,
+                node.Expanded,
+                node.ArgsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out temps);
 
             BoundExpression rewrittenObjectCreation;
 
@@ -47,18 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(temps.Length);
                 }
 
-                rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), changeTypeOpt: node.Constructor.ContainingType);
+                rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), changeTypeOpt: node.Constructor.ContainingType);
 
                 if (node.Type.IsInterfaceType())
                 {
-                    Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
+                    Debug.Assert(TypeSymbol.Equals(rewrittenObjectCreation.Type, ((NamedTypeSymbol)node.Type).ComImportCoClass, TypeCompareKind.ConsiderEverything2));
                     rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
                 }
 
                 return rewrittenObjectCreation;
             }
 
-            rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, newInitializerExpression: null, changeTypeOpt: node.Constructor.ContainingType);
+            rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, newInitializerExpression: null, changeTypeOpt: node.Constructor.ContainingType);
 
             // replace "new S()" with a default struct ctor with "default(S)"
             if (node.Constructor.IsDefaultValueTypeConstructor())
@@ -78,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Type.IsInterfaceType())
             {
-                Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
+                Debug.Assert(TypeSymbol.Equals(rewrittenObjectCreation.Type, ((NamedTypeSymbol)node.Type).ComImportCoClass, TypeCompareKind.ConsiderEverything2));
                 rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
             }
 
@@ -90,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
         }
 
-        private BoundExpression MakeObjectCreationInitializerForExpressionTree(BoundExpression initializerExpressionOpt)
+        private BoundObjectInitializerExpressionBase MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
             {
@@ -185,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
-                return new BoundDefaultExpression(syntax, null, type: typeParameter, hasErrors: true);
+                return new BoundDefaultExpression(syntax, type: typeParameter, hasErrors: true);
             }
 
             Debug.Assert((object)method != null);
@@ -203,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: LookupResultKind.Viable,
+                binderOpt: null,
                 type: typeParameter);
 
             return createInstanceCall;

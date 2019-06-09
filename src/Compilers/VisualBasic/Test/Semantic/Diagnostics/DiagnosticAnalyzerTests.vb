@@ -1,10 +1,12 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
+Imports Microsoft.CodeAnalysis.FlowAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -58,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.[Error])
             Dim options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             For Each effectiveDiag In effectiveDiags
@@ -74,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Suppress)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(0, effectiveDiags.Length)
 
@@ -86,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Warn)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             Dim diagIds = New HashSet(Of String)(diags.[Select](Function(d) d.Id))
@@ -133,39 +135,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
             Dim options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default)
-            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.IsWarningAsError))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Warning))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Info))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Hidden))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(2, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
@@ -185,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             ' Verify that only the enabled diag shows up after filtering.
             Dim options = TestOptions.ReleaseDll
-            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(enabledDiag, effectiveDiags)
@@ -196,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress)
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
-            comp = CreateCompilationWithMscorlib({""}, options:=options)
+            comp = CreateCompilationWithMscorlib40({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(disabledDiag, effectiveDiags)
@@ -285,7 +287,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            Diagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
@@ -325,7 +327,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -378,7 +380,7 @@ End Namespace
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -423,7 +425,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -445,7 +447,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                 references:={SystemCoreRef, MsvbRef},
                 options:=TestOptions.ReleaseDll)
 
@@ -520,7 +522,7 @@ End Enum
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
@@ -542,7 +544,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
@@ -588,7 +590,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
@@ -606,19 +608,19 @@ End Class
             Dim sources = <compilation>
                               <file name="c.vb">
                                   <![CDATA[
-Namespace Foo.Bar.FooBar
+Namespace Goo.Bar.GooBar
 End Namespace
 ]]>
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
-                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Foo.Bar.FooBar]]>))
+                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Goo.Bar.GooBar]]>))
         End Sub
 
         <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>
@@ -645,7 +647,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
@@ -667,7 +669,7 @@ End Class
 
             ' Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
             Dim options = TestOptions.ReleaseDll
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=options)
 
@@ -680,7 +682,7 @@ End Class
             specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=options)
 
@@ -694,7 +696,7 @@ End Class
             specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.DisabledRule.Id, ReportDiagnostic.Warn)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            compilation = CreateCompilationWithMscorlib40AndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=options)
 
@@ -717,7 +719,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources, references:={SystemCoreRef, MsvbRef})
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
@@ -739,7 +741,7 @@ End Class
                               </file>
                           </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(sources, references:={SystemCoreRef, MsvbRef})
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
@@ -863,7 +865,7 @@ End Class
 
             ' Verify no compiler diagnostics.
             Dim trees = builder.ToImmutable()
-            Dim compilation = CreateCompilationWithMscorlib45(trees, {SystemRef}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib45(trees.ToArray(), {SystemRef}, TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim isGeneratedFile As Func(Of String, Boolean) = Function(fileName) fileName.Contains("SourceFileWithAutoGeneratedComment") OrElse generatedFileNames.Contains(fileName)
@@ -973,7 +975,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New OwningSymbolTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(OwningSymbolTestAnalyzer.ExpressionDescriptor.Id, "0").WithLocation(8, 28),
@@ -994,7 +996,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 18),
@@ -1014,7 +1016,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 20),
@@ -1039,7 +1041,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                     Diagnostic("Parameter_ID", "a").WithLocation(2, 34),
@@ -1059,7 +1061,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                     Diagnostic("Parameter_ID", "a").WithLocation(2, 34),
@@ -1080,7 +1082,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                         Diagnostic("Parameter_ID", "h1").WithLocation(2, 36),
@@ -1105,7 +1107,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                             Diagnostic("Parameter_ID", "a").WithLocation(2, 11),
@@ -1130,7 +1132,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AnalyzerForParameters}, Nothing, Nothing, False,
                                                                 Diagnostic("Parameter_ID", "a").WithLocation(2, 35),
@@ -1259,6 +1261,305 @@ End Class
         Private Shared Sub AddExpectedDiagnostic(builder As ArrayBuilder(Of DiagnosticDescription), diagnosticId As String, squiggledText As String, line As Integer, column As Integer, ParamArray arguments As String())
             Dim diag = Diagnostic(diagnosticId, squiggledText).WithArguments(arguments).WithLocation(line, column)
             builder.Add(diag)
+        End Sub
+
+        <Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")>
+        Public Sub TestFieldReferenceAnalyzer_InAttributes()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+
+<Assembly: MyAttribute(C.FieldForAssembly)>
+<Module: MyAttribute(C.FieldForModule)>
+
+Friend Class MyAttribute
+    Inherits Attribute
+    Public Sub New(f As Integer)
+    End Sub
+End Class
+
+Friend Interface MyInterface
+    Event MyEvent As EventHandler
+End Interface
+
+<MyAttribute(C.FieldForClass)>
+Friend Class C
+    Implements MyInterface
+    Friend Const FieldForClass As Integer = 1, FieldForStruct As Integer = 2, FieldForInterface As Integer = 3, FieldForField As Integer = 4, FieldForMethod As Integer = 5,
+        FieldForEnum As Integer = 6, FieldForEnumMember As Integer = 7, FieldForDelegateSub As Integer = 8, FieldForDelegateFunction As Integer = 9, FieldForEventField As Integer = 10,
+        FieldForEvent As Integer = 11, FieldForAddHandler As Integer = 12, FieldForRemoveHandler As Integer = 13, FieldForRaiseHandler As Integer = 14, FieldForProperty As Integer = 15,
+        FieldForPropertyGetter As Integer = 16, FieldForPropertySetter As Integer = 17, FieldForIndexer As Integer = 18, FieldForIndexerGetter As Integer = 19, FieldForIndexerSetter As Integer = 20,
+        FieldForMethodParameter As Integer = 21, FieldForEventParameter As Integer = 22, FieldForDelegateSubParameter As Integer = 23, FieldForDelegateFunctionParameter As Integer = 24, FieldForIndexerParameter As Integer = 25,
+        FieldForAssembly As Integer = 26, FieldForModule As Integer = 27, FieldForMethodReturnType As Integer = 28, FieldForDelegateFunctionReturnType As Integer = 29, FieldForPropertyReturnType As Integer = 30,
+        FieldForIndexerReturnType = 31
+
+    <MyAttribute(FieldForStruct)>
+    Private Structure S
+    End Structure
+
+    <MyAttribute(FieldForInterface)>
+    Private Interface I
+    End Interface
+
+    <MyAttribute(FieldForField)>
+    Private field2 As Integer = 0, field3 As Integer = 0
+
+    <MyAttribute(FieldForMethod)>
+    Private Function M1(<MyAttribute(FieldForMethodParameter)> p1 As Integer) As <MyAttribute(FieldForMethodReturnType)> Integer
+        Return 0
+    End Function
+
+    <MyAttribute(FieldForEnum)>
+    Private Enum E
+        <MyAttribute(FieldForEnumMember)>
+        F = 0
+    End Enum
+
+    <MyAttribute(FieldForDelegateSub)>
+    Public Delegate Sub [Delegate](<MyAttribute(FieldForDelegateSubParameter)> p1 As Integer)
+
+    <MyAttribute(FieldForDelegateFunction)>
+    Public Delegate Function Delegate2(<MyAttribute(FieldForDelegateFunctionParameter)> p1 As Integer) As <MyAttribute(FieldForDelegateFunctionReturnType)> Integer
+
+    <MyAttribute(FieldForEventField)>
+    Public Event MyEvent(<MyAttribute(FieldForEventParameter)> p1 As Integer)
+
+    <MyAttribute(FieldForEvent)>
+    Private Custom Event MyEvent2 As EventHandler Implements MyInterface.MyEvent
+        <MyAttribute(FieldForAddHandler)>
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        <MyAttribute(FieldForRemoveHandler)>
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        <MyAttribute(FieldForRaiseHandler)>
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+
+    <MyAttribute(FieldForProperty)>
+    Private Property P1() As <MyAttribute(FieldForPropertyReturnType)> Integer
+        <MyAttribute(FieldForPropertyGetter)>
+        Get
+            Return 0
+        End Get
+        <MyAttribute(FieldForPropertySetter)>
+        Set
+        End Set
+    End Property
+
+    <MyAttribute(FieldForIndexer)>
+    Default Property Item(<MyAttribute(FieldForIndexerParameter)> index As Integer) As <MyAttribute(FieldForIndexerReturnType)> Integer
+        <MyAttribute(FieldForIndexerGetter)>
+        Get
+            Return 0
+        End Get
+        <MyAttribute(FieldForIndexerSetter)>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.VerifyDiagnostics()
+
+            ' Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(comp, doOperationBlockAnalysis:=True)
+
+            ' Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(comp, doOperationBlockAnalysis:=False)
+        End Sub
+
+        Private Shared Sub TestFieldReferenceAnalyzer_InAttributes_Core(comp As Compilation, doOperationBlockAnalysis As Boolean)
+            comp.VerifyAnalyzerDiagnostics({New FieldReferenceOperationAnalyzer(doOperationBlockAnalysis)}, Nothing, Nothing, False,
+                Diagnostic("ID", "C.FieldForClass").WithArguments("FieldForClass", "1").WithLocation(16, 14),
+                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
+                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(31, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(35, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(35, 18),
+                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(38, 18),
+                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(43, 18),
+                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(45, 22),
+                Diagnostic("ID", "FieldForDelegateSub").WithArguments("FieldForDelegateSub", "8").WithLocation(49, 18),
+                Diagnostic("ID", "FieldForDelegateFunction").WithArguments("FieldForDelegateFunction", "9").WithLocation(52, 18),
+                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "10").WithLocation(55, 18),
+                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "11").WithLocation(58, 18),
+                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "12").WithLocation(60, 22),
+                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "13").WithLocation(63, 22),
+                Diagnostic("ID", "FieldForRaiseHandler").WithArguments("FieldForRaiseHandler", "14").WithLocation(66, 22),
+                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "15").WithLocation(71, 18),
+                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "16").WithLocation(73, 22),
+                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "17").WithLocation(77, 22),
+                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "18").WithLocation(82, 18),
+                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "19").WithLocation(84, 22),
+                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "20").WithLocation(88, 22),
+                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(39, 38),
+                Diagnostic("ID", "FieldForEventParameter").WithArguments("FieldForEventParameter", "22").WithLocation(56, 39),
+                Diagnostic("ID", "FieldForDelegateSubParameter").WithArguments("FieldForDelegateSubParameter", "23").WithLocation(50, 49),
+                Diagnostic("ID", "FieldForDelegateFunctionParameter").WithArguments("FieldForDelegateFunctionParameter", "24").WithLocation(53, 53),
+                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "25").WithLocation(83, 40),
+                Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "26").WithLocation(3, 24),
+                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "27").WithLocation(4, 22),
+                Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "28").WithLocation(39, 95),
+                Diagnostic("ID", "FieldForDelegateFunctionReturnType").WithArguments("FieldForDelegateFunctionReturnType", "29").WithLocation(53, 120),
+                Diagnostic("ID", "FieldForPropertyReturnType").WithArguments("FieldForPropertyReturnType", "30").WithLocation(72, 43),
+                Diagnostic("ID", "FieldForIndexerReturnType").WithArguments("FieldForIndexerReturnType", "31").WithLocation(83, 101))
+        End Sub
+
+        <Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")>
+        Public Sub TestMethodBodyOperationAnalyzer()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Friend Class C
+    Sub New()
+    End Sub
+
+    Sub M()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.VerifyDiagnostics()
+
+            ' VB methods/constructors don't have an IMethodBodyOperation or an IConstructorBodyOperation.
+            comp.VerifyAnalyzerDiagnostics({New MethodOrConstructorBodyOperationAnalyzer()})
+        End Sub
+
+        <Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        Public Sub TestGetControlFlowGraphInOperationAnalyzers()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Private Sub M(Optional p As Integer = 0)
+        Dim x As Integer = 1 + 2
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source)
+            comp.VerifyDiagnostics()
+
+            ' 1. Method body flow graph
+            ' 2. Parameter initializer flow graph
+            Dim expectedFlowGraphs = {
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [x As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x As Integer = 1 + 2')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                  Left: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value,
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Left: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value}
+            ' Verify analyzer diagnostics and flow graphs for different kind of operation analyzers.
+
+            Dim analyzer = New OperationAnalyzer(OperationAnalyzer.ActionKind.Operation, verifyGetControlFlowGraph:=True)
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                Diagnostic("ID", "0").WithArguments("Operation").WithLocation(2, 43),
+                Diagnostic("ID", "1").WithArguments("Operation").WithLocation(3, 28),
+                Diagnostic("ID", "2").WithArguments("Operation").WithLocation(3, 32))
+            verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
+
+            analyzer = New OperationAnalyzer(OperationAnalyzer.ActionKind.OperationInOperationBlockStart, verifyGetControlFlowGraph:=True)
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                Diagnostic("ID", "0").WithArguments("OperationInOperationBlockStart").WithLocation(2, 43),
+                Diagnostic("ID", "1").WithArguments("OperationInOperationBlockStart").WithLocation(3, 28),
+                Diagnostic("ID", "2").WithArguments("OperationInOperationBlockStart").WithLocation(3, 32))
+            verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
+
+            analyzer = New OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlock, verifyGetControlFlowGraph:=True)
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                Diagnostic("ID", "M").WithArguments("OperationBlock").WithLocation(2, 17))
+            verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
+
+            analyzer = New OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlockEnd, verifyGetControlFlowGraph:=True)
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                Diagnostic("ID", "M").WithArguments("OperationBlockEnd").WithLocation(2, 17))
+            verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
+        End Sub
+
+        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of ControlFlowGraph), expectedFlowGraphs As String())
+            For i As Integer = 0 To expectedFlowGraphs.Length - 1
+                Dim expectedFlowGraph As String = expectedFlowGraphs(i)
+                Dim actualFlowGraph As ControlFlowGraph = flowGraphs(i)
+                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
+            Next
+        End Sub
+
+        <Fact, WorkItem(30309, "https://github.com/dotnet/roslyn/issues/30309")>
+        Public Sub TestSymbolStartAnalyzer_MyApplication()
+
+            Dim sources = <compilation>
+                              <file name="a.vb"><![CDATA[
+Namespace My
+    Friend Partial Class MyApplication
+    End Class
+End Namespace
+]]></file>
+                          </compilation>
+
+            Dim defines = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
+
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, {SystemWindowsFormsRef}, options:=compilationOptions)
+            compilation.VerifyDiagnostics()
+
+            Dim analyzers = New DiagnosticAnalyzer() {New SymbolStartAnalyzer(topLevelAction:=False, SymbolKind.NamedType)}
+            compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
         End Sub
     End Class
 End Namespace

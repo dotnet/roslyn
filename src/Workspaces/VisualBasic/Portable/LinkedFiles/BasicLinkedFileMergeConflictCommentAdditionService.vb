@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Text
@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ILinkedFileMergeConflictCommentAdditionService), LanguageNames.VisualBasic), [Shared]>
     Friend Class BasicLinkedFileMergeConflictCommentAdditionService
         Inherits AbstractLinkedFileMergeConflictCommentAdditionService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Friend Overrides Function GetConflictCommentText(header As String, beforeString As String, afterString As String) As String
             If beforeString Is Nothing AndAlso afterString Is Nothing Then
@@ -57,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim newlines = Regex.Matches(text, "\r\n|\r|\n")
-            Contract.Assert(newlines.Count = lines.Length - 1)
+            Debug.Assert(newlines.Count = lines.Length - 1)
 
             Dim builder = New StringBuilder()
 

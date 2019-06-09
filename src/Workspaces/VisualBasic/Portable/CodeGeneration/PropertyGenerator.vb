@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim declaration = GeneratePropertyDeclarationWorker([property], destination, options)
 
             Return AddAnnotationsTo([property],
-                AddCleanupAnnotationsTo(
+                AddFormatterAndCodeGeneratorAnnotationsTo(
                     ConditionallyAddDocumentationCommentTo(declaration, [property], options)))
         End Function
 

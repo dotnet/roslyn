@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis
 
         private static string GetMonoCachePath()
         {
-            string file = CorLightup.Desktop.GetAssemblyLocation(typeof(Uri).GetTypeInfo().Assembly);
+            string file = typeof(Uri).GetTypeInfo().Assembly.Location;
             return Directory.GetParent(Path.GetDirectoryName(file)).Parent.FullName;
         }
 
         private static IEnumerable<string> GetCorlibPaths(Version version)
         {
-            string corlibPath = CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly);
+            string corlibPath = typeof(object).GetTypeInfo().Assembly.Location;
             var corlibParentDir = Directory.GetParent(corlibPath).Parent;
 
             var corlibPaths = new List<string>();

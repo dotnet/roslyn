@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestUpdateWithNull()
             ' create type parameter with constraint clause
-            Dim tp = SyntaxFactory.TypeParameter(Nothing, SyntaxFactory.Identifier("T"), SyntaxFactory.TypeParameterSingleConstraintClause(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("IFoo"))))
+            Dim tp = SyntaxFactory.TypeParameter(Nothing, SyntaxFactory.Identifier("T"), SyntaxFactory.TypeParameterSingleConstraintClause(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("IGoo"))))
 
             ' attempt to make variant w/o constraint clause (do not access property first)
             Dim tp2 = tp.WithTypeParameterConstraintClause(Nothing)
@@ -84,13 +84,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' Bug 10283
         <Fact()>
         Public Sub Bug_10283()
-            Dim input = "Dim foo()"
+            Dim input = "Dim goo()"
             Dim node = VisualBasicSyntaxTree.ParseText(input)
             Dim arrayRankSpecifier = DirectCast(node.GetCompilationUnitRoot().Members(0), FieldDeclarationSyntax).Declarators(0).Names(0).ArrayRankSpecifiers(0)
             Assert.Equal(1, arrayRankSpecifier.Rank)
             Assert.Equal(0, arrayRankSpecifier.CommaTokens.Count)
 
-            input = "Dim foo(,,,)"
+            input = "Dim goo(,,,)"
             node = VisualBasicSyntaxTree.ParseText(input)
             arrayRankSpecifier = DirectCast(node.GetCompilationUnitRoot().Members(0), FieldDeclarationSyntax).Declarators(0).Names(0).ArrayRankSpecifiers(0)
             Assert.Equal(4, arrayRankSpecifier.Rank)

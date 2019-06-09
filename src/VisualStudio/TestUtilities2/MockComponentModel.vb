@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.ComponentModel.Composition.Primitives
@@ -16,11 +16,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             _exportProvider = exportProvider
         End Sub
 
+#Disable Warning BC40000 ' Type or member is obsolete
         Public ReadOnly Property DefaultCatalog As ComposablePartCatalog Implements IComponentModel.DefaultCatalog
             Get
                 Throw New NotImplementedException
             End Get
         End Property
+#Enable Warning BC40000 ' Type or member is obsolete
 
         Public ReadOnly Property DefaultCompositionService As ICompositionService Implements IComponentModel.DefaultCompositionService
             Get

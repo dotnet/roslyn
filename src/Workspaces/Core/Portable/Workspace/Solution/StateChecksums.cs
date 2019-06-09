@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public SolutionStateChecksums(params object[] children) : base(nameof(SolutionStateChecksums), children)
+        public SolutionStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.SolutionStateChecksums, children)
         {
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = state.SolutionInfo.Attributes;
+                result[Info] = state.SolutionAttributes;
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))
@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             ProjectReferenceChecksumCollection projectReferenceChecksums,
             MetadataReferenceChecksumCollection metadataReferenceChecksums,
             AnalyzerReferenceChecksumCollection analyzerReferenceChecksums,
-            TextDocumentChecksumCollection additionalDocumentChecksums) :
+            TextDocumentChecksumCollection additionalDocumentChecksums,
+            AnalyzerConfigDocumentChecksumCollection analyzerConfigDocumentChecksumCollection) :
             this(
                 (object)infoChecksum,
                 compilationOptionsChecksum,
@@ -90,11 +91,12 @@ namespace Microsoft.CodeAnalysis.Serialization
                 projectReferenceChecksums,
                 metadataReferenceChecksums,
                 analyzerReferenceChecksums,
-                additionalDocumentChecksums)
+                additionalDocumentChecksums,
+                analyzerConfigDocumentChecksumCollection)
         {
         }
 
-        public ProjectStateChecksums(params object[] children) : base(nameof(ProjectStateChecksums), children)
+        public ProjectStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.ProjectStateChecksums, children)
         {
         }
 
@@ -109,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[6];
 
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
+        public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
 
         public void Find(
             ProjectState state,
@@ -166,15 +169,21 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AdditionalDocuments.Checksum] = AdditionalDocuments;
             }
 
+            if (searchingChecksumsLeft.Remove(AnalyzerConfigDocuments.Checksum))
+            {
+                result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
+            }
+
             Find(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken);
             Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken);
+            Find(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken);
         }
 
         private static void Find<T>(
-            ImmutableDictionary<DocumentId, T> values,
+            IImmutableDictionary<DocumentId, T> values,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken) where T : TextDocumentState
@@ -228,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public DocumentStateChecksums(params object[] children) : base(nameof(DocumentStateChecksums), children)
+        public DocumentStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.DocumentStateChecksums, children)
         {
         }
 
@@ -254,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = state.Info.Attributes;
+                result[Info] = state.Attributes;
             }
 
             if (searchingChecksumsLeft.Remove(Text))
@@ -276,6 +285,20 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             return (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
         }
+
+        public static bool TryGetValue(object value, out Checksum checksum)
+        {
+            // same key should always return same checksum
+            if (!s_cache.TryGetValue(value, out var result))
+            {
+                checksum = default;
+                return false;
+            }
+
+            checksum = (Checksum)result;
+            return true;
+        }
+
 
         public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
         {

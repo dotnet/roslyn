@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index > 0;
             }
@@ -120,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index < MemberContainers.Count - 1;
             }

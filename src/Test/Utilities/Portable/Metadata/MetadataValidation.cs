@@ -2,10 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.Metadata.Tools;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -142,6 +147,39 @@ namespace Roslyn.Test.Utilities
                 var name = metadataReader.GetString(typeDef.Name);
 
                 yield return (ns.Length == 0) ? name : (ns + "." + name);
+            }
+        }
+
+        public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)
+        {
+            peStream1.Position = 0;
+            peStream2.Position = 0;
+
+            var peReader1 = new PEReader(peStream1);
+            var peReader2 = new PEReader(peStream2);
+
+            var md1 = peReader1.GetMetadata().GetContent();
+            var md2 = peReader2.GetMetadata().GetContent();
+
+            var mdReader1 = peReader1.GetMetadataReader();
+            var mdReader2 = peReader2.GetMetadataReader();
+
+            var mvidIndex1 = mdReader1.GetModuleDefinition().Mvid;
+            var mvidIndex2 = mdReader2.GetModuleDefinition().Mvid;
+
+            var mvidOffset1 = mdReader1.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex1) - 1);
+            var mvidOffset2 = mdReader2.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex2) - 1);
+
+            if (!md1.RemoveRange(mvidOffset1, 16).SequenceEqual(md1.RemoveRange(mvidOffset2, 16)))
+            {
+                var mdw1 = new StringWriter();
+                var mdw2 = new StringWriter();
+                new MetadataVisualizer(mdReader1, mdw1).Visualize();
+                new MetadataVisualizer(mdReader2, mdw2).Visualize();
+                mdw1.Flush();
+                mdw2.Flush();
+
+                AssertEx.AssertResultsEqual(mdw1.ToString(), mdw2.ToString());
             }
         }
     }

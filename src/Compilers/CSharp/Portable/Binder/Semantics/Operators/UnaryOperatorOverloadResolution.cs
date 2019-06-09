@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -54,8 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolution(operand, result, ref useSiteDiagnostics);
         }
 
-
-
         // Takes a list of candidates and mutates the list to throw out the ones that are worse than
         // another applicable candidate.
         private void UnaryOperatorOverloadResolution(
@@ -63,11 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorOverloadResolutionResult result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // SPEC: Given the set of applicable candidate function members, the best function
-            // member in that set is located. SPEC: If the set contains only one function member,
-            // then that function member is the best function member. 
+            // SPEC: Given the set of applicable candidate function members, the best function member in that set is located. 
+            // SPEC: If the set contains only one function member, then that function member is the best function member. 
 
-            if (result.GetValidCount() == 1)
+            if (result.SingleValid())
             {
                 return;
             }
@@ -78,8 +79,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            // UNDONE: This is a naive quadratic algorithm; there is a linear algorithm that works. Consider using it.
             var candidates = result.Results;
+            // Try to find a single best candidate
+            int bestIndex = GetTheBestCandidateIndex(operand, candidates, ref useSiteDiagnostics);
+            if (bestIndex != -1)
+            {
+                // Mark all other candidates as worse
+                for (int index = 0; index < candidates.Count; ++index)
+                {
+                    if (candidates[index].Kind != OperatorAnalysisResultKind.Inapplicable && index != bestIndex)
+                    {
+                        candidates[index] = candidates[index].Worse();
+                    }
+                }
+
+                return;
+            }
+
             for (int i = 1; i < candidates.Count; ++i)
             {
                 if (candidates[i].Kind != OperatorAnalysisResultKind.Applicable)
@@ -94,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         continue;
                     }
+
                     var better = BetterOperator(candidates[i].Signature, candidates[j].Signature, operand, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
@@ -105,6 +122,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private int GetTheBestCandidateIndex(
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> candidates,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            int currentBestIndex = -1;
+            for (int index = 0; index < candidates.Count; index++)
+            {
+                if (candidates[index].Kind != OperatorAnalysisResultKind.Applicable)
+                {
+                    continue;
+                }
+
+                // Assume that the current candidate is the best if we don't have any
+                if (currentBestIndex == -1)
+                {
+                    currentBestIndex = index;
+                }
+                else
+                {
+                    var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                    if (better == BetterResult.Right)
+                    {
+                        // The current best is worse
+                        currentBestIndex = index;
+                    }
+                    else if (better != BetterResult.Left)
+                    {
+                        // The current best is not better
+                        currentBestIndex = -1;
+                    }
+                }
+            }
+
+            // Make sure that every candidate up to the current best is worse
+            for (int index = 0; index < currentBestIndex; index++)
+            {
+                if (candidates[index].Kind == OperatorAnalysisResultKind.Inapplicable)
+                {
+                    continue;
+                }
+
+                var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, operand, ref useSiteDiagnostics);
+                if (better != BetterResult.Left)
+                {
+                    // The current best is not better
+                    return -1;
+                }
+            }
+
+            return currentBestIndex;
         }
 
         private BetterResult BetterOperator(UnaryOperatorSignature op1, UnaryOperatorSignature op2, BoundExpression operand, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -150,6 +220,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return BetterResult.Left;
                 }
+            }
+
+            // Always prefer operators with val parameters over operators with in parameters:
+            if (op1.RefKind == RefKind.None && op2.RefKind == RefKind.In)
+            {
+                return BetterResult.Left;
+            }
+            else if (op2.RefKind == RefKind.None && op1.RefKind == RefKind.In)
+            {
+                return BetterResult.Right;
             }
 
             return BetterResult.Neither;
@@ -284,6 +364,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: operators is the set provided by the direct base class of T0, or the effective
             // SPEC: base class of T0 if T0 is a type parameter.
 
+            // https://github.com/dotnet/roslyn/issues/34451: The spec quote should be adjusted to cover operators from interfaces as well.
+            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // - We only even look for operator implementations in interfaces if one of the operands has a type that is an interface or
+            // a type parameter with a non-empty effective base interface list.
+            // - The applicable operators from classes / structs shadow those in interfaces.This matters for constrained type parameters:
+            // the effective base class can shadow operators from effective base interfaces.
+            // - If we find an applicable candidate in an interface, that candidate shadows all applicable operators in base interfaces:
+            // we stop looking.
+
             TypeSymbol type0 = operand.Type.StrippedType();
 
             // Searching for user-defined operators is expensive; let's take an early out if we can.
@@ -319,6 +408,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Look in base interfaces, or effective interfaces for type parameters  
+            if (!hadApplicableCandidates)
+            {
+                ImmutableArray<NamedTypeSymbol> interfaces = default;
+                if (type0.IsInterfaceType())
+                {
+                    interfaces = type0.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+                else if (type0.IsTypeParameter())
+                {
+                    interfaces = ((TypeParameterSymbol)type0).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+
+                if (!interfaces.IsDefaultOrEmpty)
+                {
+                    var shadowedInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
+                    var resultsFromInterface = ArrayBuilder<UnaryOperatorAnalysisResult>.GetInstance();
+                    results.Clear();
+
+                    foreach (NamedTypeSymbol @interface in interfaces)
+                    {
+                        if (!@interface.IsInterface)
+                        {
+                            // this code could be reachable in error situations
+                            continue;
+                        }
+
+                        if (shadowedInterfaces.Contains(@interface))
+                        {
+                            // this interface is "shadowed" by a derived interface
+                            continue;
+                        }
+
+                        operators.Clear();
+                        resultsFromInterface.Clear();
+                        GetUserDefinedUnaryOperatorsFromType(@interface, kind, name, operators);
+                        if (CandidateOperators(operators, operand, resultsFromInterface, ref useSiteDiagnostics))
+                        {
+                            hadApplicableCandidates = true;
+                            results.AddRange(resultsFromInterface);
+
+                            // this interface "shadows" all its base interfaces
+                            shadowedInterfaces.AddAll(@interface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+                        }
+                    }
+
+                    shadowedInterfaces.Free();
+                    resultsFromInterface.Free();
+                }
+            }
+
             operators.Free();
 
             return hadApplicableCandidates;
@@ -338,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol operandType = op.ParameterTypes[0];
+                TypeSymbol operandType = op.GetParameterType(0);
                 TypeSymbol resultType = op.ReturnType;
 
                 operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op));

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
     <ExportSyntaxNodeOrganizer(LanguageNames.VisualBasic), [Shared]>
     Friend Class TypeBlockOrganizer
         Inherits AbstractSyntaxNodeOrganizer(Of TypeBlockSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function Organize(typeBlock As TypeBlockSyntax,
                                               cancellationToken As CancellationToken) As TypeBlockSyntax

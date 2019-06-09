@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Friend NotInheritable Class LocalVariableDeclaratorsCollector
     Inherits VisualBasicSyntaxWalker
@@ -91,7 +92,7 @@ Friend NotInheritable Class LocalVariableDeclaratorsCollector
     Public Overrides Sub VisitSimpleArgument(node As SimpleArgumentSyntax)
         MyBase.Visit(node.Expression)
 
-        ' argument name in "foo(argName := expr)" does not declare locals
+        ' argument name in "goo(argName := expr)" does not declare locals
         Return
     End Sub
 End Class

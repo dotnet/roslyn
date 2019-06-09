@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// The path to the file to embed.
         /// </summary>
         /// <remarks>See remarks of <see cref="SyntaxTree.FilePath"/></remarks>
+        /// <remarks>Empty file paths are disallowed, as the debugger finds source by looking up files by their name (and then verifying their signature)</remarks>
         public string FilePath { get; }
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; }
 
         /// <summary>
-        /// The <see cref="ChecksumAlgorithm"/> hash of the uncrompressed bytes
+        /// The <see cref="ChecksumAlgorithm"/> hash of the uncompressed bytes
         /// that's saved to the PDB.
         /// </summary>
         public ImmutableArray<byte> Checksum { get; }
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis
                 base.WriteByte(value);
 
                 // same rationale for checked arithmetic as above.
-                checked { BytesWritten++; }; 
+                checked { BytesWritten++; };
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,11 +10,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -25,9 +27,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests 
+    [UseExportProvider]
+    public class ErrorSquiggleProducerTests
     {
-        private readonly DiagnosticTagProducer<IErrorTag> _producer = new DiagnosticTagProducer<IErrorTag>();
+        private readonly DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider>();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
@@ -170,7 +173,7 @@ class Program
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
             using (var workspace = TestWorkspace.CreateCSharp("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -200,7 +203,7 @@ class Program
         public async Task TestNoErrorsAfterProjectRemoved()
         {
             using (var workspace = TestWorkspace.CreateCSharp("class"))
-            using (var wrapper = new DiagnosticTaggerWrapper<IErrorTag>(workspace))
+            using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -248,8 +251,8 @@ class Program
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
                 var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
@@ -281,8 +284,8 @@ class Program
                 var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            _producer.CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                            _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
                 var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
 

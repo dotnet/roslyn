@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Cci = Microsoft.Cci;
@@ -34,12 +35,16 @@ namespace Roslyn.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
+        internal static ImmutableArray<KeyValuePair<IMethodSymbol, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
+        {
+            return data.Methods.Where(m => !m.Key.IsImplicitlyDeclared).ToImmutableArray();
+        }
+
         internal static CompilationTestData.MethodData GetMethodData(this CompilationTestData data, string qualifiedMethodName)
         {
-            var methodData = default(CompilationTestData.MethodData);
             var map = data.GetMethodsByName();
 
-            if (!map.TryGetValue(qualifiedMethodName, out methodData))
+            if (!map.TryGetValue(qualifiedMethodName, out var methodData))
             {
                 // caller may not have specified parameter list, so try to match parameterless method
                 if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))

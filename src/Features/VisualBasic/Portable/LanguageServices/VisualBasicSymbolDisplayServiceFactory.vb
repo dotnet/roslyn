@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     <ExportLanguageServiceFactory(GetType(ISymbolDisplayService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSymbolDisplayServiceFactory
         Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSymbolDisplayService(provider)

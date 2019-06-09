@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -48,7 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get { return false; }
+        }
+
+        public override bool HasNotNullConstraint => false;
+
+        internal override bool? IsNotNullableIfReferenceType => null;
+
         public override bool HasValueTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
         {
             get { return false; }
         }
@@ -77,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return ImmutableArray<TypeSymbol>.Empty;
+            return ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

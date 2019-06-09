@@ -1,40 +1,43 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
+    <[UseExportProvider]>
     Public Class EncapsulateFieldCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub PrivateField()
             Dim text = <File>
 Class C
-    Private foo$$ As Integer
+    Private goo$$ As Integer
 
     Sub bar()
-        foo = 3
+        goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private foo As Integer
+    Private goo As Integer
 
-    Public Property Foo1 As Integer
+    Public Property Goo1 As Integer
         Get
-            Return foo
+            Return goo
         End Get
         Set(value As Integer)
-            foo = value
+            goo = value
         End Set
     End Property
 
     Sub bar()
-        Foo1 = 3
+        Goo1 = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
@@ -47,28 +50,28 @@ End Class</File>.ConvertTestSourceTag()
         Public Sub NonPrivateField()
             Dim text = <File>
 Class C
-    Protected foo$$ As Integer
+    Protected goo$$ As Integer
 
     Sub bar()
-        foo = 3
+        goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _foo As Integer
+    Private _goo As Integer
 
-    Protected Property Foo As Integer
+    Protected Property Goo As Integer
         Get
-            Return _foo
+            Return _goo
         End Get
         Set(value As Integer)
-            _foo = value
+            _goo = value
         End Set
     End Property
 
     Sub bar()
-        Foo = 3
+        Goo = 3
     End Sub
 End Class</File>.ConvertTestSourceTag()
 
@@ -130,14 +133,15 @@ End Class
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
-                            Private $foo As Object
+                            Private $goo As Object
                         End Class
                     </Submission>
                 </Workspace>,
@@ -149,17 +153,10 @@ End Class
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of Host.IWaitIndicator), workspace.GetService(Of ITextBufferUndoManagerProvider))
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
-
-                Dim state = handler.GetCommandState(New Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of ITextBufferUndoManagerProvider),
+                                                                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
+                Assert.True(state.IsUnspecified)
             End Using
         End Sub
     End Class

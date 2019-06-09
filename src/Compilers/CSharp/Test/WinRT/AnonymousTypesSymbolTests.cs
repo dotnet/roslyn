@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -100,10 +100,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { x2 });
@@ -125,10 +125,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         Func<object> x3 = () => new { x2 };
@@ -151,12 +151,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>());
-        Console.WriteLine(Foo<string>());
-        Console.WriteLine(Foo<int?>());
+        Console.WriteLine(Goo<int>());
+        Console.WriteLine(Goo<string>());
+        Console.WriteLine(Goo<int?>());
     }
 
-    static object Foo<T>()
+    static object Goo<T>()
     {
         T x2 = default(T);
         return new { x2 };
@@ -182,13 +182,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        foreach(var x in Foo<int>())
+        foreach(var x in Goo<int>())
         {
             Console.Write(x);
         }
     }
 
-    static IEnumerable<object> Foo<T>()
+    static IEnumerable<object> Goo<T>()
     {
         T x2 = default(T);
         yield return new { x2 }.ToString();
@@ -211,10 +211,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { });
@@ -230,7 +230,7 @@ class Program
 
         private void TestAnonymousTypeFieldSymbols_InQuery(ImmutableArray<byte> image)
         {
-            Assembly refAsm = CorLightup.Desktop.LoadAssembly(image.ToArray());
+            Assembly refAsm = Assembly.Load(image.ToArray());
             Type type = refAsm.GetType("<>f__AnonymousType0`2");
             Assert.NotNull(type);
             Assert.Equal(2, type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count());
@@ -595,7 +595,7 @@ class Query
 ";
             for (int i = 0; i < 100; i++)
             {
-                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
@@ -746,7 +746,7 @@ class Query
                 expectedOutput: "{ ToString = Field }-Field");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void AnonymousTypeSymbol_StandardNames3()
         {
             var source = @"
@@ -846,11 +846,7 @@ class Query
 @"{
   // Code size       75 (0x4b)
   .maxstack  3
-" +
-  (IntPtr.Size == 4 ?
-    "  IL_0000:  ldc.i4     0x78ce6eb1" :
-    "  IL_0000:  ldc.i4     0x983c2cef") +
-@"
+  IL_0000:  ldc.i4     0x3711624
   IL_0005:  ldc.i4     0xa5555529
   IL_000a:  mul
   IL_000b:  call       ""System.Collections.Generic.EqualityComparer<<ToString>j__TPar> System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Default.get""
@@ -1003,7 +999,7 @@ class Query
             int init = 0;
             foreach (var name in names)
             {
-                init = unchecked(init * HASH_FACTOR + name.GetHashCode());
+                init = unchecked(init * HASH_FACTOR + Hash.GetFNVHashCode(name));
             }
             return "0x" + init.ToString("X").ToLower();
         }
@@ -1048,13 +1044,13 @@ class Query
 
             //  test
             Assert.Equal(typeViewName, type.ToDisplayString());
-            Assert.Equal("object", type.BaseType.ToDisplayString());
+            Assert.Equal("object", type.BaseType().ToDisplayString());
             Assert.True(fieldsCount == 0 ? !type.IsGenericType : type.IsGenericType);
             Assert.Equal(fieldsCount, type.Arity);
             Assert.Equal(Accessibility.Internal, type.DeclaredAccessibility);
             Assert.True(type.IsSealed);
             Assert.False(type.IsStatic);
-            Assert.Equal(0, type.Interfaces.Length);
+            Assert.Equal(0, type.Interfaces().Length);
 
             //  test non-existing members
             Assert.Equal(0, type.GetMembers("doesnotexist").Length);
@@ -1161,7 +1157,7 @@ class Query
             Assert.False(method.IsVararg);
             Assert.False(method.IsVirtual);
             Assert.Equal(isVirtualAndOverride, method.IsMetadataVirtual());
-            Assert.Equal(retType, method.ReturnType.ToDisplayString());
+            Assert.Equal(retType, method.ReturnTypeWithAnnotations.ToDisplayString());
 
             TestAttributeOnSymbol(method, attr == null ? new AttributeInfo[] { } : new AttributeInfo[] { attr });
         }
@@ -1290,7 +1286,7 @@ class Query
 ";
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
         }
 
         [ClrOnlyFact]
@@ -1479,7 +1475,7 @@ class Class3
     }
 }
 ";
-            var compilation = (CSharpCompilation)GetCompilationForEmit(new string[] { source1, source2, source3 }, null, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(new string[] { source1, source2, source3 }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), parseOptions: TestOptions.Regular);
 
             for (int i = 0; i < 10; i++)
             {
@@ -1499,7 +1495,7 @@ class Class3
                         Assert.Equal("<>f__AnonymousType2", types[2]);
                         Assert.Equal("<>f__AnonymousType3<<b>j__TPar, <a>j__TPar>", types[3]);
                     },
-                    verify: false
+                    verify: Verification.Passes
                 );
 
                 // do some speculative semantic query
@@ -1665,7 +1661,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
 
@@ -1706,7 +1702,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
             var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
@@ -1784,7 +1780,7 @@ class Program
             // Dev11: omits methods that are not defined on Object (see also Dev10 bug 487707)
             // Roslyn: we require Equals, ToString, GetHashCode, Format to be defined
 
-            var comp = CreateCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
@@ -1812,7 +1808,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var stateLib = CreateCompilation(stateSource, new[] { MinCorlibRef });
+            var stateLib = CreateEmptyCompilation(stateSource, new[] { MinCorlibRef });
 
             var attributeSource = @"
 namespace System.Diagnostics
@@ -1826,7 +1822,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var attributeLib = CreateCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
+            var attributeLib = CreateEmptyCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
 
             var source = @"
 class Program
@@ -1838,7 +1834,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
@@ -1872,11 +1868,13 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (12,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x1 = new { local?.M() };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
-                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                // (13,24): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var x2 = new { array?[0] };
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "array?[0]").WithLocation(13, 24));
         }
 
@@ -1946,10 +1944,9 @@ class C
   IL_0008:  ret
 }";
 
-
             CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
 
-            var compilation = GetCompilationForEmit(new[] { source }, additionalRefs: null, options: null, parseOptions: null);
+            var compilation = CreateCompilationWithMscorlib40(source);
             compilation.CreateAnonymousTypeSymbol(
                 ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                 ImmutableArray.Create("m1", "m2"));

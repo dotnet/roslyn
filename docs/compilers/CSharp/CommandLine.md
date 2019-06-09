@@ -4,6 +4,7 @@
 | ---- | ---- |
 | **OUTPUT FILES** |
 | `/out:`*file* | Specify output file name (default: base name of file with main class or first file)
+| `/refout:`*file* | Specify the reference assembly's output file name
 | `/target:exe` |  Build a console executable (default) (Short form: `/t:exe`)
 | `/target:winexe` | Build a Windows executable (Short form: `/t:winexe` )
 | `/target:library` | Build a library (Short form: `/t:library`)
@@ -29,9 +30,14 @@
 | `/linkresource`:*resinfo* | Link the specified resource to this assembly (Short form: `/linkres`) Where the *resinfo* format  is *file*{`,`*string name*{`,``public``|``private`}}
 | **CODE GENERATION**
 | `/debug`{`+`&#124;`-`} | Emit (or do not Emit) debugging information
-| `/debug`:{`full`&#124;`pdbonly`&#124;`portable`} | Specify debugging type (`full` is default, and  enables attaching a debugger to a running program. `portable` is a cross-platform format)
+| `/debug`:`full` | Emit debugging information to .pdb file using default format for the current platform: _Windows PDB_ on Windows, _Portable PDB_ on other systems
+| `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
+| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md)
+| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md).
+| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations (Short form: `/o`)
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
+| `/refonly` | Produce a reference assembly, instead of a full assembly, as the primary output 
 | **ERRORS AND WARNINGS**
 | `/warnaserror`{`+`&#124;`-`} | Report all warnings as errors
 | `/warnaserror`{`+`&#124;`-`}`:`*warn list* | Report specific warnings as errors
@@ -44,7 +50,8 @@
 | `/checked`{`+`&#124;`-`} | Generate overflow checks
 | `/unsafe`{`+`&#124;`-`} | Allow 'unsafe' code
 | `/define:`*symbol list* | Define conditional compilation symbol(s) (Short form: `/d`)
-| `/langversion`:*string* | Specify language version mode: `ISO-1`, `ISO-2`, `3`, `4`, `5`, `6`, `7`, `7.1`, `Default` (latest major version), or `Latest` (latest version, including minor versions)
+| `/langversion:?` | Display the allowed values for language version
+| `/langversion`:*string* | Specify language version such as `default` (latest major version), or `latest` (latest version, including minor versions)
 | **SECURITY**
 | `/delaysign`{`+`&#124;`-`} | Delay-sign the assembly using only the public portion of the strong name key
 | `/keyfile:`*file* | Specify a strong name key file

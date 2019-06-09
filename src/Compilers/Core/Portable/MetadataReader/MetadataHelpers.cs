@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-            ExitDecodeTypeName:
+ExitDecodeTypeName:
                 HandleDecodedTypeName(typeNameBuilder.ToString(), decodingTopLevelType, ref topLevelType, ref nestedTypesBuilder);
                 pooledStrBuilder.Free();
 
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 goto default;
                             }
-                             
+
                             Advance();
                             if (Current != ']')
                             {
@@ -822,8 +823,8 @@ namespace Microsoft.CodeAnalysis
                                 lastChildNamespaceName, typesInLastChildNamespace));
                     }
 
-                DoneWithSequence:
-                    /*empty statement*/
+DoneWithSequence:
+/*empty statement*/
                     ;
                 }
             } // using
@@ -850,7 +851,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             Debug.Assert(keyIndex < i);
                             var primaryPair = nestedNamespaces[keyIndex];
-                            nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
+                            nestedNamespaces[keyIndex] = KeyValuePairUtil.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
                     }
@@ -922,7 +923,7 @@ namespace Microsoft.CodeAnalysis
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
-                    messageProvider.CreateDiagnostic(code, Location.None, 
+                    messageProvider.CreateDiagnostic(code, Location.None,
                         new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }
@@ -971,7 +972,7 @@ namespace Microsoft.CodeAnalysis
         /// Checks that the specified name is a valid metadata String and a file name.
         /// The specification isn't entirely consistent and complete but it mentions:
         /// 
-        /// 22.19.2: "Name shall index a non-empty string in the String heap. It shall be in the format {filename}.{extension} (e.g., 'foo.dll', but not 'c:\utils\foo.dll')."
+        /// 22.19.2: "Name shall index a non-empty string in the String heap. It shall be in the format {filename}.{extension} (e.g., 'goo.dll', but not 'c:\utils\goo.dll')."
         /// 22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
         ///          As Microsoft specific constraint.
         /// 

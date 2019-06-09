@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         <ImportingConstructor>
-        Private Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
+        Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
                         <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
                         commitBufferManagerFactory As CommitBufferManagerFactory)
             Me._editorOptionsFactoryService = editorOptionsFactoryService

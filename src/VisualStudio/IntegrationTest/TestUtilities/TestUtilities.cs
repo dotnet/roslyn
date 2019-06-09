@@ -89,6 +89,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (shouldThrow)
             {
+                sb.AppendLine();
+                sb.AppendLine("Actual items:");
+                foreach (var item in actual)
+                {
+                    sb.AppendLine(item.ToString());
+                }
+
                 throw new Exception(sb.ToString());
             }
         }

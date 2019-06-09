@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -11,8 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class GetTypeExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of GetTypeExpressionSyntax)
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As GetTypeExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
-            Return {New GetTypeExpressionDocumentation()}
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As GetTypeExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New GetTypeExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

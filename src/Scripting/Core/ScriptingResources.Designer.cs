@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.Scripting {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ScriptingResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -71,6 +70,24 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assembly &apos;{0}, Version={1}&apos; has already been loaded from &apos;{2}&apos;. A different assembly with the same name and version can&apos;t be loaded: &apos;{3}&apos;..
+        /// </summary>
+        internal static string AssemblyAlreadyLoaded {
+            get {
+                return ResourceManager.GetString("AssemblyAlreadyLoaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assembly &apos;{0}&apos; has already been loaded from &apos;{1}&apos;. A different assembly with the same name can&apos;t be loaded unless it&apos;s signed: &apos;{2}&apos;..
+        /// </summary>
+        internal static string AssemblyAlreadyLoadedNotSigned {
+            get {
+                return ResourceManager.GetString("AssemblyAlreadyLoadedNotSigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  at {0} : {1}.
         /// </summary>
         internal static string AtFileLine {
@@ -85,6 +102,15 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string CannotSetConstantVariable {
             get {
                 return ResourceManager.GetString("CannotSetConstantVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot set {0} specific option {1} because the options were already configured for a different language..
+        /// </summary>
+        internal static string CannotSetLanguageSpecificOption {
+            get {
+                return ResourceManager.GetString("CannotSetLanguageSpecificOption", resourceCulture);
             }
         }
         

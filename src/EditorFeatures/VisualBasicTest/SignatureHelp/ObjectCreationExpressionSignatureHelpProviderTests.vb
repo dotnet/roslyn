@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationWithoutParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$|])
     End Sub
 End Class
@@ -36,25 +36,77 @@ End Class
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:="Hello"$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInteger() As Task
+
+            Dim markup = <Text><![CDATA[
+Public Class C
+    Sub M()
+        Dim obj = [|new C(i:=1$$|])
+    End Sub
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(filtered As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(i As String)", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestInvocationWithoutParametersMethodXmlComments() As Task
             Dim markup = <a><![CDATA[
 Class C
 
     ''' <summary>
-    ''' Summary for Foo. See <see cref="System.Object"/>
+    ''' Summary for Goo. See <see cref="System.Object"/>
     ''' </summary>
     Sub New()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C()", "Summary for Foo. See Object", Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C()", "Summary for Goo. See Object", Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -66,7 +118,7 @@ Class C
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$2, 4|])
     End Sub
 End Class
@@ -83,21 +135,21 @@ End Class
             Dim markup = <a><![CDATA[
 Class C
     ''' <summary>
-    ''' Summary for Foo
+    ''' Summary for Goo
     ''' </summary>
     ''' <param name="a">Param a</param>
     ''' <param name="b">Param b</param>
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$2, 4|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(a As Integer, b As Integer)", "Summary for Foo", "Param a", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(a As Integer, b As Integer)", "Summary for Goo", "Param a", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -107,7 +159,7 @@ End Class
         Public Async Function TestUnsupportedParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new String($$|])
     End Sub
 End Class
@@ -129,7 +181,7 @@ Class C
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(2, $$4|])
     End Sub
 End Class
@@ -147,20 +199,20 @@ End Class
 Imports System
 Class C
     ''' <summary>
-    ''' Summary for Foo
+    ''' Summary for Goo
     ''' </summary>
     ''' <param name="a">Param a</param>
     ''' <param name="b">Param b. See <see cref="System.IAsyncResult"/></param>
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(2, $$4|])
     End Sub
 End Class]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(a As Integer, b As Integer)", "Summary for Foo", "Param b. See IAsyncResult", currentParameterIndex:=1))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(a As Integer, b As Integer)", "Summary for Goo", "Param b. See IAsyncResult", currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -169,7 +221,7 @@ End Class]]></a>.Value
         Public Async Function TestInvocationWithoutClosingParen() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$
     |]End Sub
 End Class
@@ -188,7 +240,7 @@ Class C
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$2, 4
     |]End Sub
 End Class
@@ -207,7 +259,7 @@ Class C
     Sub New(a As Integer, b As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(2, $$4
     |]End Sub
 End Class
@@ -225,7 +277,7 @@ End Class
 Imports System
 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new Action(Of Integer, Integer)($$|])
     End Sub
 End Class
@@ -248,7 +300,7 @@ Class C
     Sub New(int a, string b)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(b:=String.Empty, $$a:=2|])
     End Sub
 End Class
@@ -265,7 +317,7 @@ End Class
         Public Async Function TestInvocationOnTriggerParens() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C($$|])
     End Sub
 End Class
@@ -283,7 +335,7 @@ End Class
 Class C
     Sub New(a As Integer, b As Integer)
     End Sub
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(2,$$|])
     End Sub
 End Class
@@ -301,7 +353,7 @@ End Class
 Class C
     Sub New(a As Integer, b As Integer)
     End Sub
-    Sub Foo()
+    Sub Goo()
         Dim obj = [|new C(2, $$|])
     End Sub
 End Class

@@ -14,23 +14,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class SpeculativeSyntaxTreeSemanticModel : SyntaxTreeSemanticModel
     {
-        private readonly CSharpSemanticModel _parentSemanticModel;
+        private readonly SyntaxTreeSemanticModel _parentSemanticModel;
         private readonly CSharpSyntaxNode _root;
         private readonly Binder _rootBinder;
         private readonly int _position;
         private readonly SpeculativeBindingOption _bindingOption;
 
-        public static SpeculativeSyntaxTreeSemanticModel Create(CSharpSemanticModel parentSemanticModel, TypeSyntax root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        public static SpeculativeSyntaxTreeSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, TypeSyntax root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
         {
             return CreateCore(parentSemanticModel, root, rootBinder, position, bindingOption);
         }
 
-        public static SpeculativeSyntaxTreeSemanticModel Create(CSharpSemanticModel parentSemanticModel, CrefSyntax root, Binder rootBinder, int position)
+        public static SpeculativeSyntaxTreeSemanticModel Create(SyntaxTreeSemanticModel parentSemanticModel, CrefSyntax root, Binder rootBinder, int position)
         {
             return CreateCore(parentSemanticModel, root, rootBinder, position, bindingOption: SpeculativeBindingOption.BindAsTypeOrNamespace);
         }
 
-        private static SpeculativeSyntaxTreeSemanticModel CreateCore(CSharpSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        private static SpeculativeSyntaxTreeSemanticModel CreateCore(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
         {
             Debug.Assert(parentSemanticModel is SyntaxTreeSemanticModel);
             Debug.Assert(root != null);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return speculativeModel;
         }
 
-        private SpeculativeSyntaxTreeSemanticModel(CSharpSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
+        private SpeculativeSyntaxTreeSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
             : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree)
         {
             _parentSemanticModel = parentSemanticModel;

@@ -1,11 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -93,6 +96,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 yield return solution.GetDocument(linkedDocumentId);
             }
+        }
+
+        /// <summary>
+        /// Get the user-specified naming rules, then add standard default naming rules (if provided). The standard 
+        /// naming rules (fallback rules) are added at the end so they will only be used if the user hasn't specified 
+        /// a preference.
+        /// </summary>
+        internal static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(this Document document,
+            ImmutableArray<NamingRule> defaultRules, CancellationToken cancellationToken)
+        {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
+            var rules = namingStyleOptions.CreateRules().NamingRules;
+
+            if (defaultRules.Length > 0)
+            {
+                rules = rules.AddRange(defaultRules);
+            }
+
+            return rules;
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -68,29 +70,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-
-            if (symbols.Length == 0)
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
+                var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+
+                if (symbols.Length == 0)
+                {
+                    return;
+                }
+
+                context.IsExclusive = true;
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var span = GetCompletionItemSpan(text, position);
+                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
+                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
+
+                var items = CreateCompletionItems(document.Project.Solution.Workspace,
+                    semanticModel, symbols, token, span, position, serializedOptions);
+
+                context.AddItems(items);
             }
-
-            context.IsExclusive = true;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = GetCompletionItemSpan(text, position);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
-            var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
-
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, 
-                semanticModel, symbols, token, span, position, serializedOptions);
-
-            context.AddItems(items);
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
+            }
         }
 
         protected override async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
@@ -99,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
@@ -111,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(
@@ -119,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
                 .FilterToVisibleAndBrowsableSymbols(
-                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), 
+                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language),
                     semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
@@ -237,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = ArrayBuilder<ISymbol>.GetInstance();
             result.AddRange(semanticModel.LookupSymbols(token.SpanStart, container));
 
-            var namedTypeContainer = container as INamedTypeSymbol;
-            if (namedTypeContainer != null)
+            if (container is INamedTypeSymbol namedTypeContainer)
             {
                 result.AddRange(namedTypeContainer.InstanceConstructors);
             }
@@ -256,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
+            Workspace workspace, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -277,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private bool TryCreateSpecialTypeItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, 
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
             ImmutableDictionary<string, string> options, out CompletionItem item)
         {
             // If the type is a SpecialType, create an additional item using 
@@ -333,13 +341,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                         var parameter = parameters[i];
 
-                        if (parameter.RefKind == RefKind.Out)
+                        switch (parameter.RefKind)
                         {
-                            builder.Append("out ");
-                        }
-                        else if (parameter.RefKind == RefKind.Ref)
-                        {
-                            builder.Append("ref ");
+                            case RefKind.Ref:
+                                builder.Append("ref ");
+                                break;
+                            case RefKind.Out:
+                                builder.Append("out ");
+                                break;
+                            case RefKind.In:
+                                builder.Append("in ");
+                                break;
                         }
 
                         builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position));
@@ -363,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: insertionText,
+                displayTextSuffix: "",
                 insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
@@ -398,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static readonly string InsertionTextProperty = "insertionText";
+        private const string InsertionTextProperty = "insertionText";
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {

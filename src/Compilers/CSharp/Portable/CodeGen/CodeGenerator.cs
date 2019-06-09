@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -29,6 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly bool _emitPdbSequencePoints;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
+
+        // There are scenarios where rvalues need to be passed to ref/in parameters
+        // in such cases the values must be spilled into temps and retained for the entirety of
+        // the most encompassing expression.       
+        private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
@@ -123,13 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+            var sourceMethod = method as SourceMemberMethodSymbol;
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+            _methodBodySyntaxOpt = (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
         }
 
         private bool IsDebugPlus()
         {
             return _module.Compilation.Options.DebugPlusMode;
         }
+
+        private bool IsPeVerifyCompatEnabled() => _module.Compilation.IsPeVerifyCompatEnabled;
 
         private LocalDefinition LazyReturnTemp
         {
@@ -148,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
                             type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
@@ -173,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool IsStackLocal(LocalSymbol local)
-        {
-            return _stackLocals != null && _stackLocals.Contains(local);
-        }
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
+
+        private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 
         public void Generate()
         {
@@ -266,6 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _synthesizedLocalOrdinals.Free();
+
+            Debug.Assert(!(_expressionTemps?.Count > 0), "leaking expression temps?");
+            _expressionTemps?.Free();
         }
 
         private void HandleReturn()
@@ -405,6 +418,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.DefineSequencePoint(syntaxTree, span);
             return span;
+        }
+
+        private void AddExpressionTemp(LocalDefinition temp)
+        {
+            // in some cases like stack locals, there is no slot allocated.
+            if (temp == null)
+            {
+                return;
+            }
+
+            ArrayBuilder<LocalDefinition> exprTemps = _expressionTemps;
+            if (exprTemps == null)
+            {
+                exprTemps = ArrayBuilder<LocalDefinition>.GetInstance();
+                _expressionTemps = exprTemps;
+            }
+
+            Debug.Assert(!exprTemps.Contains(temp));
+            exprTemps.Add(temp);
+        }
+
+        private void ReleaseExpressionTemps()
+        {
+            if (_expressionTemps?.Count > 0)
+            {
+                // release in reverse order to keep same temps on top of the temp stack if possible
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
+                {
+                    var temp = _expressionTemps[i];
+                    FreeTemp(temp);
+                }
+
+                _expressionTemps.Clear();
+            }
         }
     }
 }

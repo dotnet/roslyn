@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new void Analyze(ref bool badRegion)
+        private void Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);
@@ -95,15 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitForStatement(node);
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            if (IsInside)
-            {
-                _labelsInside.Add(node.BreakLabel);
-            }
-            return base.VisitSwitchStatement(node);
-        }
-
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
             if (IsInside)
@@ -126,13 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundGotoStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundGotoStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.BreakStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundBreakStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundBreakStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.ContinueStatement:
-                        if (_labelsInside.Contains(((pending.Branch) as BoundContinueStatement).Label)) continue;
+                        if (_labelsInside.Contains(((BoundContinueStatement)pending.Branch).Label)) continue;
                         break;
                     case BoundKind.YieldBreakStatement:
                     case BoundKind.ReturnStatement:
@@ -140,7 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKind.YieldReturnStatement:
                     case BoundKind.AwaitExpression:
-                        // We don't do anything with yield return statements or await expressions; they are treated as if they are not jumps.
+                    case BoundKind.UsingStatement:
+                    case BoundKind.ForEachStatement when ((BoundForEachStatement)pending.Branch).AwaitOpt != null:
+                        // We don't do anything with yield return statements, async using statement, async foreach statement, or await expressions;
+                        // they are treated as if they are not jumps.
                         continue;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);

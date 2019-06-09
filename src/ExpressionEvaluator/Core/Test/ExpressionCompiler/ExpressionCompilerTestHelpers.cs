@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
 
@@ -18,8 +18,8 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.Metadata.Tools;
@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.MetadataUtilities;
+using PDB::Roslyn.Test.Utilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -552,6 +552,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
+        internal static void VerifyResolutionRequests(EEMetadataReferenceResolver resolver, (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
+        {
+#if DEBUG
+            var expected = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
+            var actual = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
+            expected.AddRange(expectedRequests);
+            sort(expected);
+            actual.AddRange(resolver.Requests.Select(pair => (pair.Key, pair.Value.Identity, pair.Value.Count)));
+            sort(actual);
+            AssertEx.Equal(expected, actual);
+            actual.Free();
+            expected.Free();
+
+            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
+            {
+                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
+            }
+#endif
+        }
+
+        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, Guid[] moduleVersionIds)
+            where TAssemblyContext : struct
+        {
+            var actualIds = metadataContext.AssemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
+            Array.Sort(actualIds);
+            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            Array.Sort(expectedIds);
+            AssertEx.Equal(expectedIds, actualIds);
+        }
+
         internal static ISymUnmanagedReader ConstructSymReaderWithImports(ImmutableArray<byte> peImage, string methodName, params string[] importStrings)
         {
             using (var peReader = new PEReader(peImage))
@@ -728,7 +758,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 {
                     var sequencePoints = symMethod.GetSequencePoints();
                     ilOffset = atLineNumber < 0
-                        ? sequencePoints.Where(sp => sp.StartLine != SequencePointList.HiddenSequencePointLine).Select(sp => sp.Offset).FirstOrDefault()
+                        ? sequencePoints.Where(sp => sp.StartLine != Cci.SequencePoint.HiddenLine).Select(sp => sp.Offset).FirstOrDefault()
                         : sequencePoints.First(sp => sp.StartLine == atLineNumber).Offset;
                 }
             }
@@ -770,7 +800,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal static void EmitCorLibWithAssemblyReferences(
             Compilation comp,
             string pdbPath,
-            Func<CommonPEModuleBuilder, CommonPEModuleBuilder> getModuleBuilder,
+            Func<CommonPEModuleBuilder, EmitOptions, CommonPEModuleBuilder> getModuleBuilder,
             out ImmutableArray<byte> peBytes,
             out ImmutableArray<byte> pdbBytes)
         {
@@ -788,7 +818,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             // Wrap the module builder in a module builder that
             // reports the "System.Object" type as having no base type.
-            moduleBuilder = getModuleBuilder(moduleBuilder);
+            moduleBuilder = getModuleBuilder(moduleBuilder, emitOptions);
             bool result = comp.Compile(
                 moduleBuilder,
                 emittingPdb: pdbPath != null,
@@ -801,13 +831,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 using (var pdbStream = new MemoryStream())
                 {
                     PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
                         null, null,
-                        allowMissingMethodBodies: true,
+                        metadataOnly: true,
                         isDeterministic: false,
+                        emitTestCoverageData: false,
+                        privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();

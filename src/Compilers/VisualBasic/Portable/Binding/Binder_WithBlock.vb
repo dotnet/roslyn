@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundWithStatement(node,
                                           Me._withBlockInfo.OriginalExpression,
-                                          boundBlockBinder.BindBlock(node, node.Statements, diagnostics),
+                                          boundBlockBinder.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated(),
                                           Me)
         End Function
 

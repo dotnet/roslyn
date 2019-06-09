@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     /// <summary>
     /// Represents a code style option and an associated notification option.  Supports
-    /// being instantiated with T as a <see cref="bool"/> or an <code>enum type</code>.
+    /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
     /// 
     /// CodeStyleOption also has some basic support for migration a <see cref="bool"/> option
-    /// forward to an <code>enum type</code> option.  Specifically, if a previously serialized
+    /// forward to an <c>enum type</c> option.  Specifically, if a previously serialized
     /// bool-CodeStyleOption is then deserialized into an enum-CodeStyleOption then 'false' 
     /// values will be migrated to have the 0-value of the enum, and 'true' values will be
     /// migrated to have the 1-value of the enum.
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
         private const int SerializationVersion = 1;
 
@@ -49,11 +50,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
-            if (typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(string))
+            {
+                return Value;
+            }
+            else if (typeof(T) == typeof(bool))
             {
                 return Value;
             }
@@ -69,6 +74,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private string GetTypeNameForSerialization()
         {
+            if (typeof(T) == typeof(string))
+            {
+                return nameof(String);
+            }
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -111,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
+                    notificationOption = NotificationOption.Silent;
                     break;
                 case DiagnosticSeverity.Info:
                     notificationOption = NotificationOption.Suggestion;
@@ -140,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
                     return v => Convert(int.Parse(v));
+                case nameof(String):
+                    return v => (T)(object)v;
                 default:
                     throw new ArgumentException(nameof(type));
             }
@@ -178,6 +189,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                Equals(option);
 
         public override int GetHashCode()
-            => Hash.Combine(Value.GetHashCode(), Notification.GetHashCode());
+            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
     }
 }

@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -542,11 +543,11 @@ End Class
 }}
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim compOptions = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)
-                    Dim dummyComp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences((<Compilation/>), {comp.EmitToImageReference()}, compOptions)
+                    Dim dummyComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences((<Compilation/>), {comp.EmitToImageReference()}, compOptions)
                     Dim typeC = dummyComp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim displayClassTypes = typeC.GetMembers().OfType(Of NamedTypeSymbol)()
                     Assert.True(displayClassTypes.Any())
@@ -599,7 +600,7 @@ Module M
 End Module
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef, MsvbRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
 
@@ -620,7 +621,7 @@ End Module
         End Sub
 
         Private Sub VerifyHasMe(source As String, moveNextMethodName As String, expectedType As String, expectedIL As String)
-            Dim sourceCompilation = CreateCompilationWithReferences(
+            Dim sourceCompilation = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -669,7 +670,7 @@ End Module
         End Sub
 
         Private Sub VerifyNoMe(source As String, moveNextMethodName As String)
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -727,7 +728,7 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_2_F.MoveNext")
@@ -765,7 +766,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C._Lambda$__2-0")
@@ -802,7 +803,7 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -847,7 +848,7 @@ Class Derived : Inherits Base
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "Derived.VB$StateMachine_2_F.MoveNext")
@@ -890,7 +891,7 @@ Class Derived : Inherits Base
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
@@ -936,7 +937,7 @@ Class Derived : Inherits Base
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "Derived._Lambda$__2-0")
@@ -1163,7 +1164,7 @@ End Class
         End Function
 
         Private Shared Sub CheckOverloading(source As String, isDesiredOverload As Func(Of MethodSymbol, Boolean), getSynthesizedMethod As Func(Of NamedTypeSymbol, MethodSymbol))
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             Dim dummyComp = MakeDummyCompilation(comp)
 
             Dim originalType = dummyComp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -1177,7 +1178,7 @@ End Class
 
         Private Shared Function MakeDummyCompilation(comp As VisualBasicCompilation) As VisualBasicCompilation
             Dim compOptions = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)
-            Return CreateCompilationWithMscorlibAndVBRuntimeAndReferences(<Compilation/>, {comp.EmitToImageReference()}, compOptions)
+            Return CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(<Compilation/>, {comp.EmitToImageReference()}, compOptions)
         End Function
     End Class
 End Namespace

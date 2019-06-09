@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
 
-        public string DialogTitle => "Manage Naming Styles";
+        public string DialogTitle => ServicesVSResources.Manage_naming_styles;
 
         public ManageNamingStylesDialogViewModel(
-            ObservableCollection<MutableNamingStyle> namingStyles, 
-            List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules, 
+            ObservableCollection<MutableNamingStyle> namingStyles,
+            List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules,
             INotificationService notificationService)
         {
             _notificationService = notificationService;

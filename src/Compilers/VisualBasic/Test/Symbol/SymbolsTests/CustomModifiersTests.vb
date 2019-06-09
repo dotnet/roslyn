@@ -1335,7 +1335,7 @@ End Class
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
             Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
-            Dim compilation2 = CreateCompilationWithMscorlib45({}, references:={New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib45(source:=Nothing, references:={New VisualBasicCompilationReference(compilation1)})
 
             test = compilation2.GetTypeByMetadataName("Module1").GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub Module1.Test(x As System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)))", test.ToTestDisplayString())
@@ -2032,7 +2032,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource,
                                                                                      {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
                                                                                      options:=TestOptions.ReleaseExe)
 
@@ -2080,7 +2080,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource,
                                                                                      {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
                                                                                      options:=TestOptions.ReleaseExe)
 
@@ -2407,12 +2407,7 @@ End Class
 </compilation>
 
             Dim comp2 = CreateCompilationWithCustomILSource(source2, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
-            comp2.AssertTheseDiagnostics(
-<errors>
-BC30402: 'P' cannot implement property 'P' on interface 'I' because the tuple element names in 'Public Property P As (Object, Object)' do not match those in 'Property P As (a As Object, b As Object)'.
-    Public Property P As (Object, Object) Implements I.P
-                                                     ~~~
-</errors>)
+            comp2.AssertTheseDiagnostics()
 
             Dim classProperty2 = comp2.GlobalNamespace.GetMember(Of PropertySymbol)("C.P")
 
@@ -2582,9 +2577,6 @@ End Class
 <errors>
 BC40001: 'Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)' cannot override 'Public Overridable Overloads Function M(x As (c As Object, d As Object)) As (a As Object, b As Object)' because they differ by their tuple element names.
     Public Overrides Function M(x As (c As Object, d As Object)) As (Object, Object)
-                              ~
-BC40001: 'Public Overrides Property P As (Object, Object)' cannot override 'Public Overridable Overloads Property P As (a As Object, b As Object)' because they differ by their tuple element names.
-    Public Overrides Property P As (Object, Object)
                               ~
 </errors>)
 

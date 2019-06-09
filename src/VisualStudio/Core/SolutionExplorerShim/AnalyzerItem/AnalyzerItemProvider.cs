@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -14,6 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         [Import(typeof(AnalyzersCommandHandler))]
         private IAnalyzersCommandHandler _commandHandler = null;
+
+        [ImportingConstructor]
+        public AnalyzerItemProvider()
+        {
+        }
 
         protected override IAttachedCollectionSource CreateCollectionSource(AnalyzersFolderItem analyzersFolder, string relationshipName)
         {

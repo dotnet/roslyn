@@ -17,30 +17,34 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
-    internal abstract class AbstractSpeculationAnalyzer<TSyntaxNode, TExpressionSyntax, TTypeSyntax, TAttributeSyntax,
-        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel, TConversion>
-        where TSyntaxNode : SyntaxNode
-        where TExpressionSyntax : TSyntaxNode
+    internal abstract class AbstractSpeculationAnalyzer<
+            TExpressionSyntax,
+            TTypeSyntax,
+            TAttributeSyntax,
+            TArgumentSyntax,
+            TForEachStatementSyntax,
+            TThrowStatementSyntax,
+            TConversion>
+        where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
-        where TAttributeSyntax : TSyntaxNode
-        where TArgumentSyntax : TSyntaxNode
-        where TForEachStatementSyntax : TSyntaxNode
-        where TThrowStatementSyntax : TSyntaxNode
-        where TSemanticModel : SemanticModel
+        where TAttributeSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
+        where TForEachStatementSyntax : SyntaxNode
+        where TThrowStatementSyntax : SyntaxNode
         where TConversion : struct
     {
         private readonly TExpressionSyntax _expression;
         private readonly TExpressionSyntax _newExpressionForReplace;
-        private readonly TSemanticModel _semanticModel;
+        private readonly SemanticModel _semanticModel;
         private readonly CancellationToken _cancellationToken;
         private readonly bool _skipVerificationForReplacedNode;
         private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
         private readonly bool _isNewSemanticModelSpeculativeModel;
 
-        private TSyntaxNode _lazySemanticRootOfOriginalExpression;
+        private SyntaxNode _lazySemanticRootOfOriginalExpression;
         private TExpressionSyntax _lazyReplacedExpression;
-        private TSyntaxNode _lazySemanticRootOfReplacedExpression;
-        private TSemanticModel _lazySpeculativeSemanticModel;
+        private SyntaxNode _lazySemanticRootOfReplacedExpression;
+        private SemanticModel _lazySpeculativeSemanticModel;
 
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public AbstractSpeculationAnalyzer(
             TExpressionSyntax expression,
             TExpressionSyntax newExpression,
-            TSemanticModel semanticModel,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken,
             bool skipVerificationForReplacedNode = false,
             bool failOnOverloadResolutionFailuresInOriginalCode = false)
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// field initializer, default parameter initializer or type syntax node.
         /// It serves as the root node for all semantic analysis for this syntax replacement.
         /// </summary>
-        public TSyntaxNode SemanticRootOfOriginalExpression
+        public SyntaxNode SemanticRootOfOriginalExpression
         {
             get
             {
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Semantic model for the syntax tree corresponding to <see cref="OriginalExpression"/>
         /// </summary>
-        public TSemanticModel OriginalSemanticModel => _semanticModel;
+        public SemanticModel OriginalSemanticModel => _semanticModel;
 
         /// <summary>
         /// Node which replaces the <see cref="OriginalExpression"/>.
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This node is used as the argument to the GetSpeculativeSemanticModel API and serves as the root node for all
         /// semantic analysis of the speculated tree.
         /// </summary>
-        public TSyntaxNode SemanticRootOfReplacedExpression
+        public SyntaxNode SemanticRootOfReplacedExpression
         {
             get
             {
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Speculative semantic model used for analyzing the semantics of the new tree.
         /// </summary>
-        public TSemanticModel SpeculativeSemanticModel
+        public SemanticModel SpeculativeSemanticModel
         {
             get
             {
@@ -149,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public CancellationToken CancellationToken => _cancellationToken;
 
-        protected abstract TSyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
+        protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
-        protected virtual TSyntaxNode GetSemanticRootOfReplacedExpression(TSyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
+        protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
         {
             return semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
         }
@@ -171,19 +175,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         [Conditional("DEBUG")]
-        protected abstract void ValidateSpeculativeSemanticModel(TSemanticModel speculativeSemanticModel, TSyntaxNode nodeToSpeculate);
+        protected abstract void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate);
 
         private void EnsureSpeculativeSemanticModel()
         {
             if (_lazySpeculativeSemanticModel == null)
             {
-                TSyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
+                SyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
                 _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
                 ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
             }
         }
 
-        protected abstract TSemanticModel CreateSpeculativeSemanticModel(TSyntaxNode originalNode, TSyntaxNode nodeToSpeculate, TSemanticModel semanticModel);
+        protected abstract SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel);
 
         #region Semantic comparison helpers
 
@@ -254,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
         protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
-        protected bool SymbolsAreCompatible(TSyntaxNode originalNode, TSyntaxNode newNode, bool requireNonNullSymbols = false)
+        protected bool SymbolsAreCompatible(SyntaxNode originalNode, SyntaxNode newNode, bool requireNonNullSymbols = false)
         {
             Debug.Assert(originalNode != null);
             Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalNode));
@@ -408,9 +412,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 skipVerificationForCurrentNode: _skipVerificationForReplacedNode);
         }
 
-        protected abstract bool IsParenthesizedExpression(TSyntaxNode node);
+        protected abstract bool IsParenthesizedExpression(SyntaxNode node);
 
-        protected bool ReplacementChangesSemantics(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode originalRoot, bool skipVerificationForCurrentNode)
+        protected bool ReplacementChangesSemantics(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode originalRoot, bool skipVerificationForCurrentNode)
         {
             if (this.SpeculativeSemanticModel == null)
             {
@@ -418,12 +422,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            TSyntaxNode previousOriginalNode = null, previousReplacedNode = null;
+            SyntaxNode previousOriginalNode = null, previousReplacedNode = null;
 
             while (true)
             {
-                if (!skipVerificationForCurrentNode && ReplacementChangesSemanticsForNode(currentOriginalNode,
-                    currentReplacedNode, previousOriginalNode, previousReplacedNode))
+                if (!skipVerificationForCurrentNode &&
+                    ReplacementChangesSemanticsForNode(
+                        currentOriginalNode, currentReplacedNode,
+                        previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }
@@ -435,8 +441,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 previousOriginalNode = currentOriginalNode;
                 previousReplacedNode = currentReplacedNode;
-                currentOriginalNode = (TSyntaxNode)currentOriginalNode.Parent;
-                currentReplacedNode = (TSyntaxNode)currentReplacedNode.Parent;
+                currentOriginalNode = currentOriginalNode.Parent;
+                currentReplacedNode = currentReplacedNode.Parent;
                 skipVerificationForCurrentNode = skipVerificationForCurrentNode && IsParenthesizedExpression(currentReplacedNode);
             }
 
@@ -458,19 +464,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return SymbolsAreCompatible(this.OriginalExpression, this.ReplacedExpression, requireNonNullSymbols: true);
         }
 
-        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode previousOriginalNode, TSyntaxNode previousReplacedNode);
+        protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode);
 
-        private bool ReplacementChangesSemanticsForNode(TSyntaxNode currentOriginalNode, TSyntaxNode currentReplacedNode, TSyntaxNode previousOriginalNode, TSyntaxNode previousReplacedNode)
+        private bool ReplacementChangesSemanticsForNode(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
         {
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (IsInvocableExpression(currentOriginalNode))
+            if (ExpressionMightReferenceMember(currentOriginalNode))
             {
                 // If replacing the node will result in a change in overload resolution, we won't remove it.
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-                if (ReplacementBreaksInvocableExpression(originalExpression, newExpression))
+                if (ReplacementBreaksExpression(originalExpression, newExpression))
+                {
+                    return true;
+                }
+
+                if (ReplacementBreaksSystemObjectMethodResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }
@@ -515,6 +526,43 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
+        /// <summary>
+        /// Determine if removing the cast could cause the semantics of System.Object method call to change.
+        /// E.g. Dim b = CStr(1).GetType() is necessary, but the GetType method symbol info resolves to the same with or without the cast.
+        /// </summary>
+        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        {
+            if (previousOriginalNode != null && previousReplacedNode != null)
+            {
+                var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
+                var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
+
+                if (IsSymbolSystemObjectInstanceMethod(originalExpressionSymbol) && IsSymbolSystemObjectInstanceMethod(replacedExpressionSymbol))
+                {
+                    var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
+                    var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
+                    if (previousReplacedType != null && previousOriginalType != null)
+                    {
+                        return !previousReplacedType.InheritsFromOrEquals(previousOriginalType);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
+        /// </summary>
+        private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
+        {
+            return symbol != null
+                && symbol.IsKind(SymbolKind.Method)
+                && symbol.ContainingType.SpecialType == SpecialType.System_Object
+                && !symbol.IsOverridable()
+                && !symbol.IsStaticType();
+        }
+
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)
         {
             var attributeSym = this.OriginalSemanticModel.GetSymbolInfo(attribute).Symbol;
@@ -524,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         protected abstract TExpressionSyntax GetForEachStatementExpression(TForEachStatementSyntax forEachStatement);
 
-        protected abstract bool IsForEachTypeInferred(TForEachStatementSyntax forEachStatement, TSemanticModel semanticModel);
+        protected abstract bool IsForEachTypeInferred(TForEachStatementSyntax forEachStatement, SemanticModel semanticModel);
 
         private bool ReplacementBreaksForEachStatement(TForEachStatementSyntax forEachStatement, TForEachStatementSyntax newForEachStatement)
         {
@@ -637,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
         }
 
-        protected abstract bool IsInvocableExpression(TSyntaxNode node);
+        protected abstract bool ExpressionMightReferenceMember(SyntaxNode node);
 
         private static bool IsDelegateInvoke(ISymbol symbol)
         {
@@ -652,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 symbol.ContainingType.IsAnonymousType();
         }
 
-        private bool ReplacementBreaksInvocableExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
+        private bool ReplacementBreaksExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
         {
             var originalSymbolInfo = _semanticModel.GetSymbolInfo(expression);
             if (_failOnOverloadResolutionFailuresInOriginalCode && originalSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
@@ -748,9 +796,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private bool IsCompatibleInterfaceMemberImplementation(
             ISymbol symbol,
             ISymbol newSymbol,
-            TExpressionSyntax originalInvocationExpression,
-            TExpressionSyntax newInvocationExpression,
-            TSemanticModel speculativeSemanticModel)
+            TExpressionSyntax originalExpression,
+            TExpressionSyntax newExpression,
+            SemanticModel speculativeSemanticModel)
         {
             // If this is an interface member, we have to be careful. In general,
             // we have to treat an interface member as incompatible with the new member
@@ -777,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            var newReceiver = GetReceiver(newInvocationExpression);
+            var newReceiver = GetReceiver(newExpression);
             ITypeSymbol newReceiverType = newReceiver != null ?
                 speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
                 newSymbolContainingType;
@@ -817,7 +865,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return false;
             }
 
-            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalInvocationExpression);
+            return SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression);
         }
 
         private static bool IsEffectivelySealedClass(ITypeSymbol type)
@@ -846,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // A private class with no nested or sibling classes is effectively sealed.
                 if (namedType.DeclaredAccessibility == Accessibility.Private &&
                     namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && namedType != nestedType))
+                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
                 {
                     return true;
                 }
@@ -855,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, TSemanticModel semanticModel)
+        private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)
         {
             var receiver = GetReceiver(invocation);
             if (receiver != null)
@@ -873,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         // Returns true if the given receiver expression for an invocation represents a unique copy of the underlying object
         // that is not referenced by any other variable.
         // For example, if the receiver expression is an invocation, object-creation, element-access or member-access expression.
-        private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, TSemanticModel semanticModel)
+        private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
         {
             var receiverSymbol = semanticModel.GetSymbolInfo(receiver).Symbol;
 
@@ -895,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
             {
                 var specifiedArguments = GetArguments(originalInvocation);
-                if (specifiedArguments != null)
+                if (!specifiedArguments.IsDefault)
                 {
                     var symbolParameters = originalSymbol.GetParameters();
                     var newSymbolParameters = newSymbol.GetParameters();
@@ -1057,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        protected abstract TConversion ClassifyConversion(TSemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
-        protected abstract TConversion ClassifyConversion(TSemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
+        protected abstract TConversion ClassifyConversion(SemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
+        protected abstract TConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
     }
 }

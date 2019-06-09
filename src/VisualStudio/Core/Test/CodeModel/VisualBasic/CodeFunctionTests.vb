@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -621,7 +622,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
@@ -633,7 +634,7 @@ End Class
             Dim code =
 <Code>
 Interface I
-    Sub $$Foo()
+    Sub $$Goo()
 End Interface
 </Code>
 
@@ -645,7 +646,7 @@ End Interface
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -659,7 +660,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected Sub $$Foo()
+    Protected Sub $$Goo()
 
     End Sub
 End Class
@@ -673,7 +674,7 @@ End Class
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -681,7 +682,7 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
 
     End Sub
 End Class
@@ -695,7 +696,7 @@ End Class
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -703,7 +704,7 @@ End Class
 Class C
     Inherits B
 
-    Protected NotOverridable Overrides Sub $$Foo()
+    Protected NotOverridable Overrides Sub $$Goo()
 
     End Sub
 End Class
@@ -845,7 +846,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
@@ -857,7 +858,7 @@ End Class
             Dim code =
 <Code>
 Interface I
-    Sub $$Foo()
+    Sub $$Goo()
 End Interface
 </Code>
 
@@ -869,7 +870,7 @@ End Interface
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -883,7 +884,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected Sub $$Foo()
+    Protected Sub $$Goo()
 
     End Sub
 End Class
@@ -897,7 +898,7 @@ End Class
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -905,7 +906,7 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
 
     End Sub
 End Class
@@ -919,7 +920,7 @@ End Class
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -927,7 +928,7 @@ End Class
 Class C
     Inherits B
 
-    Protected NotOverridable Overrides Sub $$Foo()
+    Protected NotOverridable Overrides Sub $$Goo()
 
     End Sub
 End Class
@@ -945,11 +946,11 @@ End Class
             Dim code =
 <Code>
 Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -957,11 +958,11 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo
+    Sub $$Goo
 End Class
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1079,7 +1080,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Protected MustOverride Sub $$Foo()
+    Protected MustOverride Sub $$Goo()
 End Class
 </Code>
 
@@ -1091,7 +1092,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -1104,7 +1105,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected NotOverridable Sub $$Foo()
+    Protected NotOverridable Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -1117,13 +1118,13 @@ End Class
             Dim code =
 <Code>
 MustInherit Class B
-    Protected MustOverride Sub Foo()
+    Protected MustOverride Sub Goo()
 End Class
 
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -1136,13 +1137,13 @@ End Class
             Dim code =
 <Code>
 MustInherit Class B
-    Protected MustOverride Sub Foo()
+    Protected MustOverride Sub Goo()
 End Class
 
 Class C
     Inherits B
 
-    Protected Shadows Sub $$Foo()
+    Protected Shadows Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -1160,13 +1161,13 @@ End Class
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "M:N.C.Foo")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "M:N.C.Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1175,13 +1176,13 @@ End Namespace
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.Foo()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.Goo()")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1190,13 +1191,13 @@ End Namespace
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.Foo()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.Goo()")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1205,13 +1206,13 @@ End Namespace
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Foo()")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Goo()")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1220,13 +1221,13 @@ End Namespace
 <Code>
 Namespace N
     Class C
-        Function $$Foo() As Integer
+        Function $$Goo() As Integer
         End Function
     End Class
 End Namespace
 </Code>
 
-            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Foo() As Integer")
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Goo() As Integer")
         End Sub
 
 #End Region
@@ -1238,7 +1239,7 @@ End Namespace
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -1257,7 +1258,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo$()
+    Function $$Goo$()
     End Function
 End Class
 </Code>
@@ -1276,7 +1277,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As String
+    Function $$Goo() As String
     End Function
 End Class
 </Code>
@@ -1295,7 +1296,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Function $$Foo() As String
+    MustOverride Function $$Goo() As String
 End Class
 </Code>
 
@@ -1994,7 +1995,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2003,7 +2004,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2017,7 +2018,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2026,7 +2027,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Friend Function Foo() As Integer
+    Friend Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2040,7 +2041,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected Friend Function $$Foo() As Integer
+    Protected Friend Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2049,7 +2050,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2063,7 +2064,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2072,7 +2073,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Protected Friend Function Foo() As Integer
+    Protected Friend Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2086,7 +2087,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2095,7 +2096,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2109,14 +2110,14 @@ End Class
             Dim code =
 <Code>
 Interface C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Interface C
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Class
 </Code>
 
@@ -2128,14 +2129,14 @@ End Class
             Dim code =
 <Code>
 Interface C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Interface C
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Class
 </Code>
 
@@ -2151,7 +2152,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2160,7 +2161,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Overridable Sub Foo()
+    Overridable Sub Goo()
 
     End Sub
 End Class
@@ -2174,7 +2175,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2183,7 +2184,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2197,14 +2198,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    Overridable Sub Foo()
+    Overridable Sub Goo()
 
     End Sub
 End Class
@@ -2222,7 +2223,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2231,7 +2232,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2243,7 +2244,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2252,7 +2253,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2266,14 +2267,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2289,7 +2290,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2298,7 +2299,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2312,7 +2313,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Function $$Foo() As Integer
+    Shared Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2321,7 +2322,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2339,7 +2340,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -2364,7 +2365,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Sub $$Foo()
+    Sub $$Goo()
 
     End Sub
 End Class
@@ -2373,7 +2374,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2387,7 +2388,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Sub $$Foo()
+    Sub $$Goo()
 
     End Sub
 End Class
@@ -2396,7 +2397,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2408,14 +2409,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2433,7 +2434,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2442,7 +2443,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2456,7 +2457,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2465,7 +2466,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Dim i As Integer
     End Function
 End Class
@@ -2479,7 +2480,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As System.Int32
+    Function $$Goo() As System.Int32
         Dim i As Integer
     End Function
 End Class
@@ -2488,7 +2489,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As String
+    Function Goo() As String
         Dim i As Integer
     End Function
 End Class
@@ -2502,7 +2503,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As System.Int32
+    Function $$Goo() As System.Int32
         Dim i As Integer
     End Function
 End Class
@@ -2511,7 +2512,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2525,14 +2526,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Function $$Foo() As System.Int32
+    MustOverride Function $$Goo() As System.Int32
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2544,14 +2545,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Function Foo() As Integer
+    MustOverride Function Goo() As Integer
 End Class
 </Code>
 
@@ -2784,7 +2785,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(x As C)
+    Sub $$Goo(x As C)
     End Sub
 End Class
 </Code>
@@ -2796,10 +2797,10 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
-    Sub $$Foo(x As C)
+    Sub $$Goo(x As C)
     End Sub
 End Class
 </Code>
@@ -2811,15 +2812,15 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 
-    Sub Foo(x As C)
+    Sub Goo(x As C)
     End Sub
 End Class
 
 </Code>
-            TestOverloadsUniqueSignatures(code, "M:C.Foo", "M:C.Foo(C)")
+            TestOverloadsUniqueSignatures(code, "M:C.Goo", "M:C.Goo(C)")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2827,12 +2828,12 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 End Class
 
 </Code>
-            TestOverloadsUniqueSignatures(code, "M:C.Foo")
+            TestOverloadsUniqueSignatures(code, "M:C.Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

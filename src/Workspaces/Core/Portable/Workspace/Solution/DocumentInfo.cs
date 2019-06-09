@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -53,12 +55,18 @@ namespace Microsoft.CodeAnalysis
         public TextLoader TextLoader { get; }
 
         /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        internal IDocumentServiceProvider DocumentServiceProvider { get; }
+
+        /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        private DocumentInfo(DocumentAttributes attributes, TextLoader loader)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, IDocumentServiceProvider documentServiceProvider)
         {
             Attributes = attributes;
             TextLoader = loader;
+            DocumentServiceProvider = documentServiceProvider;
         }
 
         public static DocumentInfo Create(
@@ -70,22 +78,39 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader);
+            return Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, documentServiceProvider: null);
+        }
+
+        internal static DocumentInfo Create(
+            DocumentId id,
+            string name,
+            IEnumerable<string> folders,
+            SourceCodeKind sourceCodeKind,
+            TextLoader loader,
+            string filePath,
+            bool isGenerated,
+            IDocumentServiceProvider documentServiceProvider)
+        {
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
             DocumentAttributes attributes = null,
-            Optional<TextLoader> loader = default(Optional<TextLoader>))
+            Optional<TextLoader> loader = default,
+            Optional<IDocumentServiceProvider> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader.HasValue ? loader.Value : TextLoader;
+            var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
-            if (newAttributes == Attributes && newLoader == TextLoader)
+            if (newAttributes == Attributes &&
+                newLoader == TextLoader &&
+                newDocumentServiceProvider == DocumentServiceProvider)
             {
                 return this;
             }
 
-            return new DocumentInfo(newAttributes, newLoader);
+            return new DocumentInfo(newAttributes, newLoader, newDocumentServiceProvider);
         }
 
         public DocumentInfo WithId(DocumentId id)
@@ -179,13 +204,13 @@ namespace Microsoft.CodeAnalysis
                 DocumentId id = null,
                 string name = null,
                 IEnumerable<string> folders = null,
-                Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
-                Optional<string> filePath = default(Optional<string>),
-                Optional<bool> isGenerated = default(Optional<bool>))
+                Optional<SourceCodeKind> sourceCodeKind = default,
+                Optional<string> filePath = default,
+                Optional<bool> isGenerated = default)
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
-                var newFolders = folders ?? Folders;
+                var newFolders = folders?.ToImmutableReadOnlyListOrEmpty() ?? Folders;
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
@@ -202,6 +227,8 @@ namespace Microsoft.CodeAnalysis
 
                 return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
             }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -234,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(DocumentAttributes), this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
                     }
 
                     return _lazyChecksum;

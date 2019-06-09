@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../VBWorkspaceResources.resx">
+    <body>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="translated">이 대상에는 네임스페이스를 추가할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
+        <source>Only attributes, expressions or statements can be made explicit</source>
+        <target state="translated">특성, 식 또는 문만 명시적일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_">
+        <source>&lt;event&gt;</source>
+        <target state="translated">&lt;event&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="handler">
+        <source>&lt;handler&gt;</source>
+        <target state="translated">&lt;handler&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_be_evaluated_and_converted">
+        <source>The expression to be evaluated and converted.</source>
+        <target state="translated">계산 및 변환할 식입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_data_type_to_which_the_value_of_expression_will_be_converted">
+        <source>The name of the data type to which the value of expression will be converted.</source>
+        <target state="translated">식의 값이 변환될 데이터 형식의 이름입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expression">
+        <source>&lt;expression&gt;</source>
+        <target state="translated">&lt;expression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeName">
+        <source>&lt;typeName&gt;</source>
+        <target state="translated">&lt;typeName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
+        <source>Associates an event with an event handler, delegate or lambda expression at run time.</source>
+        <target state="translated">런타임에 이벤트와 이벤트 처리기, 대기자 또는 람다 식을 연결합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with">
+        <source>The event to associate an event handler, delegate or lambda expression with.</source>
+        <target state="translated">이벤트는 이벤트 처리기, 대기자 또는 람다 식에 연결됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
+        <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
+        <target state="translated">이벤트에 연결되는 이벤트 처리기입니다. 여기에서는 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; } 양식을 사용할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">
+        <source>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</source>
+        <target state="translated">&lt;expression&gt;이 Nothing이 아닌 참조 또는 Null 허용 값으로 계산되는 경우 함수는 해당 값을 반환합니다. 그렇지 않으면 계산 후 &lt;expressionIfNothing&gt;을 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing">
+        <source>Returned if it evaluates to a reference or nullable type that is not Nothing.</source>
+        <target state="translated">Nothing이 아닌 참조나 null 허용 형식으로 계사되었으면 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_expression_evaluates_to_Nothing">
+        <source>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</source>
+        <target state="translated">&lt;expression&gt;이 Nothing으로 계산되었으면 계산 후 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfNothing">
+        <source>&lt;expressionIfNothing&gt;</source>
+        <target state="translated">&lt;expressionIfNothing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type">
+        <source>Returns the result of explicitly converting an expression to a specified data type.</source>
+        <target state="translated">지정한 데이터 형식으로 식을 명시적으로 변환한 결과를 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type">
+        <source>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</source>
+        <target state="translated">CType과 유사한 형식 변환 작업을 지정합니다. 차이점 CType은 유효한 변환이 있는 한 계속되는 반면, DirectCast는 특정 형식이 다른 형식에서 상속되거나 다른 형식을 구현해야 한다는 점입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_name_to_return_a_System_Type_object_for">
+        <source>The type name to return a System.Type object for.</source>
+        <target state="translated">System.Type 개체를 반환할 형식 이름입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_a_System_Type_object_for_the_specified_type_name">
+        <source>Returns a System.Type object for the specified type name.</source>
+        <target state="translated">지정한 형식 이름에 대한 System.Type 개체를 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned">
+        <source>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</source>
+        <target state="translated">System.Xml.Linq.XNamespace 개체를 반환할 XML 네임스페이스 접두사입니다. 생략하면 기본 XML 네임스페이스에 대한 개체가 반환됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="xmlNamespacePrefix">
+        <source>&lt;xmlNamespacePrefix&gt;</source>
+        <target state="translated">&lt;xmlNamespacePrefix&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix">
+        <source>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</source>
+        <target state="translated">지정한 XML 네임스페이스 접두사에 해당하는 System.Xml.Linq.XNamespace 개체를 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string">
+        <source>Replaces a specified number of characters in a String variable with characters from another string.</source>
+        <target state="translated">String 변수에서 지정한 문자 수를 다른 문자열의 문자와 바꿉니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_string_variable_to_modify">
+        <source>The name of the string variable to modify.</source>
+        <target state="translated">수정할 문자열 변수의 이름입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins">
+        <source>The one-based character position in the string where the replacement of text begins.</source>
+        <target state="translated">바꿀 텍스트가 시작되는 문자열의 문자 위치(1부터 시작)입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used">
+        <source>The number of characters to replace. If omitted, the length of &lt;stringExpression&gt; is used.</source>
+        <target state="translated">바꿀 문자 수입니다. 생략하면 &lt;stringExpression&gt;의 길이가 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringName">
+        <source>&lt;stringName&gt;</source>
+        <target state="translated">&lt;stringName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="startIndex">
+        <source>&lt;startIndex&gt;</source>
+        <target state="translated">&lt;startIndex&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="length">
+        <source>&lt;length&gt;</source>
+        <target state="translated">&lt;length&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringExpression">
+        <source>&lt;stringExpression&gt;</source>
+        <target state="translated">&lt;stringExpression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Converts_an_expression_to_the_0_data_type">
+        <source>Converts an expression to the {0} data type.</source>
+        <target state="translated">식을 {0} 데이터 형식으로 변환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time">
+        <source>Removes the association between an event and an event handler or delegate at run time.</source>
+        <target state="translated">런타임에서는 이벤트와 이벤트 처리기 또는 대기자 사이의 연결을 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_disassociate_an_event_handler_or_delegate_from">
+        <source>The event to disassociate an event handler or delegate from.</source>
+        <target state="translated">이벤트는 이벤트 처리기 또는 대기자에서 연결이 해제됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate">
+        <source>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</source>
+        <target state="translated">이벤트에서 연결이 해제되는 이벤트 처리기입니다. 여기에서는 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; } 양식을 사용할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
+        <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
+        <target state="translated">&lt;condition&gt;이 True를 반환하면 함수는 &lt;expressionIfTrue&gt;를 계산 후 반환합니다. 그렇지 않으면 &lt;expressionIfFalse&gt;를 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_evaluate">
+        <source>The expression to evaluate.</source>
+        <target state="translated">계산할 식입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_True">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to True.</source>
+        <target state="translated">&lt;condition&gt;이 True인 경우 계산 후 반환됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_False">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to False.</source>
+        <target state="translated">if &lt;condition&gt;이 False인 경우 계산 후 반환됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="condition">
+        <source>&lt;condition&gt;</source>
+        <target state="translated">&lt;condition&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfTrue">
+        <source>&lt;expressionIfTrue&gt;</source>
+        <target state="translated">&lt;expressionIfTrue&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfFalse">
+        <source>&lt;expressionIfFalse&gt;</source>
+        <target state="translated">&lt;expressionIfFalse&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
+        <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
+        <target state="translated">예외를 throw하지 않는 형식 변환 작업을 지정합니다. 변환하지 못한 경우 프로그램에서 테스트할 수 있도록 TryCast에서 Nothing을 반환합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_does_not_descend_from_root">
+        <source>Node does not descend from root.</source>
+        <target state="translated">노드가 루트의 내림차순이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_not_in_parent_s_child_list">
+        <source>Node not in parent's child list</source>
+        <target state="translated">부모의 자식 목록에 노드가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trivia_is_not_associated_with_token">
+        <source>Trivia is not associated with token</source>
+        <target state="translated">Trivia가 토큰에 연결되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeOrMember">
+        <source>&lt;typeOrMember&gt;</source>
+        <target state="translated">&lt;typeOrMember&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_of_member_to_return_the_name_of">
+        <source>The type of member to return the name of.</source>
+        <target state="translated">이름을 반환할 멤버 형식입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Produces_a_string_for_the_name_of_the_specified_type_or_member">
+        <source>Produces a string for the name of the specified type or member.</source>
+        <target state="translated">특정 형식이나 멤버의 이름에 대한 문자열을 생성합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="result">
+        <source>&lt;result&gt;</source>
+        <target state="translated">&lt;결과&gt;</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

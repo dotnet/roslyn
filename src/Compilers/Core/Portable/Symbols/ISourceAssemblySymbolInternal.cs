@@ -17,5 +17,7 @@ namespace Microsoft.CodeAnalysis
         AssemblyHashAlgorithm HashAlgorithm { get; }
 
         Version AssemblyVersionPattern { get; }
+
+        bool InternalsAreVisible { get; }
     }
 }

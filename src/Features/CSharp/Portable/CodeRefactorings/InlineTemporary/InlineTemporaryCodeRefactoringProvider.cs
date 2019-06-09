@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         internal static readonly SyntaxAnnotation ReferenceAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation InitializerAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation ExpressionToInlineAnnotation = new SyntaxAnnotation();
+
+        [ImportingConstructor]
+        public InlineTemporaryCodeRefactoringProvider()
+        {
+        }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -59,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var variableDeclarator = (VariableDeclaratorSyntax)node;
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
-
             if (variableDeclarator.Identifier != token ||
                 variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
@@ -76,7 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (localDeclarationStatement.ContainsDiagnostics)
+            var localDeclarationStatement = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
+            if (localDeclarationStatement.ContainsDiagnostics ||
+                localDeclarationStatement.UsingKeyword != default)
             {
                 return;
             }
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
-                    (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (local != null)
             {
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                var locations = findReferencesResult.Single(r => r.Definition == local).Locations;
+                var locations = findReferencesResult.Single(r => Equals(r.Definition, local)).Locations;
                 if (!locations.Any(loc => semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)))
                 {
                     return locations;
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // Collect the identifier names for each reference.
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
             var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var references = symbolRefs.Single(r => r.Definition == local).Locations;
+            var references = symbolRefs.Single(r => Equals(r.Definition, local)).Locations;
             var syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Collect the topmost parenting expression for each reference.
@@ -313,14 +318,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
         {
             var annotatedNodesOrTokens = node.GetAnnotatedNodesAndTokens(DefinitionAnnotation).ToList();
-            Contract.Requires(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
+            Debug.Assert(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
 
             return (VariableDeclaratorSyntax)annotatedNodesOrTokens.First().AsNode();
         }
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)
@@ -336,10 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
             var scope = GetScope(variableDeclarator);
 
-            var newLocalDeclaration = localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newLocalDeclaration = variableDeclarator.GetLeadingTrivia().Any(t => t.IsDirective)
+                ? localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepExteriorTrivia)
+                : localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return scope.ReplaceNode(localDeclaration, newLocalDeclaration);
+            return scope.ReplaceNode(
+                localDeclaration,
+                newLocalDeclaration.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)
@@ -536,13 +544,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                             newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                             if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
-                                if (replacementNodesWithChangedSemantics == null)
-                                {
-                                    replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
-                                }
-
+                                replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
                                 replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                             }
+                        }
+
+                        // Verification: Do not inline a variable into the left side of a deconstruction-assignment
+                        if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
+                        {
+                            replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
+                            replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
                     }
                 }
@@ -555,11 +566,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> conflictAnnotationAdder =
-                (SyntaxNode oldNode, SyntaxNode newNode) =>
+            SyntaxNode conflictAnnotationAdder(SyntaxNode oldNode, SyntaxNode newNode) =>
                     newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
+        {
+            var parent = node.Parent;
+            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            {
+                parent = parent.Parent;
+            }
+
+            while (parent.IsKind(SyntaxKind.Argument))
+            {
+                parent = parent.Parent;
+                if (!parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

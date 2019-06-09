@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -18,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public static class SquiggleUtilities
     {
-        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TTag>(
+        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider>(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
-            where TTag : ITag
+            where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
         {
-            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, analyzerMap))
+            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, analyzerMap))
             {
-                var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
                     await wrapper.WaitForTags();
@@ -41,22 +42,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         }
     }
 
-    public sealed class DiagnosticTagProducer<TTag>
-        where TTag : ITag
+    internal sealed class DiagnosticTagProducer<TProvider>
+        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
+        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TTag>(workspace, analyzerMap);
+            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
         }
 
-        internal async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, source))
+            using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, source))
             {
-                var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
@@ -71,10 +72,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
         }
 
-        internal DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
+        internal DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
-            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id,
-                new DiagnosticDataLocation(document.Id, span));
+            return new DiagnosticData(
+                id: "test",
+                category: "test",
+                message: "test",
+                enuMessageForBingSearch: "test",
+                severity: DiagnosticSeverity.Error,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                projectId: document.Project.Id,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                location: new DiagnosticDataLocation(document.Id, span));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
@@ -88,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
 
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler DiagnosticsCleared { add { } remove { } }
 
             public bool SupportGetDiagnostics => false;
 

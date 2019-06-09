@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -49,9 +50,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _semanticModel = null;
             _syntaxFacts = null;
             _objectCreationExpression = null;
-            _cancellationToken = default(CancellationToken);
+            _cancellationToken = default;
             _containingStatement = null;
-            _valuePattern = default(SyntaxNodeOrToken);
+            _valuePattern = default;
             _initializedSymbol = null;
         }
 
@@ -62,6 +63,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
+                return null;
+            }
+
+            if (!ShouldAnalyze())
+            {
                 return null;
             }
 
@@ -178,5 +184,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return false;
         }
+
+        protected abstract bool ShouldAnalyze();
     }
 }

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
             features As ImmutableDictionary(Of String, String))
 
             MyBase.New(kind, documentationMode)
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
                 If s_defaultPreprocessorSymbols.IsDefaultOrEmpty Then
-                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePair.Create("_MYTYPE", CObj("Empty")))
+                    s_defaultPreprocessorSymbols = ImmutableArray.Create(KeyValuePairUtil.Create("_MYTYPE", CObj("Empty")))
                 End If
 
                 Return s_defaultPreprocessorSymbols
@@ -251,7 +252,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not PreprocessorSymbols.IsDefaultOrEmpty Then
                 For Each symbol In PreprocessorSymbols
                     If Not IsValidIdentifier(symbol.Key) OrElse SyntaxFacts.GetKeywordKind(symbol.Key) <> SyntaxKind.None Then
-                        builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_ConditionalCompilationConstantNotValid, VBResources.ERR_ExpectedIdentifier, symbol.Key))
+                        builder.Add(Diagnostic.Create(ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid,
+                                                                             ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
+                                                                             symbol.Key)))
                     Else
                         Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
                     End If

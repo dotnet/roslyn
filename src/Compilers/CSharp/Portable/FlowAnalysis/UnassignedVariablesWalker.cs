@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -11,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An analysis that computes the set of variables that may be used
     /// before being assigned anywhere within a method.
     /// </summary>
-    internal class UnassignedVariablesWalker : DataFlowPass
+    internal class UnassignedVariablesWalker : DefiniteAssignmentPass
     {
         private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
-            : base(compilation, member, node, new NeverEmptyStructTypeCache())
+            : base(compilation, member, node, EmptyStructTypeCache.CreateNeverEmpty())
         {
         }
 
@@ -42,18 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly HashSet<Symbol> _result = new HashSet<Symbol>();
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _result;
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             // TODO: how to handle fields of structs?
             if (symbol.Kind != SymbolKind.Field)
             {
                 _result.Add(symbol);
+            }
+            else
+            {
+                _result.Add(GetNonMemberSymbol(slot));
+                base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
             }
         }
 
@@ -61,13 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _result.Add(parameter);
             base.ReportUnassignedOutParameter(parameter, node, location);
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
-        {
-            Symbol variable = GetNonFieldSymbol(unassignedSlot);
-            if ((object)variable != null) _result.Add(variable);
-            base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }
     }
 }

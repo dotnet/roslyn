@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -121,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                isLValue:=node.IsLValue,
                                receiverOpt:=rewrittenReceiver,
                                arguments:=newArguments.AsImmutableOrNull,
+                               defaultArguments:=node.DefaultArguments,
                                type:=VisitType(node.Type))
         End Function
 
@@ -140,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                Nothing,
                                rewrittenReceiverOpt,
                                arguments,
+                               node.DefaultArguments,
                                node.ConstantValueOpt,
                                isLValue:=node.IsLValue,
                                suppressObjectClone:=node.SuppressObjectClone,
@@ -235,6 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewritten = node.Update(
                         newConstructor,
                         rewritten.Arguments,
+                        rewritten.DefaultArguments,
                         rewritten.InitializerOpt,
                         rewritten.Type)
                 End If
@@ -343,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In node.Locals
                 If Me.PreserveOriginalLocals OrElse Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
 
                         Dim replacement As LocalSymbol = Nothing
                         Dim wasReplaced As Boolean = False
@@ -456,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In origLocals
                 If Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
                         newLocals.Add(v)
                     Else
                         Dim replacement = CreateReplacementLocalOrReturnSelf(v, vType)

@@ -19,9 +19,20 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryUsingsCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix, because the action already applies to one document at a time
+            return null;
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -30,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
                 new MyCodeAction(
                     c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> RemoveUnnecessaryImportsAsync(

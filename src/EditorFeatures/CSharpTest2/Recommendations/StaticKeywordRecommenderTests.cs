@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,13 +44,14 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        [WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        public async Task TestInEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
@@ -65,7 +66,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
@@ -73,7 +74,7 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -97,7 +98,7 @@ $$");
         public async Task TestAfterDelegateDeclaration()
         {
             await VerifyKeywordAsync(
-@"delegate void Foo();
+@"delegate void Goo();
 $$");
         }
 
@@ -106,7 +107,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -133,7 +134,7 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -141,14 +142,14 @@ using Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
-@"[assembly: foo]
+@"[assembly: goo]
 $$");
         }
 
@@ -156,7 +157,7 @@ $$");
         public async Task TestAfterRootAttribute()
         {
             await VerifyKeywordAsync(
-@"[foo]
+@"[goo]
 $$");
         }
 
@@ -165,7 +166,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -179,9 +180,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(@"interface I {
+            await VerifyKeywordAsync(@"interface I {
    $$");
         }
 
@@ -276,12 +277,17 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"using Foo;
+            var source = @"using Goo;
 $$
-using Bar;"));
+using Bar;";
+
+            await VerifyWorkerAsync(source, absent: true);
+
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -342,6 +348,29 @@ using Bar;"));
 @"class C {
     void M() {
         using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
+        public async Task TestLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@" $$ void local() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+switch (i)
+{
+    case 0:
+        $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFor()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
         }
     }
 }

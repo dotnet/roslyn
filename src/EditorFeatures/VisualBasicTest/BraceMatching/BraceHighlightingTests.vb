@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -12,6 +13,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
+    <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
         Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
@@ -19,12 +21,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Function
 
         Private Async Function ProduceTagsAsync(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As Tasks.Task(Of IEnumerable(Of ITagSpan(Of BraceHighlightTag)))
-            WpfTestCase.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{"ProduceTagsAsync"} creates asynchronous taggers")
+            WpfTestRunner.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{NameOf(Me.ProduceTagsAsync)} creates asynchronous taggers")
 
             Dim producer = New BraceHighlightingViewTaggerProvider(
+                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
-                AggregateAsynchronousOperationListener.EmptyListeners)
+                AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
@@ -37,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         Public Async Function TestParens() As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
     End Function
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -74,7 +77,7 @@ End Module")
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <SomeAttr(New With {.name = ""test""})>  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -189,7 +192,7 @@ End Module")
             Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <Attribute()>
-    Sub Foo()
+    Sub Goo()
         Dim x = 2 > 3
         Dim y = 4 > 5
         Dim z = <element></element>

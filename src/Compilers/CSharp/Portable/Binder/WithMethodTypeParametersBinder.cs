@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodSymbol = methodSymbol;
         }
 
+        protected override bool InExecutableBinder => false;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in _methodSymbol.TypeParameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

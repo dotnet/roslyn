@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SimpleTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleTest">
     <file name="a.vb">
 Imports System
@@ -39,7 +39,7 @@ End Enum
 
         <Fact>
         Public Sub BadDeclareTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="BadDeclareTest">
     <file name="a.vb">
 Imports System
@@ -63,7 +63,7 @@ End Module
         <Fact>
         Public Sub DifferentKindsVarAsIndex()
             ' Use VBRuntime so UBound is defined. Otherwise, replyCounts does not infer its type.
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Option Infer On
@@ -82,7 +82,7 @@ Module Program
     Function fun() As Integer
         Return 3
     End Function
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
         Dim arr1(3, x) As Integer
     End Sub
 End Module
@@ -116,7 +116,7 @@ End Module
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Option Infer On
@@ -139,12 +139,12 @@ End Module
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_3()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
 Public Class Class1(Of T)
-    Sub foo(x As Integer(,))
+    Sub goo(x As Integer(,))
         Dim y = 1
         Dim arr5(3 + 2, If(True, UBound(x, 1), UBound(arr5, 1))) As Integer
     End Sub
@@ -161,12 +161,12 @@ End Class
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_4()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
 Public Class Class1
-    Sub foo(x As Integer(,))
+    Sub goo(x As Integer(,))
         Dim myArray As Integer(,) = New Integer(UBound(myArray, 1), UBound(x, 1)) {}
     End Sub
 End Class
@@ -182,7 +182,7 @@ End Class
 
         <Fact>
         Public Sub MultiDimensionalInArrayAnonymous()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="MultiDimensionalInArrayAnonymous">
     <file name="a.vb">
 Option Infer On
@@ -224,11 +224,11 @@ End Module
 
         <Fact>
         Public Sub GenericAsArrayType()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="GenericAsArrayType">
     <file name="a.vb">
 Public Class Class1(Of T)
-    Private Sub Foo()
+    Private Sub Goo()
         Dim x As T(,) = New T(1, 2) {}
         Dim Y As T(,) = New T(1, 2) {{1, 2, 3}, {1, 2, 3}}        ' invalid
     End Sub
@@ -250,7 +250,7 @@ End Class
 
         <Fact>
         Public Sub MixedArray()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="MixedArray">
     <file name="a.vb">
 Imports System
@@ -273,7 +273,7 @@ End Module
         <WorkItem(542531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542531")>
         <Fact>
         Public Sub AssignMultiDimArrayToArrayWithExplicitBounds()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Explicit Off
@@ -1184,6 +1184,19 @@ Test1
   IL_002a:  ret
 }
 ]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Double", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind)
+            Assert.Null(info.ElementConversion.Method)
         End Sub
 
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>

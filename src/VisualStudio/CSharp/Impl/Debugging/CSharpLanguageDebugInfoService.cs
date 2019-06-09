@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
@@ -13,6 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
     [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.CSharp), Shared]
     internal partial class CSharpLanguageDebugInfoService : ILanguageDebugInfoService
     {
+        [ImportingConstructor]
+        public CSharpLanguageDebugInfoService()
+        {
+        }
+
         public Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             return LocationInfoGetter.GetInfoAsync(document, position, cancellationToken);

@@ -3,6 +3,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -16,6 +17,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     internal static class Utilities
     {
         private const string MSBuildRoslynFolderName = "Roslyn";
+
+        /// <summary>
+        /// Copied from msbuild. ItemSpecs are normalized using this method.
+        /// </summary>
+        public static string FixFilePath(string path)
+            => string.IsNullOrEmpty(path) || Path.DirectorySeparatorChar == '\\' ? path : path.Replace('\\', '/');
 
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
@@ -141,92 +148,60 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
 
-        internal static string GetLocation(Assembly assembly)
+        internal static string TryGetAssemblyPath(Assembly assembly)
         {
-            var method = typeof(Assembly).GetTypeInfo().GetDeclaredProperty("Location")?.GetMethod;
-            if (method == null)
+            if ((bool?)typeof(Assembly).GetTypeInfo()
+                .GetDeclaredProperty("GlobalAssemblyCache")
+                ?.GetMethod.Invoke(assembly, parameters: null) == true)
             {
                 return null;
             }
 
-            return (string)method.Invoke(assembly, parameters: null);
-        }
-
-        /// <summary>
-        /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC or DLL location can not be retrieved.
-        /// </summary>
-        public static string GenerateFullPathToTool(string toolName)
-        {
-            string toolLocation = null;
-
-            var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
-            var inGac = (bool?)typeof(Assembly)
+            var codebase = (string)typeof(Assembly)
                 .GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(buildTask, parameters: null);
+                .GetDeclaredProperty("CodeBase")
+                ?.GetMethod.Invoke(assembly, parameters: null);
 
-            if (inGac != true)
+            if (codebase != null)
             {
-                var codeBase = (string)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredProperty("CodeBase")
-                    ?.GetMethod.Invoke(buildTask, parameters: null);
-
-                if (codeBase != null)
+                var uri = new Uri(codebase);
+                if (uri.IsFile)
                 {
-                    var uri = new Uri(codeBase);
-
-                    string assemblyPath = null;
-                    if (uri.IsFile)
-                    {
-                        assemblyPath = uri.LocalPath;
-                    }
-                    else
-                    {
-                        var callingAssembly = (Assembly)typeof(Assembly)
-                            .GetTypeInfo()
-                            .GetDeclaredMethod("GetCallingAssembly")
-                            ?.Invoke(null, null);
-
-                        var location = GetLocation(callingAssembly);
-
-                        if (location != null)
-                        {
-                            assemblyPath = location;
-                        }
-                    }
-
-                    if(assemblyPath != null)
-                    {
-                        var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                        var toolLocalLocation = Path.Combine(assemblyDirectory, toolName);
-
-                        if (File.Exists(toolLocalLocation))
-                        {
-                            toolLocation = toolLocalLocation;
-                        }
-                    }
+                    return uri.LocalPath;
                 }
-
-                if (toolLocation == null)
+                else
                 {
-                    // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
-                    var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
+                    var callingAssembly = (Assembly)typeof(Assembly)
+                        .GetTypeInfo()
+                        .GetDeclaredMethod("GetCallingAssembly")
+                        ?.Invoke(null, null);
 
-                    if (pathToBuildTools != null)
+                    var location = (string)typeof(Assembly).GetTypeInfo()
+                        .GetDeclaredProperty("Location")
+                        ?.GetMethod.Invoke(assembly, parameters: null);
+
+                    if (location != null)
                     {
-                        var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
-
-                        if (File.Exists(toolMSBuildLocation))
-                        {
-                            toolLocation = toolMSBuildLocation;
-                        }
+                        return location;
                     }
                 }
             }
 
-            return toolLocation;
+            return null;
+        }
+
+        /// <summary>
+        /// Generate the full path to the tool that is deployed with our build tasks.
+        /// </summary>
+        internal static string GenerateFullPathToTool(string toolName)
+        {
+            var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
+            var assemblyPath = buildTask.Location;
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+
+            return RuntimeHostInfo.IsDesktopRuntime
+                ? Path.Combine(assemblyDirectory, toolName)
+                : Path.Combine(assemblyDirectory, "bincore", toolName);
         }
     }
 }

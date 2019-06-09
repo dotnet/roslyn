@@ -7,7 +7,8 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -133,27 +134,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
-        ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
-        Private Shared ReadOnly s_methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(DirectCast(key.Item1, SubOrFunctionBodyBinder), key.Item2)
-        Private Shared ReadOnly s_initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
-        Private Shared ReadOnly s_attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(DirectCast(key.Item1, AttributeBinder), key.Item2)
+        ' PERF: These variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
+        Private ReadOnly _methodBodySemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) MethodBodySemanticModel.Create(Me, DirectCast(key.Item1, SubOrFunctionBodyBinder), key.Item2)
+        Private ReadOnly _initializerSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) InitializerSemanticModel.Create(Me, DirectCast(key.Item1, DeclarationInitializerBinder), key.Item2)
+        Private ReadOnly _attributeSemanticModelCreator As Func(Of Tuple(Of Binder, Boolean), MemberSemanticModel) = Function(key As Tuple(Of Binder, Boolean)) AttributeSemanticModel.Create(Me, DirectCast(key.Item1, AttributeBinder), key.Item2)
 
         Public Function GetMemberSemanticModel(binder As Binder) As MemberSemanticModel
 
             If TypeOf binder Is MethodBodyBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             If TypeOf binder Is DeclarationInitializerBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_initializerSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _initializerSemanticModelCreator)
             End If
 
             If TypeOf binder Is AttributeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_attributeSemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _attributeSemanticModelCreator)
             End If
 
             If TypeOf binder Is TopLevelCodeBinder Then
-                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), s_methodBodySemanticModelCreator)
+                Return _semanticModelCache.GetOrAdd(Tuple.Create(binder, IgnoresAccessibility), _methodBodySemanticModelCreator)
             End If
 
             Return Nothing
@@ -350,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim model As MemberSemanticModel
 
             Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
@@ -366,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If model IsNot Nothing Then
-                Return model.GetOperationWorker(node, options, cancellationToken)
+                Return model.GetOperationWorker(node, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -1433,6 +1434,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ParentModel As SemanticModel
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
+            Get
+                Return Me
             End Get
         End Property
 

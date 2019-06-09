@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+
     internal partial class Symbol
     {
         /// <summary>

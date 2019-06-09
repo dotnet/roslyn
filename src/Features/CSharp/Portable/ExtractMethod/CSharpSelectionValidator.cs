@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // couldn't find any valid node
                 return selectionInfo.WithStatus(s => new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_node))
-                                    .With(s => s.FirstTokenInFinalSpan = default(SyntaxToken))
-                                    .With(s => s.LastTokenInFinalSpan = default(SyntaxToken));
+                                    .With(s => s.FirstTokenInFinalSpan = default)
+                                    .With(s => s.LastTokenInFinalSpan = default);
             }
 
             firstValidNode = (firstValidNode.Parent is ExpressionStatementSyntax) ? firstValidNode.Parent : firstValidNode;

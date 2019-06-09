@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             var codeBlocks = new List<Tuple<TextSpan, uint>>();
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var text = document.GetTextSynchronously(cancellationToken);
 
             int start = 0;
             uint cookie = 0;

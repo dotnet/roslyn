@@ -7,15 +7,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal class FullSolutionAnalysisOptionBinding
     {
-        private readonly IOptionService _optionService;
+        private readonly OptionStore _optionStore;
         private readonly string _languageName;
 
         private readonly Option<bool> _fullSolutionAnalysis;
         private readonly PerLanguageOption<bool?> _closedFileDiagnostics;
 
-        public FullSolutionAnalysisOptionBinding(IOptionService optionService, string languageName)
+        public FullSolutionAnalysisOptionBinding(OptionStore optionStore, string languageName)
         {
-            _optionService = optionService;
+            _optionStore = optionStore;
             _languageName = languageName;
 
             _fullSolutionAnalysis = RuntimeOptions.FullSolutionAnalysis;
@@ -26,25 +26,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             get
             {
-                return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService.GetOptions(), _languageName) &&
-                       _optionService.GetOption(_fullSolutionAnalysis);
+                return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionStore.GetOptions(), _languageName) &&
+                       _optionStore.GetOption(_fullSolutionAnalysis);
             }
 
             set
             {
-                var oldOptions = _optionService.GetOptions();
-
                 // set normal option first
-                var newOptions = oldOptions.WithChangedOption(_closedFileDiagnostics, _languageName, value);
+                _optionStore.SetOption(_closedFileDiagnostics, _languageName, value);
 
                 // we only enable this option if it is disabled. we never disable this option here.
                 if (value)
                 {
-                    newOptions = newOptions.WithChangedOption(_fullSolutionAnalysis, value);
+                    _optionStore.SetOption(_fullSolutionAnalysis, value);
                 }
-
-                _optionService.SetOptions(newOptions);
-                OptionLogger.Log(oldOptions, newOptions);
             }
         }
     }

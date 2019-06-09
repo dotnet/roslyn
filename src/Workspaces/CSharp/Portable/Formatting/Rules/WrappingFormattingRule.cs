@@ -2,24 +2,21 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
-            AddBraceSuppressOperations(list, node, lastToken);
+            AddBraceSuppressOperations(list, node);
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
@@ -56,25 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var switchSection = node as SwitchSectionSyntax;
-            if (switchSection != null)
+            switch (node)
             {
-                return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                case SwitchSectionSyntax switchSection:
+                    return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                case AnonymousMethodExpressionSyntax anonymousMethod:
+                    return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
             }
 
-            var anonymousMethod = node as AnonymousMethodExpressionSyntax;
-            if (anonymousMethod != null)
-            {
-                return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-            }
-
-            return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            return default;
         }
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
             }
@@ -106,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
             }
@@ -141,20 +134,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(SyntaxNode node)
         {
-            var methodDeclaration = node as BaseMethodDeclarationSyntax;
-            if (methodDeclaration != null && methodDeclaration.Body != null)
+            if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
             {
                 return ValueTuple.Create(methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
             }
 
-            var propertyDeclaration = node as PropertyDeclarationSyntax;
-            if (propertyDeclaration != null && propertyDeclaration.AccessorList != null)
+            if (node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.AccessorList != null)
             {
                 return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
             }
 
-            var accessorDeclaration = node as AccessorDeclarationSyntax;
-            if (accessorDeclaration != null && accessorDeclaration.Body != null)
+            if (node is AccessorDeclarationSyntax accessorDeclaration && accessorDeclaration.Body != null)
             {
                 return ValueTuple.Create(accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
             }
@@ -176,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             for (int i = 0; i < list.Count; i++)
             {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End)
+                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
                 {
                     list[i] = null;
                 }

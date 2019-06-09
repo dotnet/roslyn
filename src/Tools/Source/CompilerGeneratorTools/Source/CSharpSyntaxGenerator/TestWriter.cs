@@ -23,43 +23,48 @@ namespace CSharpSyntaxGenerator
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine("using Roslyn.Utilities;");
             WriteLine("using Xunit;");
+            WriteLine("using InternalSyntaxFactory = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory;");
             WriteLine();
 
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.UnitTests");
             OpenBlock();
 
+            WriteLine();
             WriteLine("public partial class GreenNodeTests");
             OpenBlock();
 
             WriteLine("#region Green Generators");
-            this.WriteNodeGenerators(isGreen: true);
+            WriteNodeGenerators(isGreen: true);
             WriteLine("#endregion Green Generators");
             WriteLine();
+
             WriteLine("#region Green Factory and Property Tests");
-            this.WriteFactoryPropertyTests(isGreen: true);
+            WriteFactoryPropertyTests(isGreen: true);
             WriteLine("#endregion Green Factory and Property Tests");
             WriteLine();
+
             WriteLine("#region Green Rewriters");
-            this.WriteRewriterTests();
+            WriteRewriterTests();
             WriteLine("#endregion Green Rewriters");
 
             CloseBlock();
 
             WriteLine();
-
             WriteLine("public partial class RedNodeTests");
             OpenBlock();
 
             WriteLine("#region Red Generators");
-            this.WriteNodeGenerators(isGreen: false);
+            WriteNodeGenerators(isGreen: false);
             WriteLine("#endregion Red Generators");
             WriteLine();
+
             WriteLine("#region Red Factory and Property Tests");
-            this.WriteFactoryPropertyTests(isGreen: false);
+            WriteFactoryPropertyTests(isGreen: false);
             WriteLine("#endregion Red Factory and Property Tests");
             WriteLine();
+
             WriteLine("#region Red Rewriters");
-            this.WriteRewriterTests();
+            WriteRewriterTests();
             WriteLine("#endregion Red Rewriters");
 
             CloseBlock();
@@ -78,7 +83,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                this.WriteNodeGenerator((Node)node, isGreen);
+                WriteNodeGenerator((Node)node, isGreen);
             }
         }
 
@@ -88,119 +93,115 @@ namespace CSharpSyntaxGenerator
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
             var internalNamespace = isGreen ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." : "";
-            var csharpNamespace = isGreen ? "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax." : "";
+            var csharpNamespace = isGreen ? "Syntax.InternalSyntax." : "";
+            var syntaxFactory = isGreen ? "InternalSyntaxFactory" : "SyntaxFactory";
 
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName);
-            OpenBlock();
 
+            Write("    => {0}.{1}(", syntaxFactory, strippedName);
             //instantiate node
+
+            bool first = true;
+
+            if (node.Kinds.Count > 1)
             {
-                Write("return {0}SyntaxFactory.{1}(", csharpNamespace, strippedName);
+                Write("SyntaxKind.{0}", node.Kinds[0].Name); //TODO: other kinds?
+                first = false;
+            }
 
-                bool first = true;
-
-                if (node.Kinds.Count > 1)
+            foreach (var field in nodeFields)
+            {
+                if (!first)
                 {
-                    Write("SyntaxKind.{0}", node.Kinds[0].Name); //TODO: other kinds?
-                    first = false;
+                    Write(", ");
                 }
+                first = false;
 
-                foreach (var field in nodeFields)
+                if (IsOptional(field))
                 {
-                    if (!first)
+                    if (isGreen)
                     {
-                        Write(", ");
-                    }
-                    first = false;
-
-                    if (IsOptional(field))
-                    {
-                        if (isGreen)
-                        {
-                            Write("null");
-                        }
-                        else
-                        {
-                            Write("default({0})", field.Type);
-                        }
-                    }
-                    else if (IsAnyList(field.Type))
-                    {
-                        string typeName;
-                        if (isGreen)
-                        {
-                            typeName = internalNamespace + field.Type.Replace("<", "<" + csharpNamespace);
-                        }
-                        else
-                        {
-                            typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
-                        }
-                        Write("new {0}()", typeName);
-                    }
-                    else if (field.Type == "SyntaxToken")
-                    {
-                        var kind = ChooseValidKind(field);
-                        var leadingTrivia = isGreen ? "null, " : "";
-                        var trailingTrivia = isGreen ? ", null" : "";
-                        if (kind == "IdentifierToken")
-                        {
-                            Write("{0}SyntaxFactory.Identifier(\"{1}\")", csharpNamespace, field.Name);
-                        }
-                        else if (kind == "StringLiteralToken")
-                        {
-                            Write("{0}SyntaxFactory.Literal({1}\"string\", \"string\"{2})", csharpNamespace, leadingTrivia, trailingTrivia);
-                        }
-                        else if (kind == "CharacterLiteralToken")
-                        {
-                            Write("{0}SyntaxFactory.Literal({1}\"a\", 'a'{2})", csharpNamespace, leadingTrivia, trailingTrivia);
-                        }
-                        else if (kind == "NumericLiteralToken")
-                        {
-                            Write("{0}SyntaxFactory.Literal({1}\"1\", 1{2})", csharpNamespace, leadingTrivia, trailingTrivia);
-                        }
-                        else
-                        {
-                            Write("{0}SyntaxFactory.Token(SyntaxKind.{1})", csharpNamespace, ChooseValidKind(field));
-                        }
-                    }
-                    else if (field.Type == "CSharpSyntaxNode")
-                    {
-                        Write("{0}SyntaxFactory.IdentifierName({0}SyntaxFactory.Identifier(\"{1}\"))", csharpNamespace, field.Name);
+                        Write("null");
                     }
                     else
                     {
-                        //drill down to a concrete type
-                        var type = field.Type;
-                        while (true)
-                        {
-                            var subTypes = ChildMap[type];
-                            if (!subTypes.Any())
-                            {
-                                break;
-                            }
-                            type = subTypes.First();
-                        }
-                        Write("Generate{0}()", StripPost(type, "Syntax"));
+                        Write("default({0})", field.Type);
                     }
                 }
-
-                foreach (var field in valueFields)
+                else if (IsAnyList(field.Type))
                 {
-                    if (!first)
+                    string typeName;
+                    if (isGreen)
                     {
-                        Write(", ");
+                        typeName = internalNamespace + field.Type.Replace("<", "<" + csharpNamespace);
                     }
-                    first = false;
-
-                    Write("new {0}()", field.Type);
+                    else
+                    {
+                        typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
+                    }
+                    Write("new {0}()", typeName);
                 }
-
-                WriteLine(");");
+                else if (field.Type == "SyntaxToken")
+                {
+                    var kind = ChooseValidKind(field);
+                    var leadingTrivia = isGreen ? "null, " : string.Empty;
+                    var trailingTrivia = isGreen ? ", null" : string.Empty;
+                    if (kind == "IdentifierToken")
+                    {
+                        Write("{0}.Identifier(\"{1}\")", syntaxFactory, field.Name);
+                    }
+                    else if (kind == "StringLiteralToken")
+                    {
+                        Write("{0}.Literal({1}\"string\", \"string\"{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                    }
+                    else if (kind == "CharacterLiteralToken")
+                    {
+                        Write("{0}.Literal({1}\"a\", 'a'{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                    }
+                    else if (kind == "NumericLiteralToken")
+                    {
+                        Write("{0}.Literal({1}\"1\", 1{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                    }
+                    else
+                    {
+                        Write("{0}.Token(SyntaxKind.{1})", syntaxFactory, ChooseValidKind(field));
+                    }
+                }
+                else if (field.Type == "CSharpSyntaxNode")
+                {
+                    Write("{0}.IdentifierName({0}.Identifier(\"{1}\"))", syntaxFactory, field.Name);
+                }
+                else
+                {
+                    //drill down to a concrete type
+                    var type = field.Type;
+                    while (true)
+                    {
+                        var subTypes = ChildMap[type];
+                        if (!subTypes.Any())
+                        {
+                            break;
+                        }
+                        type = subTypes.First();
+                    }
+                    Write("Generate{0}()", StripPost(type, "Syntax"));
+                }
             }
 
-            CloseBlock();
+            foreach (var field in valueFields)
+            {
+                if (!first)
+                {
+                    Write(", ");
+                }
+                first = false;
+
+                Write("new {0}()", field.Type);
+            }
+
+            WriteLine(");");
         }
 
         private void WriteFactoryPropertyTests(bool isGreen)
@@ -214,7 +215,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                this.WriteFactoryPropertyTest((Node)node, isGreen);
+                WriteFactoryPropertyTest((Node)node, isGreen);
             }
         }
 
@@ -307,9 +308,9 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                this.WriteTokenDeleteRewriterTest((Node)node);
+                WriteTokenDeleteRewriterTest((Node)node);
                 WriteLine();
-                this.WriteIdentityRewriterTest((Node)node);
+                WriteIdentityRewriterTest((Node)node);
             }
         }
 

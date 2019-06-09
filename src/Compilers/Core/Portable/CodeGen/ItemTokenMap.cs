@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// are known, the method bodies will be patched.
     /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item. (The second is really just a list).
     /// </summary>
-    internal sealed class ItemTokenMap<T> where T: class
+    internal sealed class ItemTokenMap<T> where T : class
     {
         private readonly ConcurrentDictionary<T, uint> _itemToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
         private readonly ArrayBuilder<T> _items = new ArrayBuilder<T>();

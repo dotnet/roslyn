@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -212,8 +212,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Continue For
                 End If
 
-                If result.WrittenOutside().Any(Function(s) s Is local) OrElse
-result.ReadOutside().Any(Function(s) s Is local) Then
+                If result.WrittenOutside().Any(Function(s) Equals(s, local)) OrElse
+result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     Return False
                 End If
             Next

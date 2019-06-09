@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,21 +26,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new CrefCompletionProvider();
         }
 
-        protected override async Task VerifyWorkerAsync(
+        private protected override async Task VerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+            await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
+
+            await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
+
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
             }
         }
 
@@ -46,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task NameCref()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref=""$$""/> 
     class Program
@@ -60,32 +77,32 @@ namespace Foo
         public async Task QualifiedCref()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program
     {
         /// <see cref=""Program.$$""/> 
-        void foo() { }
+        void goo() { }
     }
 }";
-            await VerifyItemExistsAsync(text, "foo");
+            await VerifyItemExistsAsync(text, "goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrefArgumentList()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program
     {
-        /// <see cref=""Program.foo($$""/> 
-        void foo(int i) { }
+        /// <see cref=""Program.goo($$""/> 
+        void goo(int i) { }
     }
 }";
-            await VerifyItemIsAbsentAsync(text, "foo(int)");
+            await VerifyItemIsAbsentAsync(text, "goo(int)");
             await VerifyItemExistsAsync(text, "int");
         }
 
@@ -93,13 +110,13 @@ namespace Foo
         public async Task CrefTypeParameterInArgumentList()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program<T>
     {
-        /// <see cref=""Program{Q}.foo($$""/> 
-        void foo(T i) { }
+        /// <see cref=""Program{Q}.goo($$""/> 
+        void goo(T i) { }
     }
 }";
             await VerifyItemExistsAsync(text, "Q");
@@ -109,7 +126,7 @@ namespace Foo
         public async Task PrivateMember()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref=""C.$$""/> 
     class Program<T>
@@ -129,7 +146,7 @@ namespace Foo
         public async Task AfterSingleQuote()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref='$$'/> 
     class Program
@@ -174,7 +191,7 @@ class C
         public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
-class C<TFoo>
+class C<TGoo>
 {
     void M(int x) { }
     void M(long x) { }
@@ -182,7 +199,7 @@ class C<TFoo>
 }
 
 ";
-            await VerifyItemExistsAsync(text, "C{TFoo}");
+            await VerifyItemExistsAsync(text, "C{TGoo}");
         }
 
         [WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
@@ -394,22 +411,22 @@ class C { }
         {
             var text = @"
 using System.Collections.Generic;
-/// <see cref=""foo$$""/>
+/// <see cref=""goo$$""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
 
             var expected = @"
 using System.Collections.Generic;
-/// <see cref=""foo(""/>
+/// <see cref=""goo(""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
-            await VerifyProviderCommitAsync(text, "foo(int)", expected, '(', "foo");
+            await VerifyProviderCommitAsync(text, "goo(int)", expected, '(', "goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -453,12 +470,43 @@ using System;
 /// <see cref=""$$""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
 
             await VerifyItemExistsAsync(text, "uint");
             await VerifyItemExistsAsync(text, "UInt32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoSuggestionAfterEmptyCref()
+        {
+            var text = @"
+using System;
+/// <see cref="""" $$
+class C 
+{ 
+    public void goo(int x) { }
+}
+";
+
+            await VerifyNoItemsExistAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        public async Task CRef_InParameter()
+        {
+            var text = @"
+using System;
+class C 
+{ 
+    /// <see cref=""C.My$$
+    public void MyMethod(in int x) { }
+}
+";
+
+            await VerifyItemExistsAsync(text, "MyMethod(in int)");
         }
     }
 }

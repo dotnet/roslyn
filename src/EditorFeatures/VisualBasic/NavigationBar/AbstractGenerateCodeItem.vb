@@ -32,12 +32,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim codeGenerationOptions As New CodeGenerationOptions(contextLocation, generateMethodBodies:=True)
 
             Dim newDocument = Await GetGeneratedDocumentCoreAsync(document, codeGenerationOptions, cancellationToken).ConfigureAwait(False)
+            If newDocument Is Nothing Then
+                Return document
+            End If
 
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
 
             Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
             If ApplyLineAdjustmentFormattingRule Then
-                formatterRules = New LineAdjustmentFormattingRule().Concat(formatterRules)
+                formatterRules = LineAdjustmentFormattingRule.Instance.Concat(formatterRules)
             End If
 
             Dim documentOptions = Await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(False)

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ''' [1, 3) conflicts with [2, 4)
             ''' 
             ''' NOTE: With regular spans, it is not possible for two spans to share an edge point 
-            ''' unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+            ''' unless they belong to the same local. (because we cannot access two real locals at the same time)
             ''' 
             ''' specifically:
             ''' [1, 3) does Not conflict with [0, 1)   since such spans would need to belong to the same local

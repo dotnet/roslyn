@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <root>
@@ -18417,7 +18417,7 @@ namespace ConsoleApplication1
 using System.Runtime.InteropServices;
 public struct Parent{
 
-	public int Foo([Optional] int i,  [Optional] long j, [Optional] float f, [Optional]  decimal d){
+	public int Goo([Optional] int i,  [Optional] long j, [Optional] float f, [Optional]  decimal d){
 	if(d==0 ) return 0;
 	return 1;
 	}
@@ -18426,7 +18426,7 @@ public struct Parent{
 class Test{
 	public static int Main(){
 		Parent p = new Parent();
-		return p.Foo();
+		return p.Goo();
 	}
 
 }
@@ -18444,7 +18444,7 @@ class Test{
 
 public class Parent{
 
-	public int Foo( int x=2,params object[] array= null){
+	public int Goo( int x=2,params object[] array= null){
 	x=2;
 	if(x ==2) return 0;
 	return 1;
@@ -18454,7 +18454,7 @@ public class Parent{
 class Test{
 	public static int Main(){
 		Parent p = new Parent();
-		return p.Foo();
+		return p.Goo();
 
 	}
 

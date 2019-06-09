@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var node = _identifierNodeOrToken.AsNode();
             if (node != null)
             {
+                if (node.Kind() == SyntaxKind.DefaultSwitchLabel)
+                {
+                    return ((DefaultSwitchLabelSyntax)node).Keyword.ToString();
+                }
+
                 return node.ToString();
             }
 

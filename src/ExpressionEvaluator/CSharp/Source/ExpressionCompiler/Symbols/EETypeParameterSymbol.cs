@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -55,9 +55,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasReferenceTypeConstraint; }
         }
 
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
+        }
+
+        public override bool HasNotNullConstraint
+        {
+            get { return _sourceTypeParameter.HasNotNullConstraint; }
+        }
+
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                if (_sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _sourceTypeParameter.IsNotNullableIfReferenceType;
+                }
+
+                return CalculateIsNotNullableIfReferenceType();
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return _sourceTypeParameter.HasUnmanagedTypeConstraint; }
         }
 
         public override ImmutableArray<Location> Locations
@@ -90,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _sourceTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress);
 
@@ -101,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Remap constraints from sourceTypeParameter since constraints
             // may be defined in terms of other type parameters.
-            return this.TypeMap.SubstituteTypesWithoutModifiers(constraintTypes);
+            return this.TypeMap.SubstituteTypes(constraintTypes);
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
@@ -119,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             var interfaces = _sourceTypeParameter.GetInterfaces(inProgress);
-            return this.TypeMap.SubstituteNamedTypes(Interfaces);
+            return this.TypeMap.SubstituteNamedTypes(interfaces);
         }
 
         private TypeMap TypeMap

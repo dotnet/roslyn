@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
             var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
@@ -57,34 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
-        }
-
-        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, List<ITagSpan<TTag>> beforeSpans, List<ITagSpan<TTag>> afterSpans)
-        {
-            var snapshot = snapshotSpan.Snapshot;
-            Contract.Requires(snapshot.TextBuffer == _textBuffer);
-
-            var introspector = new IntervalIntrospector(snapshot);
-
-            var beforeSpan = new SnapshotSpan(snapshot, 0, snapshotSpan.Start);
-            AddNonIntersectingSpans(beforeSpan, introspector, beforeSpans);
-
-            var afterSpan = new SnapshotSpan(snapshot, snapshotSpan.End, snapshot.Length - snapshotSpan.End);
-            AddNonIntersectingSpans(afterSpan, introspector, afterSpans);
-        }
-
-        private void AddNonIntersectingSpans(
-            SnapshotSpan span, IntervalIntrospector introspector, List<ITagSpan<TTag>> spans)
-        {
-            var snapshot = span.Snapshot;
-            foreach (var tagNode in _tree.GetIntervalsThatIntersectWith(span.Start, span.Length, introspector))
-            {
-                var tagNodeSpan = tagNode.Span.GetSpan(snapshot);
-                if (span.Contains(tagNodeSpan))
-                {
-                    spans.Add(new TagSpan<TTag>(tagNodeSpan, tagNode.Tag));
-                }
-            }
         }
 
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)

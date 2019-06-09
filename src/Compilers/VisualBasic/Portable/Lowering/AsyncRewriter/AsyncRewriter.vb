@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -370,12 +371,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(compilation IsNot Nothing)
 
             Dim returnType As TypeSymbol = method.ReturnType
-            If returnType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) Then
+            If TypeSymbol.Equals(returnType, compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything) Then
                 Return AsyncMethodKind.TaskFunction
             End If
 
             If returnType.Kind = SymbolKind.NamedType AndAlso
-                    returnType.OriginalDefinition = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) Then
+                    TypeSymbol.Equals(returnType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything) Then
                 Return AsyncMethodKind.GenericTaskFunction
             End If
 

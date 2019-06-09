@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 class C
 {
-    async void Foo(Task<int> t)
+    async void Goo(Task<int> t)
     {
         int c = 1 + await t;
     }
@@ -52,6 +52,18 @@ public class C {
             Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
@@ -139,7 +151,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    static async Task Foo()
+    static async Task Goo()
     {
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
@@ -160,7 +172,7 @@ class C
 
 class C
 {
-    void Foo(Task<int> t)
+    void Goo(Task<int> t)
     {
         var v = await t;
     }
@@ -177,7 +189,7 @@ class C
             var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
             var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
-            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbolV.TypeWithAnnotations.ToTestDisplayString());
         }
     }
 }

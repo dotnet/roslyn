@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Base type for services that we want to delay running until certain criteria is met.
     /// For example, we don't want to run the <see cref="VisualStudioSymbolSearchService"/> core codepath
@@ -31,9 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private bool _enabled = false;
 
         protected AbstractDelayStartedService(
+            IThreadingContext threadingContext,
             Workspace workspace,
             Option<bool> onOffOption,
             params PerLanguageOption<bool>[] perLanguageOptions)
+            : base(threadingContext)
         {
             Workspace = workspace;
             _serviceOnOffOption = onOffOption;

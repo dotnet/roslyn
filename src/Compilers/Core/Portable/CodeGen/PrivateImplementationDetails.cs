@@ -12,6 +12,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Sort methods.
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
-           
+
             // Sort proxy types.
             _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
         }
@@ -264,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
+            // TODO: replace SHA1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var hash = CryptographicHashProvider.ComputeSha1(data);
             char[] c = new char[hash.Length * 2];
             int i = 0;
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             : base(name, containingType, type)
         {
             Debug.Assert(!block.IsDefault);
-            
+
             _block = block;
         }
 
@@ -469,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal abstract class DefaultTypeDef : Cci.ITypeDefinition
     {
-        public IEnumerable<Cci.IEventDefinition> Events
+        public IEnumerable<Cci.IEventDefinition> GetEvents(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>();
 
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)

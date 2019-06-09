@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -269,6 +270,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private const DkmEvaluationResultCategory UnspecifiedCategory = (DkmEvaluationResultCategory)(-1);
         private const DkmEvaluationResultAccessType UnspecifiedAccessType = (DkmEvaluationResultAccessType)(-1);
+        public const string UnspecifiedValue = "<<unspecified value>>";
 
         internal static DkmEvaluationResult EvalResult(
             string name,
@@ -358,11 +360,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static string ToString(DkmEvaluationResult result)
         {
-            var success = result as DkmSuccessEvaluationResult;
-            if (success != null) return ToString(success);
+            if (result is DkmSuccessEvaluationResult success) return ToString(success);
 
-            var intermediate = result as DkmIntermediateEvaluationResult;
-            if (intermediate != null) return ToString(intermediate);
+            if (result is DkmIntermediateEvaluationResult intermediate) return ToString(intermediate);
 
             return ToString((DkmFailedEvaluationResult)result);
         }
@@ -483,7 +483,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (expectedSuccess != null)
             {
                 var actualSuccess = (DkmSuccessEvaluationResult)actual;
-                Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+
+                Assert.NotEqual(UnspecifiedValue, actualSuccess.Value);
+                if (expectedSuccess.Value != UnspecifiedValue)
+                {
+                    Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+                }
+
                 Assert.Equal(expectedSuccess.Type, actualSuccess.Type);
                 Assert.Equal(expectedSuccess.Flags, actualSuccess.Flags);
                 if (expectedSuccess.Category != UnspecifiedCategory)
@@ -494,6 +500,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     Assert.Equal(expectedSuccess.Access, actualSuccess.Access);
                 }
+
                 Assert.Equal(expectedSuccess.EditableValue, actualSuccess.EditableValue);
                 Assert.True(
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||

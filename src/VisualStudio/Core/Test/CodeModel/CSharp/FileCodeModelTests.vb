@@ -1,8 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -56,11 +58,11 @@ delegate void D();
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
-[assembly: Foo(0, true, S = "x")]
+[assembly: Goo(0, true, S = "x")]
 
-class FooAttribute : System.Attribute
+class GooAttribute : System.Attribute
 {
-    public FooAttribute(int i, bool b) { }
+    public GooAttribute(int i, bool b) { }
 
     public string S { get { return string.Empty; } set { } }
 }
@@ -75,8 +77,8 @@ class FooAttribute : System.Attribute
                 Assert.NotNull(codeAttribute)
 
                 Assert.Same(workspaceAndFileCodeModel.FileCodeModel, codeAttribute.Parent)
-                Assert.Equal("Foo", codeAttribute.Name)
-                Assert.Equal("FooAttribute", codeAttribute.FullName)
+                Assert.Equal("Goo", codeAttribute.Name)
+                Assert.Equal("GooAttribute", codeAttribute.FullName)
                 Assert.Equal("assembly", codeAttribute.Target)
                 Assert.Equal("0, true, S = ""x""", codeAttribute.Value)
 
@@ -441,22 +443,22 @@ class C : B, I
             Dim code =
 <Code>
 class B { }
-interface $$IFoo { }
+interface $$IGoo { }
 interface IBar { }
 </Code>
 
             Dim expected =
 <Code>
 class B { }
-interface IFoo { }
+interface IGoo { }
 interface IBar { }
 
-class C : B, IFoo, IBar
+class C : B, IGoo, IBar
 {
 }
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IFoo", "IBar"}})
+            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -464,7 +466,7 @@ class C : B, IFoo, IBar
             Dim code =
 <Code>
 class B { }
-interface $$IFoo { }
+interface $$IGoo { }
 interface IBar { }
 </Code>
 
@@ -472,7 +474,7 @@ interface IBar { }
                 Sub(fileCodeModel)
                     For i = 1 To 100
                         Dim name = $"C{i}"
-                        Dim newClass = fileCodeModel.AddClass(name, Position:=-1, Bases:="B", ImplementedInterfaces:={"IFoo", "IBar"})
+                        Dim newClass = fileCodeModel.AddClass(name, Position:=-1, Bases:="B", ImplementedInterfaces:={"IGoo", "IBar"})
                         Assert.NotNull(newClass)
                         Assert.Equal(name, newClass.Name)
                     Next
@@ -1009,7 +1011,7 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1163,6 +1165,91 @@ class C
                     Assert.Equal(1, member1.NodeKey.Ordinal)
                     Assert.Equal("C.E", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+        <WorkItem(671189, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/671189")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function AddShouldNotFailAfterCodeIsDeleted() As Task
+            ' This test attempts to add and remove a method several times via code model,
+            ' verifying a scenario where the WinForms or XAML designer adds an event handler
+            ' and the user later deletes and regenerates the event handler.
+
+            Dim codeBeforeOperationXml =
+<code>
+class C
+{
+}
+</code>
+
+            Dim codeAfterOperationXml =
+<code>
+class C
+{
+    void M(int x, int y)
+    {
+
+    }
+}
+</code>
+
+            Dim codeBeforeOperation = codeBeforeOperationXml.Value.NormalizeLineEndings().Trim()
+            Dim codeAfterOperation = codeAfterOperationXml.Value.NormalizeLineEndings().Trim()
+
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(codeBeforeOperationXml))
+                Dim workspace = state.VisualStudioWorkspace
+                Dim fileCodeModel = state.FileCodeModel
+                Assert.NotNull(fileCodeModel)
+
+                For i = 1 To 10
+                    Dim docId = workspace.CurrentSolution.Projects(0).DocumentIds(0)
+                    Dim textBeforeOperation = Await workspace.CurrentSolution.GetDocument(docId).GetTextAsync()
+                    Assert.Equal(codeBeforeOperation, textBeforeOperation.ToString())
+
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    fileCodeModel.BeginBatch()
+                    Dim newFunction = classC.AddFunction("M", EnvDTE.vsCMFunction.vsCMFunctionFunction, Type:=EnvDTE.vsCMTypeRef.vsCMTypeRefVoid)
+                    Dim param1 = newFunction.AddParameter("x", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
+                    Dim param2 = newFunction.AddParameter("y", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
+                    fileCodeModel.EndBatch()
+
+                    Dim solution = workspace.CurrentSolution
+                    Dim textAfterOperation = Await solution.GetDocument(docId).GetTextAsync()
+                    Assert.Equal(codeAfterOperation, textAfterOperation.ToString())
+
+                    Dim newText = textAfterOperation.Replace(
+                        span:=TextSpan.FromBounds(0, textAfterOperation.Length),
+                        newText:=codeBeforeOperation)
+
+                    Dim newSolution = solution.WithDocumentText(docId, newText)
+                    Assert.True(workspace.TryApplyChanges(newSolution))
+                Next
+            End Using
+        End Function
+
+        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
+            Dim code =
+<code>
+class C
+{
+}
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeElement = DirectCast(fileCodeModel.CodeElements(0), EnvDTE80.CodeElement2)
+                    Assert.Equal("C", codeElement.Name)
+
+                    codeElement.RenameSymbol("D")
+
+                    ' This not only asserts that the rename happened successfully, but that the element was correctly updated
+                    ' so the underlying node key is still valid.
+                    Assert.Equal("D", codeElement.Name)
                 End Sub)
         End Sub
 

@@ -24,28 +24,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = projectGroup.Key;
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var documentGroup in projectGroup)
+                if (project.SupportsCompilation)
                 {
-                    var document = documentGroup.Key;
-                    await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
-                }
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                GC.KeepAlive(compilation);
+                    foreach (var documentGroup in projectGroup)
+                    {
+                        var document = documentGroup.Key;
+                        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        AddSymbols(document, semanticModel, documentGroup, result, cancellationToken);
+                    }
+
+                    GC.KeepAlive(compilation);
+                }
             }
 
             return result;
         }
 
-        private static async Task AddSymbolsAsync(
+        private static void AddSymbols(
             Document document,
+            SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
             Dictionary<ISymbol, List<Location>> result,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             foreach (var reference in references)
             {
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);

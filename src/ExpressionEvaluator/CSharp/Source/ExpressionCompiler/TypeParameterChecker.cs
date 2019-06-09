@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override BoundNode Visit(BoundNode node)
             {
-                var expression = node as BoundExpression;
-                if (expression != null)
+                if (node is BoundExpression expression)
                 {
                     _typeParameterChecker.Visit(expression.ExpressionSymbol);
                 }

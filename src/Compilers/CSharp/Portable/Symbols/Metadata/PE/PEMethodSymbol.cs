@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -18,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |            m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |          n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -53,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // j = isUseSiteDiagnostic populated. 1 bit
             // k = isConditional populated. 1 bit
             // l = isOverriddenOrHiddenMembers populated. 1 bit
-            // 16 bits remain for future purposes.
+            // m = isReadOnly. 1 bit.
+            // n = isReadOnlyPopulated. 1 bit.
+            // 14 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
 
@@ -70,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 13;
             private const int IsConditionalPopulatedBit = 0x1 << 14;
             private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 15;
+            private const int IsReadOnlyBit = 0x1 << 16;
+            private const int IsReadOnlyPopulatedBit = 0x1 << 17;
 
             private int _bits;
 
@@ -98,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
             public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
             public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
+            public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -107,9 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
-                var maxMethodKind = (int)System.Linq.Enumerable.Aggregate(methodKinds, (m1, m2) => m1 | m2);
-                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+                Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
             }
 #endif
 
@@ -121,6 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void InitializeIsExtensionMethod(bool isExtensionMethod)
             {
                 int bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public void InitializeIsReadOnly(bool isReadOnly)
+            {
+                int bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -191,10 +207,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             }
 
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
-            {
-                retVal._lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
-            }
+            //
+            // Do not set _lazyUseSiteDiagnostic !!!!
+            //
+            // "null" Indicates "no errors" or "unknown state",
+            // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            //
+            // Setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
+            // a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            // Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            //
 
             if (_packedFlags.IsCustomAttributesPopulated)
             {
@@ -405,14 +427,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // error if it is overridden - it emits a virtual method without the newslot
         // modifier as for a normal override.  It is not clear how the runtime rules
         // interpret this overriding method since the overridden method is invalid.
-        public override bool IsSealed => this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
+        public override bool IsSealed => this.IsMetadataFinal &&
+                                         (this._containingType.IsInterface ?
+                                            this.IsAbstract && this.IsMetadataVirtual() && !this.IsMetadataNewSlot() :
+                                            !this.IsAbstract && this.IsOverride); //slowest check last
 
         public override bool HidesBaseMethodsByName => !HasFlag(MethodAttributes.HideBySig);
 
         // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
         // Final is a little special - if a method has the virtual, newslot, and final attr
         // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
-        public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
+        public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract &&
+                                          (this._containingType.IsInterface ? this.IsMetadataNewSlot() : !this.IsOverride);
 
         // Has to be metadata virtual and cannot be a destructor.  
         // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
@@ -426,8 +452,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // This means that a virtual method without NewSlot flag in a type that doesn't have a base
         // is a new virtual method and doesn't override anything.
         public override bool IsOverride =>
+            !this._containingType.IsInterface &&
             this.IsMetadataVirtual() && !this.IsDestructor &&
-                       ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
+            ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
@@ -465,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsDestructor => this.MethodKind == MethodKind.Destructor;
 
-        public override bool ReturnsVoid => this.ReturnType.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => this.ReturnType.IsVoidType();
 
         internal override int ParameterCount
         {
@@ -495,11 +522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
-        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+        public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
-        public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
+        public override TypeWithAnnotations ReturnTypeWithAnnotations => Signature.ReturnParam.TypeWithAnnotations;
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => Signature.ReturnParam.FlowAnalysisAnnotations;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => Signature.ReturnParam.RefCustomModifiers;
 
@@ -527,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if ((object)_associatedPropertyOrEventOpt == null)
             {
-                Debug.Assert(propertyOrEventSymbol.ContainingType == _containingType);
+                Debug.Assert(TypeSymbol.Equals(propertyOrEventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
                 // No locking required since SetAssociatedProperty/SetAssociatedEvent will only be called
                 // by the thread that created the method symbol (and will be called before the method
@@ -547,7 +574,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -570,12 +600,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ParameterSymbol> @params;
             bool isBadParameter;
 
+            string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
+            ImmutableArray<ImmutableArray<byte>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
+
             if (count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    // zero-th annotation is for the return type
+                    ImmutableArray<byte> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
+
+                    builder.Add(PEParameterSymbol.Create(
+                        moduleSymbol, this, this.IsMetadataVirtual(), i,
+                        paramInfo[i + 1], extraAnnotations, isReturn: false, out isBadParameter));
+
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -592,12 +631,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             var returnType = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
 
-            // Check for tuple type
-            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(returnType, paramInfo[0].Handle, moduleSymbol);
-
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            ImmutableArray<byte> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
+            var returnParam = PEParameterSymbol.Create(
+                moduleSymbol, this, this.IsMetadataVirtual(), 0,
+                paramInfo[0], extraReturnAnnotations, isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {
@@ -664,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments => IsGenericMethod ? TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>() : ImmutableArray<TypeSymbol>.Empty;
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => IsGenericMethod ? GetTypeParametersAsTypeArguments() : ImmutableArray<TypeWithAnnotations>.Empty;
 
         public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 
@@ -703,19 +742,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
 
                 // Could this possibly be an extension method?
-                bool alreadySet = _packedFlags.IsExtensionMethodIsPopulated;
-                bool checkForExtension = alreadySet
+                bool isExtensionAlreadySet = _packedFlags.IsExtensionMethodIsPopulated;
+                bool checkForExtension = isExtensionAlreadySet
                     ? _packedFlags.IsExtensionMethod
                     : this.MethodKind == MethodKind.Ordinary
                         && IsValidExtensionMethodSignature()
                         && _containingType.MightContainExtensionMethods;
 
+                bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
+                bool checkForIsReadOnly = isReadOnlyAlreadySet
+                     ? _packedFlags.IsReadOnly
+                     : IsValidReadOnlyTarget;
+
                 bool isExtensionMethod = false;
-                if (checkForExtension)
+                bool isReadOnly = false;
+                if (checkForExtension || checkForIsReadOnly)
                 {
-                    containingPEModuleSymbol.LoadCustomAttributesFilterExtensions(_handle,
+                    containingPEModuleSymbol.LoadCustomAttributesFilterCompilerAttributes(_handle,
                         ref attributeData,
-                        out isExtensionMethod);
+                        out isExtensionMethod,
+                        out isReadOnly);
                 }
                 else
                 {
@@ -723,9 +769,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         ref attributeData);
                 }
 
-                if (!alreadySet)
+                if (!isExtensionAlreadySet)
                 {
                     _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
+                }
+
+                if (!isReadOnlyAlreadySet)
+                {
+                    _packedFlags.InitializeIsReadOnly(isReadOnly);
                 }
 
                 // Store the result in uncommon fields only if it's not empty.
@@ -754,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState) => GetAttributes();
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder) => GetAttributes();
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => Signature.ReturnParam.GetAttributes();
 
@@ -784,33 +835,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            return (parameter.RefKind == RefKind.None) && !parameter.IsParams;
+            switch (parameter.RefKind)
+            {
+                case RefKind.None:
+                case RefKind.Ref:
+                case RefKind.In:
+                    return !parameter.IsParams;
+                default:
+                    return false;
+            }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
-                !this.ReturnsVoid &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount == parameterCount &&
-                this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
-                !this.IsParams();
-
-        private bool IsValidUserDefinedOperatorIs()
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
         {
-            foreach (var parameter in this.Parameters)
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
+                return false;
+            }
+
+            if (this.ParameterRefKinds.IsDefault)
+            {
+                return true;
+            }
+
+            foreach (var kind in this.ParameterRefKinds)
+            {
+                switch (kind)
                 {
-                    return false;
+                    case RefKind.None:
+                    case RefKind.In:
+                        continue;
+                    case RefKind.Out:
+                    case RefKind.Ref:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
 
-            return
-                (this.ReturnsVoid || this.ReturnType.SpecialType == SpecialType.System_Boolean) &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount > 0 &&
-                !this.IsParams();
+            return true;
         }
 
         private MethodKind ComputeMethodKind()
@@ -883,10 +946,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                        //case WellKnownMemberNames.ConcatenateOperatorName:
-                        //case WellKnownMemberNames.ExponentOperatorName:
-                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                        //case WellKnownMemberNames.LikeOperatorName:
+                            //case WellKnownMemberNames.ConcatenateOperatorName:
+                            //case WellKnownMemberNames.ExponentOperatorName:
+                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                            //case WellKnownMemberNames.LikeOperatorName:
                             //// Non-C#-supported overloaded operator
                             //return MethodKind.Ordinary;
                     }
@@ -994,6 +1057,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                if (!_packedFlags.IsReadOnlyPopulated)
+                {
+                    bool isReadOnly = false;
+                    if (IsValidReadOnlyTarget)
+                    {
+                        var moduleSymbol = _containingType.ContainingPEModule;
+                        isReadOnly = moduleSymbol.Module.HasIsReadOnlyAttribute(_handle);
+                    }
+                    _packedFlags.InitializeIsReadOnly(isReadOnly);
+                }
+                return _packedFlags.IsReadOnly;
+            }
+        }
+
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
@@ -1009,26 +1090,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return InitializeUseSiteDiagnostic(result);
             }
 
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var result = uncommonFields._lazyUseSiteDiagnostic;
-                return CSDiagnosticInfo.IsEmpty(result)
-                       ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
-                       : result;
-            }
+            return _uncommonFields?._lazyUseSiteDiagnostic;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
         {
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (_packedFlags.IsUseSiteDiagnosticPopulated)
+            {
+                return _uncommonFields?._lazyUseSiteDiagnostic;
+            }
+
             if (diagnostic != null)
             {
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
@@ -1075,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsObsoleteAttributePopulated)
                 {
-                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
+                    var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule, ignoreByRefLikeMarker: false);
                     if (result != null)
                     {
                         result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
@@ -1127,6 +1202,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedOperations.Initialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, OverriddenOrHiddenMembersResult.Empty);
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         // perf, not correctness

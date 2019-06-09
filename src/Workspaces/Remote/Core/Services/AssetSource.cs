@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -14,21 +14,14 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class AssetSource
     {
         private readonly AssetStorage _assetStorage;
-        private readonly int _sessionId;
 
-        protected AssetSource(AssetStorage assetStorage, int sessionId)
+        protected AssetSource(AssetStorage assetStorage)
         {
             _assetStorage = assetStorage;
-            _sessionId = sessionId;
 
-            _assetStorage.RegisterAssetSource(_sessionId, this);
+            _assetStorage.SetAssetSource(this);
         }
 
-        public abstract Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int serviceId, ISet<Checksum> checksums, CancellationToken cancellationToken);
-
-        public void Done()
-        {
-            _assetStorage.UnregisterAssetSource(_sessionId);
-        }
+        public abstract Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
     }
 }

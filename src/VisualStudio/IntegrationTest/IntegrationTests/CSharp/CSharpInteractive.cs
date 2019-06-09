@@ -3,47 +3,49 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractive : AbstractInteractiveWindowTest
     {
-        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void BclMathCall()
         {
             VisualStudio.InteractiveWindow.SubmitText("Math.Sin(1)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("0.8414709848078965");
         }
 
-        [Fact]
+        [WpfFact]
         public void BclConsoleCall()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"Console.WriteLine(""Hello, World!"");");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("Hello, World!");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains($"{81}");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForEachStatement()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains(@"c:\windows\win.ini");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLevelMethod()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"int Fac(int x)
@@ -54,7 +56,7 @@ Fac(4)");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput($"{24}");
         }
 
-        [Fact]
+        [WpfFact]
         public async Task WpfInteractionAsync()
         {
             VisualStudio.InteractiveWindow.SubmitText(@"#r ""WindowsBase""
@@ -93,10 +95,10 @@ w.Content = g;");
             VisualStudio.InteractiveWindow.SubmitText("b = null; w.Close(); w = null;");
         }
 
-        [Fact]
+        // This test is flaky when legacy completion is enabled
+        [ConditionalWpfFact(typeof(AsyncCompletionCondition))]
         public void TypingHelpDirectiveWorks()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
             VisualStudio.InteractiveWindow.ShowWindow(waitForPrompt: true);
 
             // Directly type #help, rather than sending it through VisualStudio.InteractiveWindow.SubmitText. We want to actually test

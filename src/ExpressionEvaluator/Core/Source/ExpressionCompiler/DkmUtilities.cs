@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
@@ -42,11 +44,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 });
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            this DkmClrRuntimeInstance runtime,
+            DkmClrAppDomain appDomain,
+            ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
+            // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.
+            // This should prevent from attempts to use the Metadata pointer for dead debugged processes.
+            if (appDomain.GetDataItem<AppDomainLifetimeDataItem>() == null)
+            {
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateNew, new AppDomainLifetimeDataItem());
+            }
+
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
             uint size;
+            int index = 0;
             foreach (DkmClrModuleInstance module in runtime.GetModulesInAppDomain(appDomain))
             {
                 MetadataBlock block;
@@ -54,23 +67,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
-                    block = GetMetadataBlock(ptr, size);
+                    block = GetMetadataBlock(previousMetadataBlocks, index, ptr, size);
                 }
                 catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
                 {
                     // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
                     throw new NotImplementedMetadataException(e);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
                 Debug.Assert(block.ModuleVersionId == module.Mvid);
                 builder.Add(block);
+                index++;
             }
             // Include "intrinsic method" assembly.
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
-            builder.Add(GetMetadataBlock(ptr, size));
+            builder.Add(GetMetadataBlock(previousMetadataBlocks, index, ptr, size));
             return builder.ToImmutableAndFree();
         }
 
@@ -88,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -122,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Debug.Assert(size > 0);
                         reader = new MetadataReader((byte*)ptr, (int)size);
                     }
-                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                     {
                         continue;
                     }
@@ -139,6 +153,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
             var generationId = reader.GetGuid(moduleDef.GenerationId);
             return new MetadataBlock(moduleVersionId, generationId, ptr, (int)size);
+        }
+
+        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
+        {
+            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
+            {
+                var previousBlock = previousMetadataBlocks[index];
+                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                {
+                    return previousBlock;
+                }
+            }
+
+            return GetMetadataBlock(ptr, size);
         }
 
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)
@@ -274,23 +302,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (flags & desired) == desired;
         }
 
-        internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static MetadataContext<TAssemblyContext> GetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
-            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<MetadataContext<TAssemblyContext>>>();
+            return (dataItem == null) ? default(MetadataContext<TAssemblyContext>) : dataItem.MetadataContext;
         }
 
-        internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
-            where TMetadataContext : struct
+        internal static void SetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain, MetadataContext<TAssemblyContext> context, bool report)
+            where TAssemblyContext : struct
         {
-            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
+            if (report)
+            {
+                var process = appDomain.Process;
+                var message = DkmUserMessage.Create(
+                    process.Connection,
+                    process,
+                    DkmUserMessageOutputKind.UnfilteredOutputWindowMessage,
+                    $"EE: AppDomain {appDomain.Id}, blocks {context.MetadataBlocks.Length}, contexts {context.AssemblyContexts.Count}" + Environment.NewLine,
+                    MessageBoxFlags.MB_OK,
+                    0);
+                message.Post();
+            }
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<MetadataContext<TAssemblyContext>>(context));
         }
 
-        internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static void RemoveMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+            appDomain.RemoveDataItem<MetadataContextItem<TAssemblyContext>>();
         }
 
         private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem
@@ -303,5 +343,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 this.MetadataContext = metadataContext;
             }
         }
+
+        private sealed class AppDomainLifetimeDataItem : DkmDataItem { }
     }
 }

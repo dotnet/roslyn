@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
-        {
-            return CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
-        }
+            => CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
 
         protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
         {
@@ -38,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
-            var globalStatement = memberNode as GlobalStatementSyntax;
-            if (globalStatement != null)
+            if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
                 if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }

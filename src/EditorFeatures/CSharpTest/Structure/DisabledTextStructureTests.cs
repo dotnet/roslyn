@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -106,11 +107,82 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
        M();
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#else
+
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#elif Baz
+
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#else
+
+#elif Baz
+
 #endif
         }|}
 #endif
@@ -127,7 +199,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
     void M()
     {
 #if Bar
@@ -149,7 +221,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {|}
 #if Bar
@@ -170,7 +242,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar
@@ -200,7 +272,7 @@ class P {
         {
             const string code = @"
 class P {
-#if Foo
+#if Goo
 {|span:    void $$M()
     {
 #if Bar

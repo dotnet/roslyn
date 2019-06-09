@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     },
                     cancellationToken);
 
-                var task = provider.ComputeRefactoringsAsync(context) ?? SpecializedTasks.EmptyTask;
+                var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);
 
                 var result = actions.Count > 0

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -244,6 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        Nothing,
                                                                        operatorCall.ReceiverOpt,
                                                                        ImmutableArray.Create(Of BoundExpression)(callInput),
+                                                                       Nothing,
                                                                        operatorCall.ConstantValueOpt,
                                                                        isLValue:=operatorCall.IsLValue,
                                                                        suppressObjectClone:=operatorCall.SuppressObjectClone,

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             NamedTypeSymbol elementType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
-            ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 1);
+            ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 1);
             Assert.Equal(1, ats1.Rank);
             Assert.True(ats1.IsSZArray);
             Assert.Same(elementType, ats1.ElementType);
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ats1.IsValueType);
             Assert.Equal("TestClass[]", ats1.ToTestDisplayString());
 
-            ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 2);
+            ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 2);
             Assert.Equal(2, ats2.Rank);
             Assert.Same(elementType, ats2.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats2.Kind);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ats2.IsValueType);
             Assert.Equal("TestClass[,]", ats2.ToTestDisplayString());
 
-            ArrayTypeSymbol ats3 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, elementType, rank: 3);
+            ArrayTypeSymbol ats3 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 3);
             Assert.Equal(3, ats3.Rank);
             Assert.Equal("TestClass[,,]", ats3.ToTestDisplayString());
         }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             NamedTypeSymbol pointedAtType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
-            PointerTypeSymbol pts1 = new PointerTypeSymbol(pointedAtType);
+            PointerTypeSymbol pts1 = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
             Assert.Same(pointedAtType, pts1.PointedAtType);
             Assert.Equal(SymbolKind.PointerType, pts1.Kind);
             Assert.False(pts1.IsReferenceType);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMissingMetadataSymbol()
         {
-            AssemblyIdentity missingAssemblyId = new AssemblyIdentity("foo");
+            AssemblyIdentity missingAssemblyId = new AssemblyIdentity("goo");
             AssemblySymbol assem = new MockAssemblySymbol("banana");
             ModuleSymbol module = new MissingModuleSymbol(assem, ordinal: -1);
             NamedTypeSymbol container = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>(), TypeKind.Class);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Elvis", mms1.NamespaceName);
             Assert.Equal("Lives", mms1.Name);
             Assert.Equal("Elvis.Lives<,>[missing]", mms1.ToTestDisplayString());
-            Assert.Equal("foo", mms1.ContainingAssembly.Identity.Name);
+            Assert.Equal("goo", mms1.ContainingAssembly.Identity.Name);
 
             var mms2 = new MissingMetadataTypeSymbol.TopLevel(module, "Elvis.Is", "Cool", 0, true);
             Assert.Equal(0, mms2.Arity);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNamespaceExtent()
         {
-            AssemblySymbol assem1 = new MockAssemblySymbol("foo");
+            AssemblySymbol assem1 = new MockAssemblySymbol("goo");
 
             NamespaceExtent ne1 = new NamespaceExtent(assem1);
             Assert.Equal(ne1.Kind, NamespaceKind.Assembly);

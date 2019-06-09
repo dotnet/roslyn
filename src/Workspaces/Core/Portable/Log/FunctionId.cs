@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_TryGetDocumentFromInProgressSolution,
         Workspace_Solution_LinkedFileDiffMergingSession,
         Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup,
+        Workspace_Solution_Info,
 
         EndConstruct_DoStatement,
         EndConstruct_XmlCData,
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TPLTask_TaskStarted,
         TPLTask_TaskCompleted,
 
-        QuickInfo_ModelComputation_ComputeModelInBackground,
+        Get_QuickInfo_Async,
 
         Completion_ModelComputer_DoInBackground,
         Completion_ModelComputation_FilterModelInBackground,
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SymbolCompletionProvider_GetItemsWorker,
         Completion_KeywordCompletionProvider_GetItemsWorker,
         Completion_SnippetCompletionProvider_GetItemsWorker_CSharp,
+        Completion_TypeImportCompletionProvider_GetCompletionItemsAsync,
 
         SignatureHelp_ModelComputation_ComputeModelInBackground,
         SignatureHelp_ModelComputation_UpdateModelInBackground,
@@ -247,6 +249,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
 
+        PullMembersUpWarning_ChangeTargetToAbstract,
+        PullMembersUpWarning_ChangeOriginToPublic,
+        PullMembersUpWarning_ChangeOriginToNonStatic,
+        PullMembersUpWarning_UserProceedToFinish,
+        PullMembersUpWarning_UserGoBack,
+
         // currently no-one uses these
         SmartTags_RefreshSession,
         SmartTags_SmartTagInitializeFixes,
@@ -281,10 +289,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_FixAllOccurrencesSession,
         CodeFixes_FixAllOccurrencesContext,
         CodeFixes_FixAllOccurrencesComputation,
-        CodeFixes_FixAllOccurrencesComputation_Diagnostics,
-        CodeFixes_FixAllOccurrencesComputation_Fixes,
-        CodeFixes_FixAllOccurrencesComputation_Merge,
+        CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+        CodeFixes_FixAllOccurrencesComputation_Project_Diagnostics,
+        CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
+        CodeFixes_FixAllOccurrencesComputation_Project_Fixes,
+        CodeFixes_FixAllOccurrencesComputation_Document_Merge,
+        CodeFixes_FixAllOccurrencesComputation_Project_Merge,
         CodeFixes_FixAllOccurrencesPreviewChanges,
+        CodeFixes_ApplyChanges,
 
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,
@@ -327,49 +339,121 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         BKTree_ExceptionInCacheRead,
         IntellisenseBuild_Failed,
 
+        FileTextLoader_FileLengthThresholdExceeded,
+
         // Generic performance measurement action IDs
         MeasurePerformance_StartAction,
         MeasurePerformance_StopAction,
 
-        RemoteHostClientService_AddGlobalAssetsAsync,
-        RemoteHostClientService_RemoveGlobalAssets,
-        RemoteHostClientService_Enabled,
-        ServiceHubRemoteHostClient_CreateAsync,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync,
-        PinnedRemotableDataScope_GetRemotableData,
         Serializer_CreateChecksum,
         Serializer_Serialize,
         Serializer_Deserialize,
+
         CodeAnalysisService_CalculateDiagnosticsAsync,
         CodeAnalysisService_SerializeDiagnosticResultAsync,
-        AssetStorage_CleanAssets,
-        AssetService_GetAssetAsync,
-        SnapshotService_RequestAssetAsync,
-        CompilationService_GetCompilationAsync,
-        RemoteHostService_SynchronizePrimaryWorkspaceAsync,
-        RemoteHostService_SynchronizeGlobalAssetsAsync,
-        AssetStorage_TryGetAsset,
-        AssetService_SynchronizeAssetsAsync,
-        AssetService_SynchronizeSolutionAssetsAsync,
         CodeAnalysisService_GetReferenceCountAsync,
         CodeAnalysisService_FindReferenceLocationsAsync,
         CodeAnalysisService_FindReferenceMethodsAsync,
         CodeAnalysisService_GetFullyQualifiedName,
-        SolutionChecksumUpdater_SynchronizePrimaryWorkspace,
-        SolutionState_ComputeChecksumsAsync,
-        ProjectState_ComputeChecksumsAsync,
-        DocumentState_ComputeChecksumsAsync,
-        JsonRpcSession_RequestAssetAsync,
-        SolutionSynchronizationService_GetRemotableData,
-        AssetService_SynchronizeProjectAssetsAsync,
-        FileTextLoader_FileLengthThresholdExceeded,
+        CodeAnalysisService_GetTodoCommentsAsync,
+        CodeAnalysisService_GetDesignerAttributesAsync,
+
+        ServiceHubRemoteHostClient_CreateAsync,
+        PinnedRemotableDataScope_GetRemotableData,
+
         RemoteHost_Connect,
         RemoteHost_Disconnect,
-        CodeAnalysisService_GetTodoCommentsAsync,
+
+        RemoteHostClientService_AddGlobalAssetsAsync,
+        RemoteHostClientService_RemoveGlobalAssets,
+        RemoteHostClientService_Enabled,
+        RemoteHostClientService_Restarted,
+
+        RemoteHostService_SynchronizePrimaryWorkspaceAsync,
+        RemoteHostService_SynchronizeGlobalAssetsAsync,
+
+        AssetStorage_CleanAssets,
+        AssetStorage_TryGetAsset,
+
+        AssetService_GetAssetAsync,
+        AssetService_SynchronizeAssetsAsync,
+        AssetService_SynchronizeSolutionAssetsAsync,
+        AssetService_SynchronizeProjectAssetsAsync,
+
         CodeLens_GetReferenceCountAsync,
         CodeLens_FindReferenceLocationsAsync,
         CodeLens_FindReferenceMethodsAsync,
         CodeLens_GetFullyQualifiedName,
-        RemoteHostClientService_Restarted,
+
+        SolutionState_ComputeChecksumsAsync,
+        ProjectState_ComputeChecksumsAsync,
+        DocumentState_ComputeChecksumsAsync,
+
+        SolutionSynchronizationService_GetRemotableData,
+        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync,
+
+        SolutionChecksumUpdater_SynchronizePrimaryWorkspace,
+
+        JsonRpcSession_RequestAssetAsync,
+
+        SolutionService_GetSolutionAsync,
+        SolutionService_UpdatePrimaryWorkspaceAsync,
+
+        SnapshotService_RequestAssetAsync,
+
+        CompilationService_GetCompilationAsync,
+        SolutionCreator_AssetDifferences,
+        Extension_InfoBar,
+        Experiment_ABTesting,
+        AssetStorage_ForceGC,
+        RemoteHost_Bitness,
+        Intellisense_Completion,
+        MetadataOnlyImage_EmitFailure,
+        LiveTableDataSource_OnDiagnosticsUpdated,
+        Experiment_KeybindingsReset,
+        Diagnostics_GeneratePerformaceReport,
+        Diagnostics_BadAnalyzer,
+        CodeAnalysisService_ReportAnalyzerPerformance,
+        PerformanceTrackerService_AddSnapshot,
+        AbstractProject_SetIntelliSenseBuild,
+        AbstractProject_Created,
+        AbstractProject_PushedToWorkspace,
+        ExternalErrorDiagnosticUpdateSource_AddError,
+        DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
+        Completion_ExecuteCommand_TypeChar,
+        RemoteHostService_SynchronizeTextAsync,
+
+        SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync,
+        SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync,
+        Intellisense_Completion_Commit,
+
+        CodeCleanupInfobar_BarDisplayed,
+        CodeCleanupInfobar_ConfigureNow,
+        CodeCleanupInfobar_NeverShowCodeCleanupInfoBarAgain,
+
+        FormatDocument,
+        CodeCleanup_ApplyCodeFixesAsync,
+        CodeCleanup_RemoveUnusedImports,
+        CodeCleanup_SortImports,
+        CodeCleanup_Format,
+        CodeCleanupABTest_AssignedToOnByDefault,
+        CodeCleanupABTest_AssignedToOffByDefault,
+        Workspace_Events,
+
+        Refactoring_ExtractMethod_UnknownMatrixItem,
+
+        SyntaxTreeIndex_Precalculate,
+        SyntaxTreeIndex_Precalculate_Create,
+        SymbolTreeInfo_Create,
+        SymbolTreeInfo_TryLoadOrCreate,
+        CommandHandler_GoToImplementation,
+        GraphQuery_ImplementedBy,
+        GraphQuery_Implements,
+        GraphQuery_IsCalledBy,
+        GraphQuery_IsUsedBy,
+        GraphQuery_Overrides,
+
+        Intellisense_AsyncCompletion_Data,
+        Intellisense_CompletionProviders_Data,
     }
 }

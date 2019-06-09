@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var oldOutermostQuery = expression.GetAncestorsOrThis<QueryExpressionSyntax>().LastOrDefault();
 
             var newLocalNameToken = GenerateUniqueLocalName(
-                document, expression, isConstant: false, 
-                container: oldOutermostQuery, cancellationToken: cancellationToken);
+                document, expression, isConstant: false,
+                containerOpt: oldOutermostQuery, cancellationToken: cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
             var letClause = SyntaxFactory.LetClause(

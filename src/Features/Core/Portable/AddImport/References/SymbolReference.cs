@@ -5,11 +5,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private abstract partial class SymbolReference : Reference
         {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected abstract bool ShouldAddWithExistingImport(Document document);
 
             public SymbolReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult)
                 : base(provider, new SearchResult(symbolResult))
             {
@@ -41,45 +43,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
-            }
+                => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
-            private async Task<CodeActionOperation> GetOperationAsync(
-                Document document, SyntaxNode node, 
+            private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
+                Document document, SyntaxNode contextNode,
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
                 CancellationToken cancellationToken)
             {
-                var newDocument = await UpdateDocumentAsync(
-                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
-                var updatedSolution = GetUpdatedSolution(newDocument);
-
-                var operation = new ApplyChangesOperation(updatedSolution);
-                return operation;
-            }
-
-            protected virtual Solution GetUpdatedSolution(Document newDocument)
-                => newDocument.Project.Solution;
-
-            private Task<Document> UpdateDocumentAsync(
-                Document document, SyntaxNode contextNode, 
-                bool placeSystemNamespaceFirst, bool hasExistingImport,
-                CancellationToken cancellationToken)
-            {
-                ReplaceNameNode(ref contextNode, ref document, cancellationToken);
-
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
                 {
-                    return Task.FromResult(document);
+                    return ImmutableArray<TextChange>.Empty;
                 }
 
-                return provider.AddImportAsync(contextNode,
-                    this.SymbolResult.Symbol, document,
-                    placeSystemNamespaceFirst, cancellationToken);
+                (var newContextNode, var newDocument) = await ReplaceNameNodeAsync(
+                    contextNode, document, cancellationToken).ConfigureAwait(false);
+
+                var updatedDocument = await provider.AddImportAsync(
+                    newContextNode, this.SymbolResult.Symbol, newDocument,
+                    placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    updatedDocument, cancellationToken).ConfigureAwait(false);
+
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    document, cancellationToken).ConfigureAwait(false);
+
+                return textChanges.ToImmutableArray();
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
@@ -95,29 +88,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                if (!this.SearchResult.DesiredNameMatchesSourceName(document))
+                var isFuzzy = !this.SearchResult.DesiredNameMatchesSourceName(document);
+                var tags = GetTags(document);
+                if (isFuzzy)
                 {
-                    // The name is going to change.  Make it clear in the description that 
-                    // this is going to happen.
+                    // The name is going to change.  Make it clear in the description that this is
+                    // going to happen.
                     description = $"{this.SearchResult.DesiredName} - {description}";
+
+                    // if we were a fuzzy match, and we didn't have any glyph to show, then add the
+                    // namespace-glyph to this item. This helps indicate that not only are we fixing
+                    // the spelling of this name we are *also* adding a namespace.  This helps as we
+                    // have gotten feedback in the past that the 'using/import' addition was
+                    // unexpected.
+                    if (tags.IsDefaultOrEmpty)
+                    {
+                        tags = WellKnownTagArrays.Namespace;
+                    }
                 }
 
-                var getOperation = new AsyncLazy<CodeActionOperation>(
-                    c => this.GetOperationAsync(document, node, placeSystemNamespaceFirst, hasExistingImport, c),
-                    cacheResult: true);
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
-                return new SymbolReferenceCodeAction(
-                    description, GetTags(document), GetPriority(document),
-                    getOperation,
-                    this.GetIsApplicableCheck(document.Project));
+                return GetFixData(
+                    document, textChanges, description,
+                    tags, GetPriority(document));
             }
+
+            protected abstract AddImportFixData GetFixData(
+                Document document, ImmutableArray<TextChange> textChanges,
+                string description, ImmutableArray<string> tags, CodeActionPriority priority);
 
             protected abstract CodeActionPriority GetPriority(Document document);
-
-            protected virtual Func<Workspace, bool> GetIsApplicableCheck(Project project)
-            {
-                return null;
-            }
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
                 Document document, SyntaxNode node,

@@ -138,6 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return ifBlock.Statements
             End If
 
+            Dim elseIfBlock = TryCast(node, ElseIfBlockSyntax)
+            If elseIfBlock IsNot Nothing Then
+                Return elseIfBlock.Statements
+            End If
+
             Dim elseBlock = TryCast(node, ElseBlockSyntax)
             If elseBlock IsNot Nothing Then
                 Return elseBlock.Statements
@@ -189,6 +194,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Friend Function IsAsyncSupportedFunctionSyntax(node As SyntaxNode) As Boolean
+            Select Case node?.Kind()
+                Case _
+                SyntaxKind.FunctionBlock,
+                SyntaxKind.SubBlock,
+                SyntaxKind.MultiLineFunctionLambdaExpression,
+                SyntaxKind.MultiLineSubLambdaExpression,
+                SyntaxKind.SingleLineFunctionLambdaExpression,
+                SyntaxKind.SingleLineSubLambdaExpression
+                    Return True
+            End Select
+            Return False
+        End Function
+
+        <Extension()>
         Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
             Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function
@@ -215,13 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function SpansPreprocessorDirective(Of TSyntaxNode As SyntaxNode)(list As IEnumerable(Of TSyntaxNode)) As Boolean
-            If list Is Nothing OrElse Not list.Any() Then
-                Return False
-            End If
-
-            Dim tokens = list.SelectMany(Function(n) n.DescendantTokens())
-
-            Return tokens.SpansPreprocessorDirective()
+            Return VisualBasicSyntaxFactsService.Instance.SpansPreprocessorDirective(list)
         End Function
 
         <Extension()>
@@ -257,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' this node that belongs to a span of pp directives that
                     ' is not entirely contained within the node.  i.e.:
                     '
-                    '   void Foo() {
+                    '   void Goo() {
                     '      #if ...
                     '   }
                     '
@@ -274,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' We have a PP directive before us.  i.e.:
                     ' 
                     '   #if ...
-                    '      void Foo() {
+                    '      void Goo() {
                     '
                     ' That means we start a new group that is contained between
                     ' the above directive and the following directive.
@@ -305,30 +319,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' 
         ''' i.e. The following returns false:
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         ''' #endif
         '''   }
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         '''   }
         ''' #endif
         ''' 
         ''' but these return true:
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #endif
         '''   }
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         '''   }
         ''' #endif
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #else
         '''   }
         ''' #endif
@@ -456,6 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                          SyntaxKind.SingleLineElseClause,
                          SyntaxKind.SingleLineSubLambdaExpression,
                          SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseIfBlock,
                          SyntaxKind.ElseBlock,
                          SyntaxKind.TryBlock,
                          SyntaxKind.CatchBlock,
@@ -525,6 +540,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return SyntaxFactory.SingletonList(DirectCast(DirectCast(node, SingleLineLambdaExpressionSyntax).Body, StatementSyntax))
                     Case SyntaxKind.MultiLineIfBlock
                         Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseIfBlock
+                        Return DirectCast(node, ElseIfBlockSyntax).Statements
                     Case SyntaxKind.ElseBlock
                         Return DirectCast(node, ElseBlockSyntax).Statements
                     Case SyntaxKind.TryBlock
@@ -591,6 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As SingleLineElseClauseSyntax) x.WithStatements(statements),
                 Function(x As SingleLineLambdaExpressionSyntax) ReplaceSingleLineLambdaExpressionStatements(x, statements, annotations),
                 Function(x As MultiLineIfBlockSyntax) x.WithStatements(statements),
+                Function(x As ElseIfBlockSyntax) x.WithStatements(statements),
                 Function(x As ElseBlockSyntax) x.WithStatements(statements),
                 Function(x As TryBlockSyntax) x.WithStatements(statements),
                 Function(x As CatchBlockSyntax) x.WithStatements(statements),

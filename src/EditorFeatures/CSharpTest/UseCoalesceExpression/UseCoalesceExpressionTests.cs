@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -332,7 +333,7 @@ class Program
 
         string y = x ?? string.Empty;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,14 +19,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// as this structure. We can then pick out this broken pattern, and convert
     /// it to null instead of true.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 16)]
     internal struct HACK_VariantStructure
     {
-        [FieldOffset(0)]
         private short _type;
 
-        [FieldOffset(8)]
+        private short _padding1;
+        private short _padding2;
+        private short _padding3;
+
         private short _booleanValue;
+        private IntPtr _padding4; // this will be aligned to the IntPtr-sized address
 
         public unsafe object ConvertToObject()
         {

@@ -7,12 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class SymbolKeyTests : TestBase
     {
         [Fact]
@@ -75,7 +77,9 @@ namespace A { namespace N { } }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
-            Assert.Equal(5, symbols.Count);
+            Assert.Equal(5, symbols.Count());
+            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
+                symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
 
@@ -518,7 +522,7 @@ public class A<T1>
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
-            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().TypeParameters.Single();
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Where(n => !n.IsImplicitlyDeclared).Single().TypeParameters.Single();
 
             TestRoundTrip(typeParameter, compilation);
         }
@@ -531,7 +535,8 @@ public class A<T1>
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>()
+                .Where(n => !n.IsImplicitlyDeclared).Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
 
             TestRoundTrip(typeParameter, compilation);
         }
@@ -542,7 +547,7 @@ public class A<T1>
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         System.Func<int> lambda = () => 
         {
@@ -819,8 +824,7 @@ class C
             {
                 symbols.Add(member);
 
-                var nsOrType = member as INamespaceOrTypeSymbol;
-                if (nsOrType != null)
+                if (member is INamespaceOrTypeSymbol nsOrType)
                 {
                     GetDeclaredSymbols(nsOrType, symbols);
                 }

@@ -1,17 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
+    [UseExportProvider]
     public class TextSnapshotImplementationTest
     {
         private Tuple<ITextSnapshot, SourceText> Create(params string[] lines)
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void Basic1()
         {
-            var tuple = Create("foo", "bar");
+            var tuple = Create("goo", "bar");
             var text = tuple.Item2;
             Assert.Equal(tuple.Item1.LineCount, text.Lines.Count);
             Assert.Equal(tuple.Item1.Length, text.Length);
@@ -34,18 +32,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void GetLineFromLineNumber1()
         {
-            var tuple = Create("foo", "bar");
+            var tuple = Create("goo", "bar");
             var text = tuple.Item2;
             var line1 = text.Lines[0];
             Assert.Equal(new TextSpan(0, 3), line1.Span);
             Assert.Equal(new TextSpan(0, 5), line1.SpanIncludingLineBreak);
-            Assert.Equal("foo", line1.ToString());
+            Assert.Equal("goo", line1.ToString());
         }
 
         [Fact]
         public void GetLineFromLineNumber2()
         {
-            var tuple = Create("foo", "bar");
+            var tuple = Create("goo", "bar");
             var text = tuple.Item2;
             var line1 = text.Lines[1];
             Assert.Equal(new TextSpan(5, 3), line1.Span);
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
         [Fact]
         public void Lines1()
         {
-            var tuple = Create("foo", "bar");
+            var tuple = Create("goo", "bar");
             var lines = tuple.Item2.Lines;
             Assert.Equal(2, lines.Count);
         }

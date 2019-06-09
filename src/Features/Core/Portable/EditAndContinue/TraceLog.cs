@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </remarks>
     internal sealed class TraceLog
     {
-        internal struct Arg
+        internal readonly struct Arg
         {
             public readonly string String;
             public readonly int Int32;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(int value) => new Arg(value);
         }
 
-        internal struct Entry
+        internal readonly struct Entry
         {
             public readonly string MessageFormat;
             public readonly Arg[] ArgsOpt;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ArgsOpt = argsOpt;
             }
 
-            public override string ToString() => 
+            public override string ToString() =>
                 string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
         }
 
@@ -90,7 +90,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.WriteLine(entry.ToString(), _id);
         }
 
-        // test only
-        internal Entry[] GetEntries() => _log;
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly TraceLog _traceLog;
+
+            public TestAccessor(TraceLog traceLog)
+            {
+                _traceLog = traceLog;
+            }
+
+            internal Entry[] Entries => _traceLog._log;
+        }
     }
 }

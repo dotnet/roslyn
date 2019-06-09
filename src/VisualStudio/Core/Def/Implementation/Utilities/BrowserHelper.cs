@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Shell;
@@ -34,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri CreateBingQueryUri(DiagnosticData diagnostic)
+        public static Uri CreateBingQueryUri(Workspace workspace, DiagnosticData diagnostic)
         {
             var errorCode = diagnostic.Id;
             var title = diagnostic.ENUMessageForBingSearch;
-            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
+            workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
 
             return CreateBingQueryUri(errorCode, title, language, projectType);
         }

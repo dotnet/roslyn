@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ' These tests adapted from David Kean's table at
     ' https://github.com/dotnet/roslyn/issues/5524
+    <[UseExportProvider]>
     Public Class CompletionRulesTests
         <Fact>
         Public Sub TestMatchLowerCaseEnglishI()
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
 
             Dim workspace = New TestWorkspace
-            Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
+            Dim helper = New CompletionHelper(isCaseSensitive:=False)
 
             For Each wordMarkup In wordsToMatch
                 Dim word As String = Nothing
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub TestNotMatches(pattern As String, wordsToNotMatch() As String)
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
             Dim workspace = New TestWorkspace
-            Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
+            Dim helper = New CompletionHelper(isCaseSensitive:=True)
             For Each word In wordsToNotMatch
                 Dim item = CompletionItem.Create(word)
                 Assert.False(helper.MatchesPattern(item.FilterText, pattern, culture), $"Unexpected item {word} matches {pattern}")

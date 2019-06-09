@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBWorkspaceResources.resx">
+    <body>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="translated">不能在此目标中添加命名空间。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
+        <source>Only attributes, expressions or statements can be made explicit</source>
+        <target state="translated">只有属性、表达式或语句可以变得明显</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_">
+        <source>&lt;event&gt;</source>
+        <target state="translated">&lt;事件&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="handler">
+        <source>&lt;handler&gt;</source>
+        <target state="translated">&lt;处理程序&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_be_evaluated_and_converted">
+        <source>The expression to be evaluated and converted.</source>
+        <target state="translated">要进行计算和转换的表达式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_data_type_to_which_the_value_of_expression_will_be_converted">
+        <source>The name of the data type to which the value of expression will be converted.</source>
+        <target state="translated">表达式的值将转换成的数据类型的名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expression">
+        <source>&lt;expression&gt;</source>
+        <target state="translated">&lt;表达式&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeName">
+        <source>&lt;typeName&gt;</source>
+        <target state="translated">&lt;typeName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
+        <source>Associates an event with an event handler, delegate or lambda expression at run time.</source>
+        <target state="translated">在运行时将事件与事件处理程序、委托或 lambda 表达式关联。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_associate_an_event_handler_delegate_or_lambda_expression_with">
+        <source>The event to associate an event handler, delegate or lambda expression with.</source>
+        <target state="translated">事件处理程序、代理或 lambda 表达式将关联的事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_associate_with_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate_lambdaExpression">
+        <source>The event handler to associate with the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; }.</source>
+        <target state="translated">将与事件关联的事件处理程序。这可能采用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; | &lt;lambdaExpression&gt; } 的形式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_expression_evaluates_to_a_reference_or_Nullable_value_that_is_not_Nothing_the_function_returns_that_value_Otherwise_it_calculates_and_returns_expressionIfNothing">
+        <source>If &lt;expression&gt; evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns &lt;expressionIfNothing&gt;.</source>
+        <target state="translated">如果 &lt;表达式&gt; 的计算结果为引用值或 Nothing 以外的可以为 null 的值，函数会返回该值。否则，计算并返回 &lt;expressionIfNothing&gt;。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returned_if_it_evaluates_to_a_reference_or_nullable_type_that_is_not_Nothing">
+        <source>Returned if it evaluates to a reference or nullable type that is not Nothing.</source>
+        <target state="translated">在计算结果为引用类型或者 Nothing 以外的可以为 null 的类型时返回。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_expression_evaluates_to_Nothing">
+        <source>Evaluated and returned if &lt;expression&gt; evaluates to Nothing.</source>
+        <target state="translated">在 &lt;表达式&gt; 的计算结果为 Nothing 时进行计算并返回。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfNothing">
+        <source>&lt;expressionIfNothing&gt;</source>
+        <target state="translated">&lt;expressionIfNothing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type">
+        <source>Returns the result of explicitly converting an expression to a specified data type.</source>
+        <target state="translated">返回表达式显式转换为指定的数据类型的结果。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_similar_to_CType_The_difference_is_that_CType_succeeds_as_long_as_there_is_a_valid_conversion_whereas_DirectCast_requires_that_one_type_inherit_from_or_implement_the_other_type">
+        <source>Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type.</source>
+        <target state="translated">引入与 CType 类似的类型转换运算。二者的区别在于，只要存在有效转换，CType 即可成功，而 DirectCast 则要求一个类型继承自另一个类型或实现另一个类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_name_to_return_a_System_Type_object_for">
+        <source>The type name to return a System.Type object for.</source>
+        <target state="translated">要为其返回 System.Type 对象的类型名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_a_System_Type_object_for_the_specified_type_name">
+        <source>Returns a System.Type object for the specified type name.</source>
+        <target state="translated">为指定的类型名称返回 System.Type 对象。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_XML_namespace_prefix_to_return_a_System_Xml_Linq_XNamespace_object_for_If_this_is_omitted_the_object_for_the_default_XML_namespace_is_returned">
+        <source>The XML namespace prefix to return a System.Xml.Linq.XNamespace object for. If this is omitted, the object for the default XML namespace is returned.</source>
+        <target state="translated">要为其返回 System.Xml.Linq.XNamespace 对象的 XML 命名空间前缀。如果省略，则返回默认 XML 命名空间的对象。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="xmlNamespacePrefix">
+        <source>&lt;xmlNamespacePrefix&gt;</source>
+        <target state="translated">&lt;xmlNamespacePrefix&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix">
+        <source>Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix.</source>
+        <target state="translated">返回对应于指定 XML 命名空间前缀的 System.Xml.Linq.XNamespace 对象。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replaces_a_specified_number_of_characters_in_a_String_variable_with_characters_from_another_string">
+        <source>Replaces a specified number of characters in a String variable with characters from another string.</source>
+        <target state="translated">用另一字符串中的字符替换 String 变量中指定数量的字符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_of_the_string_variable_to_modify">
+        <source>The name of the string variable to modify.</source>
+        <target state="translated">要修改的字符串变量的名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_one_based_character_position_in_the_string_where_the_replacement_of_text_begins">
+        <source>The one-based character position in the string where the replacement of text begins.</source>
+        <target state="translated">开始进行文本替换的字符串中从 1 开始的字符位置。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_number_of_characters_to_replace_If_omitted_the_length_of_stringExpression_is_used">
+        <source>The number of characters to replace. If omitted, the length of &lt;stringExpression&gt; is used.</source>
+        <target state="translated">要替换的字符数目。如果省略，则使用 &lt;stringExpression&gt; 的长度。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringName">
+        <source>&lt;stringName&gt;</source>
+        <target state="translated">&lt;stringName&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="startIndex">
+        <source>&lt;startIndex&gt;</source>
+        <target state="translated">&lt;startIndex&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="length">
+        <source>&lt;length&gt;</source>
+        <target state="translated">&lt;长度&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="stringExpression">
+        <source>&lt;stringExpression&gt;</source>
+        <target state="translated">&lt;stringExpression&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Converts_an_expression_to_the_0_data_type">
+        <source>Converts an expression to the {0} data type.</source>
+        <target state="translated">将表达式转换为 {0} 数据类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time">
+        <source>Removes the association between an event and an event handler or delegate at run time.</source>
+        <target state="translated">在运行时删除事件和事件处理程序或委托之间的关联。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_to_disassociate_an_event_handler_or_delegate_from">
+        <source>The event to disassociate an event handler or delegate from.</source>
+        <target state="translated">事件处理程序或委托将解除关联的事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_event_handler_to_disassociate_from_the_event_This_may_take_the_form_of_AddressOf_eventHandler_delegate">
+        <source>The event handler to disassociate from the event. This may take the form of { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; }.</source>
+        <target state="translated">将解除与事件的关联的事件处理程序。这可能采用 { AddressOf &lt;eventHandler&gt; | &lt;delegate&gt; } 的形式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
+        <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
+        <target state="translated">如果 &lt;条件&gt; 返回 True, 则函数会计算并返回 &lt;expressionIfTrue&gt;。否则，返回 &lt;expressionIfFalse&gt;。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_expression_to_evaluate">
+        <source>The expression to evaluate.</source>
+        <target state="translated">要计算的表达式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_True">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to True.</source>
+        <target state="translated">在 &lt;条件&gt; 的计算结果为 True 时进行计算并返回。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluated_and_returned_if_condition_evaluates_to_False">
+        <source>Evaluated and returned if &lt;condition&gt; evaluates to False.</source>
+        <target state="translated">在 &lt;条件&gt; 的计算结果为 False 时进行计算并返回。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="condition">
+        <source>&lt;condition&gt;</source>
+        <target state="translated">&lt;条件&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfTrue">
+        <source>&lt;expressionIfTrue&gt;</source>
+        <target state="translated">&lt;expressionIfTrue&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="expressionIfFalse">
+        <source>&lt;expressionIfFalse&gt;</source>
+        <target state="translated">&lt;expressionIfFalse&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
+        <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
+        <target state="translated">引入一个不引发异常的类型转换运算。如果尝试执行的转换失败，TryCast 会返回空值，程序可对此进行测试。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_does_not_descend_from_root">
+        <source>Node does not descend from root.</source>
+        <target state="translated">节点并非源自根。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_not_in_parent_s_child_list">
+        <source>Node not in parent's child list</source>
+        <target state="translated">不在父级的子列表中的节点</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trivia_is_not_associated_with_token">
+        <source>Trivia is not associated with token</source>
+        <target state="translated">琐事与标记不相关联</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeOrMember">
+        <source>&lt;typeOrMember&gt;</source>
+        <target state="translated">&lt;typeOrMember&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_of_member_to_return_the_name_of">
+        <source>The type of member to return the name of.</source>
+        <target state="translated">要返回其名称的成员的类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Produces_a_string_for_the_name_of_the_specified_type_or_member">
+        <source>Produces a string for the name of the specified type or member.</source>
+        <target state="translated">为指定类型或成员的名称生成字符串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="result">
+        <source>&lt;result&gt;</source>
+        <target state="translated">&lt;结果&gt;</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -21,6 +21,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             public void NoBuildErrors()
             {
                 _instance.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+                NoErrors();
+            }
+
+            public void NoErrors()
+            {
                 Assert.Equal(0, _errorList.GetErrorListErrorCount());
             }
         }

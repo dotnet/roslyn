@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {

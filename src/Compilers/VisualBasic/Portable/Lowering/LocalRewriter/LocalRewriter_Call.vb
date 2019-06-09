@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -85,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                Nothing,
                                receiver,
                                RewriteCallArguments(arguments, method.Parameters, temporaries, copyBack, suppressObjectClone),
+                               node.DefaultArguments,
                                Nothing,
                                isLValue:=node.IsLValue,
                                suppressObjectClone:=True,
@@ -337,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(argument.OutPlaceholder)
 
                 If secondUse.Kind = BoundKind.LateMemberAccess Then
-                    ' Method(ref objExpr.foo)
+                    ' Method(ref objExpr.goo)
 
                     copyBack = LateSet(secondUse.Syntax,
                                        DirectCast(MyBase.VisitLateMemberAccess(DirectCast(secondUse, BoundLateMemberAccess)), BoundLateMemberAccess),
@@ -349,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim invocation = DirectCast(secondUse, BoundLateInvocation)
 
                     If invocation.Member.Kind = BoundKind.LateMemberAccess Then
-                        ' Method(ref objExpr.foo(args))
+                        ' Method(ref objExpr.goo(args))
                         copyBack = LateSet(invocation.Syntax,
                                            DirectCast(MyBase.VisitLateMemberAccess(DirectCast(invocation.Member, BoundLateMemberAccess)), BoundLateMemberAccess),
                                            copyBackValue,

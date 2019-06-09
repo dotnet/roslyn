@@ -157,7 +157,7 @@ End Class
 <compilation name="NestedSyncLock">
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot
             [|SyncLock syncroot.ToString()
@@ -188,7 +188,7 @@ End Class
 <compilation name="DataflowOfInnerStatement">
     <file name="a.vb">
 Public Class Program
-    Public Sub foo()
+    Public Sub goo()
         Dim syncroot As Object = New Object
         SyncLock syncroot.ToString()
             [|Dim x As Integer
@@ -217,7 +217,7 @@ End Class
         <WorkItem(545364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545364")>
         <Fact()>
         Public Sub SyncLockLambda()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockLambda">
     <file name="a.vb">
 Option Infer On
@@ -253,7 +253,7 @@ End Class
         <Fact()>
         Public Sub SyncLockQuery()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockQuery">
     <file name="a.vb">
 Option Strict On
@@ -290,12 +290,12 @@ End Class
 
         <Fact()>
         Public Sub SyncLockGenericType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockGenericType">
     <file name="a.vb">
 Option Infer ON
 Class Program
-    Private Shared Sub Foo(Of T As D)(x As T)
+    Private Shared Sub Goo(Of T As D)(x As T)
         SyncLock x
         End SyncLock
     End Sub
@@ -325,7 +325,7 @@ End Class
         <Fact()>
         Public Sub SyncLockAnonymous()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockAnonymous">
     <file name="a.vb">
 Module M1
@@ -354,7 +354,7 @@ End Module
         <Fact()>
         Public Sub SyncLockCreateObject()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockCreateObject">
     <file name="a.vb">
 Module M1
@@ -384,7 +384,7 @@ End Module
 
         <Fact()>
         Public Sub SimpleSyncLockNothing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockNothing">
     <file name="a.vb">
 Option Strict ON
@@ -413,7 +413,7 @@ End Class
 
         <Fact()>
         Public Sub SimpleSyncLockDelegate()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockDelegate">
     <file name="a.vb">
 Delegate Sub D(p1 As Integer)
@@ -446,11 +446,11 @@ End Class
 
         <Fact()>
         Public Sub SyncLockMe()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockMe">
     <file name="a.vb">
 Class Program
-    Sub foo()
+    Sub goo()
         SyncLock Me
         End SyncLock
     End Sub
@@ -471,7 +471,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticSummary.Type.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As Program", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As Program", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticSummary.Symbol.Kind)
 
         End Sub

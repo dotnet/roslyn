@@ -147,12 +147,14 @@ namespace Microsoft.Cci
                 IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
                 this.Visit(unspecializedMethodReference.GetType(Context));
                 this.Visit(unspecializedMethodReference.GetParameters(Context));
+                this.Visit(unspecializedMethodReference.RefCustomModifiers);
                 this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
             }
             else
             {
                 this.Visit(methodReference.GetType(Context));
                 this.Visit(methodReference.GetParameters(Context));
+                this.Visit(methodReference.RefCustomModifiers);
                 this.Visit(methodReference.ReturnValueCustomModifiers);
             }
 
@@ -279,7 +281,7 @@ namespace Microsoft.Cci
         {
             VisitTypeDefinitionNoMembers(typeDefinition);
 
-            this.Visit(typeDefinition.Events);
+            this.Visit(typeDefinition.GetEvents(Context));
             this.Visit(typeDefinition.GetFields(Context));
             this.Visit(typeDefinition.GetMethods(Context));
             this.VisitNestedTypes(typeDefinition.GetNestedTypes(Context));

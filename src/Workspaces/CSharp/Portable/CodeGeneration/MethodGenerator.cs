@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
@@ -83,35 +82,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            var hasNoBody = !options.GenerateMethodBodies ||
-                            destination == CodeGenerationDestination.InterfaceType ||
-                            method.IsAbstract;
+            // Don't rely on destination to decide if method body should be generated.
+            // Users of this service need to express their intention explicitly, either by  
+            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
+            // `method` abstract. This would provide more flexibility.
+            var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
-
-            var returnType = method.ReturnsByRef
-                ? method.ReturnType.GenerateRefTypeSyntax()
-                : method.ReturnType.GenerateTypeSyntax();
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: returnType,
+                returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                expressionBody: default(ArrowExpressionClauseSyntax),
+                expressionBody: default,
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
             methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(methodDeclaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
         }
 
         private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
@@ -120,8 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (methodDeclaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
+                        methodDeclaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(expressionBody)
@@ -151,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
                 ? method.TypeParameters.GenerateConstraintClauses()
-                : default(SyntaxList<TypeParameterConstraintClauseSyntax>);
+                : default;
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             // Only "unsafe" modifier allowed if we're an explicit impl.
             if (method.ExplicitInterfaceImplementations.Any())
@@ -195,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (method.IsStatic)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
+                    if (method.IsReadOnly)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }
 
                     if (method.IsOverride)
@@ -237,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

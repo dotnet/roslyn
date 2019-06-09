@@ -4,6 +4,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -879,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim modifier = DirectCast(customModifiers(i).Modifier, NamedTypeSymbol)
                 Dim substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
 
-                If modifier <> substituted Then
+                If Not TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything) Then
                     Dim builder = ArrayBuilder(Of CustomModifier).GetInstance(customModifiers.Length)
                     builder.AddRange(customModifiers, i)
                     builder.Add(If(customModifiers(i).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
@@ -888,7 +889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         modifier = DirectCast(customModifiers(j).Modifier, NamedTypeSymbol)
                         substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
 
-                        If modifier <> substituted Then
+                        If Not TypeSymbol.Equals(modifier, substituted, TypeCompareKind.ConsiderEverything) Then
                             builder.Add(If(customModifiers(j).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
                         Else
                             builder.Add(customModifiers(j))

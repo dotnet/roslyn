@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _readOutside;
         private ImmutableArray<ISymbol> _writtenOutside;
         private ImmutableArray<ISymbol> _captured;
+        private ImmutableArray<ISymbol> _capturedInside;
+        private ImmutableArray<ISymbol> _capturedOutside;
         private ImmutableArray<ISymbol> _unsafeAddressTaken;
         private HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
         private bool? _succeeded;
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_variablesDeclared.IsDefault)
                 {
                     var result = Succeeded
-                        ? Sort(VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
+                        ? Normalize(VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _variablesDeclared, result);
                 }
@@ -86,11 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_dataFlowsIn == null)
+                if (_dataFlowsIn.IsDefault)
                 {
                     _succeeded = !_context.Failed;
                     var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
-                        Sort(DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded));
+                        Normalize(DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded));
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsIn, result);
                 }
 
@@ -107,10 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var discarded = DataFlowsIn; // force DataFlowsIn to be computed
-                if (_dataFlowsOut == null)
+                if (_dataFlowsOut.IsDefault)
                 {
                     var result = Succeeded
-                        ? Sort(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
+                        ? Normalize(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsOut, result);
                 }
@@ -126,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_alwaysAssigned == null)
+                if (_alwaysAssigned.IsDefault)
                 {
                     var result = Succeeded
-                        ? Sort(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
+                        ? Normalize(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
                         : ImmutableArray<ISymbol>.Empty;
                     ImmutableInterlocked.InterlockedInitialize(ref _alwaysAssigned, result);
                 }
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_readInside == null)
+                if (_readInside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_writtenInside == null)
+                if (_writtenInside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_readOutside == null)
+                if (_readOutside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_writtenOutside == null)
+                if (_writtenOutside.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -204,25 +207,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AnalyzeReadWrite()
         {
-            IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
+            IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken, capturedInside, capturedOutside;
             if (Succeeded)
             {
                 ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
                     readInside: out readInside, writtenInside: out writtenInside,
                     readOutside: out readOutside, writtenOutside: out writtenOutside,
-                    captured: out captured, unsafeAddressTaken: out unsafeAddressTaken);
+                    captured: out captured, unsafeAddressTaken: out unsafeAddressTaken,
+                    capturedInside: out capturedInside, capturedOutside: out capturedOutside);
             }
             else
             {
-                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = capturedInside = capturedOutside = Enumerable.Empty<Symbol>();
             }
 
-            ImmutableInterlocked.InterlockedInitialize(ref _readInside, Sort(readInside));
-            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, Sort(writtenInside));
-            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, Sort(readOutside));
-            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, Sort(writtenOutside));
-            ImmutableInterlocked.InterlockedInitialize(ref _captured, Sort(captured));
-            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, Sort(unsafeAddressTaken));
+            ImmutableInterlocked.InterlockedInitialize(ref _readInside, Normalize(readInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, Normalize(writtenInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, Normalize(readOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, Normalize(writtenOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _captured, Normalize(captured));
+            ImmutableInterlocked.InterlockedInitialize(ref _capturedInside, Normalize(capturedInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _capturedOutside, Normalize(capturedOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, Normalize(unsafeAddressTaken));
         }
 
         /// <summary>
@@ -233,12 +239,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_captured == null)
+                if (_captured.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
 
                 return _captured;
+            }
+        }
+
+        public override ImmutableArray<ISymbol> CapturedInside
+        {
+            get
+            {
+                if (_capturedInside.IsDefault)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _capturedInside;
+            }
+        }
+
+        public override ImmutableArray<ISymbol> CapturedOutside
+        {
+            get
+            {
+                if (_capturedOutside.IsDefault)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _capturedOutside;
             }
         }
 
@@ -253,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_unsafeAddressTaken == null)
+                if (_unsafeAddressTaken.IsDefault)
                 {
                     AnalyzeReadWrite();
                 }
@@ -295,10 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ImmutableArray<ISymbol> Sort(IEnumerable<Symbol> data)
+        private static ImmutableArray<ISymbol> Normalize(IEnumerable<Symbol> data)
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
-            builder.AddRange(data);
+            builder.AddRange(data.Where(s => s.CanBeReferencedByName));
             builder.Sort(LexicalOrderSymbolComparer.Instance);
             return builder.ToImmutableAndFree().As<ISymbol>();
         }

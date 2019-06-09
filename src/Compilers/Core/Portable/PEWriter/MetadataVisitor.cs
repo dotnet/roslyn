@@ -48,8 +48,14 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ICustomAttribute customAttribute)
         {
+            IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: false);
+            if (constructor is null)
+            {
+                return;
+            }
+
             this.Visit(customAttribute.GetArguments(Context));
-            this.Visit(customAttribute.Constructor(Context));
+            this.Visit(constructor);
             this.Visit(customAttribute.GetNamedArguments(Context));
         }
 
@@ -76,7 +82,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 
@@ -271,7 +277,8 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.ReturnValueAttributes);
+            this.Visit(method.GetReturnValueAttributes(Context));
+            this.Visit(method.RefCustomModifiers);
             this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
@@ -412,6 +419,7 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
+            this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
             MetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
@@ -441,6 +449,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
+            this.Visit(parameterTypeInformation.RefCustomModifiers);
             this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }
@@ -464,7 +473,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPropertyDefinition propertyDefinition)
         {
-            this.Visit(propertyDefinition.Accessors);
+            this.Visit(propertyDefinition.GetAccessors(Context));
             this.Visit(propertyDefinition.Parameters);
         }
 

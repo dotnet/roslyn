@@ -2,32 +2,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class AssetServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestAssets()
         {
             var sessionId = 0;
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId, checksum, data);
+            var source = new TestAssetSource(storage, checksum, data);
 
-            var service = new AssetService(sessionId, storage);
+            var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             var stored = await service.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
@@ -50,19 +55,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // build checksum
                 await solution.State.GetChecksumAsync(CancellationToken.None);
 
-                var map = solution.GetAssetMap();
+                var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
                 await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
-                object data;
                 foreach (var kv in map)
                 {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
+                    Assert.True(storage.TryGetAsset(kv.Key, out object data));
                 }
             }
         }
@@ -79,20 +83,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // build checksum
                 await solution.State.GetChecksumAsync(CancellationToken.None);
 
-                var map = solution.GetAssetMap();
+                var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
-                object data;
-                foreach (var kv in map)
-                {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
-                }
+                TestUtils.VerifyAssetStorage(map, storage);
             }
         }
 
@@ -108,20 +108,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // build checksum
                 await project.State.GetChecksumAsync(CancellationToken.None);
 
-                var map = project.GetAssetMap();
+                var map = await project.GetAssetMapAsync(CancellationToken.None);
 
                 var sessionId = 0;
                 var storage = new AssetStorage();
-                var source = new TestAssetSource(storage, sessionId, map);
+                var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
-                object data;
-                foreach (var kv in map)
-                {
-                    Assert.True(storage.TryGetAsset(kv.Key, out data));
-                }
+                TestUtils.VerifyAssetStorage(map, storage);
             }
         }
     }

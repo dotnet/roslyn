@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -7,36 +8,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ArrowExpressionClauseSyntaxExtensions
     {
-        public static BlockSyntax ConvertToBlock(
+        public static bool TryConvertToBlock(
             this ArrowExpressionClauseSyntax arrowExpression,
             SyntaxToken semicolonToken,
-            bool createReturnStatementForExpression)
+            bool createReturnStatementForExpression,
+            out BlockSyntax block)
         {
-            var statement = ConvertToStatement(arrowExpression.Expression, semicolonToken, createReturnStatementForExpression);
-            statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
-            return SyntaxFactory.Block(statement);
+            if (!arrowExpression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out var statement))
+            {
+                block = null;
+                return false;
+            }
+
+            block = SyntaxFactory.Block(statement);
+            return true;
         }
 
-        private static StatementSyntax ConvertToStatement(
-            ExpressionSyntax expression, 
-            SyntaxToken semicolonToken, 
-            bool createReturnStatementForExpression)
+        public static bool TryConvertToStatement(
+            this ArrowExpressionClauseSyntax arrowExpression,
+            SyntaxToken semicolonToken,
+            bool createReturnStatementForExpression,
+            out StatementSyntax statement)
         {
-            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            if (!arrowExpression.Expression.TryConvertToStatement(
+                    semicolonToken, createReturnStatementForExpression, out statement))
             {
-                var throwExpression = (ThrowExpressionSyntax)expression;
-                return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
+                return false;
             }
-            else if (createReturnStatementForExpression)
+
+            if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
             {
-                return SyntaxFactory.ReturnStatement(expression)
-                                    .WithSemicolonToken(semicolonToken);
+                statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
             }
-            else
-            {
-                return SyntaxFactory.ExpressionStatement(expression)
-                                    .WithSemicolonToken(semicolonToken);
-            }
+
+            return true;
         }
     }
 }

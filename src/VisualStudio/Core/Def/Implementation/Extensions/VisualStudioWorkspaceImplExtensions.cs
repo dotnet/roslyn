@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
             if (uiObject != null)
             {
-                var imageListData = Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) as IVsUIWin32ImageList;
-                if (imageListData != null)
+                if (Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) is IVsUIWin32ImageList imageListData)
                 {
                     if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out var imageListInt)))
                     {
@@ -61,43 +60,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 }
             }
 
-            imageList = default(IntPtr);
-            index = 0;
-            return false;
-        }
-
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out int index)
-        {
-            var result = TryGetImageListAndIndex(workspace, imageService, id, out imageList, out ushort ushortIndex);
-
-            index = ushortIndex;
-            return result;
-        }
-
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out ushort index)
-        {
-            var hierarchy = workspace.GetHostProject(id)?.Hierarchy;
-            if (hierarchy != null)
-            {
-                return TryGetImageListAndIndex(hierarchy, imageService, VSConstants.VSITEMID_ROOT, out imageList, out index);
-            }
-
-            imageList = default(IntPtr);
+            imageList = default;
             index = 0;
             return false;
         }
 
         public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, DocumentId id, out IntPtr imageList, out ushort index)
         {
-            var hostDocument = workspace.GetHostDocument(id);
-            if (hostDocument != null)
+            var hierarchy = workspace.GetHierarchy(id.ProjectId);
+            var document = workspace.CurrentSolution.GetDocument(id);
+            if (hierarchy != null)
             {
-                var hierarchy = hostDocument.Project.Hierarchy;
-                var itemId = hostDocument.GetItemId();
+                var itemId = hierarchy.TryGetItemId(document.FilePath);
                 return TryGetImageListAndIndex(hierarchy, imageService, itemId, out imageList, out index);
             }
 
-            imageList = default(IntPtr);
+            imageList = default;
             index = 0;
             return false;
         }

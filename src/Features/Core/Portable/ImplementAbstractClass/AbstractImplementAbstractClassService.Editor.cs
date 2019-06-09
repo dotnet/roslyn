@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_state.Location);
 
                 return GenerateMember(member, addUnsafe, propertyGenerationBehavior, cancellationToken);
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             private ISymbol GenerateMethod(
                 IMethodSymbol method, DeclarationModifiers modifiers, Accessibility accessibility, CancellationToken cancellationToken)
             {
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var throwingBody = syntaxFactory.CreateThrowNotImplementedStatementBlock(
                     _model.Compilation);
 
@@ -135,16 +135,16 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
                 }
 
-                var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
 
                 var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : syntaxFactory.CreateThrowNotImplementedStatementBlock(_model.Compilation);
 
                 var getMethod = ShouldGenerateAccessor(property.GetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.GetMethod,
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: property.GetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: accessorBody)
                     : null;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var setMethod = ShouldGenerateAccessor(property.SetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.SetMethod,
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: property.SetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: accessorBody)
                     : null;

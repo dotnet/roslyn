@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 End If
 
                 Dim symbolInfo = _semanticModel.GetSymbolInfo(node)
-                Return symbolInfo.Symbol Is _localSymbol
+                Return Equals(symbolInfo.Symbol, _localSymbol)
             End Function
 
             Public Overrides Function VisitIdentifierName(node As IdentifierNameSyntax) As SyntaxNode

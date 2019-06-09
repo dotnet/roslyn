@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => GetTypeName(GetInfo(constructor), constructor);
 
         private static ImmutableArray<SyntaxNode> GetThisConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
-            => info?._thisConstructorArguments ?? default(ImmutableArray<SyntaxNode>);
+            => info?._thisConstructorArguments ?? default;
 
         private static ImmutableArray<SyntaxNode> GetBaseConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
-            => info?._baseConstructorArguments ?? default(ImmutableArray<SyntaxNode>);
+            => info?._baseConstructorArguments ?? default;
 
         private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationConstructorInfo info)
-            => info?._statements ?? default(ImmutableArray<SyntaxNode>);
+            => info?._statements ?? default;
 
         private static string GetTypeName(CodeGenerationConstructorInfo info, IMethodSymbol constructor)
             => info == null ? constructor.ContainingType.Name : info._typeName;

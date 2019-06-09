@@ -12,12 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
     /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class SyntaxNode
     {
@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines if the specified node is a descendant of this node.
+        /// Returns true for current node.
         /// </summary>
         public bool Contains(SyntaxNode node)
         {
@@ -954,7 +955,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            recurse:
+recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -1368,7 +1369,7 @@ namespace Microsoft.CodeAnalysis
             return token;
         }
 
-        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, SyntaxToken token)
+        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, in SyntaxToken token)
         {
             var span = token.Span;
             var trivia = new SyntaxTrivia();
@@ -1384,7 +1385,7 @@ namespace Microsoft.CodeAnalysis
             return trivia;
         }
 
-        internal static SyntaxTrivia GetTriviaThatContainsPosition(SyntaxTriviaList list, int position)
+        internal static SyntaxTrivia GetTriviaThatContainsPosition(in SyntaxTriviaList list, int position)
         {
             foreach (var trivia in list)
             {
@@ -1481,6 +1482,18 @@ namespace Microsoft.CodeAnalysis
         {
             return new Syntax.InternalSyntax.SyntaxDiagnosticInfoList(this.Green).Any(
                 info => info.Severity == DiagnosticSeverity.Error);
+        }
+
+        /// <summary>
+        /// Creates a clone of a red node that can be used as a root of given syntaxTree.
+        /// New node has no parents, position == 0, and syntaxTree as specified.
+        /// </summary>
+        internal static T CloneNodeAsRoot<T>(T node, SyntaxTree syntaxTree) where T : SyntaxNode
+        {
+            var clone = (T)node.Green.CreateRed(null, 0);
+            clone._syntaxTree = syntaxTree;
+
+            return clone;
         }
     }
 }

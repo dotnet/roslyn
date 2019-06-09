@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Threading;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -27,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
 
             public TestableDesktopBuildClient(
-                RequestLanguage langauge,
+                RequestLanguage language,
                 CompileFunc compileFunc,
                 string pipeName,
                 Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
+                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
             {
                 _pipeName = pipeName;
                 _createServerFunc = createServerFunc;
@@ -58,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
             }
 
-            public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs, CancellationToken cancellationToken)
+            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
+                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
                 {
-                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return pipeStream != null;
                 }
             }
         }
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName);
+                var serverData = ServerUtil.CreateServer(pipeName).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return true;
             }
@@ -145,36 +147,56 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
+#if NET472
             [Fact]
-            public async Task ConnectToPipeWithSpinWait()
+            public void TestMutexConstructorException()
             {
-                // No server should be started with the current pipe name
-                var client = CreateClient();
+                using (var outer = new Mutex(initiallyOwned: true, name: BuildServerConnection.GetClientMutexName(_pipeName), out bool createdNew))
+                {
+                    Assert.True(createdNew);
+                    var mutexSecurity = outer.GetAccessControl();
+                    mutexSecurity.AddAccessRule(new MutexAccessRule(WindowsIdentity.GetCurrent().Owner, MutexRights.FullControl, AccessControlType.Deny));
+                    outer.SetAccessControl(mutexSecurity);
+
+                    var ranLocal = false;
+                    var client = CreateClient(
+                        compileFunc: delegate
+                        {
+                            ranLocal = true;
+                            return 0;
+                        });
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    Assert.Equal(0, exitCode);
+                    Assert.True(ranLocal);
+                }
+            }
+#endif
+
+            [Fact]
+            public async Task ConnectToPipe()
+            {
+                string pipeName = Guid.NewGuid().ToString("N");
+
                 var oneSec = TimeSpan.FromSeconds(1);
 
-                Assert.False(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                      default(CancellationToken)));
+                Assert.False(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = Task.Run(() => client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                                         cts.Token),
-                                          cts.Token);
+                var connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
                     async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
 
                 // Create server and try again
-                Assert.True(TryCreateServer(_pipeName));
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                     default(CancellationToken)));
+                Assert.True(TryCreateServer(pipeName));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
                 // With infinite timeout
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                     default(CancellationToken)));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 
-            [Fact]
+            [ConditionalFact(typeof(DesktopOnly))]
             public void OnlyStartsOneServer()
             {
                 var ranLocal = false;
@@ -265,99 +287,115 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     out _errorMessage);
             }
 
-            [Fact]
-            public void Shared()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Shared(char optionPrefix)
             {
-                Assert.True(Parse("/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithSessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithSessionKey(char optionPrefix)
             {
-                Assert.True(Parse("/shared:pipe", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:pipe", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("pipe", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared:1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared=1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared=1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithEmptySessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithEmptySessionKey(char optionPrefix)
             {
-                Assert.False(Parse("/shared:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "shared:", "test.cs"));
                 Assert.False(_hasShared);
                 Assert.Equal(CodeAnalysisResources.SharedArgumentMissing, _errorMessage);
             }
 
-            [Fact]
-            public void SharedPrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedPrefix(char optionPrefix)
             {
-                Assert.True(Parse("/sharedstart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "sharedstart", "test.cs"));
                 Assert.False(_hasShared);
-                Assert.Equal(new[] { "/sharedstart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "sharedstart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void Basic()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Basic(char optionPrefix)
             {
                 Assert.True(Parse("test.cs"));
                 Assert.False(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", "/shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAliveBad()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAliveBad(char optionPrefix)
             {
-                Assert.False(Parse("/keepalive", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:-100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:-100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveIsTooSmall, _errorMessage);
 
-                Assert.False(Parse("/keepalive:100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveWithoutShared, _errorMessage);
             }
 
-            [Fact]
-            public void KeepAlivePrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlivePrefix(char optionPrefix)
             {
-                Assert.True(Parse("/keepalivestart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalivestart", "test.cs"));
                 Assert.Null(_keepAlive);
-                Assert.Equal(new[] { "/keepalivestart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "keepalivestart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAlive()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlive(char optionPrefix)
             {
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
 
-                Assert.True(Parse("/keepalive=100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive=100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
@@ -368,13 +406,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class MiscTest
         {
             [Fact]
-            public void GetBasePipeNameSlashes()
+            public void GetPipeNameForPathOptSlashes()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetBasePipeName(path);
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+            }
+
+            [Fact]
+            public void GetPipeNameForPathOptLength()
+            {
+                var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
+                // We only have ~50 total bytes to work with on mac, so the base path must be small
+                Assert.Equal(43, name.Length);
             }
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// 3. Add this forked document to the solution.
             /// 4. Finally, update the original document and remove the type from it.
             /// </remarks>
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override async Task<Solution> GetModifiedSolutionAsync()
             {
                 var solution = SemanticDocument.Document.Project.Solution;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionWithBothDocumentsUpdated));
+                return solutionWithBothDocumentsUpdated;
             }
 
             /// <summary>
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, 
+                AddPartialModifiersToTypeChain(documentEditor,
                     removeAttributesAndComments: false, removeTypeInheritance: false);
                 documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                Func<SyntaxNode, bool> predicate = n => movedImports.Contains(i => i.IsEquivalentTo(n));
+                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
                     updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, 
+                        documentEditor.SetModifiers(node,
                             documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 
@@ -271,24 +271,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     {
                         var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
 
-                        // Trim leading whitespace from the type so we don't have excessive
-                        // leading blank lines.
-                        return RemoveLeadingWhitespace(currentTypeNode);
+                        // Trim leading blank lines from the type so we don't have an 
+                        // excessive number of them.
+                        return RemoveLeadingBlankLines(currentTypeNode);
                     });
             }
 
-            private TTypeDeclarationSyntax RemoveLeadingWhitespace(
+            private TTypeDeclarationSyntax RemoveLeadingBlankLines(
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                var leadingTrivia = currentTypeNode.GetLeadingTrivia();
-                var afterWhitespace = leadingTrivia.SkipWhile(
-                    t => syntaxFacts.IsWhitespaceTrivia(t) || syntaxFacts.IsEndOfLineTrivia(t));
+                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
-                var withoutLeadingWhitespace = currentTypeNode.WithLeadingTrivia(afterWhitespace);
-                return withoutLeadingWhitespace.ReplaceToken(
-                    withoutLeadingWhitespace.GetFirstToken(),
-                    withoutLeadingWhitespace.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
+                // Add an elastic marker so the formatter can add any blank lines it thinks are
+                // important to have (i.e. after a block of usings/imports).
+                return withoutBlankLines.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
             }
         }
     }

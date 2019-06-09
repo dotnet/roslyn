@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        protected override string ToolName => "csi.exe";
+        protected override string ToolNameWithoutExtension => "csi";
         #endregion
 
         #region Interactive Compiler Members

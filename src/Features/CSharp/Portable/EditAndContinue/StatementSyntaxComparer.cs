@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchStatement,
             SwitchSection,
             CasePatternSwitchLabel,            // tied to parent
-            WhenClause,                  
+            WhenClause,
 
             YieldStatement,                    // tied to parent
             GotoStatement,
@@ -184,8 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ExpressionStatement,
 
             LabeledStatement,
-
-            LocalFunction,
 
             // TODO: 
             // Ideally we could declare LocalVariableDeclarator tied to the first enclosing node that defines local scope (block, foreach, etc.)
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             SingleVariableDesignation,
             AwaitExpression,
-            Lambda,
+            NestedFunction,
 
             FromClause,
             QueryBody,
@@ -233,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
                 case Label.YieldStatement:
-                case Label.LocalFunction:
                 case Label.FromClauseLambda:
                 case Label.LetClauseLambda:
                 case Label.WhereClauseLambda:
@@ -399,12 +396,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.FinallyClause;
 
                 case SyntaxKind.LocalFunctionStatement:
-                    return Label.LocalFunction;
-
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    return Label.Lambda;
+                    return Label.NestedFunction;
 
                 case SyntaxKind.FromClause:
                     // The first from clause of a query is not a lambda.
@@ -668,11 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    distance = ComputeWeightedDistanceOfLambdas(leftNode, rightNode);
-                    return true;
-
                 case SyntaxKind.LocalFunctionStatement:
-                    distance = ComputeWeightedDistanceOfLocalFunctions((LocalFunctionStatementSyntax)leftNode, (LocalFunctionStatementSyntax)rightNode);
+                    distance = ComputeWeightedDistanceOfNestedFunctions(leftNode, rightNode);
                     return true;
 
                 case SyntaxKind.YieldBreakStatement:
@@ -681,20 +673,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
                     return true;
 
+                case SyntaxKind.SingleVariableDesignation:
+                    distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
+                    return true;
+
                 default:
                     distance = 0;
                     return false;
             }
         }
 
-        private static double ComputeWeightedDistanceOfLocalFunctions(LocalFunctionStatementSyntax leftNode, LocalFunctionStatementSyntax rightNode)
+        private static double ComputeWeightedDistanceOfNestedFunctions(SyntaxNode leftNode, SyntaxNode rightNode)
         {
-            double modifierDistance = ComputeDistance(leftNode.Modifiers, rightNode.Modifiers);
-            double returnTypeDistance = ComputeDistance(leftNode.ReturnType, rightNode.ReturnType);
-            double identifierDistance = ComputeDistance(leftNode.Identifier, rightNode.Identifier);
-            double typeParameterDistance = ComputeDistance(leftNode.TypeParameterList, rightNode.TypeParameterList);
-            double parameterDistance = ComputeDistance(leftNode.ParameterList.Parameters, rightNode.ParameterList.Parameters);
-            double bodyDistance = ComputeDistance((SyntaxNode)leftNode.Body ?? leftNode.ExpressionBody, (SyntaxNode)rightNode.Body ?? rightNode.ExpressionBody);
+            GetNestedFunctionsParts(leftNode, out var leftParameters, out var leftAsync, out var leftBody, out var leftModifiers, out var leftReturnType, out var leftIdentifier, out var leftTypeParameters);
+            GetNestedFunctionsParts(rightNode, out var rightParameters, out var rightAsync, out var rightBody, out var rightModifiers, out var rightReturnType, out var rightIdentifier, out var rightTypeParameters);
+
+            if ((leftAsync.Kind() == SyntaxKind.AsyncKeyword) != (rightAsync.Kind() == SyntaxKind.AsyncKeyword))
+            {
+                return 1.0;
+            }
+
+            double modifierDistance = ComputeDistance(leftModifiers, rightModifiers);
+            double returnTypeDistance = ComputeDistance(leftReturnType, rightReturnType);
+            double identifierDistance = ComputeDistance(leftIdentifier, rightIdentifier);
+            double typeParameterDistance = ComputeDistance(leftTypeParameters, rightTypeParameters);
+            double parameterDistance = ComputeDistance(leftParameters, rightParameters);
+            double bodyDistance = ComputeDistance(leftBody, rightBody);
 
             return
                 modifierDistance * 0.1 +
@@ -705,42 +709,42 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 bodyDistance * 0.2;
         }
 
-        private static double ComputeWeightedDistanceOfLambdas(SyntaxNode leftNode, SyntaxNode rightNode)
+        private static void GetNestedFunctionsParts(
+            SyntaxNode nestedFunction,
+            out IEnumerable<SyntaxToken> parameters,
+            out SyntaxToken asyncKeyword,
+            out SyntaxNode body,
+            out SyntaxTokenList modifiers,
+            out TypeSyntax returnType,
+            out SyntaxToken identifier,
+            out TypeParameterListSyntax typeParameters)
         {
-            GetLambdaParts(leftNode, out var leftParameters, out var leftAsync, out var leftBody);
-            GetLambdaParts(rightNode, out var rightParameters, out var rightAsync, out var rightBody);
-
-            if ((leftAsync.Kind() == SyntaxKind.AsyncKeyword) != (rightAsync.Kind() == SyntaxKind.AsyncKeyword))
-            {
-                return 1.0;
-            }
-
-            double parameterDistance = ComputeDistance(leftParameters, rightParameters);
-            double bodyDistance = ComputeDistance(leftBody, rightBody);
-
-            return parameterDistance * 0.6 + bodyDistance * 0.4;
-        }
-
-        private static void GetLambdaParts(SyntaxNode lambda, out IEnumerable<SyntaxToken> parameters, out SyntaxToken asyncKeyword, out SyntaxNode body)
-        {
-            switch (lambda.Kind())
+            switch (nestedFunction.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
-                    var simple = (SimpleLambdaExpressionSyntax)lambda;
+                    var simple = (SimpleLambdaExpressionSyntax)nestedFunction;
                     parameters = simple.Parameter.DescendantTokens();
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
+                    modifiers = default;
+                    returnType = default;
+                    identifier = default;
+                    typeParameters = default;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    var parenthesized = (ParenthesizedLambdaExpressionSyntax)lambda;
+                    var parenthesized = (ParenthesizedLambdaExpressionSyntax)nestedFunction;
                     parameters = GetDescendantTokensIgnoringSeparators(parenthesized.ParameterList.Parameters);
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
+                    modifiers = default;
+                    returnType = default;
+                    identifier = default;
+                    typeParameters = default;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
-                    var anonymous = (AnonymousMethodExpressionSyntax)lambda;
+                    var anonymous = (AnonymousMethodExpressionSyntax)nestedFunction;
                     if (anonymous.ParameterList != null)
                     {
                         parameters = GetDescendantTokensIgnoringSeparators(anonymous.ParameterList.Parameters);
@@ -752,10 +756,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
+                    modifiers = default;
+                    returnType = default;
+                    identifier = default;
+                    typeParameters = default;
+                    break;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)nestedFunction;
+                    parameters = GetDescendantTokensIgnoringSeparators(localFunction.ParameterList.Parameters);
+                    asyncKeyword = default;
+                    body = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                    modifiers = localFunction.Modifiers;
+                    returnType = localFunction.ReturnType;
+                    identifier = localFunction.Identifier;
+                    typeParameters = localFunction.TypeParameterList;
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
+                    throw ExceptionUtilities.UnexpectedValue(nestedFunction.Kind());
             }
         }
 
@@ -837,6 +856,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        private double ComputeWeightedDistance(SingleVariableDesignationSyntax leftNode, SingleVariableDesignationSyntax rightNode)
+        {
+            double distance = ComputeDistance(leftNode, rightNode);
+            double parentDistance;
+
+            if (leftNode.Parent != null &&
+                rightNode.Parent != null &&
+                GetLabel(leftNode.Parent) == GetLabel(rightNode.Parent))
+            {
+                parentDistance = ComputeDistance(leftNode.Parent, rightNode.Parent);
+            }
+            else
+            {
+                parentDistance = 1;
+            }
+
+            return 0.5 * parentDistance + 0.5 * distance;
+        }
+
         private static double ComputeWeightedBlockDistance(BlockSyntax leftBlock, BlockSyntax rightBlock)
         {
             if (TryComputeLocalsDistance(leftBlock, rightBlock, out var distance))
@@ -861,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double statementDistance = ComputeDistance(leftCommonForEach.Statement, rightCommonForEach.Statement);
             double expressionDistance = ComputeDistance(leftCommonForEach.Expression, rightCommonForEach.Expression);
 
-            List<SyntaxToken> leftLocals = null; 
+            List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
             GetLocalNames(leftCommonForEach, ref leftLocals);
             GetLocalNames(rightCommonForEach, ref rightLocals);
@@ -1006,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static void GetLocalNames(CommonForEachStatementSyntax commonForEach, ref List<SyntaxToken> result)
+        internal static void GetLocalNames(CommonForEachStatementSyntax commonForEach, ref List<SyntaxToken> result)
         {
             switch (commonForEach.Kind())
             {
@@ -1035,13 +1073,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.TupleExpression:
                     var tupleExpression = (TupleExpressionSyntax)expression;
-                    foreach(var argument in tupleExpression.Arguments)
+                    foreach (var argument in tupleExpression.Arguments)
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
                     return;
 
-                default: 
+                default:
                     // Do nothing for node that cannot have variable declarations inside.
                     return;
             }
@@ -1057,10 +1095,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     var parenthesizedVariableDesignation = (ParenthesizedVariableDesignationSyntax)designation;
-                    foreach(var variableDesignation in parenthesizedVariableDesignation.Variables)
+                    foreach (var variableDesignation in parenthesizedVariableDesignation.Variables)
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }
+                    return;
+
+                case SyntaxKind.DiscardDesignation:
                     return;
 
                 default: throw ExceptionUtilities.UnexpectedValue(designation.Kind());

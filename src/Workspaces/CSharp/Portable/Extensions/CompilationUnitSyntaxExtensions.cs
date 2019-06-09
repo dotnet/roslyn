@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -119,57 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return root;
             }
 
-            var comparer = placeSystemNamespaceFirst
-                ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance
-                : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
-
             var usings = AddUsingDirectives(root, usingDirectives);
 
             // Keep usings sorted if they were originally sorted.
-            if (root.Usings.IsSorted(comparer))
-            {
-                usings.Sort(comparer);
-            }
+            usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
 
             if (root.Externs.Count == 0)
             {
-                if (root.Usings.Count == 0)
-                {
-                    // We don't have any existing usings. Move any trivia on the first token 
-                    // of the file to the first using.
-                    // 
-                    // Don't do this for doc comments, as they belong to the first element
-                    // already in the file (like a class) and we don't want it to move to
-                    // the using.
-                    var firstToken = root.GetFirstToken();
-
-                    // Remove the leading directives from the first token.
-                    var newFirstToken = firstToken.WithLeadingTrivia(
-                        firstToken.LeadingTrivia.Where(t => IsDocCommentOrElastic(t)));
-
-                    root = root.ReplaceToken(firstToken, newFirstToken);
-
-                    // Move the leading trivia from the first token to the first using.
-                    var newFirstUsing = usings[0].WithLeadingTrivia(
-                        firstToken.LeadingTrivia.Where(t => !IsDocCommentOrElastic(t)));
-                    usings[0] = newFirstUsing;
-                }
-                else
-                {
-                    var originalFirstUsing = root.Usings[0];
-                    if (usings[0] != originalFirstUsing)
-                    {
-                        // We added a new first-using.  Take the trivia on the existing first using
-                        // And move it to the new using.
-                        var originalFirstUsingCurrentIndex = usings.IndexOf(originalFirstUsing);
-
-                        var newFirstUsing = usings[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia())
-                                                     .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-
-                        usings[0] = newFirstUsing;
-                        usings[originalFirstUsingCurrentIndex] = originalFirstUsing.WithoutLeadingTrivia();
-                    }
-                }
+                root = AddImportHelpers.MoveTrivia(
+                    CSharpSyntaxFactsService.Instance, root, root.Usings, usings);
             }
 
             return root.WithUsings(
@@ -215,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 usings.InsertRange(startOfLastDirective, usingDirectives);
             }
+
             return usings;
         }
     }

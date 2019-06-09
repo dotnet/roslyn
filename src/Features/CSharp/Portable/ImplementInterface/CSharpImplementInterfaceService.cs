@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -19,14 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     [ExportLanguageService(typeof(IImplementInterfaceService), LanguageNames.CSharp), Shared]
     internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
     {
+        [ImportingConstructor]
+        public CSharpImplementInterfaceService()
+        {
+        }
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                var interfaceNode = node as TypeSyntax;
-                if (interfaceNode != null && interfaceNode.Parent is BaseTypeSyntax &&
+                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax &&
                     interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
                     ((BaseTypeSyntax)interfaceNode.Parent).Type == interfaceNode)
                 {
@@ -109,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     }}
 
     // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
-    // ~{classDecl.Identifier.Value}() {{
+    // ~{classDecl.Identifier.Value}()
+    // {{
     //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
@@ -134,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             decls[decls.Length - 1] = decls[decls.Length - 1].WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.CarriageReturnLineFeed));
+                    SyntaxFactory.ElasticCarriageReturnLineFeed));
 
             // Ensure that open and close brace tokens are generated in case they are missing.
             var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);

@@ -1,17 +1,18 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class LocationInfoGetterTests
 
         Private Async Function TestAsync(text As String, expectedName As String, expectedLineOffset As Integer, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional rootNamespace As String = Nothing) As Tasks.Task
@@ -32,29 +33,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestClass() As Task
             Await TestAsync(<text>
-Class Foo$$
+Class Goo$$
 End Class
-</text>.NormalizedValue, "Foo", 0)
+</text>.NormalizedValue, "Goo", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestSub() As Task
             Await TestAsync(<text>
 Class C
-  Sub Foo()$$
+  Sub Goo()$$
   End Sub
 End Class
-</text>.NormalizedValue, "C.Foo()", 0)
+</text>.NormalizedValue, "C.Goo()", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestFunction() As Task
             Await TestAsync(<text>
 Class C
-  $$Function Foo() As Integer
+  $$Function Goo() As Integer
   End Function
 End Class
-</text>.NormalizedValue, "C.Foo() As Integer", 0)
+</text>.NormalizedValue, "C.Goo() As Integer", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>

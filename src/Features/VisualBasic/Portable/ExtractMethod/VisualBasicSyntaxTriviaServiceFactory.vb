@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.ExtractMethod
@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     <ExportLanguageServiceFactory(GetType(ISyntaxTriviaService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxTriviaServiceFactory
         Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSyntaxTriviaService(provider)

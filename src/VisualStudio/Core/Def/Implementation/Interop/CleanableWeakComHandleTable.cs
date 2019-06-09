@@ -42,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         public bool NeedsCleanUp => _needsCleanUp;
 
-        public CleanableWeakComHandleTable(int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
+        public CleanableWeakComHandleTable(IThreadingContext threadingContext, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
+            : base(threadingContext)
         {
             _table = new Dictionary<TKey, WeakComHandle<TValue, TValue>>();
             _deadKeySet = new HashSet<TKey>();

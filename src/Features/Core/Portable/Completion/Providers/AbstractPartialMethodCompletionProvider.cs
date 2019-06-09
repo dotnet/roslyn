@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 accessibility: Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef: method.ReturnsByRef,
-                explicitInterfaceSymbol: null,
+                refKind: method.RefKind,
+                explicitInterfaceImplementations: default,
                 name: member.Name,
                 typeParameters: method.TypeParameters,
                 parameters: method.Parameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)),
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return MemberInsertionCompletionItem.Create(
                 displayText,
+                displayTextSuffix: "",
                 modifiers,
                 line,
                 method,

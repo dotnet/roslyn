@@ -30,7 +30,7 @@ End Interface
 ]]>
                            </file>
                        </compilation>
-            Dim comp1 = CreateCompilationWithReferences(text, references:={MscorlibRef_v20})
+            Dim comp1 = CreateEmptyCompilationWithReferences(text, references:={MscorlibRef_v20})
             Dim ref1 = comp1.EmitToImageReference()
             Dim text2 =
 <compilation>
@@ -44,13 +44,13 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
+            Dim comp2 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
 
             Dim it = comp2.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.False(it.CoClassType.IsErrorType())
 
             ' Test retargeting symbols by using the compilation itself as a reference
-            Dim comp3 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
+            Dim comp3 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
             Dim it2 = comp3.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.Same(comp3.SourceModule.GetReferencedAssemblySymbols()(0), it2.CoClassType.ContainingAssembly)
             Assert.False(it2.CoClassType.IsErrorType())
@@ -771,13 +771,13 @@ End Class]]>
             Dim interopNS = DirectCast(runtimeNS.GetMember("InteropServices"), NamespaceSymbol)
 
             Dim appNS = DirectCast(assemblies(0).Modules(0).GlobalNamespace.GetMember("Interop"), NamespaceSymbol)
-            Dim ifoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
+            Dim igoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
             ' ComImport is Pseudo attr
-            Assert.Equal(4, ifoo.GetAttributes().Length)
+            Assert.Equal(4, igoo.GetAttributes().Length)
 
             ' get attr by NamedTypeSymbol
             Dim attrObj = DirectCast(interopNS.GetTypeMembers("GuidAttribute").Single(), NamedTypeSymbol)
-            Dim attrSym = ifoo.GetAttribute(attrObj)
+            Dim attrSym = igoo.GetAttribute(attrObj)
             'Assert.Null(attrSym.NamedArguments)
             Assert.Equal(GetType(String), attrSym.CommonConstructorArguments(0).Value.GetType())
             Assert.Equal("ABCDEF5D-2448-447A-B786-64682CBEF123", attrSym.CommonConstructorArguments(0).Value)
@@ -785,24 +785,24 @@ End Class]]>
             attrObj = DirectCast(interopNS.GetTypeMembers("InterfaceTypeAttribute").Single(), NamedTypeSymbol)
             ' use first ctor
             Dim ctor = attrObj.InstanceConstructors.First()
-            attrSym = ifoo.GetAttributes(ctor).First
+            attrSym = igoo.GetAttributes(ctor).First
             ' param in ctor is Int16, but Int32 in MD
             Assert.Equal(GetType(Int32), attrSym.CommonConstructorArguments(0).Value.GetType())
             Assert.Equal(1, attrSym.CommonConstructorArguments(0).Value)
 
             attrObj = DirectCast(interopNS.GetTypeMembers("TypeLibImportClassAttribute").Single(), NamedTypeSymbol)
             Dim msym = attrObj.InstanceConstructors.First()
-            attrSym = ifoo.GetAttributes(msym).First
+            attrSym = igoo.GetAttributes(msym).First
             Assert.Equal("Object", CType(attrSym.CommonConstructorArguments(0).Value, Symbol).ToString())
 
             ' =============================
-            Dim mem = DirectCast(ifoo.GetMember("DoSomething"), MethodSymbol)
+            Dim mem = DirectCast(igoo.GetMember("DoSomething"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("Register"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("Register"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("UnRegister"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("UnRegister"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("LibFunc"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("LibFunc"), MethodSymbol)
             attrSym = mem.GetAttributes().First()
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length)
             Assert.Equal(32, attrSym.CommonConstructorArguments(0).Value)
@@ -1059,9 +1059,9 @@ End Class]]>
             '    V Method([param: DerivedAttribute(new sbyte[] {-1, 0, 1}, ObjectField = typeof(IList<>))]T t);
             '}
             ' 
-            Dim ifoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
+            Dim igoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
             ' attribute on type parameter of interface
-            Dim tp = ifoo.TypeParameters(0)
+            Dim tp = igoo.TypeParameters(0)
             Dim attrSym = tp.GetAttributes().First()
             Assert.Equal("AllInheritMultipleAttribute", attrSym.AttributeClass.Name)
             ' p2 is optional
@@ -1070,7 +1070,7 @@ End Class]]>
             ' NYI: default optional
             ' Assert.Equal(CByte(1), attrSym.ConstructorArguments(1).Value) 'enum
 
-            tp = ifoo.TypeParameters(1)
+            tp = igoo.TypeParameters(1)
             attrSym = tp.GetAttribute(attrObj1)
             Assert.Equal(3, attrSym.CommonConstructorArguments.Length)
             Assert.Equal("q"c, attrSym.CommonConstructorArguments(0).Value)
@@ -1080,7 +1080,7 @@ End Class]]>
 
             ' attribute on method
             ' [AllInheritMultiple(p3:1.234f, p2: 1056, p1: "555")]
-            Dim mtd = DirectCast(ifoo.GetMember("Method"), MethodSymbol)
+            Dim mtd = DirectCast(igoo.GetMember("Method"), MethodSymbol)
             Assert.Equal(1, mtd.GetAttributes().Length)
             attrSym = mtd.GetAttributes().First()
             Assert.Equal(4, attrSym.CommonConstructorArguments.Length) ' p4 is default optional
@@ -1378,7 +1378,51 @@ End Class]]>
 
         <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
         <Fact>
-        Public Sub Bug530209()
+        Public Sub Bug530209_DecimalConstant()
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Public Class Class1
+    Public Const d1 as Decimal = -7
+
+    Public Const d2 as Date = #1/1/2013#
+
+    Public Sub M1(Optional d1 as Decimal = -7, 
+                  Optional d2 as Date = #1/1/2013#)
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>)
+
+            CompileAndVerify(c1, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class1")
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
+
+                                                      Assert.Empty(d1.GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(d1.Handle).Single().ToString())
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+                                                      Assert.Empty(d2.GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", peModule.GetCustomAttributesForToken(d2.Handle).Single().ToString())
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", peModule.GetCustomAttributesForToken(m1Parameters(0).Handle).Single().ToString())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                      Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", peModule.GetCustomAttributesForToken(m1Parameters(1).Handle).Single().ToString())
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                  End Sub)
+        End Sub
+
+        <WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")>
+        <Fact>
+        Public Sub Bug530209_DecimalConstant_FromIL()
 
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit Class1
@@ -1472,90 +1516,66 @@ End Class]]>
 } // end of class Class1
 ]]>.Value
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c1 = CompilationUtils.CreateCompilationWithCustomILSource(
                 <compilation>
                     <file name="a.vb">
-                        <![CDATA[
-Public Class Class1
-    Public Const d1 as Decimal = -7
-
-    Public Const d2 as Date = #1/1/2013#
-
-    Public Sub M1(Optional d1 as Decimal = -7, 
-                  Optional d2 as Date = #1/1/2013#)
-    End Sub
+Class Class2
+    Inherits Class1
 End Class
-]]>
                     </file>
-                </compilation>)
+                </compilation>, ilSource)
 
 
-            Dim class1 = c1.GetTypeByMetadataName("Class1")
-            Dim d1 = class1.GetMember(Of FieldSymbol)("d1")
-            Dim d2 = class1.GetMember(Of FieldSymbol)("d2")
-            Dim m1 = class1.GetMember(Of MethodSymbol)("M1")
-            Dim context = New ModuleCompilationState()
+            CompileAndVerify(c1, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class2").BaseType()
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
 
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                      Assert.Empty(d1.GetAttributes())
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+
+                                                      Assert.Empty(d2.GetAttributes())
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                  End Sub)
 
             Dim c2 = CompilationUtils.CreateCompilationWithCustomILSource(
                 <compilation>
                     <file name="a.vb">
+Class Class2
+    Inherits Class1
+End Class
                     </file>
                 </compilation>, ilSource)
 
-            class1 = c2.GetTypeByMetadataName("Class1")
-            d1 = class1.GetMember(Of FieldSymbol)("d1")
-            d2 = class1.GetMember(Of FieldSymbol)("d2")
-            m1 = class1.GetMember(Of MethodSymbol)("M1")
+            ' Switch order of API calls
 
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+            CompileAndVerify(c2, symbolValidator:=Sub(m As ModuleSymbol)
+                                                      Dim peModule = DirectCast(m, PEModuleSymbol)
+                                                      Dim class1 = peModule.ContainingAssembly.GetTypeByMetadataName("Class2").BaseType()
+                                                      Dim d1 = class1.GetMember(Of PEFieldSymbol)("d1")
+                                                      Dim d2 = class1.GetMember(Of PEFieldSymbol)("d2")
+                                                      Dim m1Parameters = class1.GetMethod("M1").Parameters.Cast(Of PEParameterSymbol)
 
-            Dim c3 = CompilationUtils.CreateCompilationWithCustomILSource(
-                <compilation>
-                    <file name="a.vb">
-                    </file>
-                </compilation>, ilSource)
+                                                      Assert.Equal(d1.ConstantValue, CDec(-7))
+                                                      Assert.Empty(d1.GetAttributes())
 
-            class1 = c3.GetTypeByMetadataName("Class1")
-            d1 = class1.GetMember(Of FieldSymbol)("d1")
-            d2 = class1.GetMember(Of FieldSymbol)("d2")
-            m1 = class1.GetMember(Of MethodSymbol)("M1")
+                                                      Assert.Equal(d2.ConstantValue, #1/1/2013#)
+                                                      Assert.Empty(d2.GetAttributes())
 
-            Assert.Equal(d1.ConstantValue, CDec(-7))
-            Assert.Empty(d1.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", d1.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(d2.ConstantValue, #1/1/2013#)
-            Assert.Empty(d2.GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", d2.GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(0).ExplicitDefaultValue, CDec(-7))
-            Assert.Empty(m1.Parameters(0).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DecimalConstantAttribute(0, 128, 0, 0, 7)", m1.Parameters(0).GetCustomAttributesToEmit(context).Single().ToString())
-            Assert.Equal(m1.Parameters(1).ExplicitDefaultValue, #1/1/2013#)
-            Assert.Empty(m1.Parameters(1).GetAttributes())
-            Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
+                                                      Assert.Equal(m1Parameters(0).ExplicitDefaultValue, CDec(-7))
+                                                      Assert.Empty(m1Parameters(0).GetAttributes())
+
+                                                      Assert.Equal(m1Parameters(1).ExplicitDefaultValue, #1/1/2013#)
+                                                      Assert.Empty(m1Parameters(1).GetAttributes())
+                                                  End Sub)
         End Sub
 
         <Fact>

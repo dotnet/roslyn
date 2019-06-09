@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal MemberResolutionResult<TMember> Worse()
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worse());
+        }
+
+        internal MemberResolutionResult<TMember> Worst()
+        {
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, MemberAnalysisResult.Worst());
+        }
+
         internal bool HasUseSiteDiagnosticToReport
         {
             get

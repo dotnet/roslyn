@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -18,13 +18,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|SimplifyExtension:Global.ProgramExtensions.foo([p])|}
+        Dim ss = {|SimplifyExtension:Global.ProgramExtensions.goo([p])|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -39,13 +39,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = [p].foo()
+        Dim ss = [p].goo()
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -65,13 +65,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|SimplifyExtension:Global.ProgramExtensions.[foo]({|SimplifyExtension:Global.ProgramExtensions.[foo]([p])|})|}
+        Dim ss = {|SimplifyExtension:Global.ProgramExtensions.[goo]({|SimplifyExtension:Global.ProgramExtensions.[goo]([p])|})|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -86,13 +86,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = [p].[foo]().[foo]()
+        Dim ss = [p].[goo]().[goo]()
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -117,13 +117,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = {|SimplifyExtension:global::ProgramExtensions.foo(@ss)|};
+        Program s = {|SimplifyExtension:global::ProgramExtensions.goo(@ss)|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -139,13 +139,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = @ss.foo();
+        Program s = @ss.goo();
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -167,13 +167,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = {|SimplifyExtension:global::ProgramExtensions.foo({|SimplifyExtension:global::ProgramExtensions.foo(ss)|})|};
+        Program s = {|SimplifyExtension:global::ProgramExtensions.goo({|SimplifyExtension:global::ProgramExtensions.goo(ss)|})|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -189,13 +189,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = ss.foo().foo();
+        Program s = ss.goo().goo();
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }

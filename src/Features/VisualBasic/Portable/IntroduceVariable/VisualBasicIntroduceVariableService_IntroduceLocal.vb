@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                         SyntaxFactory.EqualsValue(value:=expression.WithoutTrailingTrivia().WithoutLeadingTrivia()))))
 
             If Not declarationStatement.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then
-                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
+                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
             End If
 
             If TypeOf container Is SingleLineLambdaExpressionSyntax Then

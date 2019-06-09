@@ -12,6 +12,8 @@ using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Syntax;
+using System.Collections.Immutable;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -716,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a threadsafty element within an xml documentation comment.
+        /// Creates a threadsafety element within an xml documentation comment.
         /// </summary>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement()
         {
@@ -967,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
         {
             return XmlEmptyElement(DocumentationCommentXmlNames.SeeElementName).AddAttributes(
-                XmlTextAttribute(DocumentationCommentXmlNames.KeywordElementName, keyword));
+                XmlTextAttribute(DocumentationCommentXmlNames.LangwordAttributeName, keyword));
         }
 
         /// <summary>
@@ -1237,7 +1239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxList<TNode>(node);
         }
 
-
         /// <summary>
         /// Creates a list of syntax nodes.
         /// </summary>
@@ -1245,20 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of element nodes.</param>
         public static SyntaxList<TNode> List<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
         {
-            if (nodes != null)
-            {
-                var collection = nodes as ICollection<TNode>;
-                var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
-
-                foreach (TNode node in nodes)
-                {
-                    builder.Add(node);
-                }
-
-                return builder.ToList();
-            }
-
-            return default(SyntaxList<TNode>);
+            return new SyntaxList<TNode>(nodes);
         }
 
         /// <summary>
@@ -1284,18 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="tokens">An array of tokens.</param>
         public static SyntaxTokenList TokenList(params SyntaxToken[] tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)tokens[i].Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1305,18 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = SyntaxTokenListBuilder.Create();
-            foreach (SyntaxToken token in tokens)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)token.Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1349,23 +1315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public static SyntaxTriviaList TriviaList(params SyntaxTrivia[] trivias)
-        {
-            if (trivias != null)
-            {
-                SyntaxTriviaListBuilder builder = new SyntaxTriviaListBuilder(trivias.Length);
-                builder.Add(trivias);
-                return builder.ToList();
-            }
-
-            return default(SyntaxTriviaList);
-        }
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
         public static SyntaxTriviaList TriviaList(IEnumerable<SyntaxTrivia> trivias)
-            => SyntaxTriviaListBuilder.Create(trivias);
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates an empty separated list.
@@ -1559,14 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
-            if (nodesAndTokens == null)
-            {
-                throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
-
-            var builder = new SyntaxNodeOrTokenListBuilder(8);
-            builder.Add(nodesAndTokens);
-            return builder.ToList();
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1575,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
         {
-            return NodeOrTokenList((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens);
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1597,6 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, path, encoding);
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
@@ -1605,9 +1556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParseOptions options = null,
             string path = "",
             Encoding encoding = null,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
         }
 
         /// <summary>
@@ -1617,10 +1569,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceText text,
             ParseOptions options = null,
             string path = "",
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, cancellationToken);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Parse a list of trivia rules for leading trivia.
@@ -1783,6 +1737,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Parse a MemberDeclarationSyntax. This includes all of the kinds of members that could occur in a type declaration.
+        /// If nothing resembling a valid member declaration is found in the input, returns null.
+        /// </summary>
+        /// <param name="text">The text of the declaration.</param>
+        /// <param name="offset">Optional offset into text.</param>
+        /// <param name="options">The optional parse options to use. If no options are specified default options are
+        /// used.</param>
+        /// <param name="consumeFullText">True if extra tokens in the input following a declaration should be treated as an error</param>
+        public static MemberDeclarationSyntax ParseMemberDeclaration(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
+        {
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (var parser = MakeParser(lexer))
+            {
+                var node = parser.ParseMemberDeclaration();
+                if (node == null)
+                {
+                    return null;
+                }
+
+                return (MemberDeclarationSyntax)(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node).CreateRed();
+            }
+        }
+
+        /// <summary>
         /// Parse a CompilationUnitSyntax using the grammar rule for an entire compilation unit (file). To produce a
         /// SyntaxTree instance, use CSharpSyntaxTree.ParseText instead.
         /// </summary>
@@ -1798,7 +1776,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                // if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (CompilationUnitSyntax)node.CreateRed();
             }
         }
@@ -1930,16 +1907,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxTree oldTree, SyntaxTree newTree, bool topLevel)
         {
-            var csOld = oldTree as SyntaxTree;
-            var csNew = newTree as SyntaxTree;
-
-            if (csOld == null && csNew == null)
+            if (oldTree == null && newTree == null)
+            {
                 return true;
+            }
 
-            if (csOld == null || csNew == null)
+            if (oldTree == null || newTree == null)
+            {
                 return false;
+            }
 
-            return SyntaxEquivalence.AreEquivalent(csOld, csNew, ignoreChildNode: null, topLevel: topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldTree, newTree, ignoreChildNode: null, topLevel: topLevel);
         }
 
         /// <summary>
@@ -2097,12 +2075,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the containing expression that is actually a language expression and not just typed
+        /// Gets the containing expression that is actually a language expression (or something that
+        /// GetSymbolInfo can be applied to) and not just typed
         /// as an ExpressionSyntax for convenience. For example, NameSyntax nodes on the right side
         /// of qualified names and member access expressions are not language expressions, yet the
         /// containing qualified names or member access expressions are indeed expressions.
         /// Similarly, if the input node is a cref part that is not independently meaningful, then
-        /// the result will be the full cref.
+        /// the result will be the full cref. Besides an expression, an input that is a NameSyntax
+        /// of a SubpatternSyntax, e.g. in `name: 3` may cause this method to return the enclosing
+        /// SubpatternSyntax.
         /// </summary>
         internal static CSharpSyntaxNode GetStandaloneNode(CSharpSyntaxNode node)
         {
@@ -2210,6 +2191,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((StackAllocArrayCreationExpressionSyntax)parent).Type == node)
                     {
                         return parent;
+                    }
+
+                    break;
+
+                case SyntaxKind.NameColon:
+                    if (parent.Parent.IsKind(SyntaxKind.Subpattern))
+                    {
+                        return parent.Parent;
                     }
 
                     break;
@@ -2502,6 +2491,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
 
+        /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
+        public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+        {
+            return ClassOrStructConstraint(kind, classOrStructKeyword, questionToken: default(SyntaxToken));
+        }
+
         // backwards compatibility for extended API
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, BlockSyntax body)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body, default(ArrowExpressionClauseSyntax));
@@ -2512,5 +2507,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
 
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword: default, errorCodes, endOfDirectiveToken, isActive);
+        }
+
+        /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
+        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            return PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes: default, endOfDirectiveToken, isActive);
+        }
+
+        /// <summary>Creates a new EventDeclarationSyntax instance.</summary>
+        public static EventDeclarationSyntax EventDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList)
+        {
+            return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken: default);
+        }
+
+        /// <summary>Creates a new EventDeclarationSyntax instance.</summary>
+        public static EventDeclarationSyntax EventDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, SyntaxToken semicolonToken)
+        {
+            return EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList: null, semicolonToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
+        {
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions options,
+            string path,
+            CancellationToken cancellationToken)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions: null, cancellationToken);
+        }
     }
 }

@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,11 +36,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         public NamingStyle With(
-          Optional<string> name = default(Optional<string>),
-          Optional<string> prefix = default(Optional<string>),
-          Optional<string> suffix = default(Optional<string>),
-          Optional<string> wordSeparator = default(Optional<string>),
-          Optional<Capitalization> capitalizationScheme = default(Optional<Capitalization>))
+          Optional<string> name = default,
+          Optional<string> prefix = default,
+          Optional<string> suffix = default,
+          Optional<string> wordSeparator = default,
+          Optional<Capitalization> capitalizationScheme = default)
         {
             var newName = name.HasValue ? name.Value : this.Name;
             var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
         }
 
-        public string CreateName(IEnumerable<string> words)
+        public string CreateName(ImmutableArray<string> words)
         {
             var wordsWithCasing = ApplyCapitalization(words);
             var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
@@ -86,14 +89,38 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CapitalizeFirstLetter(string word)
         {
+            if (word.Length == 0)
+            {
+                return word;
+            }
+
+            if (char.IsUpper(word[0]))
+            {
+                return word;
+            }
+
             var chars = word.ToCharArray();
-            return new string(chars.Take(1).Select(c => char.ToUpper(c)).Concat(chars.Skip(1)).ToArray());
+            chars[0] = char.ToUpper(chars[0]);
+
+            return new string(chars);
         }
 
         private string DecapitalizeFirstLetter(string word)
         {
+            if (word.Length == 0)
+            {
+                return word;
+            }
+
+            if (char.IsLower(word[0]))
+            {
+                return word;
+            }
+
             var chars = word.ToCharArray();
-            return new string(chars.Take(1).Select(c => char.ToLower(c)).Concat(chars.Skip(1)).ToArray());
+            chars[0] = char.ToLower(chars[0]);
+
+            return new string(chars);
         }
 
         public bool IsNameCompliant(string name, out string failureReason)
@@ -112,11 +139,28 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             if (name.Length <= Prefix.Length + Suffix.Length)
             {
+                // name consists of Prefix and Suffix and no base name
+                // Prefix and Suffix can overlap
+                // Example: Prefix = "s_", Suffix = "_t", name "s_t"
                 failureReason = null;
                 return true;
             }
 
-            var spanToCheck = TextSpan.FromBounds(Prefix.Length, name.Length - Suffix.Length);
+            // remove specified Prefix, then look for any other common prefixes
+            name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
+
+            if (prefix != string.Empty)
+            {
+                // name started with specified prefix, but has at least one additional common prefix 
+                // Example: specified prefix "test_", actual prefix "test_m_"
+                failureReason = Prefix == string.Empty ?
+                    string.Format(WorkspacesResources.Prefix_0_is_not_expected, prefix) :
+                    string.Format(WorkspacesResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                return false;
+            }
+
+            // specified and common prefixes have been removed. Now see that the base name has correct capitalization
+            var spanToCheck = TextSpan.FromBounds(0, name.Length - Suffix.Length);
             Debug.Assert(spanToCheck.Length > 0);
 
             switch (CapitalizationScheme)
@@ -203,7 +247,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllLowerCase,
-                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_cannot_contain_upper_case_characters_colon_0, out reason);
 
         private bool CheckFirstAndRestWords(
             string name, TextSpan nameSpan,
@@ -268,6 +312,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameDirectly(string name)
         {
+            // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
+            // "Test_" will be added back later in this method
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
 
@@ -291,10 +339,45 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CreateCompliantNameReusingPartialPrefixesAndSuffixes(string name)
         {
+            name = StripCommonPrefixes(name, out _);
             name = EnsurePrefix(name);
             name = EnsureSuffix(name);
 
             return FinishFixingName(name);
+        }
+
+        private static string StripCommonPrefixes(string name, out string prefix)
+        {
+            var index = 0;
+            while (index + 1 < name.Length)
+            {
+                switch (char.ToLowerInvariant(name[index]))
+                {
+                    case 'm':
+                    case 's':
+                    case 't':
+                        if (index + 2 < name.Length && name[index + 1] == '_')
+                        {
+                            index += 2;
+                            continue;
+                        }
+
+                        break;
+
+                    case '_':
+                        index++;
+                        continue;
+
+                    default:
+                        break;
+                }
+
+                // If we reach this point, the current iteration did not strip any additional characters
+                break;
+            }
+
+            prefix = name.Substring(0, index);
+            return name.Substring(index);
         }
 
         private string FinishFixingName(string name)
@@ -307,9 +390,28 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             name = name.Substring(Prefix.Length, name.Length - Suffix.Length - Prefix.Length);
             IEnumerable<string> words = new[] { name };
+
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Edge case: the only character(s) in the name is(are) the WordSeparator
+                if (words.Count() == 0)
+                {
+                    return name;
+                }
+
+                if (words.Count() == 1) // Only Split if words have not been split before 
+                {
+                    bool isWord = true;
+                    var parts = StringBreaker.GetParts(name, isWord);
+                    string[] newWords = new string[parts.Count];
+                    for (int i = 0; i < parts.Count; i++)
+                    {
+                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
+                    }
+                    words = newWords;
+                }
             }
 
             words = ApplyCapitalization(words);

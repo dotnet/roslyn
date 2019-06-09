@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
         public override async Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, 
+            Document document,
             Func<SyntaxNode, bool> predicate,
             CancellationToken cancellationToken)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var oldRoot = (CompilationUnitSyntax)root;
-                var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
+                var newRoot = (CompilationUnitSyntax)new Rewriter(this, document, unnecessaryImports, cancellationToken).Visit(oldRoot);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
@@ -61,9 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             {
                 if (diagnostic.Id == "CS8019")
                 {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null && predicate(node))
+                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node && predicate(node))
                     {
                         unnecessaryImports.Add(node);
                     }
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken);
         }
 
         private void AddFormattingSpans(

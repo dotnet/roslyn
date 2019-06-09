@@ -20,9 +20,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpReplacePropertyWithMethodsService : 
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, StatementSyntax>
+    internal partial class CSharpReplacePropertyWithMethodsService :
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpReplacePropertyWithMethodsService()
+        {
+        }
+
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
         {
             var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
@@ -75,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private List<SyntaxNode> ConvertPropertyToMembers(
             DocumentOptionSet documentOptions,
             ParseOptions parseOptions,
-            SyntaxGenerator generator, 
+            SyntaxGenerator generator,
             IPropertySymbol property,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
@@ -95,23 +100,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
-                    documentOptions, parseOptions, 
+                    documentOptions, parseOptions,
                     generator, propertyDeclaration, propertyBackingField,
                     getMethod, desiredGetMethodName,
-                    copyLeadingTrivia: true,
                     cancellationToken: cancellationToken));
             }
 
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                // Set-method only gets the leading trivia of the property if we didn't copy
-                // that trivia to the get-method.
                 result.Add(GetSetMethod(
                     documentOptions, parseOptions,
-                    generator, propertyDeclaration, propertyBackingField, 
+                    generator, propertyDeclaration, propertyBackingField,
                     setMethod, desiredSetMethodName,
-                    copyLeadingTrivia: getMethod == null,
                     cancellationToken: cancellationToken));
             }
 
@@ -126,14 +127,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
-            bool copyLeadingTrivia,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = GetSetMethodWorker(
                 generator, propertyDeclaration, propertyBackingField,
                 setMethod, desiredSetMethodName, cancellationToken);
 
-            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, copyLeadingTrivia);
+            // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
+            // to copy the complete leading trivia to both generated methods.
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
                 documentOptions, parseOptions, methodDeclaration,
@@ -141,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static MethodDeclarationSyntax GetSetMethodWorker(
-            SyntaxGenerator generator, 
-            PropertyDeclarationSyntax propertyDeclaration, 
+            SyntaxGenerator generator,
+            PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName,
@@ -182,14 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IFieldSymbol propertyBackingField,
             IMethodSymbol getMethod,
             string desiredGetMethodName,
-            bool copyLeadingTrivia,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = GetGetMethodWorker(
                 generator, propertyDeclaration, propertyBackingField, getMethod,
                 desiredGetMethodName, cancellationToken);
 
-            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, copyLeadingTrivia);
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToReturnsRewriter.Instance);
 
             return UseExpressionOrBlockBodyIfDesired(
                 documentOptions, parseOptions, methodDeclaration,
@@ -199,32 +200,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static MethodDeclarationSyntax CopyLeadingTrivia(
             PropertyDeclarationSyntax propertyDeclaration,
             MethodDeclarationSyntax methodDeclaration,
-            bool copyLeadingTrivia)
+            CSharpSyntaxRewriter documentationCommentRewriter)
         {
-            if (copyLeadingTrivia)
-            {
-                var leadingTrivia = propertyDeclaration.GetLeadingTrivia();
-                return methodDeclaration.WithLeadingTrivia(leadingTrivia.Select(ConvertTrivia));
-            }
-
-            return methodDeclaration;
+            var leadingTrivia = propertyDeclaration.GetLeadingTrivia();
+            return methodDeclaration.WithLeadingTrivia(leadingTrivia.Select(trivia => ConvertTrivia(trivia, documentationCommentRewriter)));
         }
 
-        private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia)
+        private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
             if (trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia ||
                 trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
             {
-                return ConvertDocumentationComment(trivia);
+                return ConvertDocumentationComment(trivia, rewriter);
             }
 
             return trivia;
         }
 
-        private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia)
+        private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
         {
             var structure = trivia.GetStructure();
-            var updatedStructure = (StructuredTriviaSyntax)ConvertValueToReturnsRewriter.Instance.Visit(structure);
+            var updatedStructure = (StructuredTriviaSyntax)rewriter.Visit(structure);
             return SyntaxFactory.Trivia(updatedStructure);
         }
 
@@ -235,8 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
             if (methodDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
-                if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference, out var arrowExpression, out var semicolonToken))
+                if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
+                        methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(arrowExpression)
@@ -246,12 +243,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
             else if (methodDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
-                var block = methodDeclaration?.ExpressionBody.ConvertToBlock(
-                    methodDeclaration.SemicolonToken, createReturnStatementForExpression);
-                return methodDeclaration.WithExpressionBody(null)
-                                        .WithSemicolonToken(default(SyntaxToken))
-                                        .WithBody(block)
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
+                if (methodDeclaration.ExpressionBody.TryConvertToBlock(
+                        methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
+                {
+                    return methodDeclaration.WithExpressionBody(null)
+                                            .WithSemicolonToken(default)
+                                            .WithBody(block)
+                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
 
             return methodDeclaration;
@@ -299,28 +298,57 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return methodDeclaration;
         }
 
+        /// <summary>
+        /// Used by the documentation comment rewriters to identify top-level <c>&lt;value&gt;</c> nodes.
+        /// </summary>
+        private static bool IsValueName(XmlNameSyntax name)
+            => name.Prefix == null &&
+               name.LocalName.ValueText == "value";
+
         public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
         {
             // For C# we'll have the property declaration that we want to replace.
             return propertyDeclaration;
         }
 
+        protected override NameMemberCrefSyntax TryGetCrefSyntax(IdentifierNameSyntax identifierName)
+            => identifierName.Parent as NameMemberCrefSyntax;
+
+        protected override NameMemberCrefSyntax CreateCrefSyntax(NameMemberCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode parameterType)
+        {
+            CrefParameterListSyntax parameterList;
+            if (parameterType is TypeSyntax typeSyntax)
+            {
+                var parameter = SyntaxFactory.CrefParameter(typeSyntax);
+                parameterList = SyntaxFactory.CrefParameterList(SyntaxFactory.SingletonSeparatedList(parameter));
+            }
+            else
+            {
+                parameterList = SyntaxFactory.CrefParameterList();
+            }
+
+            // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
+            var crefAttribute = SyntaxFactory.XmlCrefAttribute(
+                SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+            return (NameMemberCrefSyntax)crefAttribute.Cref;
+        }
+
         protected override ExpressionSyntax UnwrapCompoundAssignment(
             SyntaxNode compoundAssignment, ExpressionSyntax readExpression)
         {
-                var parent = (AssignmentExpressionSyntax)compoundAssignment;
+            var parent = (AssignmentExpressionSyntax)compoundAssignment;
 
-                var operatorKind =
-                    parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
-                    parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
-                    parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
-                    parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
-                    parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
-                    parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
-                    parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
-                    parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
-                    parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
-                    parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
+            var operatorKind =
+                parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
+                parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
+                parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
+                parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
+                parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
+                parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
+                parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
+                parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
+                parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
+                parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
             return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
         }

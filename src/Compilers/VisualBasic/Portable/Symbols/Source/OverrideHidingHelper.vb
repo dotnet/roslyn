@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -825,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim memberContainingType As NamedTypeSymbol = member.ContainingType
             For i = 0 To builder.Count - 1
                 Dim exactMatchIgnoringCustomModifiers As Boolean = False
-                If builder(i).ContainingType <> memberContainingType AndAlso
+                If Not TypeSymbol.Equals(builder(i).ContainingType, memberContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                         SignaturesMatch(builder(i), member, Nothing, exactMatchIgnoringCustomModifiers) AndAlso exactMatchIgnoringCustomModifiers Then
                     ' Do NOT add
                     Exit Sub
@@ -900,7 +901,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_OverrideWithConstraintMismatch2, member, overriddenMember, diagnostics)
                 ElseIf Not ConsistentAccessibility(member, overriddenMember, errorId) Then
                     ReportBadOverriding(errorId, member, overriddenMember, diagnostics)
-                ElseIf (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                ElseIf member.ContainsTupleNames() AndAlso (comparisonResults And SymbolComparisonResults.TupleNamesMismatch) <> 0 Then
+                    ' it is ok to override with no tuple names, for compatibility with VB 14, but otherwise names should match
                     ReportBadOverriding(ERRID.WRN_InvalidOverrideDueToTupleNames2, member, overriddenMember, diagnostics)
                 Else
                     For Each inaccessibleMember In overriddenMembersResult.InaccessibleMembers
@@ -953,7 +955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' Two original definitions with identical signatures in same containing types are compared by accessibility, and
                         ' more accessible wins.
-                        If originalSym.ContainingType = originalOther.ContainingType AndAlso
+                        If TypeSymbol.Equals(originalSym.ContainingType, originalOther.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                            DetailedSignatureCompare(originalSym, originalOther, significantDifferences) = 0 AndAlso
                            LookupResult.CompareAccessibilityOfSymbolsConflictingInSameContainer(originalSym, originalOther) < 0 Then
                             ' sym is worse than otherSym

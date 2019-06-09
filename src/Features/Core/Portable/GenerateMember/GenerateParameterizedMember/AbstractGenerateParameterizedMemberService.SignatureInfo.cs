@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected abstract ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken);
-            protected abstract bool DetermineReturnsByRef(CancellationToken cancellationToken);
+            protected abstract RefKind DetermineRefKind(CancellationToken cancellationToken);
 
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
@@ -68,19 +69,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var accessibility = DetermineAccessibility(isAbstract);
                 var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     statements: GenerateStatements(factory, isAbstract, cancellationToken));
 
                 var setMethod = includeSetter ? getMethod : null;
 
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: accessibility,
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
-                    returnsByRef: DetermineReturnsByRef(cancellationToken),
-                    explicitInterfaceSymbol: null,
+                    refKind: DetermineRefKind(cancellationToken),
+                    explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
                     getMethod: getMethod,
@@ -100,28 +101,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     isUnsafe = returnType.IsUnsafe() || parameters.Any(p => p.Type.IsUnsafe());
                 }
 
-                var returnsByRef = DetermineReturnsByRef(cancellationToken);
-
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: DetermineAccessibility(isAbstract),
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe),
                     returnType: returnType,
-                    returnsByRef: returnsByRef,
-                    explicitInterfaceSymbol: null,
+                    refKind: DetermineRefKind(cancellationToken),
+                    explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),
                     parameters: parameters,
                     statements: GenerateStatements(factory, isAbstract, cancellationToken),
-                    handlesExpressions: default(ImmutableArray<SyntaxNode>),
-                    returnTypeAttributes: default(ImmutableArray<AttributeData>),
+                    handlesExpressions: default,
+                    returnTypeAttributes: default,
                     methodKind: State.MethodKind);
 
                 // Ensure no conflicts between type parameter names and parameter names.
                 var languageServiceProvider = this.Document.Project.Solution.Workspace.Services.GetLanguageServices(this.State.TypeToGenerateIn.Language);
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
-                var equalityComparer = syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                var equalityComparer = syntaxFacts.StringComparer;
                 var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
@@ -164,9 +163,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var typeArguments = this.DetermineTypeArguments(cancellationToken);
                 var typeParameters = this.DetermineTypeParameters(cancellationToken);
 
-                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>();
+                // We use a nullability-ignoring comparer because top-level and nested nullability won't matter. If we are looking to replace
+                // IEnumerable<string> with T, we want to replace IEnumerable<string?> whenever it appears in an argument or return type, partly because
+                // there's no way to represent something like T-with-only-the-inner-thing-nullable. We could leave the entire argument as is, but we're suspecting
+                // this is closer to the user's desire, even if it might require some tweaking after the fact.
+                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
 
-                for(var i = 0; i < typeArguments.Length; i++)
+                for (var i = 0; i < typeArguments.Length; i++)
                 {
                     if (typeArguments[i] != null)
                     {
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, this.Document, "System.NotImplementedException", cancellationToken);
 
                 return isAbstract || State.TypeToGenerateIn.TypeKind == TypeKind.Interface || throwStatement == null
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : ImmutableArray.Create(throwStatement);
             }
 
@@ -200,7 +203,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 for (var i = 0; i < modifiers.Length; i++)
                 {
                     result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         refKind: modifiers[i],
                         isParams: false,
                         isOptional: optionality[i],
@@ -229,7 +232,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                         // the case where we're generating into one of our base types.  i.e.:
                         //
-                        // class B : A { void Foo() { A a; a.Foo(); }
+                        // class B : A { void Goo() { A a; a.Goo(); }
                         //
                         // In this case we can *not* mark the method as protected.  'B' can only
                         // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -238,9 +241,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         //
                         // However, this does not apply if the method will be static.  i.e.
                         // 
-                        // class B : A { void Foo() { A.Foo(); }
+                        // class B : A { void Goo() { A.Goo(); }
                         //
-                        // B can access the protected statics of A, and so we generate 'Foo' as
+                        // B can access the protected statics of A, and so we generate 'Goo' as
                         // protected.
 
                         // TODO: Code coverage

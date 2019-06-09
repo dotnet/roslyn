@@ -23,37 +23,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     otherSideType.Name = String.Empty
             End Function
 
-            Protected Overrides Function GetTypes_DoNotCallDirectly(expression As ExpressionSyntax, objectAsDefault As Boolean) As IEnumerable(Of TypeInferenceInfo)
-                If expression IsNot Nothing Then
-                    Dim info = SemanticModel.GetTypeInfo(expression)
+            Protected Overrides Function GetTypes_DoNotCallDirectly(node As SyntaxNode, objectAsDefault As Boolean) As IEnumerable(Of TypeInferenceInfo)
+                If node IsNot Nothing Then
+                    Dim info = SemanticModel.GetTypeInfo(node)
                     If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error Then
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(info.Type))
+                        Return CreateResult(info.Type)
                     End If
 
                     If info.ConvertedType IsNot Nothing AndAlso info.ConvertedType.TypeKind <> TypeKind.Error Then
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(info.ConvertedType))
+                        Return CreateResult(info.ConvertedType)
                     End If
 
-                    If expression.Kind = SyntaxKind.AddressOfExpression Then
-                        Dim unaryExpression = DirectCast(expression, UnaryExpressionSyntax)
+                    If node.Kind = SyntaxKind.AddressOfExpression Then
+                        Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
                         Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
                         If type IsNot Nothing Then
-                            Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(type))
+                            Return CreateResult(type)
                         End If
                     End If
                 End If
 
-                Return If(objectAsDefault, SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.ObjectType)), SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
+                Return If(objectAsDefault, CreateResult(Me.Compilation.ObjectType), SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
             End Function
 
-            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(expression As ExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
-                expression = expression.WalkUpParentheses()
-                Dim parent = expression.Parent
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(node As SyntaxNode) As IEnumerable(Of TypeInferenceInfo)
+                Dim expression = TryCast(node, ExpressionSyntax)
+                If expression IsNot Nothing Then
+                    expression = expression.WalkUpParentheses()
+                    node = expression
+                End If
+
+                Dim parent = node.Parent
 
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
-                    Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),
+                    Function(argument As ArgumentSyntax) InferTypeInArgument(argument),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
                     Function(arrayType As ArrayTypeSyntax) InferTypeInArrayType(arrayType),
@@ -104,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(typeSymbol))
+                Return CreateResult(typeSymbol)
             End Function
 
             Private Function InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax,
@@ -117,14 +122,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Overrides Function InferTypesWorker_DoNotCallDirectly(position As Integer) As IEnumerable(Of TypeInferenceInfo)
-                Dim tree = TryCast(Me.SemanticModel.SyntaxTree, SyntaxTree)
+                Dim tree = Me.SemanticModel.SyntaxTree
                 Dim token = tree.FindTokenOnLeftOfPosition(position, CancellationToken)
                 token = token.GetPreviousTokenIfTouchingWord(position)
 
                 Dim parent = token.Parent
 
                 Return parent.TypeSwitch(
-                    Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), previousToken:=token),
+                    Function(argument As ArgumentSyntax) InferTypeInArgument(argument, previousToken:=token),
                     Function(argumentList As ArgumentListSyntax) InferTypeInArgumentList(argumentList, previousToken:=token),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
                     Function(arrayRank As ArrayRankSpecifierSyntax) InferTypeInArrayRankSpecifier(),
@@ -171,15 +176,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
             End Function
 
+            Private Function InferTypeInArgument(argument As ArgumentSyntax,
+                                                 Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                If TypeOf argument.Parent Is ArgumentListSyntax Then
+                    Return InferTypeInArgumentList(
+                        DirectCast(argument.Parent, ArgumentListSyntax), argument, previousToken)
+                End If
+
+                If TypeOf argument.Parent Is TupleExpressionSyntax Then
+                    Return InferTypeInTupleExpression(
+                        DirectCast(argument.Parent, TupleExpressionSyntax),
+                        DirectCast(argument, SimpleArgumentSyntax))
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
+            End Function
+
+            Private Function InferTypeInTupleExpression(tupleExpression As TupleExpressionSyntax,
+                                                        argument As SimpleArgumentSyntax) As IEnumerable(Of TypeInferenceInfo)
+                Dim index = tupleExpression.Arguments.IndexOf(argument)
+                Dim parentTypes = InferTypes(tupleExpression)
+
+                Return parentTypes.Select(Function(TypeInfo) TypeInfo.InferredType).
+                                   OfType(Of INamedTypeSymbol)().
+                                   Where(Function(namedType) namedType.IsTupleType AndAlso index < namedType.TupleElements.Length).
+                                   Select(Function(tupleType) New TypeInferenceInfo(tupleType.TupleElements(index).Type))
+            End Function
+
             Private Function InferTypeInArgumentList(argumentList As ArgumentListSyntax,
-                                                 Optional argumentOpt As ArgumentSyntax = Nothing, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
+                                                     Optional argumentOpt As ArgumentSyntax = Nothing,
+                                                     Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 If argumentList Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
                 If argumentList.Parent IsNot Nothing Then
+
                     If argumentList.IsParentKind(SyntaxKind.ArrayCreationExpression) Then
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Int32)))
+                        Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
                     ElseIf argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = TryCast(argumentList.Parent, InvocationExpressionSyntax)
 
@@ -213,14 +247,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If targetExpression IsNot Nothing Then
                                 Dim expressionType = SemanticModel.GetTypeInfo(targetExpression)
                                 If TypeOf expressionType.Type Is IArrayTypeSymbol Then
-                                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Int32)))
+                                    Return CreateResult(Compilation.GetSpecialType(SpecialType.System_Int32))
                                 End If
                             End If
                         End If
                     ElseIf argumentList.IsParentKind(SyntaxKind.ObjectCreationExpression) Then
-                        ' new Outer(Foo());
+                        ' new Outer(Goo());
                         '
-                        ' new Outer(a: Foo());
+                        ' new Outer(a: Goo());
                         '
                         ' etc.
                         Dim creation = TryCast(argumentList.Parent, ObjectCreationExpressionSyntax)
@@ -228,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim namedType = TryCast(info.Symbol, INamedTypeSymbol)
                         If namedType IsNot Nothing Then
                             If namedType.TypeKind = TypeKind.Delegate Then
-                                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(namedType))
+                                Return CreateResult(namedType)
                             Else
                                 Dim index As Integer = 0
                                 If argumentOpt IsNot Nothing Then
@@ -274,9 +308,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If False Then
             ElseIf argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression) Then
-                ' Outer[Foo()];
+                ' Outer[Goo()];
                 '
-                ' Outer[a: Foo()];
+                ' Outer[a: Goo()];
                 '
                 ' etc.
                 Dim elementAccess = TryCast(argument.Parent.Parent, ElementAccessExpressionSyntax)
@@ -343,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInArrayRankSpecifier() As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInArrayType(arrayType As ArrayTypeSyntax) As IEnumerable(Of TypeInferenceInfo)
@@ -370,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If asClause.IsParentKind(SyntaxKind.CatchStatement) Then
                     If expressionOpt Is asClause.Type OrElse previousToken.Kind = SyntaxKind.AsKeyword Then
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.ExceptionType))
+                        Return CreateResult(Me.Compilation.ExceptionType)
                     End If
                 End If
 
@@ -383,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If assignmentStatement.IsKind(SyntaxKind.LeftShiftAssignmentStatement) OrElse
                     assignmentStatement.IsKind(SyntaxKind.RightShiftAssignmentStatement) Then
-                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                    Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                 End If
 
                 If expressionOpt Is assignmentStatement.Right OrElse previousToken = assignmentStatement.OperatorToken Then
@@ -398,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInAttribute(attribute As AttributeSyntax) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.AttributeType))
+                Return CreateResult(Me.Compilation.AttributeType)
             End Function
 
             Private Function InferTypeInAwaitExpression(awaitExpression As AwaitExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
@@ -414,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not types.Any() Then
-                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(task))
+                    Return CreateResult(task)
                 End If
 
                 Return types.Select(Function(t) New TypeInferenceInfo(If(t.InferredType.SpecialType = SpecialType.System_Void, task, taskOfT.Construct(t.InferredType))))
@@ -433,8 +467,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If conditional.FirstExpression Is expressionOpt OrElse previousToken = conditional.OpenParenToken Then
                     Dim rightTypes = GetTypes(conditional.SecondExpression, objectAsDefault:=True)
-                    ' value type : If (Foo(), 0)
-                    ' otherwise : If (Foo(), "")
+                    ' value type : If (Goo(), 0)
+                    ' otherwise : If (Goo(), "")
                     Return rightTypes.Select(Function(t) If(t.InferredType.IsValueType,
                                                  New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(t.InferredType)),
                                                  t))
@@ -465,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.LessThanLessThanEqualsToken,
                         SyntaxKind.GreaterThanGreaterThanEqualsToken
                         If rightSide Then
-                            Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                            Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                         End If
                 End Select
 
@@ -499,13 +533,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.GreaterThanGreaterThanToken,
                         SyntaxKind.LessThanLessThanEqualsToken,
                         SyntaxKind.GreaterThanGreaterThanEqualsToken
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
 
                     Case SyntaxKind.AndKeyword,
                         SyntaxKind.AndAlsoKeyword,
                         SyntaxKind.OrKeyword,
                         SyntaxKind.OrElseKeyword
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                        Return CreateResult(SpecialType.System_Boolean)
                 End Select
 
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
@@ -525,18 +559,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInDoStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInEqualsValue(equalsValue As EqualsValueSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 If equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) Then
                     Dim variableDeclarator = DirectCast(equalsValue.Parent, VariableDeclaratorSyntax)
                     If variableDeclarator.AsClause Is Nothing AndAlso variableDeclarator.IsParentKind(SyntaxKind.UsingStatement) Then
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_IDisposable)))
+                        Return CreateResult(SpecialType.System_IDisposable)
                     End If
 
                     If variableDeclarator.Names.Count >= 1 Then
@@ -546,9 +580,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If symbol IsNot Nothing Then
                             Select Case symbol.Kind
                                 Case SymbolKind.Field
-                                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(DirectCast(symbol, IFieldSymbol).Type))
+                                    Return CreateResult(DirectCast(symbol, IFieldSymbol).Type)
                                 Case SymbolKind.Local
-                                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(DirectCast(symbol, ILocalSymbol).Type))
+                                    Return CreateResult(DirectCast(symbol, ILocalSymbol).Type)
                             End Select
                         End If
                     End If
@@ -563,9 +597,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If propertySymbol Is Nothing Then
                         Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                     End If
-                    Return If(propertySymbol.Type IsNot Nothing,
-                        SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(propertySymbol.Type)),
-                        SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
+
+                    Return CreateResult(propertySymbol.Type)
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
@@ -579,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInCallStatement() As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Void)))
+                Return CreateResult(SpecialType.System_Void)
             End Function
 
             Private Function InferTypeInForEachStatement(forEachStatement As ForEachStatementSyntax,
@@ -596,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     ElseIf TypeOf forEachStatement.ControlVariable Is SimpleNameSyntax Then
                         Dim type = Me.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(type.Construct(Compilation.GetSpecialType(SpecialType.System_Object))))
+                        Return CreateResult(type.Construct(Compilation.GetSpecialType(SpecialType.System_Object)))
                     End If
                 End If
 
@@ -623,11 +656,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInForStepClause(forStepClause As ForStepClauseSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 ' TODO(cyrusn): Potentially infer a different type based on the type of the variable
                 ' being foreach-ed over.
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInIfOrElseIfStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInLambda(lambda As ExpressionSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
@@ -635,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                ' Func<int,string> = i => Foo();
+                ' Func<int,string> = i => Goo();
                 Dim lambdaTypes = GetTypes(lambda).Where(IsUsableTypeFunc)
                 If lambdaTypes.IsEmpty() Then
                     lambdaTypes = InferTypes(lambda)
@@ -653,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' If we're in a lambda, then use the return type of the lambda to figure out what to
-                ' infer.  i.e.   Func<int,string> f = i => { return Foo(); }
+                ' infer.  i.e.   Func<int,string> f = i => { return Goo(); }
                 Dim lambda = returnStatement.GetAncestorsOrThis(Of ExpressionSyntax)().FirstOrDefault(
                     Function(e) TypeOf e Is MultiLineLambdaExpressionSyntax OrElse
                         TypeOf e Is SingleLineLambdaExpressionSyntax)
@@ -675,11 +708,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim taskOfT = Me.Compilation.TaskOfTType()
 
                         Return If(
-                            taskOfT IsNot Nothing AndAlso memberMethod.ReturnType.OriginalDefinition Is taskOfT AndAlso typeArguments.Any(),
-                            SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(typeArguments.First())),
+                            taskOfT IsNot Nothing AndAlso Equals(memberMethod.ReturnType.OriginalDefinition, taskOfT) AndAlso typeArguments.Any(),
+                            CreateResult(typeArguments.First()),
                             SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo))
                     Else
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(memberMethod.ReturnType))
+                        Return CreateResult(memberMethod.ReturnType)
                     End If
                 End If
 
@@ -705,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If memberType.OriginalDefinition.SpecialType = SpecialType.System_Collections_Generic_IEnumerable_T OrElse
                        memberType.OriginalDefinition.SpecialType = SpecialType.System_Collections_Generic_IEnumerator_T Then
 
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(DirectCast(memberType, INamedTypeSymbol).TypeArguments(0)))
+                        Return CreateResult(DirectCast(memberType, INamedTypeSymbol).TypeArguments(0))
                     End If
                 End If
 
@@ -735,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
             Private Function InferTypeInTernaryConditionalExpression(conditional As TernaryConditionalExpressionSyntax,
@@ -744,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso previousToken.Kind <> SyntaxKind.CommaToken Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 ElseIf previousToken = conditional.OpenParenToken Then
-                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                    Return CreateResult(SpecialType.System_Boolean)
                 ElseIf previousToken = conditional.FirstCommaToken Then
                     Return GetTypes(conditional.WhenTrue)
                 ElseIf previousToken = conditional.SecondCommaToken Then
@@ -752,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If conditional.Condition Is expressionOpt Then
-                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                    Return CreateResult(SpecialType.System_Boolean)
                 Else
                     Return If(conditional.WhenTrue Is expressionOpt, GetTypes(conditional.WhenFalse), GetTypes(conditional.WhenTrue))
                 End If
@@ -764,20 +797,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.ExceptionType))
+                Return CreateResult(Me.Compilation.ExceptionType)
             End Function
 
             Private Function InferTypeInUnaryExpression(unaryExpressionSyntax As UnaryExpressionSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 Select Case unaryExpressionSyntax.Kind
                     Case SyntaxKind.UnaryPlusExpression, SyntaxKind.UnaryMinusExpression
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Int32)))
+                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                     Case SyntaxKind.NotExpression
                         Dim types = InferTypes(unaryExpressionSyntax)
                         If types.Any(Function(t) t.InferredType.IsNumericType) Then
                             Return types.Where(Function(t) t.InferredType.IsNumericType)
                         End If
 
-                        Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                        Return CreateResult(SpecialType.System_Boolean)
                     Case SyntaxKind.AddressOfExpression
                         Return InferTypes(unaryExpressionSyntax)
                 End Select
@@ -786,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInUsingStatement(usingStatement As UsingStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_IDisposable)))
+                Return CreateResult(SpecialType.System_IDisposable)
             End Function
 
             Private Function InferTypeInVariableDeclarator(expression As ExpressionSyntax,
@@ -800,11 +833,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInWhileStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInWhileOrUntilClause(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.GetSpecialType(SpecialType.System_Boolean)))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInMemberAccessExpression(
@@ -813,9 +846,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of TypeInferenceInfo)
 
                 ' We need to be on the right of the dot to infer an appropriate type for
-                ' the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                ' the member access expression.  i.e. if we have "Goo.Bar" then we can 
                 ' def infer what the type of 'Bar' should be (it's whatever type we infer
-                ' for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                ' for 'Goo.Bar' itself.  However, if we're on 'Goo' then we can't figure
                 ' out anything about its type.
                 If previousToken <> Nothing Then
                     If previousToken.Value <> memberAccessExpression.OperatorToken Then
@@ -827,9 +860,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If we're on the left side of a dot, it's possible in a few cases
                     ' to figure out what type we should be.  Specifically, if we have
                     '
-                    '      await foo.ConfigureAwait()
+                    '      await goo.ConfigureAwait()
                     '
-                    ' then we can figure out what 'foo' should be based on teh await
+                    ' then we can figure out what 'goo' should be based on teh await
                     ' context.
                     If expressionOpt Is memberAccessExpression.Expression Then
                         Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)
@@ -847,26 +880,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
                     Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
                 ElseIf name.Equals(NameOf(Task(Of Integer).ContinueWith)) Then
-                    ' foo.ContinueWith(...)
+                    ' goo.ContinueWith(...)
                     ' We want to infer Task<T>.  For now, we'll just do Task<object>,
                     ' in the future it would be nice to figure out the actual result
                     ' type based on the argument to ContinueWith.
                     Dim taskOfT = Me.Compilation.TaskOfTType()
                     If taskOfT IsNot Nothing Then
-                        Return SpecializedCollections.SingletonEnumerable(
-                            New TypeInferenceInfo(taskOfT.Construct(Me.Compilation.ObjectType)))
+                        Return CreateResult(taskOfT.Construct(Me.Compilation.ObjectType))
                     End If
                 ElseIf name.Equals(NameOf(Enumerable.Select)) OrElse
                        name.Equals(NameOf(Enumerable.Where)) Then
 
                     Dim ienumerableType = Me.Compilation.IEnumerableOfTType()
 
-                    ' foo.Select
+                    ' goo.Select
                     ' We want to infer IEnumerable<T>.  We can try to figure out what 
                     ' T if we get a delegate as the first argument to Select/Where.
                     If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = DirectCast(memberAccessExpression.Parent, InvocationExpressionSyntax)
-                        If invocation.ArgumentList.Arguments.Count > 0 AndAlso
+                        If invocation.ArgumentList IsNot Nothing AndAlso invocation.ArgumentList.Arguments.Count > 0 AndAlso
                            TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
                             Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
                             Dim argumentTypes = GetTypes(argumentExpression)
@@ -882,8 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
 
-                            Return SpecializedCollections.SingletonEnumerable(
-                                New TypeInferenceInfo(ienumerableType.Construct(typeArg)))
+                            Return CreateResult(ienumerableType.Construct(typeArg))
                         End If
                     End If
                 End If
@@ -939,10 +970,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 Dim right = SemanticModel.GetTypeInfo(initializer.Name).Type
                 If right IsNot Nothing AndAlso TypeOf right IsNot IErrorTypeSymbol Then
-                    Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(right))
+                    Return CreateResult(right)
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(SemanticModel.GetTypeInfo(initializer.Expression).Type))
+                Return CreateResult(SemanticModel.GetTypeInfo(initializer.Expression).Type)
             End Function
 
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of TypeInferenceInfo)

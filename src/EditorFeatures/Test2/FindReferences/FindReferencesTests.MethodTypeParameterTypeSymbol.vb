@@ -1,36 +1,36 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 #Region "FAR on generic methods"
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_Parameter1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_Parameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         class C
         {
-            void Foo<{|Definition:$$T|}>([|T|] x1, t x2)
+            void Goo<{|Definition:$$T|}>([|T|] x1, t x2)
             {
             }
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_Parameter3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_Parameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         partial class C
         {
-            void Foo<{|Definition:$$T|}>(X<[|T|]> t)
+            void Goo<{|Definition:$$T|}>(X<[|T|]> t)
             {
             }
     
@@ -40,27 +40,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_ParameterCaseSensitivity() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_ParameterCaseSensitivity(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         partial class C
-            sub Foo(of {|Definition:$$T|})(x as [|T|], x1 as [|t|])
+            sub Goo(of {|Definition:$$T|})(x as [|T|], x1 as [|t|])
             end sub
         end class</Document>
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_MethodCall() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_MethodCall(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -79,108 +79,108 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public M()
             {
                 GenericClass<string> GCObj = new GenericClass<string>();
-                GCObj.[|$$IntMethod|]<string>("foo");
+                GCObj.[|$$IntMethod|]<string>("goo");
             }
         }]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 #End Region
 
 #Region "FAR on generic partial methods"
 
         <WorkItem(544436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_GenericPartialParameter_CSharp1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_GenericPartialParameter_CSharp1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:$$T|}>([|T|] t)
+            partial void Goo<{|Definition:$$T|}>([|T|] t)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:T|}>([|T|] t);
+            partial void Goo<{|Definition:T|}>([|T|] t);
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(544436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436"), WorkItem(544475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544475")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_GenericPartialParameter_CSharp2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_GenericPartialParameter_CSharp2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:T|}>([|T|] t)
+            partial void Goo<{|Definition:T|}>([|T|] t)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C
         {
-            partial void Foo<{|Definition:$$T|}>([|T|] t);
+            partial void Goo<{|Definition:$$T|}>([|T|] t);
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_GenericPartialParameter_VB1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_GenericPartialParameter_VB1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
             partial class C
-                sub Foo(Of {|Definition:$$T|})(t as [|T|])
+                sub Goo(Of {|Definition:$$T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
         <Document><![CDATA[
             partial class C
-                partial sub Foo(Of {|Definition:T|})(t as [|T|])
+                partial sub Goo(Of {|Definition:T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodType_GenericPartialParameter_VB2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodType_GenericPartialParameter_VB2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
             partial class C
-                sub Foo(Of {|Definition:T|})(t as [|T|])
+                sub Goo(Of {|Definition:T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
         <Document><![CDATA[
             partial class C
-                partial sub Foo(Of {|Definition:$$T|})(t as [|T|])
+                partial sub Goo(Of {|Definition:$$T|})(t as [|T|])
                 end sub
             end class]]>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
 #End Region

@@ -46,7 +46,7 @@ namespace N
             Console.WriteLine(""My section"")
         end sub
     end class
-end namespace", index:=0, ignoreTrivia:=False)
+end namespace", index:=0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
@@ -82,7 +82,7 @@ namespace N
             Console.WriteLine(""Their section"")
         end sub
     end class
-end namespace", index:=1, ignoreTrivia:=False)
+end namespace", index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)>
@@ -124,7 +124,7 @@ namespace N
             Console.WriteLine(""Their section"")
         end sub
     end class
-end namespace", index:=2, ignoreTrivia:=False)
+end namespace", index:=2)
         End Function
     End Class
 End Namespace

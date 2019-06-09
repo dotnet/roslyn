@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Utilities;
 using System;
@@ -70,6 +70,27 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// </summary>
         public readonly ImmutableArray<byte> Signature;
 
+        /// <summary>
+        /// Applicable only to properties and methods, throws otherwise.
+        /// </summary>
+        public int ParametersCount
+        {
+            get
+            {
+                MemberFlags memberKind = Flags & MemberFlags.KindMask;
+                switch (memberKind)
+                {
+                    case MemberFlags.Constructor:
+                    case MemberFlags.Method:
+                    case MemberFlags.PropertyGet:
+                    case MemberFlags.Property:
+                        return Signature[0];
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(memberKind);
+                }
+            }
+        }
+
         public MemberDescriptor(
             MemberFlags Flags,
             short DeclaringTypeId,
@@ -139,7 +160,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             builder.Add((byte)paramCount);
 
             // Return type
-            ParseType(builder, stream);
+            ParseType(builder, stream, allowByRef: true);
 
             // Parameters
             for (int i = 0; i < paramCount; i++)

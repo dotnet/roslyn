@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class DiagnosticArguments
     {
+        public bool ForcedAnalysis;
         public bool ReportSuppressedDiagnostics;
         public bool LogAnalyzerExecutionTime;
         public ProjectId ProjectId;
@@ -18,12 +19,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public DiagnosticArguments(
+            bool forcedAnalysis,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             ProjectId projectId,
             Checksum optionSetChecksum,
             string[] analyzerIds)
         {
+            ForcedAnalysis = forcedAnalysis;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             LogAnalyzerExecutionTime = logAnalyzerExecutionTime;
 

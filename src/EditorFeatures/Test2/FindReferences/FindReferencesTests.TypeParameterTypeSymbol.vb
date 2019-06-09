@@ -1,67 +1,155 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestTypeParameter1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         class C<{|Definition:$$T|}>
         {
-            void Foo([|T|] t)
+            void Goo([|T|] t)
             {
             }
 
-            void Foo2(t t1)
+            void Goo2(t t1)
             {
             }
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestTypeParameter2() As Task
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        void local<{|Definition:TPar$$am|}>([|TParam|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M()
+    {
+        void local<{|Definition:TParam|}>([|TPa$$ram|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M<{|Definition:TParam|}>()
+    {
+        void local([|TPa$$ram|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_LocalFunctionTypeParameter4(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void M<{|Definition:TPa$$ram|}>()
+    {
+        void local([|TParam|] parameter)
+        {
+        }
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         partial class C<{|Definition:$$T|}>
         {
-            void Foo([|T|] t)
+            void Goo([|T|] t)
             {
             }
 
-            void Foo2(t t1)
+            void Goo2(t t1)
             {
             }
         }]]></Document>
         <Document><![CDATA[
         partial class C<{|Definition:T|}>
         {
-            void Foo2([|T|] t)
+            void Goo2([|T|] t)
             {
             }
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestTypeParameter3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
         partial class C<{|Definition:$$T|}>
         {
-            void Foo(X<[|T|]> t)
+            void Goo(X<[|T|]> t)
             {
             }
         }
@@ -72,105 +160,105 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestGenericTypeArgsWithStaticCalls() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGenericTypeArgsWithStaticCalls(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
-class {|Definition:F$$oo|} { void M() { Bar<[|Foo|]>.StaticDoSomething(); } }
+class {|Definition:G$$oo|} { void M() { Bar<[|Goo|]>.StaticDoSomething(); } }
 class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestTypeParameterCaseSensitivity() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeParameterCaseSensitivity(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         partial class C(of {|Definition:$$T|})
-            sub Foo(x as [|T|])
+            sub Goo(x as [|T|])
             end sub
-            sub Foo1(x as [|t|])
+            sub Goo1(x as [|t|])
             end sub
         end class</Document>
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodTypeParameterExplicitImplementation1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodTypeParameterExplicitImplementation1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|$$T|] I.Foo<{|Definition:T|}>() { return default([|T|]); }
+    [|$$T|] I.Goo<{|Definition:T|}>() { return default([|T|]); }
 }
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodTypeParameterExplicitImplementation2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodTypeParameterExplicitImplementation2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|T|] I.Foo<{|Definition:$$T|}>() { return default([|T|]); }
+    [|T|] I.Goo<{|Definition:$$T|}>() { return default([|T|]); }
 }
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
         <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestMethodTypeParameterExplicitImplementation3() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodTypeParameterExplicitImplementation3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
 interface I
 {
-    T Foo<T>();
+    T Goo<T>();
 }
  
 class A : I
 {
-    [|T|] I.Foo<{|Definition:T|}>() { return default([|$$T|]); }
+    [|T|] I.Goo<{|Definition:T|}>() { return default([|$$T|]); }
 }
 ]]></Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input)
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

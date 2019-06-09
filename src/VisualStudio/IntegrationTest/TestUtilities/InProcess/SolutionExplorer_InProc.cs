@@ -2,29 +2,44 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.CodingConventions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using NuGet.SolutionRestoreManager;
+using Roslyn.Hosting.Diagnostics.Waiters;
 using VSLangProj;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {
+        private readonly SendKeys_InProc _sendKeys;
         private Solution2 _solution;
         private string _fileName;
 
-        private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
-        private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
+        private static readonly Lazy<IDictionary<string, string>> _csharpProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeCSharpProjectTemplates);
+        private static readonly Lazy<IDictionary<string, string>> _visualBasicProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeVisualBasicProjectTemplates);
 
-        private SolutionExplorer_InProc() { }
+        private SolutionExplorer_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static SolutionExplorer_InProc Create()
             => new SolutionExplorer_InProc();
@@ -103,12 +118,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             string solutionPath = IntegrationHelper.CreateTemporaryPath();
+            var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
+            Directory.CreateDirectory(solutionPath);
 
-            dte.Solution.Create(solutionPath, solutionName);
+            var solution = GetGlobalService<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
+            ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
 
             _solution = (Solution2)dte.Solution;
-            _fileName = Path.Combine(solutionPath, $"{solutionName}.sln");
+            _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
         public string[] GetAssemblyReferences(string projectName)
@@ -118,6 +137,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 .Where(x => x.SourceProject == null)
                 .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
             return references;
+        }
+
+        public void RenameFile(string projectName, string oldFileName, string newFileName)
+        {
+            var project = GetProject(projectName);
+            var projectDirectory = Path.GetDirectoryName(project.FullName);
+
+            VsShellUtilities.RenameDocument(
+                ServiceProvider.GlobalProvider,
+                Path.Combine(projectDirectory, oldFileName),
+                Path.Combine(projectDirectory, newFileName));
+        }
+
+        public void RenameFileViaDTE(string projectName, string oldFileName, string newFileName)
+        {
+            var projectItem = GetProjectItem(projectName, oldFileName);
+
+            projectItem.Name = newFileName;
         }
 
         public void EditProjectFile(string projectName)
@@ -207,6 +244,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
         }
 
+        public void AddPackageReference(string projectName, string packageName, string version)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
+        public void RemovePackageReference(string projectName, string packageName)
+        {
+            var project = GetProject(projectName);
+
+            if (project is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+
+                threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
         public void RemoveProjectReference(string projectName, string projectReferenceName)
         {
             var project = GetProject(projectName);
@@ -260,17 +337,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
         }
 
+        public void AddCustomProject(string projectName, string projectFileExtension, string projectFileContent)
+        {
+            var projectPath = Path.Combine(DirectoryName, projectName);
+            Directory.CreateDirectory(projectPath);
+
+            var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
+            File.WriteAllText(projectFilePath, projectFileContent);
+
+            _solution.AddFromFile(projectFilePath);
+        }
+
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
             if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
-               _csharpProjectTemplates.TryGetValue(projectTemplate, out var csharpProjectTemplate))
+               _csharpProjectTemplates.Value.TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
                 return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
             if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
-               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
+               _visualBasicProjectTemplates.Value.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
             {
                 return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
             }
@@ -280,38 +368,182 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CleanUpOpenSolution()
         {
+            var directoriesToDelete = new List<string>();
             var dte = GetDTE();
-            dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
-            if (dte.Solution != null)
+            InvokeOnUIThread(cancellationToken =>
             {
-                var directoriesToDelete = new List<string>();
-
-                // Save the full path to each project in the solution. This is so we can
-                // cleanup any folders after the solution is closed.
-                foreach (EnvDTE.Project project in dte.Solution.Projects)
+                if (dte.Solution != null)
                 {
-                    if (!string.IsNullOrEmpty(project.FullName))
+                    // Save the full path to each project in the solution. This is so we can
+                    // cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in dte.Solution.Projects)
                     {
-                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        if (!string.IsNullOrEmpty(project.FullName))
+                        {
+                            directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        }
+                    }
+
+                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                    // The solution might be zero-impact and thus has no name, so deal with that
+                    var solutionFullName = dte.Solution.FullName;
+
+                    if (!string.IsNullOrEmpty(solutionFullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
                     }
                 }
+            });
 
-                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                // The solution might be zero-impact and thus has no name, so deal with that
-                var solutionFullName = dte.Solution.FullName;
+            if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
+            {
+                // Close the Find Source window in case it's open.
+                // 🐛 This is an ugly mitigation for https://github.com/dotnet/roslyn/issues/33785
+                _sendKeys.Send(VirtualKey.Escape);
 
-                if (!string.IsNullOrEmpty(solutionFullName))
+                dte.Debugger.TerminateAll();
+                WaitForDesignMode();
+            }
+
+            CloseSolution();
+            ErrorList_InProc.Create().WaitForNoErrorsInErrorList(Helper.HangMitigatingTimeout);
+
+            foreach (var directoryToDelete in directoriesToDelete)
+            {
+                IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+            }
+        }
+
+        private static void WaitForDesignMode()
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // This delay was originally added to address test failures in BasicEditAndContinue. When running
+            // multiple tests in sequence, situations were observed where the Edit and Continue state was not reset:
+            //
+            // 1. Test A runs, starts debugging with Edit and Continue
+            // 2. Test A completes, and the debugger is terminated
+            // 3. A new project is created for test B
+            // 4. Test B attempts to set the text for the document created in step (3), but fails
+            //
+            // Step (4) was causing test failures because the project created for test B remained in a read-only
+            // state believing a debugger session was active.
+            //
+            // This delay should be replaced with a proper wait condition once the correct one is determined.
+            var editAndContinueService = GetComponentModelService<IEditAndContinueService>();
+            do
+            {
+                if (stopwatch.Elapsed >= Helper.HangMitigatingTimeout)
                 {
-                    directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
+                    throw new TimeoutException("Failed to enter design mode in a timely manner.");
                 }
 
-                dte.Solution.Close(SaveFirst: false);
+                Thread.Yield();
+            }
+            while (editAndContinueService?.DebuggingSession != null);
+        }
 
-                foreach (var directoryToDelete in directoriesToDelete)
+        private void CloseSolution()
+        {
+            var solution = GetGlobalService<SVsSolution, IVsSolution>();
+            ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
+            if (!(bool)isOpen)
+            {
+                return;
+            }
+
+            using (var semaphore = new SemaphoreSlim(1))
+            using (var solutionEvents = new SolutionEvents(solution))
+            {
+                semaphore.Wait();
+                void HandleAfterCloseSolution(object sender, EventArgs e) => semaphore.Release();
+                solutionEvents.AfterCloseSolution += HandleAfterCloseSolution;
+                try
                 {
-                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
+                    ErrorHandler.ThrowOnFailure(solution.CloseSolutionElement((uint)__VSSLNCLOSEOPTIONS.SLNCLOSEOPT_DeleteProject | (uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave, null, 0));
+                    semaphore.Wait();
                 }
+                finally
+                {
+                    solutionEvents.AfterCloseSolution -= HandleAfterCloseSolution;
+                }
+            }
+
+            var waitingService = GetComponentModel().DefaultExportProvider.GetExportedValue<TestingOnly_WaitingService>();
+            waitingService.WaitForAsyncOperations(FeatureAttribute.Workspace, waitForWorkspaceFirst: true);
+        }
+
+        private sealed class SolutionEvents : IVsSolutionEvents, IDisposable
+        {
+            private readonly IVsSolution _solution;
+            private readonly uint _cookie;
+
+            public SolutionEvents(IVsSolution solution)
+            {
+                _solution = solution;
+                ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
+            }
+
+            public event EventHandler AfterCloseSolution;
+
+            public void Dispose()
+            {
+                InvokeOnUIThread(cancellationToken =>
+                {
+                    ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
+                });
+            }
+
+            public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnBeforeCloseSolution(object pUnkReserved)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public int OnAfterCloseSolution(object pUnkReserved)
+            {
+                AfterCloseSolution?.Invoke(this, EventArgs.Empty);
+                return VSConstants.S_OK;
             }
         }
 
@@ -351,11 +583,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             void SetText(string text)
             {
-                InvokeOnUIThread(() =>
+                InvokeOnUIThread(cancellationToken =>
                 {
                     // The active text view might not have finished composing yet, waiting for the application to 'idle'
                     // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
                     var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
                     var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
@@ -375,7 +607,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             OpenFile(projectName, fileName);
             SetText(contents ?? string.Empty);
-            CloseFile(projectName, fileName, saveFile: true);
+            CloseCodeFile(projectName, fileName, saveFile: true);
             if (open)
             {
                 OpenFile(projectName, fileName);
@@ -410,7 +642,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (open)
             {
-                projectItem.Open();
+                OpenFile(projectName, fileName);
             }
         }
 
@@ -443,7 +675,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
         }
-            
+
 
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
@@ -497,11 +729,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
                 semaphore.Wait();
-                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
                 solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {
-                    semaphore.Wait();
+                    semaphore.Wait(Helper.HangMitigatingTimeout);
                 }
                 finally
                 {
@@ -659,98 +891,129 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
-            var window = project.ProjectItems.Item(fileName).Open(EnvDTE.Constants.vsViewKindDesigner);
-            window.Activate();
-
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            InvokeOnUIThread(cancellationToken =>
             {
-                Thread.Yield();
-            }
+                var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+                VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
+                ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            });
         }
 
         public void OpenFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _, out var view);
 
-            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
-
-            var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
-            {
-                Thread.Yield();
-            }
+            // Reliably set focus using NavigateToLineAndColumn
+            var textManager = GetGlobalService<SVsTextManager, IVsTextManager>();
+            ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
+            ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
+            ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
-        public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
+        public void CloseDesignerFile(string projectName, string relativeFilePath, bool saveFile)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile);
+        }
 
-            var dte = GetDTE();
-            var documents = dte.Documents.Cast<EnvDTE.Document>();
-            var fileToClose = documents.FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToClose == null)
+        public void CloseCodeFile(string projectName, string relativeFilePath, bool saveFile)
+        {
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Code_guid, saveFile);
+        }
+
+        private void CloseFile(string projectName, string relativeFilePath, Guid logicalView, bool saveFile)
+        {
+            InvokeOnUIThread(cancellationToken =>
             {
-                throw new InvalidOperationException($"File '{fileName}' not closed because it couldn't be found.  Available files: {string.Join(", ", documents.Select(x => x.Name))}.");
-            }
-            if (saveFile)
+                var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+                if (!VsShellUtilities.IsDocumentOpen(ServiceProvider.GlobalProvider, filePath, logicalView, out _, out _, out var windowFrame))
+                {
+                    throw new InvalidOperationException($"File '{filePath}' is not open in logical view '{logicalView}'");
+                }
+
+                var frameClose = saveFile ? __FRAMECLOSE.FRAMECLOSE_SaveIfDirty : __FRAMECLOSE.FRAMECLOSE_NoSave;
+                ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)frameClose));
+            });
+        }
+
+        private EnvDTE.Document GetOpenDocument(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
+            var document = documents.SingleOrDefault(d => d.FullName == filePath);
+
+            if (document == null)
             {
-                SaveFile(fileName);
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
+                throw new InvalidOperationException($"Open document '{filePath} could not be found. Available documents: {string.Join(", ", documents.Select(x => x.FullName))}.");
             }
-            else
+
+            return document;
+        }
+
+        private EnvDTE.ProjectItem GetProjectItem(string projectName, string relativeFilePath)
+        {
+            var projects = _solution.Projects.Cast<EnvDTE.Project>();
+            var project = projects.FirstOrDefault(x => x.Name == projectName);
+
+            if (project == null)
             {
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
             }
+
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
+
+            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
+            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
+            }
+
+            return document;
         }
 
         public void SaveFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            SaveFile(fileName);
+            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
         }
 
-        private static void SaveFile(string fileName)
+        private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
-            var dte = GetDTE();
-            var fileToSave = dte.Documents.Cast<EnvDTE.Document>().FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToSave == null)
-            {
-                var fileNames = dte.Documents.Cast<EnvDTE.Document>().Select(d => d.Name);
-                throw new InvalidOperationException($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
-            }
-            var textDocument = (EnvDTE.TextDocument)fileToSave.Object(nameof(EnvDTE.TextDocument));
+            var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
             var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-            var fullPath = fileToSave.FullName;
-            fileToSave.Save();
+            var fullPath = document.FullName;
+            document.Save();
             if (File.ReadAllText(fullPath) != currentTextInDocument)
             {
                 throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
 
-        private string GetFilePath(string projectName, string relativeFilePath)
+        private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {
             var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
             var projectPath = Path.GetDirectoryName(project.FullName);
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectName)
+        public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectName);
+            var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
         }
 
-        public void RestoreNuGetPackages()
-            => ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages);
+        public bool RestoreNuGetPackages(string projectName)
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
+            var solutionRestoreService = InvokeOnUIThread(cancellationToken => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
+            var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
+            nominateProjectTask.Wait(cancellationTokenSource.Token);
+            return nominateProjectTask.Result;
+        }
 
         public void SaveAll()
             => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
@@ -763,7 +1026,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void UnloadProject(string projectName)
         {
-            var project = _solution.Projects.Item(projectName);
+            var projects = _solution.Projects;
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= projects.Count; i++)
+            {
+                project = projects.Item(i);
+                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
+                {
+                    break;
+                }
+            }
+
             _solution.Remove(project);
         }
 
@@ -775,6 +1048,62 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
+        }
+
+        public void SelectItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public string[] GetChildrenOfItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+            EnvDTE.UIHierarchyItems currentItems,
+            string[] path)
+        {
+            EnvDTE.UIHierarchyItem item = null;
+            foreach (var name in path)
+            {
+                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
+
+                if (item == null)
+                {
+                    return null;
+                }
+
+                currentItems = item.UIHierarchyItems;
+            }
+
+            return item;
         }
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
@@ -801,6 +1130,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return null;
+        }
+
+        private CodingConventionsChangedWatcher _codingConventionsChangedWatcher;
+
+        public void BeginWatchForCodingConventionsChange(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            _codingConventionsChangedWatcher = new CodingConventionsChangedWatcher(filePath);
+        }
+
+        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
+        {
+            var watcher = Interlocked.Exchange(ref _codingConventionsChangedWatcher, null);
+            if (watcher is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            watcher.Changed.Wait(timeout);
+        }
+
+        private class CodingConventionsChangedWatcher
+        {
+            private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>();
+            private readonly ICodingConventionContext _codingConventionContext;
+
+            public CodingConventionsChangedWatcher(string filePath)
+            {
+                var codingConventionsManager = GetComponentModelService<ICodingConventionsManager>();
+                _codingConventionContext = codingConventionsManager.GetConventionContextAsync(filePath, CancellationToken.None).Result;
+                _codingConventionContext.CodingConventionsChangedAsync += (sender, e) =>
+                {
+                    _taskCompletionSource.SetResult(null);
+                    return Task.CompletedTask;
+                };
+            }
+
+            public Task Changed => _taskCompletionSource.Task;
         }
     }
 }

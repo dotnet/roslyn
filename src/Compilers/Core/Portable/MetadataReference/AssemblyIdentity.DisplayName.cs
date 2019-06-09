@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -55,6 +56,19 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
         {
             return GetDisplayName(fullKey: false);
+        }
+
+        internal static string PublicKeyToString(ImmutableArray<byte> key)
+        {
+            if (key.IsDefaultOrEmpty)
+            {
+                return "";
+            }
+
+            PooledStringBuilder sb = PooledStringBuilder.GetInstance();
+            StringBuilder builder = sb.Builder;
+            AppendKey(sb, key);
+            return sb.ToStringAndFree();
         }
 
         private string BuildDisplayName(bool fullKey)

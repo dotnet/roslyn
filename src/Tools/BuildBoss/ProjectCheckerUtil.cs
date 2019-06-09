@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace BuildBoss
 {
@@ -17,15 +10,17 @@ namespace BuildBoss
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
+        private readonly bool _isPrimarySolution;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
         internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
+        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, bool isPrimarySolution)
         {
             _data = data;
             _projectUtil = data.ProjectUtil;
             _solutionMap = solutionMap;
+            _isPrimarySolution = isPrimarySolution;
         }
 
         public bool Check(TextWriter textWriter)
@@ -33,6 +28,12 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
             {
+                if (!_projectUtil.IsNewSdk)
+                {
+                    textWriter.WriteLine($"Project must new .NET SDK based");
+                    allGood = false;
+                }
+
                 // Properties that aren't related to build but instead artifacts of Visual Studio.
                 allGood &= CheckForProperty(textWriter, "RestorePackages");
                 allGood &= CheckForProperty(textWriter, "SolutionDir");
@@ -49,14 +50,27 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckForProperty(textWriter, "DocumentationFile");
-                
-                allGood &= CheckRoslynProjectType(textWriter);
+
+                // Items which are not necessary anymore in the new SDK
+                allGood &= CheckForProperty(textWriter, "ProjectGuid");
+                allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
+                allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
+
+                allGood &= CheckTargetFrameworks(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
+
+                if (_isPrimarySolution)
+                {
+                    allGood &= CheckInternalsVisibleTo(textWriter);
+                }
+
                 allGood &= CheckDeploymentSettings(textWriter);
             }
-
-            allGood &= CheckTestDeploymentProjects(textWriter);
+            else if (ProjectType == ProjectFileType.Tool)
+            {
+                allGood &= CheckPackageReferences(textWriter);
+            }
 
             return allGood;
         }
@@ -76,66 +90,6 @@ namespace BuildBoss
             return true;
         }
 
-        /// <summary>
-        /// Validate the content of RoslynProjectType is one of the supported values.
-        /// </summary>
-        private bool CheckRoslynProjectType(TextWriter textWriter)
-        {
-            RoslynProjectData data;
-            if (!ParseRoslynProjectData(textWriter, out data))
-            {
-                return false;
-            }
-
-            var allGood = true;
-            allGood &= IsVsixCorrectlySpecified(textWriter, data);
-            allGood &= IsUnitTestCorrectlySpecified(textWriter, data);
-
-            return allGood;
-        }
-
-        private bool ParseRoslynProjectData(TextWriter textWriter, out RoslynProjectData data)
-        {
-            try
-            {
-                data = _projectUtil.GetRoslynProjectData();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                data = default(RoslynProjectData);
-                textWriter.WriteLine(ex.Message);
-                return false;
-            }
-        }
-
-        private bool IsVsixCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
-        {
-            var element = _projectUtil.FindSingleProperty("ProjectTypeGuids");
-            if (element == null)
-            {
-                return true;
-            }
-
-            foreach (var rawValue in element.Value.Split(';'))
-            {
-                var value = rawValue.Trim();
-                if (string.IsNullOrEmpty(value))
-                {
-                    continue;
-                }
-
-                var guid = Guid.Parse(value);
-                if (guid == ProjectEntryUtil.VsixProjectType && data.EffectiveKind != RoslynProjectKind.Vsix)
-                {
-                    textWriter.WriteLine("Vsix projects must specify <RoslynProjectType>Vsix</RoslynProjectType>");
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private bool CheckProjectReferences(TextWriter textWriter)
         {
             var allGood = true;
@@ -145,33 +99,19 @@ namespace BuildBoss
             allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
-            allGood &= CheckProjectReferencesHaveCorrectGuid(textWriter, declaredEntryList);
+            allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
 
             return allGood;
         }
 
-        /// <summary>
-        /// Ensure that all ProjectReference entries in the file have the correct GUID when
-        /// the Project child element is present.
-        /// </summary>
-        private bool CheckProjectReferencesHaveCorrectGuid(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        private bool CheckNoGuidsOnProjectReferences(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
         {
             var allGood = true;
             foreach (var entry in entryList)
             {
-                if (!_solutionMap.TryGetValue(entry.ProjectKey, out var data))
+                if (entry.Project != null)
                 {
-                    textWriter.WriteLine($"Project not recognized {entry.FileName}");
-                    allGood = false;
-                    continue;
-                }
-
-                var dataGuid = data.ProjectUtil.GetProjectGuid();
-                if (dataGuid != entry.Project)
-                {
-                    textWriter.WriteLine($"Project Reference GUID for {entry.ProjectKey.FileName} doesn't match ProjectGuid");
-                    textWriter.WriteLine($"\tProject Guid {dataGuid}");
-                    textWriter.WriteLine($"\tReference Guid {entry.Project}");
+                    textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
                     allGood = false;
                 }
             }
@@ -184,7 +124,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "");
+                var name = packageRef.Name.Replace(".", "").Replace("-", "");
                 var floatingName = $"$({name}Version)";
                 var fixedName = $"$({name}FixedVersion)";
                 if (packageRef.Version != floatingName && packageRef.Version != fixedName)
@@ -198,14 +138,55 @@ namespace BuildBoss
             return allGood;
         }
 
-        private bool CheckDeploymentSettings(TextWriter textWriter)
+        private bool CheckInternalsVisibleTo(TextWriter textWriter)
         {
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (data?.EffectiveKind == RoslynProjectKind.Custom)
+            var allGood = true;
+            foreach (var internalsVisibleTo in _projectUtil.GetInternalsVisibleTo())
             {
-                return true;
+                if (string.Equals(internalsVisibleTo.LoadsWithinVisualStudio, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    // IVTs explicitly declared with LoadsWithinVisualStudio="false" are allowed
+                    continue;
+                }
+
+                if (_projectUtil.Key.FileName.StartsWith("Microsoft.CodeAnalysis.ExternalAccess."))
+                {
+                    // External access layer may have external IVTs
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(internalsVisibleTo.WorkItem))
+                {
+                    if (!Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                    {
+                        textWriter.WriteLine($"InternalsVisibleTo for external assembly '{internalsVisibleTo.TargetAssembly}' does not have a valid URI specified for {nameof(InternalsVisibleTo.WorkItem)}.");
+                        allGood = false;
+                    }
+
+                    // A work item is tracking elimination of this IVT
+                    continue;
+                }
+
+                var builtByThisRepository = _solutionMap.Values.Any(projectData => GetAssemblyName(projectData) == internalsVisibleTo.TargetAssembly);
+                if (!builtByThisRepository)
+                {
+                    textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
+                    allGood = false;
+                }
             }
 
+            return allGood;
+
+            // Local functions
+            static string GetAssemblyName(ProjectData projectData)
+            {
+                return projectData.ProjectUtil.FindSingleProperty("AssemblyName")?.Value.Trim()
+                    ?? Path.GetFileNameWithoutExtension(projectData.FileName);
+            }
+        }
+
+        private bool CheckDeploymentSettings(TextWriter textWriter)
+        {
             var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
             allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
             return allGood;
@@ -248,8 +229,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckUnitTestReferenceRestriction(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
         {
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (!data.HasValue || !data.Value.IsAnyUnitTest)
+            if (!_data.IsTestProject)
             {
                 return true;
             }
@@ -257,14 +237,12 @@ namespace BuildBoss
             var allGood = true;
             foreach (var key in declaredReferences)
             {
-                ProjectData projectData;
-                if (!_solutionMap.TryGetValue(key, out projectData))
+                if (!_solutionMap.TryGetValue(key, out var projectData))
                 {
                     continue;
                 }
 
-                var refData = projectData.ProjectUtil.TryGetRoslynProjectData();
-                if (refData.HasValue && refData.Value.IsAnyUnitTest)
+                if (projectData.ProjectUtil.IsTestProject)
                 {
                     textWriter.WriteLine($"Cannot reference {key.FileName} as it is another unit test project");
                     allGood = false;
@@ -281,8 +259,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckTransitiveReferences(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
         {
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (!data.HasValue || !data.Value.IsDeploymentProject)
+            if (!_projectUtil.IsDeploymentProject)
             {
                 return true;
             }
@@ -316,8 +293,7 @@ namespace BuildBoss
                     continue;
                 }
 
-                ProjectData data;
-                if (!_solutionMap.TryGetValue(current, out data))
+                if (!_solutionMap.TryGetValue(current, out var data))
                 {
                     continue;
                 }
@@ -333,91 +309,44 @@ namespace BuildBoss
             return list;
         }
 
-        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
+        private bool CheckTargetFrameworks(TextWriter textWriter)
         {
-            if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
-            {
-                return true;
-            }
-
-            if (data.EffectiveKind == RoslynProjectKind.Depedency)
-            {
-                return true;
-            }
-
-            var element = _projectUtil.FindSingleProperty("AssemblyName");
-            if (element == null)
-            {
-                textWriter.WriteLine($"Need to specify AssemblyName");
-                return false;
-            }
-
-            var name = element.Value.Trim();
-            if (Regex.IsMatch(name, @"(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase) && !data.IsAnyUnitTest)
-            {
-                textWriter.WriteLine($"Assembly named {name} is not marked as a unit test");
-                return false;
-            }
-
-            if (data.IsAnyUnitTest && !Regex.IsMatch(name, @".*(UnitTests|IntegrationTests)$", RegexOptions.IgnoreCase))
-            {
-                textWriter.WriteLine($"Assembly {name} is a unit test that doesn't end with UnitTests.dll");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Verify our test deployment projects properly reference everything which is labeled as a portable
-        /// unit test.  This ensurse they are properly deployed during build and test.
-        /// </summary>
-        private bool CheckTestDeploymentProjects(TextWriter textWriter)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
-            var isDesktop = fileName == "DeployDesktopTestRuntime";
-            if (!isDesktop)
+            if (!_data.IsUnitTestProject)
             {
                 return true;
             }
 
             var allGood = true;
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (data?.DeclaredKind != RoslynProjectKind.DeploymentTest)
+            foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
-                textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
+                // TODO: Code Style projects need to be moved over to 4.7.2 and netstandard2.0
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/712825 
+                if (ProjectFilePath.Contains("CodeStyle"))
+                {
+
+                    switch (targetFramework)
+                    {
+                        case "net46":
+                        case "netstandard1.3":
+                            continue;
+                    }
+                }
+                else
+                {
+                    switch (targetFramework)
+                    {
+                        case "net20":
+                        case "net472":
+                        case "netcoreapp1.1":
+                        case "netcoreapp2.1":
+                        case "netcoreapp3.0":
+                        case "$(RoslynPortableTargetFrameworks)":
+                            continue;
+                    }
+                }
+
+                textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
                 allGood = false;
-            }
-
-            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences().Select(x => x.ProjectKey));
-            foreach (var projectData in _solutionMap.Values)
-            {
-                var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
-                if (rosData == null)
-                {
-                    continue;
-                }
-
-                var kind = rosData.Value.DeclaredKind;
-                bool include;
-                switch (kind)
-                {
-                    case RoslynProjectKind.UnitTestPortable:
-                        include = true;
-                        break;
-                    case RoslynProjectKind.UnitTestDesktop:
-                        include = isDesktop;
-                        break;
-                    default:
-                        include = false;
-                        break;
-                }
-
-                if (include && !set.Contains(projectData.Key))
-                {
-                    textWriter.WriteLine($"Portable unit test {projectData.FileName} must be referenced");
-                    allGood = false;
-                }
             }
 
             return allGood;

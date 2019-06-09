@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatterHelpers;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -64,9 +65,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
-            builder.AppendLine(e.Message);
+            builder.Append(e.GetType());
+            builder.Append(": ");
+            builder.Append(e.Message);
+            builder.Append(Environment.NewLine);
 
-            var trace = new StackTrace(e, needFileInfo: true);
+            var trace = new StackTrace(e, fNeedFileInfo: true);
             foreach (var frame in trace.GetFrames())
             {
                 if (!Filter.Include(frame))

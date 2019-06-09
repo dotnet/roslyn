@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
         private partial class State
         {
@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
+                var expressionType = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken).Type;
+                if (expressionType is IErrorTypeSymbol)
+                {
+                    return false;
+                }
+
                 var containingType = this.Expression.AncestorsAndSelf()
                     .Select(n => this.Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (!CanIntroduceVariable(cancellationToken))
+                if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 {
                     return false;
                 }
@@ -186,7 +192,30 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
             {
                 var root = tree.GetRoot(cancellationToken);
+
+                // If there is no selection, pick the 'best' expression we're currently touching.
+                if (textSpan.Length == 0)
+                {
+                    return GetBestTouchingExpression(root, textSpan.Start);
+                }
+
                 var startToken = root.FindToken(textSpan.Start);
+                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                if (startToken.Span.End < textSpan.Start && startToken.TrailingTrivia.All(t => syntaxFacts.IsWhitespaceOrEndOfLineTrivia(t)))
+                {
+                    // We are pointing in the trailing whitespace trivia of a token, we shouldn't include that token
+                    startToken = startToken.GetNextToken();
+                    var newStart = startToken.Span.Start;
+
+                    if (textSpan.End < newStart)
+                    {
+                        // Additional trivia exists between 'textSpan' and the start of the next token, so the two are not considered adjacent
+                        return null;
+                    }
+
+                    textSpan = TextSpan.FromBounds(newStart, textSpan.End);
+                }
+
                 var stopToken = root.FindToken(textSpan.End);
 
                 if (textSpan.End <= stopToken.SpanStart)
@@ -223,7 +252,30 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return commonExpression;
             }
 
+            private static TExpressionSyntax GetBestTouchingExpression(SyntaxNode root, int position)
+            {
+                var exprOnRight = root.FindToken(position).Parent as TExpressionSyntax;
+                var exprOnLeft = position > 0
+                    ? root.FindToken(position - 1).Parent as TExpressionSyntax
+                    : null;
+
+                // Only get the expr on the left if we're right at the end of it.
+                if (exprOnLeft?.Span.End != position)
+                {
+                    return exprOnRight;
+                }
+
+                // If we have two non-overlapping expressions, then just pick the expression
+                // to the right of the caret.  However, if they overlap, pick the smaller of
+                // the two as the user likely thinks that ones is more closely associated 
+                // with the caret.
+                return exprOnRight == null || exprOnRight.Span.Contains(exprOnLeft.Span)
+                    ? exprOnLeft
+                    : exprOnRight;
+            }
+
             private bool CanIntroduceVariable(
+                bool isSpanEmpty,
                 CancellationToken cancellationToken)
             {
                 if (!_service.CanIntroduceVariableFor(this.Expression))
@@ -231,8 +283,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (this.Expression is TTypeSyntax)
+                if (isSpanEmpty && this.Expression is TNameSyntax)
                 {
+                    // to extract a name, you must have a selection (this avoids making the refactoring too noisy)
+                    return false;
+                }
+
+                if (this.Expression is TTypeSyntax && !(this.Expression is TNameSyntax))
+                {
+                    // name syntax can introduce variables, but not other type syntaxes
                     return false;
                 }
 

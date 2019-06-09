@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SimpleForeachTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForeachTest">
     <file name="a.vb">
 Imports System
@@ -31,7 +31,7 @@ End Class
     </file>
 </compilation>, OutputKind.ConsoleApplication)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="s", ReadInsideSymbol:="arr, s", ReadOutsideSymbol:="arr",
                                              WrittenInsideSymbol:="s", WrittenOutsideSymbol:="arr",
@@ -45,7 +45,7 @@ End Class
         ' Narrowing conversions from the elements in group to element are evaluated and performed at run time
         <Fact>
         Public Sub NarrowConversions()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NarrowConversions">
     <file name="a.vb">
 Option Strict On
@@ -60,7 +60,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "Long()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="number", ReadInsideSymbol:="number", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="number", WrittenOutsideSymbol:="",
@@ -78,7 +78,7 @@ End Class
         ' Narrowing conversions from the elements in group to element are evaluated and performed at run time
         <Fact>
         Public Sub NarrowConversions_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NarrowConversions">
     <file name="a.vb">
 Option Strict On
@@ -93,7 +93,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "Long()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="number", ReadInsideSymbol:="number", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="number", WrittenOutsideSymbol:="",
@@ -108,7 +108,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub IterationVarInCollectionExpression()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="IterationVarInCollectionExpression">
     <file name="a.vb">
 Option Infer On
@@ -145,7 +145,7 @@ End Structure
         ' Using the iteration variable in the collection expression
         <Fact>
         Public Sub IterationVarInCollectionExpression_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="IterationVarInCollectionExpression">
     <file name="a.vb">
 Class C
@@ -158,7 +158,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -172,7 +172,7 @@ End Class
         ' Traversing items in 'Nothing'
         <Fact>
         Public Sub TraversingNothingStrictOn()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TraversingNothing">
     <file name="a.vb">
 Option Infer Off
@@ -201,7 +201,7 @@ End Class
         ' Traversing items in 'Nothing'
         <Fact()>
         Public Sub TraversingNothingStrictOff()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TraversingNothing">
     <file name="a.vb">
 Option Strict Off
@@ -235,7 +235,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub NestedForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NestedForeach">
     <file name="a.vb">
 Class C
@@ -255,7 +255,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "Integer()()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="i, x, y", ReadInsideSymbol:="c, i, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="i, x, y", WrittenOutsideSymbol:="c",
@@ -265,7 +265,7 @@ End Class
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="y", ReadInsideSymbol:="x, y", ReadOutsideSymbol:="c, i, x",
                                              WrittenInsideSymbol:="y", WrittenOutsideSymbol:="c, i, x",
@@ -280,7 +280,7 @@ End Class
         <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub NestedForeach_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NestedForeach_1">
     <file name="a.vb">
 Class C
@@ -296,7 +296,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -321,7 +321,7 @@ End Class
         ' Breaking from nested Loops
         <Fact>
         Public Sub BreakFromForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="BreakFromForeach">
     <file name="a.vb">
 Class C
@@ -341,7 +341,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -366,7 +366,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub ContinueInForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ContinueInForeach">
     <file name="a.vb">
 Class C
@@ -385,7 +385,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -409,7 +409,7 @@ End Class
         ' Query expression works in foreach
         <Fact()>
         Public Sub QueryExpressionInForeach()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="QueryExpressionInForeach">
     <file name="a.vb">
 Imports System
@@ -425,7 +425,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={TestBase.LinqAssemblyRef})
+</compilation>, references:={TestBase.LinqAssemblyRef})
 
             SemanticInfoTypeTestForeach(compilation1, 1, "System.Collections.Generic.IEnumerable(Of String)", "System.Collections.Generic.IEnumerable(Of String)")
 
@@ -441,7 +441,7 @@ End Class
         ' No confusion in a foreach statement when from is a value type
         <Fact>
         Public Sub ReDimFrom()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ReDimFrom">
     <file name="a.vb">
 Option Infer On
@@ -476,7 +476,7 @@ End Structure
 
         <Fact>
         Public Sub BC30302ERR_TypeCharWithType1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="c.vb">
 Option Infer On
@@ -506,15 +506,15 @@ End Class
         </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 2, "Long()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 3, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 4, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 5, "Decimal()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 6, "Long()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 7, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 8, "Decimal()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 9, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Long()", "Long()")
+            SemanticInfoTypeTestForeach(compilation1, 3, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 4, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 5, "Decimal()", "Decimal()")
+            SemanticInfoTypeTestForeach(compilation1, 6, "Long()", "Long()")
+            SemanticInfoTypeTestForeach(compilation1, 7, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 8, "Decimal()", "Decimal()")
+            SemanticInfoTypeTestForeach(compilation1, 9, "Long()", "Long()")
             For i As Integer = 1 To 9
 
                 AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
@@ -530,7 +530,7 @@ End Class
 
         <Fact>
         Public Sub BC30039ERR_LoopControlMustNotBeProperty()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LoopControlMustNotBeProperty">
     <file name="a.vb">
 Option Infer On
@@ -564,7 +564,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="Me", ReadOutsideSymbol:="B, Me",
                                              WrittenInsideSymbol:="", WrittenOutsideSymbol:="A, B, Me",
@@ -577,7 +577,7 @@ End Class
 
         <Fact>
         Public Sub BC30277ERR_TypecharNoMatch2_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TypecharNoMatch2">
     <file name="a.vb">
 Class C
@@ -592,7 +592,7 @@ Class C
 End Class
     </file>
 </compilation>)
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="me",
@@ -602,7 +602,7 @@ End Class
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="me", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="me", WrittenOutsideSymbol:="x",
@@ -615,7 +615,7 @@ End Class
 
         <Fact>
         Public Sub BC30288ERR_DuplicateLocals1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="DuplicateLocals1">
         <file name="a.vb">
 Class C
@@ -628,7 +628,7 @@ End Class
         </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -642,39 +642,39 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BC30290ERR_LocalSameAsFunc_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LocalSameAsFunc">
     <file name="a.vb">
 Class C
     Shared Sub Main()
     End Sub
-    Function foo()
+    Function goo()
         'COMPILEERROR: BC30290, 
-        For Each foo As Integer In New Integer() {1, 2, 3}
+        For Each goo As Integer In New Integer() {1, 2, 3}
         Next
     End Function
-    Sub foo1()
-        For Each foo1 As Integer In New Integer() {1, 2, 3}
+    Sub goo1()
+        For Each goo1 As Integer In New Integer() {1, 2, 3}
         Next
     End SUB
 End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
-            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="foo", ReadInsideSymbol:="", ReadOutsideSymbol:="",
-                                             WrittenInsideSymbol:="foo", WrittenOutsideSymbol:="Me",
+            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo", ReadInsideSymbol:="", ReadOutsideSymbol:="",
+                                             WrittenInsideSymbol:="goo", WrittenOutsideSymbol:="Me",
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="", DataFlowsOutSymbol:="")
             AnalyzeRegionControlFlowTestForeach(compilation1, EntryPoints:=0, ExitPoints:=0,
                                                 EndPointIsReachable:=True)
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
-            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="foo1", ReadInsideSymbol:="", ReadOutsideSymbol:="",
-                                             WrittenInsideSymbol:="foo1", WrittenOutsideSymbol:="Me",
+            AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo1", ReadInsideSymbol:="", ReadOutsideSymbol:="",
+                                             WrittenInsideSymbol:="goo1", WrittenOutsideSymbol:="Me",
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="", DataFlowsOutSymbol:="", index:=2)
             AnalyzeRegionControlFlowTestForeach(compilation1, EntryPoints:=0, ExitPoints:=0,
                                                 EndPointIsReachable:=True, index:=2)
@@ -684,7 +684,7 @@ End Class
 
         <Fact>
         Public Sub BC30311ERR_TypeMismatch2_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -709,7 +709,7 @@ End Class
 
         <Fact>
         Public Sub BC30311ERR_TypeMismatch2_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -723,7 +723,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "Integer()()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="numbers2D, x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="numbers2D",
@@ -736,7 +736,7 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_3()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
         Class C
@@ -763,7 +763,7 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_4()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
         Class C
@@ -792,7 +792,7 @@ End Class
         <WorkItem(542083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542083")>
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_5()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -824,15 +824,15 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_6()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
     Public Shared Sub Main()
-        For Each x As Integer In New Integer() {foo(x), foo(x), foo(x)}
+        For Each x As Integer In New Integer() {goo(x), goo(x), goo(x)}
         Next
     End Sub
-    Function foo(ByRef x As Integer) As Integer
+    Function goo(ByRef x As Integer) As Integer
         x = 10
         Return x + 10
     End Function
@@ -854,7 +854,7 @@ End Class
 
         <Fact>
         Public Sub BC30532ERR_DateToDoubleConversion_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="DateToDoubleConversion">
         <file name="a.vb">
 Imports System
@@ -867,7 +867,7 @@ End Class
     </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Date()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Date()", "Date()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -881,7 +881,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact()>
         Public Sub BC32006ERR_CharToIntegralTypeMismatch1_1()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="CharToIntegralTypeMismatch1">
         <file name="a.vb">
         Imports System
@@ -896,7 +896,7 @@ End Class
         Public Structure S
         End Structure
     </file>
-    </compilation>, additionalRefs:={TestBase.LinqAssemblyRef})
+    </compilation>, references:={TestBase.LinqAssemblyRef})
 
             SemanticInfoTypeTestForeach(compilation1, 1, "System.Collections.Generic.IEnumerable(Of Char)", "System.Collections.Generic.IEnumerable(Of Char)")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
@@ -911,7 +911,7 @@ End Class
 
         <Fact>
         Public Sub BC32023ERR_ForEachCollectionDesignPattern1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="ForEachCollectionDesignPattern1">
         <file name="a.vb">
         Class C
@@ -937,7 +937,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub VarDeclOutOfForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="VarDeclOutOfForeach">
         <file name="a.vb">
 Option Strict On
@@ -967,7 +967,7 @@ End Class
         <WorkItem(542081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542081")>
         <Fact>
         Public Sub LambdaAsIteration()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LambdaAsIteration">
     <file name="a.vb">
 Imports System
@@ -982,7 +982,7 @@ End Class
     </file>
 </compilation>)
             compilation1.VerifyDiagnostics()
-            SemanticInfoTypeTestForeach(compilation1, 1, "System.Action()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "System.Action()", "System.Action()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -996,7 +996,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasNoDifferentConvertedTypeForDesignPatternMatch()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1017,7 +1017,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection As SomethingEnumerable = nothing
         For Each element In myCollection 
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class
@@ -1031,7 +1031,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasConvertedTypeIEnumerable()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1052,7 +1052,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection As SomethingEnumerable = nothing
         For Each element In myCollection 
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class
@@ -1066,7 +1066,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasConvertedTypeGenericIEnumerable()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1095,7 +1095,7 @@ Class C1
     Public Shared Sub Main()
         Dim myCollection3 As SomethingEnumerable(Of String) = nothing
         For Each element In myCollection3
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class        
@@ -1110,7 +1110,7 @@ End Class
 
         <Fact>
         Public Sub GetDeclaredSymbolOfForEachStatement()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1137,7 +1137,7 @@ End Class
         <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach()
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1177,7 +1177,7 @@ End Class
         <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach_ExplicitCast()
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1240,7 +1240,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.AssertNoDiagnostics()
 
             Dim udc = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)(WellKnownMemberNames.ImplicitConversionName)

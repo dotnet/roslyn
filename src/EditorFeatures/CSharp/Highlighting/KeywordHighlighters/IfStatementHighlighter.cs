@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -15,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class IfStatementHighlighter : AbstractKeywordHighlighter<IfStatementSyntax>
     {
+        [ImportingConstructor]
+        public IfStatementHighlighter()
+        {
+        }
+
         protected override IEnumerable<TextSpan> GetHighlights(
             IfStatementSyntax ifStatement, CancellationToken cancellationToken)
         {
@@ -36,9 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
             {
                 // Check for 'else if' scenario' (the statement in the else clause is an if statement)
                 var elseKeyword = ifStatement.Else.ElseKeyword;
-                var elseIfStatement = ifStatement.Else.Statement as IfStatementSyntax;
 
-                if (elseIfStatement != null)
+                if (ifStatement.Else.Statement is IfStatementSyntax elseIfStatement)
                 {
                     if (OnlySpacesBetween(elseKeyword, elseIfStatement.IfKeyword))
                     {

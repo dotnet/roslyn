@@ -2,13 +2,37 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class BoundExpressionExtensions
     {
+        /// <summary>
+        /// Returns the RefKind if the expression represents a symbol
+        /// that has a RefKind, or RefKind.None otherwise.
+        /// </summary>
+        public static RefKind GetRefKind(this BoundExpression node)
+        {
+            switch (node.Kind)
+            {
+                case BoundKind.Local:
+                    return ((BoundLocal)node).LocalSymbol.RefKind;
+
+                case BoundKind.Parameter:
+                    return ((BoundParameter)node).ParameterSymbol.RefKind;
+
+                case BoundKind.Call:
+                    return ((BoundCall)node).Method.RefKind;
+
+                case BoundKind.PropertyAccess:
+                    return ((BoundPropertyAccess)node).PropertySymbol.RefKind;
+
+                default:
+                    return RefKind.None;
+            }
+        }
+
         public static bool IsLiteralNull(this BoundExpression node)
         {
             return node.Kind == BoundKind.Literal && node.ConstantValue.Discriminator == ConstantValueTypeDiscriminator.Null;
@@ -17,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLiteralDefault(this BoundExpression node)
         {
             return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
+        }
+
+        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        {
+            return node.IsLiteralNull() || node.IsLiteralDefault();
         }
 
         // returns true when expression has no side-effects and produces

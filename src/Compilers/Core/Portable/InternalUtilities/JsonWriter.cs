@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -13,7 +14,7 @@ namespace Roslyn.Utilities
     /// A simple, forward-only JSON writer to avoid adding dependencies to the compiler.
     /// Used to generate /errorlogger output.
     /// 
-    /// Does not guarantee well-formed JSON if misused. It is the caller's reponsibility 
+    /// Does not guarantee well-formed JSON if misused. It is the caller's responsibility 
     /// to balance array/object start/end, to only write key-value pairs to objects and
     /// elements to arrays, etc.
     /// 

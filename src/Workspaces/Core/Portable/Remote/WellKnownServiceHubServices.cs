@@ -4,20 +4,21 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class WellKnownServiceHubServices
     {
+        public static void Set64bit(bool x64)
+        {
+            var bit = x64 ? "64" : "";
+
+            SnapshotService = "roslynSnapshot" + bit;
+            CodeAnalysisService = "roslynCodeAnalysis" + bit;
+            RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
+        }
+
+        public static string SnapshotService { get; private set; } = "roslynSnapshot";
+        public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
+        public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
+
+        // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";
-
-        public const string SnapshotService = "snapshotService";
-        public const string CodeAnalysisService = "codeAnalysisService";
-        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
-
-        // CodeLens methods.
-        public const string CodeAnalysisService_GetReferenceCountAsync = "GetReferenceCountAsync";
-        public const string CodeAnalysisService_FindReferenceLocationsAsync = "FindReferenceLocationsAsync";
-        public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";
-        public const string CodeAnalysisService_GetFullyQualifiedName = "GetFullyQualifiedName";
-
-        public const string RemoteSymbolSearchUpdateEngine = "remoteSymbolSearchUpdateEngine";
-
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
 }

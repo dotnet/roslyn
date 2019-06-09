@@ -1,13 +1,16 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
+    <[UseExportProvider]>
     Public Class VisualBasicEditAndContinueAnalyzerTests
 
 #Region "Helpers"
@@ -72,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                                source.IndexOf(s_endSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
-                Yield KeyValuePair.Create(position, span)
+                Yield KeyValuePairUtil.Create(position, span)
                 i = [end] + 1
             End While
         End Function
@@ -99,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Public Sub ErrorSpans_TopLevel()
             Dim source = <![CDATA[
 <span>Option Strict Off</span>
-<span>Imports Z = Foo.Bar</span>
+<span>Imports Z = Goo.Bar</span>
 
 <<span>Assembly: A(1,2,3,4)</span>, <span>B</span>>
 
@@ -159,7 +162,7 @@ End Enum
     <A><span>Function M1()</span> As Integer
     End Function
 
-    <span>Function M2()</span> As Integer Implements I.Foo
+    <span>Function M2()</span> As Integer Implements I.Goo
     End Function
 
     <span>Function M3()</span> As Integer Handles I.E
@@ -405,7 +408,7 @@ End Class
         End Sub
 
         ''' <summary>
-        ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
+        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()
@@ -434,7 +437,8 @@ End Class
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim oldDocument = oldSolution.GetDocument(documentId)
@@ -450,14 +454,14 @@ End Class
                 Dim oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan)
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
 
-                Dim baseActiveStatements = ImmutableArray.Create(New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, oldStatementSpan))
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, Nothing)
+                Dim baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())))
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.SemanticEdits(0).PreserveLocalVariables)
                 Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
 
-                Dim newStatementSpan = result.ActiveStatements(0)
+                Dim newStatementSpan = result.ActiveStatements(0).Span
                 Dim newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan)
                 Dim newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan)
 
@@ -467,7 +471,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function AnalyzeDocumentAsync_SyntaxError_NoChange1() As Threading.Tasks.Task
+        Public Async Function AnalyzeDocumentAsync_SyntaxError_NoChange1() As Task
             Dim source = "
 Class C
     Public Shared Sub Main()
@@ -478,9 +482,10 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source)
-                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim document = oldProject.Documents.First()
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, document, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -507,12 +512,13 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -533,9 +539,10 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source)
-                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim document = oldProject.Documents.First()
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, document, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -543,8 +550,8 @@ End Class
             End Using
         End Function
 
-        <Fact>
-        Public Async Function AnalyzeDocumentAsync_SemanticError_Change() As Threading.Tasks.Task
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
     Public Shared Sub Main()
@@ -564,12 +571,46 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
+
+                ' no declaration errors (error in method body is only reported when emitting)
+                Assert.False(result.HasChangesAndErrors)
+                Assert.False(result.HasChangesAndCompilationErrors)
+            End Using
+        End Function
+
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
+            Dim source1 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+"
+
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
+                Dim oldSolution = workspace.CurrentSolution
+                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.HasChangesAndErrors)
@@ -585,10 +626,10 @@ Class C
 
     Public Sub New()
         MyBase.New()
-        Foo()
+        Goo()
     End Sub
 
-    Public Sub Foo
+    Public Sub Goo
     End Sub
 End Class
 </text>.Value
@@ -616,15 +657,15 @@ End Class
 
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 ' fork the solution to introduce a change
-                Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim newDocId = Microsoft.CodeAnalysis.DocumentId.CreateNewId(project.Id)
+                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+                Dim newDocId = DocumentId.CreateNewId(oldProject.Id)
                 Dim oldSolution = workspace.CurrentSolution
-                Dim newSolution = oldSolution.AddDocument(newDocId, "foo.vb", SourceText.From(source2))
+                Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2))
 
                 workspace.TryApplyChanges(newSolution)
 
                 Dim newProject = newSolution.Projects.Single()
-                Dim changes = newProject.GetChanges(project)
+                Dim changes = newProject.GetChanges(oldProject)
 
                 Assert.Equal(2, newProject.Documents.Count())
                 Assert.Equal(0, changes.GetChangedDocuments().Count())
@@ -633,9 +674,9 @@ End Class
                 Dim changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments())
 
                 Dim result = New List(Of DocumentAnalysisResults)()
-                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
                 For Each changedDocumentId In changedDocuments
-                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), Nothing))
+                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), trackingServiceOpt:=Nothing, CancellationToken.None))
                 Next
 
                 Assert.True(result.IsSingle())

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 try
                 {
-                    TempRoot.CreateStream(_path);
+                    TempRoot.CreateStream(_path, FileMode.CreateNew);
                     break;
                 }
                 catch (PathTooLongException)
@@ -105,6 +105,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string ReadAllText()
         {
             return File.ReadAllText(_path);
+        }
+
+        public byte[] ReadAllBytes()
+        {
+            return File.ReadAllBytes(_path);
         }
 
         public TempFile CopyContentFrom(string path)

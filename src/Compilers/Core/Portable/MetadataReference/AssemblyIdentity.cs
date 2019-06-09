@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -417,9 +418,9 @@ namespace Microsoft.CodeAnalysis
 
         internal int GetHashCodeIgnoringNameAndVersion()
         {
-            return 
-                Hash.Combine((int)_contentType, 
-                Hash.Combine(_isRetargetable, 
+            return
+                Hash.Combine((int)_contentType,
+                Hash.Combine(_isRetargetable,
                 AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)));
         }
 

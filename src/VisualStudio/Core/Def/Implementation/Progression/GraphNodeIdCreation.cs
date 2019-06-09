@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static async Task<GraphNodeId> GetPartialForNamedTypeAsync(INamedTypeSymbol namedType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
         {
             // If this is a simple type, then we don't have much to do
-            if (namedType.ContainingType == null && namedType.ConstructedFrom == namedType && namedType.Arity == 0)
+            if (namedType.ContainingType == null && Equals(namedType.ConstructedFrom, namedType) && namedType.Arity == 0)
             {
                 return GraphNodeId.GetPartial(nodeName, namedType.Name);
             }
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
                 // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
 
-                bool hasGenericArguments = (namedType.ConstructedFrom != namedType || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
+                bool hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
 
                 if (hasGenericArguments)
                 {
@@ -313,8 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         parameterTypeIds.Add(GraphNodeId.GetNested(nodes.ToArray()));
                     }
 
-                    IMethodSymbol methodSymbol = member as IMethodSymbol;
-                    if (methodSymbol != null && methodSymbol.MethodKind == MethodKind.Conversion)
+                    if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
                     {
                         // For explicit/implicit conversion operators, we need to include the return type in the method Id,
                         // because there can be several conversion operators with same parameters and only differ by return type.
@@ -376,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             var underlyingType = ChaseToUnderlyingType(typeSymbol);
-            if (typeSymbol == underlyingType)
+            if (Equals(typeSymbol, underlyingType))
             {
                 // when symbol is for dynamic type
                 return null;
@@ -401,18 +400,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace != null)
+                if (solution.Workspace is VisualStudioWorkspace workspace)
                 {
-                    // We have found a project in the solution, so clearly the deferred state has been loaded
-                    var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
-                    if (vsProject != null)
+                    // TODO: audit the OutputFilePath and whether this is bin or obj
+                    if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
                     {
-                        var output = vsProject.BinOutputPath;
-                        if (!string.IsNullOrWhiteSpace(output))
-                        {
-                            return new Uri(output, UriKind.RelativeOrAbsolute);
-                        }
+                        return new Uri(foundProject.OutputFilePath, UriKind.RelativeOrAbsolute);
                     }
 
                     return null;
@@ -427,8 +420,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (compilation != null)
                     {
-                        var reference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
-                        if (reference != null && !string.IsNullOrEmpty(reference.FilePath))
+                        if (compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference reference && !string.IsNullOrEmpty(reference.FilePath))
                         {
                             return new Uri(reference.FilePath, UriKind.RelativeOrAbsolute);
                         }
@@ -469,8 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             ISymbol containingSymbol = symbol.ContainingSymbol;
-            IMethodSymbol method = containingSymbol as IMethodSymbol;
-            if (method != null && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
+            if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
                 IPropertySymbol property = (IPropertySymbol)method.AssociatedSymbol;
                 if (property.Parameters.Any(p => p.Name == symbol.Name))
@@ -512,11 +503,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         /// <summary>
         /// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
-        /// For example, in "int M() { { int foo = 0; ...} { int foo = 1; ...} }",
-        /// the return value for the first "foo" would be 0 while the value for the second one would be 1.
+        /// For example, in "int M() { { int goo = 0; ...} { int goo = 1; ...} }",
+        /// the return value for the first "goo" would be 0 while the value for the second one would be 1.
         /// It will be used to create a node with LocalVariableIndex for a non-zero value.
-        /// In the above example, hence, a node id for the first "foo" would look like (... Member=M LocalVariable=bar)
-        /// but an id for the second "foo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
+        /// In the above example, hence, a node id for the first "goo" would look like (... Member=M LocalVariable=bar)
+        /// but an id for the second "goo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
         /// </summary>
         private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
@@ -524,7 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
             {
-                var currentNode = reference.GetSyntax(cancellationToken);
+                var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
                 // For VB, we have to ask its parent to get local variables within this method body
                 // since DeclaringSyntaxReferences return statement rather than enclosing block.

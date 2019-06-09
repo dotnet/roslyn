@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1104,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Debug.Assert(type.ConstructedFrom <> type)
+            Debug.Assert(Not TypeSymbol.Equals(type.ConstructedFrom, type, TypeCompareKind.ConsiderEverything))
             Return True
         End Function
 

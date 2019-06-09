@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -147,9 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation = compilation;
             }
 
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/23582",
+                Constraint = "Avoid " + nameof(SingleNamespaceOrTypeDeclaration.Location) + " since it has a costly allocation on this fast path.")]
             public int Compare(SingleNamespaceDeclaration x, SingleNamespaceDeclaration y)
             {
-                return _compilation.CompareSourceLocations(x.Location, y.Location);
+                return _compilation.CompareSourceLocations(x.SyntaxReference, y.SyntaxReference);
             }
         }
 
@@ -262,8 +266,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool ContainsName(
             MergedNamespaceDeclaration mergedRoot,
+            string name,
+            SymbolFilter filter,
+            CancellationToken cancellationToken)
+        {
+            return ContainsNameHelper(
+                mergedRoot,
+                n => n == name,
+                filter,
+                t => t.MemberNames.Contains(name),
+                cancellationToken);
+        }
+
+        public static bool ContainsName(
+            MergedNamespaceDeclaration mergedRoot,
             Func<string, bool> predicate,
             SymbolFilter filter,
+            CancellationToken cancellationToken)
+        {
+            return ContainsNameHelper(
+                mergedRoot, predicate, filter,
+                t =>
+                {
+                    foreach (var name in t.MemberNames)
+                    {
+                        if (predicate(name))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }, cancellationToken);
+        }
+
+        private static bool ContainsNameHelper(
+            MergedNamespaceDeclaration mergedRoot,
+            Func<string, bool> predicate,
+            SymbolFilter filter,
+            Func<SingleTypeDeclaration, bool> typePredicate,
             CancellationToken cancellationToken)
         {
             var includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
@@ -300,9 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (includeMember)
                     {
                         var mergedType = (MergedTypeDeclaration)current;
-                        foreach (var name in mergedType.MemberNames)
+                        foreach (var typeDecl in mergedType.Declarations)
                         {
-                            if (predicate(name))
+                            if (typePredicate(typeDecl))
                             {
                                 return true;
                             }
@@ -310,17 +351,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                foreach (var child in current.Children)
                 {
-                    if (includeMember || includeType)
+                    if (child is MergedNamespaceOrTypeDeclaration childNamespaceOrType)
                     {
-                        stack.Push(child);
-                        continue;
-                    }
-
-                    if (child.Kind == DeclarationKind.Namespace)
-                    {
-                        stack.Push(child);
+                        if (includeMember || includeType || childNamespaceOrType.Kind == DeclarationKind.Namespace)
+                        {
+                            stack.Push(childNamespaceOrType);
+                        }
                     }
                 }
             }

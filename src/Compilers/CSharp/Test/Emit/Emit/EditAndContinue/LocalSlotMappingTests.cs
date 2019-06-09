@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -39,7 +40,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source0);
 
             var v0 = CompileAndVerify(compilation0);
@@ -97,7 +98,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void OutOfOrderUserLocals()
         {
             var source = @"
@@ -114,7 +115,7 @@ public class C
         for (j = 1; j < 3; j++) Console.WriteLine(3);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(source, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -180,7 +181,11 @@ public class C
   IL_004a:  ret
 }
 ");
-            v0.VerifyPdb("C.M", @"<symbols>
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -197,26 +202,26 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
-        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x1a"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" />
-        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" />
-        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x2d"" hidden=""true"" />
-        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" />
-        <entry offset=""0x33"" hidden=""true"" />
-        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" />
-        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" />
-        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" />
-        <entry offset=""0x46"" hidden=""true"" />
-        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x2d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x46"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
@@ -312,7 +317,7 @@ public class C
         /// <summary>
         /// Enc debug info is only present in debug builds.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DebugOnly()
         {
             var source =
@@ -328,11 +333,14 @@ public class C
         using (F()) { }
     }
 }";
-            var debug = CreateStandardCompilation(source, options: TestOptions.DebugDll);
-            var release = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var debug = CreateCompilation(source, options: TestOptions.DebugDll);
+            var release = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             CompileAndVerify(debug).VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -344,16 +352,18 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
-        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x16"" hidden=""true"" />
-        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" />
-        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x2b"" hidden=""true"" />
-        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -361,19 +371,24 @@ public class C
 ");
             CompileAndVerify(release).VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
-        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x12"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x24"" hidden=""true"" />
-        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -407,7 +422,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -484,7 +499,7 @@ public class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Lock()
         {
             var source =
@@ -504,7 +519,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -559,7 +574,7 @@ public class C
       IL_002b:  ldloc.2
       IL_002c:  call       ""void System.Threading.Monitor.Exit(object)""
       IL_0031:  nop
-      IL_0032:  endfinally
+     ~IL_0032:  endfinally
     }
    -IL_0033:  nop
     IL_0034:  leave.s    IL_0041
@@ -571,7 +586,7 @@ public class C
     IL_0039:  ldloc.0
     IL_003a:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_003f:  nop
-    IL_0040:  endfinally
+   ~IL_0040:  endfinally
   }
  -IL_0041:  ret
 }
@@ -598,8 +613,8 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
+            var compilation0 = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
+            var compilation1 = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -659,7 +674,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -678,20 +693,20 @@ public class C
             diff1.VerifyIL("C.M",
 @"
 {
-  // Code size       80 (0x50)
+  // Code size       81 (0x51)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1,
-                pinned int& V_2, //q
+                int* V_2, //q
                 [unchanged] V_3,
                 char* V_4, //r
                 pinned string V_5,
-                int[] V_6)
+                pinned int[] V_6)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
   IL_0003:  ldloc.1
-  IL_0004:  conv.i
+  IL_0004:  conv.u
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_0011
@@ -711,35 +726,35 @@ public class C
   IL_001e:  ldc.i4.0
   IL_001f:  conv.u
   IL_0020:  stloc.2
-  IL_0021:  br.s       IL_002c
+  IL_0021:  br.s       IL_002d
   IL_0023:  ldloc.s    V_6
   IL_0025:  ldc.i4.0
   IL_0026:  ldelema    ""int""
-  IL_002b:  stloc.2
-  IL_002c:  nop
+  IL_002b:  conv.u
+  IL_002c:  stloc.2
   IL_002d:  nop
-  IL_002e:  ldc.i4.0
-  IL_002f:  conv.u
-  IL_0030:  stloc.2
-  IL_0031:  ldarg.0
-  IL_0032:  stloc.s    V_5
-  IL_0034:  ldloc.s    V_5
-  IL_0036:  conv.i
-  IL_0037:  stloc.s    V_4
-  IL_0039:  ldloc.s    V_4
-  IL_003b:  brfalse.s  IL_0047
-  IL_003d:  ldloc.s    V_4
-  IL_003f:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-  IL_0044:  add
-  IL_0045:  stloc.s    V_4
-  IL_0047:  nop
+  IL_002e:  nop
+  IL_002f:  ldnull
+  IL_0030:  stloc.s    V_6
+  IL_0032:  ldarg.0
+  IL_0033:  stloc.s    V_5
+  IL_0035:  ldloc.s    V_5
+  IL_0037:  conv.u
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  brfalse.s  IL_0048
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+  IL_0045:  add
+  IL_0046:  stloc.s    V_4
   IL_0048:  nop
-  IL_0049:  ldnull
-  IL_004a:  stloc.s    V_5
-  IL_004c:  nop
-  IL_004d:  ldnull
-  IL_004e:  stloc.1
-  IL_004f:  ret
+  IL_0049:  nop
+  IL_004a:  ldnull
+  IL_004b:  stloc.s    V_5
+  IL_004d:  nop
+  IL_004e:  ldnull
+  IL_004f:  stloc.1
+  IL_0050:  ret
 }");
         }
 
@@ -767,7 +782,7 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -804,7 +819,7 @@ public class C
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
   IL_0003:  ldloc.2
-  IL_0004:  conv.i
+  IL_0004:  conv.u
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  brfalse.s  IL_0011
@@ -815,7 +830,7 @@ public class C
   IL_0011:  ldarg.1
   IL_0012:  stloc.3
   IL_0013:  ldloc.3
-  IL_0014:  conv.i
+  IL_0014:  conv.u
   IL_0015:  stloc.1
   IL_0016:  ldloc.1
   IL_0017:  brfalse.s  IL_0021
@@ -836,7 +851,7 @@ public class C
   IL_002b:  ldarg.0
   IL_002c:  stloc.s    V_7
   IL_002e:  ldloc.s    V_7
-  IL_0030:  conv.i
+  IL_0030:  conv.u
   IL_0031:  stloc.s    V_4
   IL_0033:  ldloc.s    V_4
   IL_0035:  brfalse.s  IL_0041
@@ -847,7 +862,7 @@ public class C
   IL_0041:  ldarg.2
   IL_0042:  stloc.s    V_8
   IL_0044:  ldloc.s    V_8
-  IL_0046:  conv.i
+  IL_0046:  conv.u
   IL_0047:  stloc.s    V_5
   IL_0049:  ldloc.s    V_5
   IL_004b:  brfalse.s  IL_0057
@@ -858,7 +873,7 @@ public class C
   IL_0057:  ldarg.3
   IL_0058:  stloc.s    V_9
   IL_005a:  ldloc.s    V_9
-  IL_005c:  conv.i
+  IL_005c:  conv.u
   IL_005d:  stloc.s    V_6
   IL_005f:  ldloc.s    V_6
   IL_0061:  brfalse.s  IL_006d
@@ -878,7 +893,7 @@ public class C
   IL_007a:  ldarg.1
   IL_007b:  stloc.s    V_11
   IL_007d:  ldloc.s    V_11
-  IL_007f:  conv.i
+  IL_007f:  conv.u
   IL_0080:  stloc.s    V_10
   IL_0082:  ldloc.s    V_10
   IL_0084:  brfalse.s  IL_0090
@@ -931,7 +946,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1114,7 +1129,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -1299,7 +1314,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1459,7 +1474,7 @@ class C
             var tooManyCommas = new string(',', 256);
             Assert.True(source.IndexOf(tooManyCommas, StringComparison.Ordinal) > 0);
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1489,10 +1504,10 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(
+            var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
+                references: new[] { CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -1566,7 +1581,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AddAndDelete()
         {
             var source0 =
@@ -1609,9 +1624,9 @@ class C
         foreach (var c in F2()) { }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
             v0.VerifyIL("C.M", @"
 {
   // Code size       93 (0x5d)
@@ -1686,7 +1701,7 @@ class C
   IL_005c:  ret
 }");
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
             var compilation2 = compilation0.WithSource(source2);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
@@ -1787,7 +1802,7 @@ class C
     IL_0010:  ldloc.s    V_6
     IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0017:  nop
-    IL_0018:  endfinally
+   ~IL_0018:  endfinally
   }
  -IL_0019:  call       ""object C.F1()""
   IL_001e:  stloc.0
@@ -1810,7 +1825,7 @@ class C
     IL_0031:  ldloc.0
     IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_0037:  nop
-    IL_0038:  endfinally
+   ~IL_0038:  endfinally
   }
  -IL_0039:  nop
  -IL_003a:  call       ""string C.F2()""
@@ -1866,7 +1881,7 @@ class C
         lock (F4()) { } // replaced
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
@@ -2004,7 +2019,7 @@ class C
     }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -2118,7 +2133,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Switch_String()
         {
             var source0 =
@@ -2149,40 +2164,44 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default);
 
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyIL("C.M", @"
 {
-  // Code size       54 (0x36)
+  // Code size       59 (0x3b)
   .maxstack  2
-  .locals init (string V_0)
- -IL_0000:  nop       
+  .locals init (string V_0,
+                string V_1)
+ -IL_0000:  nop
  -IL_0001:  call       ""string C.F()""
-  IL_0006:  stloc.0   
- ~IL_0007:  ldloc.0   
-  IL_0008:  ldstr      ""a""
-  IL_000d:  call       ""bool string.op_Equality(string, string)""
-  IL_0012:  brtrue.s   IL_0023
-  IL_0014:  ldloc.0   
-  IL_0015:  ldstr      ""b""
-  IL_001a:  call       ""bool string.op_Equality(string, string)""
-  IL_001f:  brtrue.s   IL_002c
-  IL_0021:  br.s       IL_0035
- -IL_0023:  ldc.i4.1  
-  IL_0024:  call       ""void System.Console.WriteLine(int)""
-  IL_0029:  nop       
- -IL_002a:  br.s       IL_0035
- -IL_002c:  ldc.i4.2  
-  IL_002d:  call       ""void System.Console.WriteLine(int)""
-  IL_0032:  nop       
- -IL_0033:  br.s       IL_0035
- -IL_0035:  ret       
-}
-", sequencePoints: "C.M");
+  IL_0006:  stloc.1
+ ~IL_0007:  ldloc.1
+  IL_0008:  stloc.0
+ ~IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_003a
+  IL_000c:  ldloc.0
+  IL_000d:  ldstr      ""a""
+  IL_0012:  call       ""bool string.op_Equality(string, string)""
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""b""
+  IL_001f:  call       ""bool string.op_Equality(string, string)""
+  IL_0024:  brtrue.s   IL_0031
+  IL_0026:  br.s       IL_003a
+ -IL_0028:  ldc.i4.1
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  nop
+ -IL_002f:  br.s       IL_003a
+ -IL_0031:  ldc.i4.2
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  nop
+ -IL_0038:  br.s       IL_003a
+ -IL_003a:  ret
+}", sequencePoints: "C.M");
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -2195,34 +2214,39 @@ class C
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
-  .locals init (string V_0)
- -IL_0000:  nop       
+  .locals init (string V_0,
+                string V_1)
+ -IL_0000:  nop
  -IL_0001:  call       ""string C.F()""
-  IL_0006:  stloc.0   
- ~IL_0007:  ldloc.0   
-  IL_0008:  ldstr      ""a""
-  IL_000d:  call       ""bool string.op_Equality(string, string)""
-  IL_0012:  brtrue.s   IL_0023
-  IL_0014:  ldloc.0   
-  IL_0015:  ldstr      ""b""
-  IL_001a:  call       ""bool string.op_Equality(string, string)""
-  IL_001f:  brtrue.s   IL_002d
-  IL_0021:  br.s       IL_0037
- -IL_0023:  ldc.i4.s   10
-  IL_0025:  call       ""void System.Console.WriteLine(int)""
-  IL_002a:  nop       
- -IL_002b:  br.s       IL_0037
- -IL_002d:  ldc.i4.s   20
-  IL_002f:  call       ""void System.Console.WriteLine(int)""
-  IL_0034:  nop       
- -IL_0035:  br.s       IL_0037
- -IL_0037:  ret       
+  IL_0006:  stloc.1
+ ~IL_0007:  ldloc.1
+  IL_0008:  stloc.0
+ ~IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_003c
+  IL_000c:  ldloc.0
+  IL_000d:  ldstr      ""a""
+  IL_0012:  call       ""bool string.op_Equality(string, string)""
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""b""
+  IL_001f:  call       ""bool string.op_Equality(string, string)""
+  IL_0024:  brtrue.s   IL_0032
+  IL_0026:  br.s       IL_003c
+ -IL_0028:  ldc.i4.s   10
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  nop
+ -IL_0030:  br.s       IL_003c
+ -IL_0032:  ldc.i4.s   20
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  nop
+ -IL_003a:  br.s       IL_003c
+ -IL_003c:  ret
 }", methodToken: diff1.UpdatedMethods.Single());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Switch_Integer()
         {
             var source0 =
@@ -2253,57 +2277,65 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
             v0.VerifyIL("C.M", @"
 {
-  // Code size       38 (0x26)
+  // Code size       40 (0x28)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  call       ""int C.F()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  beq.s      IL_0013
-  IL_000b:  br.s       IL_000d
-  IL_000d:  ldloc.0
-  IL_000e:  ldc.i4.2
-  IL_000f:  beq.s      IL_001c
-  IL_0011:  br.s       IL_0025
-  IL_0013:  ldc.i4.1
-  IL_0014:  call       ""void System.Console.WriteLine(int)""
-  IL_0019:  nop
-  IL_001a:  br.s       IL_0025
-  IL_001c:  ldc.i4.2
-  IL_001d:  call       ""void System.Console.WriteLine(int)""
-  IL_0022:  nop
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ret
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  beq.s      IL_0015
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.2
+  IL_0011:  beq.s      IL_001e
+  IL_0013:  br.s       IL_0027
+  IL_0015:  ldc.i4.1
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  nop
+  IL_001c:  br.s       IL_0027
+  IL_001e:  ldc.i4.2
+  IL_001f:  call       ""void System.Console.WriteLine(int)""
+  IL_0024:  nop
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ret
 }");
             // Validate that we emit a hidden sequence point @IL_0007.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
         <encLocalSlotMap>
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" />
-        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" />
-        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x25"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" document=""1"" />
+        <entry offset=""0x27"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2320,33 +2352,244 @@ class C
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init (int V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  call       ""int C.F()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  beq.s      IL_0013
-  IL_000b:  br.s       IL_000d
-  IL_000d:  ldloc.0
-  IL_000e:  ldc.i4.2
-  IL_000f:  beq.s      IL_001d
-  IL_0011:  br.s       IL_0027
-  IL_0013:  ldc.i4.s   10
-  IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  nop
-  IL_001b:  br.s       IL_0027
-  IL_001d:  ldc.i4.s   20
-  IL_001f:  call       ""void System.Console.WriteLine(int)""
-  IL_0024:  nop
-  IL_0025:  br.s       IL_0027
-  IL_0027:  ret
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  beq.s      IL_0015
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.2
+  IL_0011:  beq.s      IL_001f
+  IL_0013:  br.s       IL_0029
+  IL_0015:  ldc.i4.s   10
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  nop
+  IL_001d:  br.s       IL_0029
+  IL_001f:  ldc.i4.s   20
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  nop
+  IL_0027:  br.s       IL_0029
+  IL_0029:  ret
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void Switch_Patterns()
+        {
+            var source = @"
+using static System.Console;
+class C
+{
+    static object F() => 1;
+    static bool P() => false;
+    
+    static void M()
+    {
+        switch (F())
+        {
+            case 1: WriteLine(""int 1""); break;
+            case byte b when P(): WriteLine(b); break; 
+            case int i when P(): WriteLine(i); break;
+            case (byte)1: WriteLine(""byte 1""); break; 
+            case int j: WriteLine(j); break; 
+            case object o: WriteLine(o); break; 
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var v0 = CompileAndVerify(compilation0);
+
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""106"" />
+          <slot kind=""0"" offset=""162"" />
+          <slot kind=""0"" offset=""273"" />
+          <slot kind=""0"" offset=""323"" />
+          <slot kind=""1"" offset=""11"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.ExcludeScopes | PdbValidationOptions.ExcludeSequencePoints);
+
+            v0.VerifyIL("C.M", @"
+{
+  // Code size      147 (0x93)
+  .maxstack  2
+  .locals init (byte V_0, //b
+                int V_1, //i
+                int V_2, //j
+                object V_3, //o
+                object V_4)
+  IL_0000:  nop
+  IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldloc.s    V_4
+  IL_000a:  stloc.3
+  IL_000b:  ldloc.3
+  IL_000c:  isinst     ""int""
+  IL_0011:  brfalse.s  IL_0020
+  IL_0013:  ldloc.3
+  IL_0014:  unbox.any  ""int""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  beq.s      IL_003c
+  IL_001e:  br.s       IL_005b
+  IL_0020:  ldloc.3
+  IL_0021:  isinst     ""byte""
+  IL_0026:  brfalse.s  IL_0037
+  IL_0028:  ldloc.3
+  IL_0029:  unbox.any  ""byte""
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0049
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  beq.s      IL_006d
+  IL_0035:  br.s       IL_0087
+  IL_0037:  ldloc.3
+  IL_0038:  brtrue.s   IL_0087
+  IL_003a:  br.s       IL_0092
+  IL_003c:  ldstr      ""int 1""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  nop
+  IL_0047:  br.s       IL_0092
+  IL_0049:  call       ""bool C.P()""
+  IL_004e:  brtrue.s   IL_0052
+  IL_0050:  br.s       IL_0031
+  IL_0052:  ldloc.0
+  IL_0053:  call       ""void System.Console.WriteLine(int)""
+  IL_0058:  nop
+  IL_0059:  br.s       IL_0092
+  IL_005b:  call       ""bool C.P()""
+  IL_0060:  brtrue.s   IL_0064
+  IL_0062:  br.s       IL_007a
+  IL_0064:  ldloc.1
+  IL_0065:  call       ""void System.Console.WriteLine(int)""
+  IL_006a:  nop
+  IL_006b:  br.s       IL_0092
+  IL_006d:  ldstr      ""byte 1""
+  IL_0072:  call       ""void System.Console.WriteLine(string)""
+  IL_0077:  nop
+  IL_0078:  br.s       IL_0092
+  IL_007a:  ldloc.1
+  IL_007b:  stloc.2
+  IL_007c:  br.s       IL_007e
+  IL_007e:  ldloc.2
+  IL_007f:  call       ""void System.Console.WriteLine(int)""
+  IL_0084:  nop
+  IL_0085:  br.s       IL_0092
+  IL_0087:  br.s       IL_0089
+  IL_0089:  ldloc.3
+  IL_008a:  call       ""void System.Console.WriteLine(object)""
+  IL_008f:  nop
+  IL_0090:  br.s       IL_0092
+  IL_0092:  ret
+}");
+            var methodData0 = v0.TestData.GetMethodData("C.M");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size      147 (0x93)
+  .maxstack  2
+  .locals init (byte V_0, //b
+                int V_1, //i
+                int V_2, //j
+                object V_3, //o
+                object V_4)
+  IL_0000:  nop
+  IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldloc.s    V_4
+  IL_000a:  stloc.3
+  IL_000b:  ldloc.3
+  IL_000c:  isinst     ""int""
+  IL_0011:  brfalse.s  IL_0020
+  IL_0013:  ldloc.3
+  IL_0014:  unbox.any  ""int""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  beq.s      IL_003c
+  IL_001e:  br.s       IL_005b
+  IL_0020:  ldloc.3
+  IL_0021:  isinst     ""byte""
+  IL_0026:  brfalse.s  IL_0037
+  IL_0028:  ldloc.3
+  IL_0029:  unbox.any  ""byte""
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0049
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  beq.s      IL_006d
+  IL_0035:  br.s       IL_0087
+  IL_0037:  ldloc.3
+  IL_0038:  brtrue.s   IL_0087
+  IL_003a:  br.s       IL_0092
+  IL_003c:  ldstr      ""int 1""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  nop
+  IL_0047:  br.s       IL_0092
+  IL_0049:  call       ""bool C.P()""
+  IL_004e:  brtrue.s   IL_0052
+  IL_0050:  br.s       IL_0031
+  IL_0052:  ldloc.0
+  IL_0053:  call       ""void System.Console.WriteLine(int)""
+  IL_0058:  nop
+  IL_0059:  br.s       IL_0092
+  IL_005b:  call       ""bool C.P()""
+  IL_0060:  brtrue.s   IL_0064
+  IL_0062:  br.s       IL_007a
+  IL_0064:  ldloc.1
+  IL_0065:  call       ""void System.Console.WriteLine(int)""
+  IL_006a:  nop
+  IL_006b:  br.s       IL_0092
+  IL_006d:  ldstr      ""byte 1""
+  IL_0072:  call       ""void System.Console.WriteLine(string)""
+  IL_0077:  nop
+  IL_0078:  br.s       IL_0092
+  IL_007a:  ldloc.1
+  IL_007b:  stloc.2
+  IL_007c:  br.s       IL_007e
+  IL_007e:  ldloc.2
+  IL_007f:  call       ""void System.Console.WriteLine(int)""
+  IL_0084:  nop
+  IL_0085:  br.s       IL_0092
+  IL_0087:  br.s       IL_0089
+  IL_0089:  ldloc.3
+  IL_008a:  call       ""void System.Console.WriteLine(object)""
+  IL_008f:  nop
+  IL_0090:  br.s       IL_0092
+  IL_0092:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void If()
         {
             var source0 = @"
@@ -2375,7 +2618,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2401,6 +2644,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0007 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2410,13 +2656,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2450,7 +2696,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void While()
         {
             var source0 = @"
@@ -2479,7 +2725,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2506,6 +2752,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0012 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2515,14 +2764,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" hidden=""true"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" />
-        <entry offset=""0x12"" hidden=""true"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2557,7 +2806,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void Do1()
         {
             var source0 = @"
@@ -2588,7 +2837,7 @@ class C
         while (F());
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2613,6 +2862,9 @@ class C
             // Validate presence of a hidden sequence point @IL_0010 that is required for proper function remapping.
             v0.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -2622,13 +2874,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" />
-        <entry offset=""0x10"" hidden=""true"" />
-        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x10"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2693,7 +2945,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2785,7 +3037,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -2839,6 +3091,157 @@ class C
         }
 
         [Fact]
+        public void SynthesizedVariablesInLambdas2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(1); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(10); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(100); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m1, m2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            var expectedIL = @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (int[] V_0,
+                int V_1,
+                int V_2) //x
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  stloc.1
+  IL_0006:  br.s       IL_001a
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  ldelem.i4
+  IL_000b:  stloc.2
+  IL_000c:  nop
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  nop
+  IL_0015:  nop
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldlen
+  IL_001d:  conv.i4
+  IL_001e:  blt.s      IL_0008
+  IL_0020:  ret
+}";
+
+            diff1.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
+            diff2.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
+        }
+
+        [Fact]
         public void SynthesizedVariablesInIterator1()
         {
             var source = @"
@@ -2853,7 +3256,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
@@ -3088,8 +3491,7 @@ class C
   IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00f4:  nop
   IL_00f5:  ret
-}
-", sequencePoints: "C+<F>d__0.MoveNext");
+}", sequencePoints: "C+<F>d__0.MoveNext");
 
 #if TODO
             var methodData0 = v0.TestData.GetMethodData("?");
@@ -3107,7 +3509,7 @@ class C
 #endif
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void OutVar()
         {
             var source = @"
@@ -3117,7 +3519,7 @@ class C
     static int G() { F(out int x, out var y); return x + y; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3164,7 +3566,7 @@ class C
     static int F(object o) { if (o is int i) { return i; } return 0; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3180,38 +3582,35 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                [unchanged] V_2,
-                [int] V_3,
-                int? V_4,
-                int V_5)
+                [int] V_2,
+                int V_3)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_4
-  IL_000e:  ldloca.s   V_4
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_4
-  IL_0018:  call       ""bool int?.HasValue.get""
-  IL_001d:  stloc.1
- ~IL_001e:  ldloc.1
-  IL_001f:  brfalse.s  IL_0027
- -IL_0021:  nop
- -IL_0022:  ldloc.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_002c
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_5
-  IL_002a:  br.s       IL_002c
- -IL_002c:  ldloc.s    V_5
-  IL_002e:  ret
-}
-", methodToken: diff1.UpdatedMethods.Single());
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0013
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.1
+ ~IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_001d
+ -IL_0018:  nop
+ -IL_0019:  ldloc.0
+  IL_001a:  stloc.3
+  IL_001b:  br.s       IL_0021
+ -IL_001d:  ldc.i4.0
+  IL_001e:  stloc.3
+  IL_001f:  br.s       IL_0021
+ -IL_0021:  ldloc.3
+  IL_0022:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3223,7 +3622,7 @@ class C
     static int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3278,7 +3677,7 @@ class C
     static int F() { (int x, (int y, int z)) = (1, (2, 3)); return x + y + z; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3330,7 +3729,7 @@ class C
     static int F(object o) { if (o is int i) { return i; } return 0; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3346,38 +3745,35 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       35 (0x23)
   .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                [unchanged] V_2,
-                [int] V_3,
-                int? V_4,
-                int V_5)
+                [int] V_2,
+                int V_3)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_4
-  IL_000e:  ldloca.s   V_4
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_4
-  IL_0018:  call       ""bool int?.HasValue.get""
-  IL_001d:  stloc.1
- ~IL_001e:  ldloc.1
-  IL_001f:  brfalse.s  IL_0027
- -IL_0021:  nop
- -IL_0022:  ldloc.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_002c
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_5
-  IL_002a:  br.s       IL_002c
- -IL_002c:  ldloc.s    V_5
-  IL_002e:  ret
-}
-", methodToken: diff1.UpdatedMethods.Single());
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0013
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.1
+ ~IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_001d
+ -IL_0018:  nop
+ -IL_0019:  ldloc.0
+  IL_001a:  stloc.3
+  IL_001b:  br.s       IL_0021
+ -IL_001d:  ldc.i4.0
+  IL_001e:  stloc.3
+  IL_001f:  br.s       IL_0021
+ -IL_0021:  ldloc.3
+  IL_0022:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3389,7 +3785,7 @@ class C
     static int F(object o) { if ((o is bool) || (o is 0)) { return 0; } return 1; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3405,35 +3801,326 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       39 (0x27)
+  // Code size       52 (0x34)
   .maxstack  2
   .locals init (bool V_0,
                 [int] V_1,
-                int V_2)
+                [int] V_2,
+                int V_3,
+                int V_4)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
   IL_0002:  isinst     ""bool""
-  IL_0007:  brtrue.s   IL_0017
+  IL_0007:  brtrue.s   IL_0021
+  IL_0009:  ldarg.0
+  IL_000a:  isinst     ""int""
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  ldarg.0
+  IL_0012:  unbox.any  ""int""
+  IL_0017:  stloc.3
+  IL_0018:  ldloc.3
+  IL_0019:  ldc.i4.0
+  IL_001a:  ceq
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldc.i4.0
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldc.i4.1
+  IL_0022:  stloc.0
+ ~IL_0023:  ldloc.0
+  IL_0024:  brfalse.s  IL_002c
+ -IL_0026:  nop
+ -IL_0027:  ldc.i4.0
+  IL_0028:  stloc.s    V_4
+  IL_002a:  br.s       IL_0031
+ -IL_002c:  ldc.i4.1
+  IL_002d:  stloc.s    V_4
+  IL_002f:  br.s       IL_0031
+ -IL_0031:  ldloc.s    V_4
+  IL_0033:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void ForEachStatement_Deconstruction()
+        {
+            var source = @"
+class C
+{
+    public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
+
+    public static void G()
+    {        
+        foreach (var (x, (y, z)) in F())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}";
+
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
+
+            var testData0 = new CompilationTestData();
+            var bytes0 = compilation0.EmitToArray(testData: testData0);
+            var methodData0 = testData0.GetMethodData("C.G");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+
+            var method1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       78 (0x4e)
+  .maxstack  2
+  .locals init ([unchanged] V_0,
+                [int] V_1,
+                int V_2, //x
+                bool V_3, //y
+                double V_4, //z
+                [unchanged] V_5,
+                (int, (bool, double))[] V_6,
+                int V_7,
+                System.ValueTuple<bool, double> V_8)
+ -IL_0000:  nop
+ -IL_0001:  nop
+ -IL_0002:  call       ""(int, (bool, double))[] C.F()""
+  IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
-  IL_000a:  box        ""int""
-  IL_000f:  ldarg.0
-  IL_0010:  call       ""bool object.Equals(object, object)""
-  IL_0015:  br.s       IL_0018
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.0
- ~IL_0019:  ldloc.0
-  IL_001a:  brfalse.s  IL_0021
- -IL_001c:  nop
- -IL_001d:  ldc.i4.0
-  IL_001e:  stloc.2
-  IL_001f:  br.s       IL_0025
- -IL_0021:  ldc.i4.1
-  IL_0022:  stloc.2
-  IL_0023:  br.s       IL_0025
- -IL_0025:  ldloc.2
-  IL_0026:  ret
+  IL_000a:  stloc.s    V_7
+ ~IL_000c:  br.s       IL_0045
+ -IL_000e:  ldloc.s    V_6
+  IL_0010:  ldloc.s    V_7
+  IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
+  IL_0017:  dup
+  IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_001d:  stloc.s    V_8
+  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.s    V_8
+  IL_002f:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0034:  stloc.s    V_4
+ -IL_0036:  nop
+ -IL_0037:  ldloc.2
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  nop
+ -IL_003e:  nop
+ ~IL_003f:  ldloc.s    V_7
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.s    V_7
+ -IL_0045:  ldloc.s    V_7
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  ldlen
+  IL_004a:  conv.i4
+  IL_004b:  blt.s      IL_000e
+ -IL_004d:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
+        }
+
+        [Fact]
+        public void ComplexTypes()
+        {
+            var sourceText = @"
+using System;
+using System.Collections.Generic;
+
+class C1<T>
+{
+    public enum E
+    {
+        A
+    }
+}
+
+class C
+{
+    public unsafe static void G()
+    {        
+        var <N:0>a</N:0> = new { key = ""a"", value = new List<(int, int)>()};
+        var <N:1>b</N:1> = (number: 5, value: a);
+        var <N:2>c</N:2> = new[] { b };
+        int[] <N:3>array</N:3> = { 1, 2, 3 };
+        ref int <N:4>d</N:4> = ref array[0];
+        C1<(int, dynamic)>.E***[,,] <N:5>x</N:5> = null;
+    }
+}
+";
+            var source0 = MarkedSource(sourceText);
+            var source1 = MarkedSource(sourceText);
+            var source2 = MarkedSource(sourceText);
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.G");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.G");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("C.G", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  4
+  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
+                (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+                int[] V_3, //array
+                int& V_4, //d
+                C1<(int, dynamic)>.E***[,,] V_5) //x
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0028:  stloc.2
+  IL_0029:  ldc.i4.3
+  IL_002a:  newarr     ""int""
+  IL_002f:  dup
+  IL_0030:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0035:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_003a:  stloc.3
+  IL_003b:  ldloc.3
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldelema    ""int""
+  IL_0042:  stloc.s    V_4
+  IL_0044:  ldnull
+  IL_0045:  stloc.s    V_5
+  IL_0047:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.G", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
+                (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+                int[] V_3, //array
+                int& V_4, //d
+                C1<(int, dynamic)>.E***[,,] V_5) //x
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0028:  stloc.2
+  IL_0029:  ldc.i4.3
+  IL_002a:  newarr     ""int""
+  IL_002f:  dup
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i4
+  IL_0033:  dup
+  IL_0034:  ldc.i4.1
+  IL_0035:  ldc.i4.2
+  IL_0036:  stelem.i4
+  IL_0037:  dup
+  IL_0038:  ldc.i4.2
+  IL_0039:  ldc.i4.3
+  IL_003a:  stelem.i4
+  IL_003b:  stloc.3
+  IL_003c:  ldloc.3
+  IL_003d:  ldc.i4.0
+  IL_003e:  ldelema    ""int""
+  IL_0043:  stloc.s    V_4
+  IL_0045:  ldnull
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+               diff1.NextGeneration,
+               ImmutableArray.Create(
+                   new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("C.G", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>> V_0, //a
+                System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>> V_1, //b
+                (int number, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value> value)[] V_2, //c
+                int[] V_3, //array
+                int& V_4, //d
+                C1<(int, dynamic)>.E***[,,] V_5) //x
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""System.Collections.Generic.List<(int, int)>..ctor()""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string, System.Collections.Generic.List<(int, int)>>..ctor(string, System.Collections.Generic.List<(int, int)>)""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>..ctor(int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple<int, <anonymous type: string key, System.Collections.Generic.List<(int, int)> value>>""
+  IL_0028:  stloc.2
+  IL_0029:  ldc.i4.3
+  IL_002a:  newarr     ""int""
+  IL_002f:  dup
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i4
+  IL_0033:  dup
+  IL_0034:  ldc.i4.1
+  IL_0035:  ldc.i4.2
+  IL_0036:  stelem.i4
+  IL_0037:  dup
+  IL_0038:  ldc.i4.2
+  IL_0039:  ldc.i4.3
+  IL_003a:  stelem.i4
+  IL_003b:  stloc.3
+  IL_003c:  ldloc.3
+  IL_003d:  ldc.i4.0
+  IL_003e:  ldelema    ""int""
+  IL_0043:  stloc.s    V_4
+  IL_0045:  ldnull
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ret
+}
+");
         }
     }
 }

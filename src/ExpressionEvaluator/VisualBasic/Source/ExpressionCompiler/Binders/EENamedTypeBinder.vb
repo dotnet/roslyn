@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -33,6 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return ImmutableArray(Of Symbol).Empty
+            End Get
+        End Property
+
         Friend Overrides Sub LookupInSingleBinder(
                 lookupResult As LookupResult,
                 name As String, arity As Integer,
@@ -51,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 For i As Integer = 0 To symbols.Count - 1
                     Dim symbol = symbols(i)
                     If symbol.Kind = SymbolKind.TypeParameter Then
-                        Debug.Assert(symbol.OriginalDefinition.ContainingSymbol = substitutedSourceType.OriginalDefinition)
+                        Debug.Assert(TypeSymbol.Equals(symbol.OriginalDefinition.ContainingType, substitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                         Dim ordinal = DirectCast(symbol, TypeParameterSymbol).Ordinal
-                        symbols(i) = substitutedSourceType.TypeArguments(ordinal)
+                        symbols(i) = substitutedSourceType.TypeArgumentsNoUseSiteDiagnostics(ordinal)
                         Debug.Assert(symbols(i).Kind = SymbolKind.TypeParameter)
                     End If
                 Next

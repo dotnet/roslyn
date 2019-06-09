@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ExpressionParsingTexts : ParsingTests
+    public class ExpressionParsingTests : ParsingTests
     {
-        public ExpressionParsingTexts(ITestOutputHelper output) : base(output) { }
+        public ExpressionParsingTests(ITestOutputHelper output) : base(output) { }
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
@@ -38,9 +38,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedVerbatimString()
+        {
+            UsingExpression(@"$@""hello""");
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAltInterpolatedVerbatimString_CSharp73()
+        {
+            UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
+                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 'preview' or greater.
+                // @$"hello"
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("preview").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestAltInterpolatedVerbatimString_CSharp8()
+        {
+            UsingExpression(@"@$""hello""", TestOptions.Regular8);
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void TestName()
         {
-            var text = "foo";
+            var text = "goo";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -53,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestParenthesizedExpression()
         {
-            var text = "(foo)";
+            var text = "(goo)";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -206,10 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestPrefixUnary(SyntaxKind.AsteriskToken);
         }
 
-        private void TestPostfixUnary(SyntaxKind kind)
+        private void TestPostfixUnary(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "a" + SyntaxFacts.GetText(kind);
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options: options);
 
             Assert.NotNull(expr);
             var opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
@@ -229,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnary(SyntaxKind.PlusPlusToken);
             TestPostfixUnary(SyntaxKind.MinusMinusToken);
+            TestPostfixUnary(SyntaxKind.ExclamationToken, TestOptions.Regular8);
         }
 
         private void TestBinary(SyntaxKind kind)
@@ -276,10 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestBinary(SyntaxKind.QuestionQuestionToken);
         }
 
-        private void TestAssignment(SyntaxKind kind)
+        private void TestAssignment(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "(a) " + SyntaxFacts.GetText(kind) + " b";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options);
 
             Assert.NotNull(expr);
             var opKind = SyntaxFacts.GetAssignmentExpression(kind);
@@ -309,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestAssignment(SyntaxKind.AmpersandEqualsToken);
             TestAssignment(SyntaxKind.BarEqualsToken);
             TestAssignment(SyntaxKind.CaretEqualsToken);
+            TestAssignment(SyntaxKind.QuestionQuestionEqualsToken, options: TestOptions.Regular8);
         }
 
         private void TestMemberAccess(SyntaxKind kind)
@@ -1852,6 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1863,10 +1919,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1891,6 +1946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
@@ -1902,10 +1958,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -2115,7 +2170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFromGroupBy1()
         {
-            var text = "from it in foo group x by y";
+            var text = "from it in goo group x by y";
             var expr = SyntaxFactory.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -3664,6 +3719,675 @@ select t";
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(22830, "https://github.com/dotnet/roslyn/issues/22830")]
+        public void TypeArgumentIndexerInitializer()
+        {
+            UsingExpression("new C { [0] = op1 < op2, [1] = true }");
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ObjectInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.LessThanExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op1");
+                            }
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "op2");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.ImplicitElementAccess);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(12214, "https://github.com/dotnet/roslyn/issues/12214")]
+        public void ConditionalExpressionInInterpolation()
+        {
+            UsingExpression("$\"{a ? b : d}\"",
+                // (1,4): error CS8361: A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.
+                // $"{a ? b : d}"
+                Diagnostic(ErrorCode.ERR_ConditionalInInterpolation, "a ? b ").WithLocation(1, 4)
+                );
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedStringStartToken);
+                N(SyntaxKind.Interpolation);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.InterpolationFormatClause);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.InterpolatedStringTextToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpression()
+        {
+            UsingExpression("a ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpressionParenthesized()
+        {
+            UsingExpression("(a) ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpressionInvocation()
+        {
+            UsingExpression("M(a) ??= b");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpressionAndCoalescingOperator()
+        {
+            UsingExpression("a ?? b ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.CoalesceExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionQuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentExpressionNested()
+        {
+            UsingExpression("a ??= b ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.CoalesceAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.QuestionQuestionEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentParenthesizedNested()
+        {
+            UsingExpression("(a ??= b) ??= c");
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CoalesceAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionQuestionEqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignmentCSharp7_3()
+        {
+            UsingExpression("a ??= b", TestOptions.Regular7_3,
+                // (1,3): error CS8652: The feature 'coalescing assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // a ??= b
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("coalescing assignment").WithLocation(1, 3));
+
+            N(SyntaxKind.CoalesceAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.QuestionQuestionEqualsToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IndexExpression()
+        {
+            UsingExpression("^1");
+            N(SyntaxKind.IndexExpression);
+            {
+                N(SyntaxKind.CaretToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ThreeDots()
+        {
+            UsingExpression("1...2",
+                // (1,2): error CS8401: Unexpected character sequence '...'
+                // 1...2
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void RangeExpression_Binary()
+        {
+            UsingExpression("1..1");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithIndexes()
+        {
+            UsingExpression("^5..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator()
+        {
+            UsingExpression("1<<2..3>>4");
+            N(SyntaxKind.RightShiftExpression);
+            {
+                N(SyntaxKind.LeftShiftExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.LessThanLessThanToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                }
+                N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
+        {
+            UsingExpression("1+2..3-4");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.SubtractExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "4");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Right()
+        {
+            UsingExpression("..1");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Right_WithIndexes()
+        {
+            UsingExpression("..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Left()
+        {
+            UsingExpression("1..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Left_WithIndexes()
+        {
+            UsingExpression("^5..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_NoOperands()
+        {
+            UsingExpression("..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_NoOperands_WithOtherOperators()
+        {
+            UsingExpression("1+..<<2");
+            N(SyntaxKind.LeftShiftExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                }
+                N(SyntaxKind.LessThanLessThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_DotSpaceDot()
+        {
+            UsingExpression("1. .2",
+                // (1,1): error CS1073: Unexpected token '.2'
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1. ").WithArguments(".2").WithLocation(1, 1),
+                // (1,4): error CS1001: Identifier expected
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".2").WithLocation(1, 4));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_NoOperands()
+        {
+            UsingExpression(".. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // .. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_LeftOperand()
+        {
+            UsingExpression("1.. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // 1.. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_RightOperand()
+        {
+            UsingExpression("..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_TwoOperands()
+        {
+            UsingExpression("1..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ConditionalAccessExpression()
+        {
+            UsingExpression("c?..b",
+                // (1,6): error CS1003: Syntax error, ':' expected
+                // c?..b
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 6),
+                // (1,6): error CS1733: Expected expression
+                // c?..b
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
+        }
+
+        [Fact]
+        public void BaseExpression_01()
+        {
+            UsingExpression("base");
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
             }
             EOF();
         }

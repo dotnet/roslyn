@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -13,19 +12,22 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>,
-        ICommandHandler<OpenLineAboveCommandArgs>,
-        ICommandHandler<OpenLineBelowCommandArgs>
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        VSCommanding.ICommandHandler<ReturnKeyCommandArgs>,
+        VSCommanding.ICommandHandler<InsertCommentCommandArgs>,
+        IChainedCommandHandler<OpenLineAboveCommandArgs>,
+        IChainedCommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -72,11 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
         }
 
-        private string GetNewLine(SourceText text)
-        {
-            // return editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
-            return "\r\n";
-        }
+        public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
         private TMemberNode GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
         {
@@ -123,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return targetMember;
         }
 
-        private void AddLineBreaks(SourceText text, IList<string> lines)
+        private void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
         {
             for (int i = 0; i < lines.Count; i++)
             {
-                lines[i] = lines[i] + GetNewLine(text);
+                lines[i] = lines[i] + newLine;
             }
         }
 
@@ -180,9 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Shave off initial three slashes
             lines[0] = lines[0].Substring(3);
@@ -196,11 +195,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lastLine = lines[lines.Count - 1];
-            lastLine = indentText + lastLine.Substring(0, lastLine.Length - GetNewLine(text).Length);
+            lastLine = indentText + lastLine.Substring(0, lastLine.Length - newLine.Length);
             lines[lines.Count - 1] = lastLine;
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             subjectBuffer.Insert(position, newText);
             textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + offset));
@@ -280,9 +279,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Shave off initial exterior trivia
             lines[0] = lines[0].Substring(3);
@@ -296,13 +296,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             // Shave off final line break or add trailing indent if necessary
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
             if (IsEndOfLineTrivia(trivia))
             {
-                newText = newText.Substring(0, newText.Length - GetNewLine(text).Length);
+                newText = newText.Substring(0, newText.Length - newLine.Length);
             }
             else
             {
@@ -334,10 +334,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CancellationToken cancellationToken)
         {
             // Find the documentation comment before the new line that was just pressed
-            var token = GetTokenToRight(syntaxTree, originalPosition, cancellationToken);
-            if (!IsDocCommentNewLine(token) || token.SpanStart != originalPosition)
+            var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
+            if (!IsDocCommentNewLine(token) && HasSkippedTrailingTrivia(token))
             {
-                return false;
+                // See PressingEnter_InsertSlashes11 for an example of
+                // a case where multiple skipped tokens trivia appear at the same position.
+                // In that case, we need to ask for the token from the next position over.
+                token = GetTokenToLeft(syntaxTree, position + 1, cancellationToken);
+
+                if (!IsDocCommentNewLine(token))
+                {
+                    return false;
+                }
             }
 
             var currentLine = text.Lines.GetLineFromPosition(position);
@@ -382,6 +390,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return true;
         }
 
+        internal abstract bool HasSkippedTrailingTrivia(SyntaxToken token);
+
         private bool InsertOnCommandInvoke(
             SyntaxTree syntaxTree,
             SourceText text,
@@ -401,16 +411,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var startPosition = targetMember.GetFirstToken().SpanStart;
             var line = text.Lines.GetLineFromPosition(startPosition);
-            Contract.Assume(!line.IsEmptyOrWhitespace());
+            Debug.Assert(!line.IsEmptyOrWhitespace());
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            Contract.Assume(line.Start + lineOffset == startPosition);
+            Debug.Assert(line.Start + lineOffset == startPosition);
 
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count; i++)
@@ -421,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             lines[lines.Count - 1] = lines[lines.Count - 1] + indentText;
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             subjectBuffer.Insert(startPosition, newText);
 
@@ -455,12 +466,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
@@ -475,12 +486,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCharacterTyped, CancellationToken.None);
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -504,14 +515,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             if (originalPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // According to JasonMal, the text undo history is associated with the surface buffer
@@ -528,20 +537,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 // the transaction -- even if we didn't generate anything.
                 transaction.Complete();
             }
+
+            return true;
         }
 
-        public CommandState GetCommandState(InsertCommentCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(InsertCommentCommandArgs args)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                return CommandState.Unavailable;
+                return VSCommanding.CommandState.Unavailable;
             }
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return CommandState.Unavailable;
+                return VSCommanding.CommandState.Unavailable;
             }
 
             TMemberNode targetMember = null;
@@ -553,33 +564,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             });
 
             return targetMember != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? VSCommanding.CommandState.Available
+                : VSCommanding.CommandState.Unavailable;
         }
 
-        public void ExecuteCommand(InsertCommentCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(InsertCommentCommandArgs args, CommandExecutionContext context)
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Documentation_Comment,
-                message: EditorFeaturesResources.Inserting_documentation_comment,
-                allowCancel: true,
-                action: w =>
-                {
-                    if (!CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, w.CancellationToken))
-                    {
-                        nextHandler();
-                    }
-                });
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
+            {
+                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
+            }
         }
 
-        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -603,12 +607,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
         }
 
-        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,15 +11,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+        Private Sub New(root As VisualBasicSyntaxNode,
+                        binder As Binder,
+                        Optional containingSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
+                        Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
+                        Optional speculatedPosition As Integer = 0,
+                        Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
-            Return New InitializerSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
+        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
+            Debug.Assert(containingSemanticModel IsNot Nothing)
+            Return New InitializerSemanticModel(binder.Root, binder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -30,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(binder IsNot Nothing)
             Debug.Assert(binder.IsSemanticModelBinder)
 
-            Return New InitializerSemanticModel(root, binder, parentSemanticModel, position)
+            Return New InitializerSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
@@ -86,6 +93,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        Private Iterator Function GetInitializedFieldsOrProperties(binder As Binder) As IEnumerable(Of Symbol)
+            Yield Me.MemberSymbol
+
+            For Each additionalSymbol In binder.AdditionalContainingMembers
+                Yield additionalSymbol
+            Next
+        End Function
+
         Private Function BindInitializer(binder As Binder, initializer As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
@@ -105,7 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
-                            binder.BindFieldInitializer(ImmutableArray.Create(Of FieldSymbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
+                            Dim fields = ImmutableArray.CreateRange(GetInitializedFieldsOrProperties(binder).Cast(Of FieldSymbol))
+                            binder.BindFieldInitializer(fields, initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
                         Else
                             binder.BindArrayFieldImplicitInitializer(fieldSymbol, boundInitializers, diagnostics)
                         End If
@@ -121,15 +137,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SymbolKind.Property
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, PropertySymbol)
+                    Dim propertySymbols = ImmutableArray.CreateRange(GetInitializedFieldsOrProperties(binder).Cast(Of PropertySymbol))
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
-                    binder.BindPropertyInitializer(ImmutableArray.Create(propertySymbol), initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(propertySymbols, initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
 
                     Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                     If expressionInitializer IsNot Nothing Then
-                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(propertySymbol), Nothing, expressionInitializer)
+                        Return New BoundPropertyInitializer(initializer, propertySymbols, Nothing, expressionInitializer)
                     End If
 
                 Case SymbolKind.Parameter

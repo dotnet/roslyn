@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
@@ -17,21 +18,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal class AbstractGraphProvider : IGraphProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly Workspace _workspace;
         private readonly GraphQueryManager _graphQueryManager;
 
         private bool _initialized = false;
 
         protected AbstractGraphProvider(
+            IThreadingContext threadingContext,
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             Workspace workspace,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GraphProvider);
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
+            _workspace = workspace;
             _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
         }
 
@@ -342,9 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
-            var graphNode = graphObject as GraphNode;
-
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
                 // TODO: The check here is to see if the SymbolId property exists on the node
@@ -357,7 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (typeof(T) == typeof(IGraphNavigateToItem))
                 {
-                    return new GraphNavigatorExtension(PrimaryWorkspace.Workspace) as T;
+                    return new GraphNavigatorExtension(_threadingContext, _workspace) as T;
                 }
 
                 if (typeof(T) == typeof(IGraphFormattedLabel))

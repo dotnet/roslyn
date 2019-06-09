@@ -1,19 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     #region FindReferences
+
+    internal class SerializableFindReferencesSearchOptions
+    {
+        public bool AssociatePropertyReferencesWithSpecificAccessor;
+
+        public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
+        {
+            return new SerializableFindReferencesSearchOptions
+            {
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
+            };
+        }
+
+        public FindReferencesSearchOptions Rehydrate()
+        {
+            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
+        }
+    }
 
     internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
@@ -76,6 +91,58 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    {
+        public bool IsValueUsageInfo;
+        public int UsageInfoUnderlyingValue;
+
+        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
+        {
+            bool isValueUsageInfo;
+            int usageInfoUnderlyingValue;
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                isValueUsageInfo = true;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
+            }
+            else
+            {
+                isValueUsageInfo = false;
+                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+            }
+
+            return new SerializableSymbolUsageInfo
+            {
+                IsValueUsageInfo = isValueUsageInfo,
+                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
+            };
+        }
+
+        public SymbolUsageInfo Rehydrate()
+        {
+            return IsValueUsageInfo
+                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
+                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
+        }
+
+        public bool Equals(SerializableSymbolUsageInfo other)
+        {
+            return other != null &&
+                IsValueUsageInfo == other.IsValueUsageInfo &&
+                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SerializableSymbolUsageInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
+        }
+    }
+
     internal class SerializableReferenceLocation
     {
         public DocumentId Document { get; set; }
@@ -86,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool IsImplicit { get; set; }
 
-        internal bool IsWrittenTo { get; set; }
+        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -99,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
-                IsWrittenTo = referenceLocation.IsWrittenTo,
+                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -115,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                isWrittenTo: IsWrittenTo,
+                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
                 candidateReason: CandidateReason);
         }
 
@@ -129,80 +196,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
             return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
-        }
-    }
-
-    #endregion
-
-    #region SymbolSearch
-
-    internal class SerializablePackageWithTypeResult
-    {
-        public string PackageName;
-        public string TypeName;
-        public string Version;
-        public int Rank;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeResult result)
-        {
-            return new SerializablePackageWithTypeResult
-            {
-                PackageName = result.PackageName,
-                TypeName = result.TypeName,
-                Version = result.Version,
-                Rank = result.Rank,
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-            };
-        }
-
-        public PackageWithTypeResult Rehydrate()
-        {
-            return new PackageWithTypeResult(
-                PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
-        }
-    }
-
-    internal class SerializablePackageWithAssemblyResult
-    {
-        public string PackageName;
-        public string Version;
-        public int Rank;
-
-        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyResult result)
-        {
-            return new SerializablePackageWithAssemblyResult
-            {
-                PackageName = result.PackageName,
-                Version = result.Version,
-                Rank = result.Rank,
-            };
-        }
-
-        public PackageWithAssemblyResult Rehydrate()
-            => new PackageWithAssemblyResult(PackageName, Version, Rank);
-    }
-
-    internal class SerializableReferenceAssemblyWithTypeResult
-    {
-        public string AssemblyName;
-        public string TypeName;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializableReferenceAssemblyWithTypeResult Dehydrate(
-            ReferenceAssemblyWithTypeResult result)
-        {
-            return new SerializableReferenceAssemblyWithTypeResult
-            {
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-                AssemblyName = result.AssemblyName,
-                TypeName = result.TypeName
-            };
-        }
-
-        public ReferenceAssemblyWithTypeResult Rehydrate()
-        {
-            return new ReferenceAssemblyWithTypeResult(AssemblyName, TypeName, ContainingNamespaceNames);
         }
     }
 

@@ -246,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsNamedArgumentName(SyntaxNode node)
         {
             // An argument name is an IdentifierName inside a NameColon, inside an Argument, inside an ArgumentList, inside an
-            // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
+            // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
-            { 
+            {
                 return false;
             }
 
@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parent2 = parent1.Parent;
+            if (parent2.IsKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;
@@ -330,9 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -378,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:
                 case PreIncrementExpression:
@@ -395,11 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierName:
                     return syntax.IsMissing;
 
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
-
                 default:
                     return false;
             }
@@ -411,14 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaUtilities.IsLambdaBody(node);
         }
 
-        internal static bool IsVar(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVar(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.Kind == SyntaxKind.IdentifierToken && node.ValueText == "var";
+            return node.ContextualKind == SyntaxKind.VarKeyword;
         }
 
-        internal static bool IsVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
+        internal static bool IsIdentifierVarOrPredefinedType(this Syntax.InternalSyntax.SyntaxToken node)
         {
-            return node.IsVar() || IsPredefinedType(node.Kind);
+            return node.IsIdentifierVar() || IsPredefinedType(node.Kind);
         }
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, out DeclarationExpressionSyntax parent)
@@ -479,6 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsReservedTupleElementName(string elementName)
         {
             return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+        }
+
+        internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)
+        {
+            return (declaration.Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
         }
     }
 }

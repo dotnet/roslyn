@@ -1,22 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = SuppressFormattingRule.Name)]
     internal class AnchorIndentationFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Anchor Indentation Formatting Rule";
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
             {
@@ -30,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var block = node as BlockSyntax;
-            if (block != null)
+            if (node is BlockSyntax block)
             {
                 // if it is not nested block, then its anchor will be first token that this block is
                 // associated with. otherwise, "{" of block is the anchor token its children would follow
@@ -49,46 +45,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var statement = node as StatementSyntax;
-            if (statement != null)
+            switch (node)
             {
-                AddAnchorIndentationOperation(list, statement);
-                return;
-            }
-
-            var usingNode = node as UsingDirectiveSyntax;
-            if (usingNode != null)
-            {
-                AddAnchorIndentationOperation(list, usingNode);
-                return;
-            }
-
-            var namespaceNode = node as NamespaceDeclarationSyntax;
-            if (namespaceNode != null)
-            {
-                AddAnchorIndentationOperation(list, namespaceNode);
-                return;
-            }
-
-            var typeNode = node as TypeDeclarationSyntax;
-            if (typeNode != null)
-            {
-                AddAnchorIndentationOperation(list, typeNode);
-                return;
-            }
-
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
-            {
-                AddAnchorIndentationOperation(list, memberDeclNode);
-                return;
-            }
-
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
-            {
-                AddAnchorIndentationOperation(list, accessorDeclNode);
-                return;
+                case StatementSyntax statement:
+                    AddAnchorIndentationOperation(list, statement);
+                    return;
+                case UsingDirectiveSyntax usingNode:
+                    AddAnchorIndentationOperation(list, usingNode);
+                    return;
+                case NamespaceDeclarationSyntax namespaceNode:
+                    AddAnchorIndentationOperation(list, namespaceNode);
+                    return;
+                case TypeDeclarationSyntax typeNode:
+                    AddAnchorIndentationOperation(list, typeNode);
+                    return;
+                case MemberDeclarationSyntax memberDeclNode:
+                    AddAnchorIndentationOperation(list, memberDeclNode);
+                    return;
+                case AccessorDeclarationSyntax accessorDeclNode:
+                    AddAnchorIndentationOperation(list, accessorDeclNode);
+                    return;
+                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKindEx.SwitchExpressionArm):
+                    // The expression in a switch expression arm should be anchored to the beginning of the arm
+                    // ```
+                    // e switch
+                    // {
+                    // pattern:
+                    //         expression,
+                    // ```
+                    // We will keep the relative position of `expression` relative to `pattern:`. It will format to:
+                    // ```
+                    // e switch
+                    // {
+                    //     pattern:
+                    //             expression,
+                    // ```
+                    AddAnchorIndentationOperation(list, switchExpressionArm);
+                    return;
             }
         }
 

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Runtime.InteropServices
@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
 
         Public Shared ReadOnly Property FullFrameworkCompilerHost As MockCompilerHost
             Get
-                Return New MockCompilerHost(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1"))
+                Return New MockCompilerHost("Z:\FullFramework")
             End Get
         End Property
 

@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Packaging
 {
     internal interface IPackageInstallerService : IWorkspaceService
     {
-        bool IsEnabled { get; }
+        bool IsEnabled(ProjectId projectId);
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
         bool TryInstallPackage(Workspace workspace, DocumentId documentId,
-            string source, string packageName, 
+            string source, string packageName,
             string versionOpt, bool includePrerelease,
             CancellationToken cancellationToken);
 
@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         void ShowManagePackagesDialog(string packageName);
 
-        ImmutableArray<PackageSource> PackageSources { get; }
+        ImmutableArray<PackageSource> GetPackageSources();
+
         event EventHandler PackageSourcesChanged;
     }
 

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 End Class"
             Dim assembly0 = GenerateTupleAssembly()
             Dim reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference()
-            Dim compilation1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
+            Dim compilation1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
             Dim assembly1 = compilation1.EmitToArray()
             Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)))
             Using runtime.Load()
@@ -191,7 +191,7 @@ Class [As]
 End Class"
             Dim assembly0 = GenerateTupleAssembly()
             Dim reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference()
-            Dim compilation1 = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
+            Dim compilation1 = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll, references:={reference0}, assemblyName:=GetUniqueName())
             Dim assembly1 = compilation1.EmitToArray()
             Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)))
             Using runtime.Load()
@@ -331,7 +331,7 @@ Namespace System.Runtime.CompilerServices
         End Sub
     End Class
 End Namespace"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll, assemblyName:=GetUniqueName())
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll, assemblyName:=GetUniqueName())
             comp.VerifyDiagnostics()
             Return comp.EmitToArray()
         End Function

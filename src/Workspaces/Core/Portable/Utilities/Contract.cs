@@ -8,60 +8,6 @@ namespace Roslyn.Utilities
     internal static class Contract
     {
         /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        [DebuggerHidden]
-        public static void Requires(bool condition, string message = null)
-        {
-            Assert(condition, message);
-        }
-
-        /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        [DebuggerHidden]
-        public static void Assert(bool condition, string message = null)
-        {
-            if (condition)
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.Assert(condition);
-            }
-            else
-            {
-                Debug.Assert(condition, message);
-            }
-        }
-
-        /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void Assume(bool condition, string message = null)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.Assert(condition);
-            }
-            else
-            {
-                Debug.Assert(condition, message);
-            }
-        }
-
-        /// <summary>
         /// Throws a non-accessible exception if the provided value is null.  This method executes in
         /// all builds
         /// </summary>

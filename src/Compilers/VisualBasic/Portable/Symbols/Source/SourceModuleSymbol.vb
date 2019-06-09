@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -101,6 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property Machine As System.Reflection.PortableExecutable.Machine
             Get
                 Select Case DeclaringCompilation.Options.Platform
+                    Case Platform.Arm64
+                        Return System.Reflection.PortableExecutable.Machine.Arm64
                     Case Platform.Arm
                         Return System.Reflection.PortableExecutable.Machine.ArmThumb2
                     Case Platform.X64
@@ -293,10 +296,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property ContainsExplicitDefinitionOfNoPiaLocalTypes As Boolean
             Get
                 If _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = ThreeState.Unknown Then
-                    ' TODO: This will recursively visit all top level types and bind attributes on them.
-                    '       This might be very expensive to do, but explicitly declared local types are 
-                    '       very uncommon. We should consider optimizing this by analyzing syntax first, 
-                    '       for example, the way VB handles ExtensionAttribute, etc.
                     _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState()
                 End If
 
@@ -324,11 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CreateQuickAttributeChecker() As QuickAttributeChecker
             ' First, initialize for the predefined attributes.
             Dim checker As New QuickAttributeChecker()
-            checker.AddName("ExtensionAttribute", QuickAttributes.Extension)
-            checker.AddName("ObsoleteAttribute", QuickAttributes.Obsolete)
-            checker.AddName("DeprecatedAttribute", QuickAttributes.Obsolete)
-            checker.AddName("ExperimentalAttribute", QuickAttributes.Obsolete)
-            checker.AddName("MyGroupCollectionAttribute", QuickAttributes.MyGroupCollection)
+            checker.AddName(AttributeDescription.CaseInsensitiveExtensionAttribute.Name, QuickAttributes.Extension)
+            checker.AddName(AttributeDescription.ObsoleteAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.DeprecatedAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.ExperimentalAttribute.Name, QuickAttributes.Obsolete)
+            checker.AddName(AttributeDescription.MyGroupCollectionAttribute.Name, QuickAttributes.MyGroupCollection)
+            checker.AddName(AttributeDescription.TypeIdentifierAttribute.Name, QuickAttributes.TypeIdentifier)
 
             ' Now process alias imports
             For Each globalImport In Options.GlobalImports

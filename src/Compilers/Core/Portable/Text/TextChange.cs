@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Describes a single change when a particular span is replaced with a new text.
     /// </summary>
-    public struct TextChange : IEquatable<TextChange>
+    public readonly struct TextChange : IEquatable<TextChange>
     {
         /// <summary>
         /// The original span of the changed text. 

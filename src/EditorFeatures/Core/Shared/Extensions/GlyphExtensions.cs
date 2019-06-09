@@ -1,679 +1,217 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class GlyphExtensions
     {
-        public static StandardGlyphGroup GetStandardGlyphGroup(this Glyph glyph)
+        // hardcode ImageCatalogGuid locally rather than calling KnownImageIds.ImageCatalogGuid
+        // So it doesnot have dependency for Microsoft.VisualStudio.ImageCatalog.dll
+        // https://github.com/dotnet/roslyn/issues/26642
+        private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
+
+        public static ImageId GetImageId(this Glyph glyph)
         {
-            switch (glyph)
-            {
-                case Glyph.Assembly:
-                    return StandardGlyphGroup.GlyphAssembly;
-
-                case Glyph.BasicFile:
-                case Glyph.BasicProject:
-                    return StandardGlyphGroup.GlyphVBProject;
-
-                case Glyph.ClassPublic:
-                case Glyph.ClassProtected:
-                case Glyph.ClassPrivate:
-                case Glyph.ClassInternal:
-                    return StandardGlyphGroup.GlyphGroupClass;
-
-                case Glyph.ConstantPublic:
-                case Glyph.ConstantProtected:
-                case Glyph.ConstantPrivate:
-                case Glyph.ConstantInternal:
-                    return StandardGlyphGroup.GlyphGroupConstant;
-
-                case Glyph.CSharpFile:
-                    return StandardGlyphGroup.GlyphCSharpFile;
-
-                case Glyph.CSharpProject:
-                    return StandardGlyphGroup.GlyphCoolProject;
-
-                case Glyph.DelegatePublic:
-                case Glyph.DelegateProtected:
-                case Glyph.DelegatePrivate:
-                case Glyph.DelegateInternal:
-                    return StandardGlyphGroup.GlyphGroupDelegate;
-
-                case Glyph.EnumPublic:
-                case Glyph.EnumProtected:
-                case Glyph.EnumPrivate:
-                case Glyph.EnumInternal:
-                    return StandardGlyphGroup.GlyphGroupEnum;
-
-                case Glyph.EnumMemberPublic:
-                case Glyph.EnumMemberProtected:
-                case Glyph.EnumMemberPrivate:
-                case Glyph.EnumMemberInternal:
-                    return StandardGlyphGroup.GlyphGroupEnumMember;
-
-                case Glyph.Error:
-                    return StandardGlyphGroup.GlyphGroupError;
-
-                case Glyph.ExtensionMethodPublic:
-                    return StandardGlyphGroup.GlyphExtensionMethod;
-
-                case Glyph.ExtensionMethodProtected:
-                    return StandardGlyphGroup.GlyphExtensionMethodProtected;
-
-                case Glyph.ExtensionMethodPrivate:
-                    return StandardGlyphGroup.GlyphExtensionMethodPrivate;
-
-                case Glyph.ExtensionMethodInternal:
-                    return StandardGlyphGroup.GlyphExtensionMethodInternal;
-
-                case Glyph.EventPublic:
-                case Glyph.EventProtected:
-                case Glyph.EventPrivate:
-                case Glyph.EventInternal:
-                    return StandardGlyphGroup.GlyphGroupEvent;
-
-                case Glyph.FieldPublic:
-                case Glyph.FieldProtected:
-                case Glyph.FieldPrivate:
-                case Glyph.FieldInternal:
-                    return StandardGlyphGroup.GlyphGroupField;
-
-                case Glyph.InterfacePublic:
-                case Glyph.InterfaceProtected:
-                case Glyph.InterfacePrivate:
-                case Glyph.InterfaceInternal:
-                    return StandardGlyphGroup.GlyphGroupInterface;
-
-                case Glyph.Intrinsic:
-                    return StandardGlyphGroup.GlyphGroupIntrinsic;
-
-                case Glyph.Keyword:
-                    return StandardGlyphGroup.GlyphKeyword;
-
-                case Glyph.Label:
-                    return StandardGlyphGroup.GlyphGroupIntrinsic;
-
-                case Glyph.Local:
-                    return StandardGlyphGroup.GlyphGroupVariable;
-
-                case Glyph.Namespace:
-                    return StandardGlyphGroup.GlyphGroupNamespace;
-
-                case Glyph.MethodPublic:
-                case Glyph.MethodProtected:
-                case Glyph.MethodPrivate:
-                case Glyph.MethodInternal:
-                    return StandardGlyphGroup.GlyphGroupMethod;
-
-                case Glyph.ModulePublic:
-                case Glyph.ModuleProtected:
-                case Glyph.ModulePrivate:
-                case Glyph.ModuleInternal:
-                    return StandardGlyphGroup.GlyphGroupModule;
-
-                case Glyph.OpenFolder:
-                    return StandardGlyphGroup.GlyphOpenFolder;
-
-                case Glyph.Operator:
-                    return StandardGlyphGroup.GlyphGroupOperator;
-
-                case Glyph.Parameter:
-                    return StandardGlyphGroup.GlyphGroupVariable;
-
-                case Glyph.PropertyPublic:
-                case Glyph.PropertyProtected:
-                case Glyph.PropertyPrivate:
-                case Glyph.PropertyInternal:
-                    return StandardGlyphGroup.GlyphGroupProperty;
-
-                case Glyph.RangeVariable:
-                    return StandardGlyphGroup.GlyphGroupVariable;
-
-                case Glyph.Reference:
-                    return StandardGlyphGroup.GlyphReference;
-
-                case Glyph.StructurePublic:
-                case Glyph.StructureProtected:
-                case Glyph.StructurePrivate:
-                case Glyph.StructureInternal:
-                    return StandardGlyphGroup.GlyphGroupStruct;
-
-                case Glyph.TypeParameter:
-                    return StandardGlyphGroup.GlyphGroupType;
-
-                case Glyph.Snippet:
-                    return StandardGlyphGroup.GlyphCSharpExpansion;
-
-                case Glyph.CompletionWarning:
-                    return StandardGlyphGroup.GlyphCompletionWarning;
-
-                default:
-                    throw new ArgumentException("glyph");
-            }
-        }
-
-        public static StandardGlyphItem GetStandardGlyphItem(this Glyph icon)
-        {
-            switch (icon)
-            {
-                case Glyph.ClassProtected:
-                case Glyph.ConstantProtected:
-                case Glyph.DelegateProtected:
-                case Glyph.EnumProtected:
-                case Glyph.EventProtected:
-                case Glyph.FieldProtected:
-                case Glyph.InterfaceProtected:
-                case Glyph.MethodProtected:
-                case Glyph.ModuleProtected:
-                case Glyph.PropertyProtected:
-                case Glyph.StructureProtected:
-                    return StandardGlyphItem.GlyphItemProtected;
-
-                case Glyph.ClassPrivate:
-                case Glyph.ConstantPrivate:
-                case Glyph.DelegatePrivate:
-                case Glyph.EnumPrivate:
-                case Glyph.EventPrivate:
-                case Glyph.FieldPrivate:
-                case Glyph.InterfacePrivate:
-                case Glyph.MethodPrivate:
-                case Glyph.ModulePrivate:
-                case Glyph.PropertyPrivate:
-                case Glyph.StructurePrivate:
-                    return StandardGlyphItem.GlyphItemPrivate;
-
-                case Glyph.ClassInternal:
-                case Glyph.ConstantInternal:
-                case Glyph.DelegateInternal:
-                case Glyph.EnumInternal:
-                case Glyph.EventInternal:
-                case Glyph.FieldInternal:
-                case Glyph.InterfaceInternal:
-                case Glyph.MethodInternal:
-                case Glyph.ModuleInternal:
-                case Glyph.PropertyInternal:
-                case Glyph.StructureInternal:
-                    return StandardGlyphItem.GlyphItemFriend;
-
-                default:
-                    // We don't want any overlays
-                    return StandardGlyphItem.GlyphItemPublic;
-            }
-        }
-
-        public static ImageSource GetImageSource(this Glyph? glyph, IGlyphService glyphService)
-        {
-            return glyph.HasValue ? glyph.Value.GetImageSource(glyphService) : null;
-        }
-
-        public static ImageSource GetImageSource(this Glyph glyph, IGlyphService glyphService)
-        {
-            return glyphService.GetGlyph(glyph.GetStandardGlyphGroup(), glyph.GetStandardGlyphItem());
-        }
-
-        public static ImageMoniker GetImageMoniker(this Glyph glyph)
-        {
+            // VS for mac cannot refer to ImageMoniker
+            // so we need to expose ImageId instead of ImageMoniker here
+            // and expose ImageMoniker in the EditorFeatures.wpf.dll
             switch (glyph)
             {
                 case Glyph.None:
-                    return default(ImageMoniker);
+                    return default;
 
                 case Glyph.Assembly:
-                    return KnownMonikers.Assembly;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Assembly);
 
                 case Glyph.BasicFile:
-                    return KnownMonikers.VBFileNode;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.VBFileNode);
                 case Glyph.BasicProject:
-                    return KnownMonikers.VBProjectNode;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.VBProjectNode);
 
                 case Glyph.ClassPublic:
-                    return KnownMonikers.ClassPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ClassPublic);
                 case Glyph.ClassProtected:
-                    return KnownMonikers.ClassProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ClassProtected);
                 case Glyph.ClassPrivate:
-                    return KnownMonikers.ClassPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ClassPrivate);
                 case Glyph.ClassInternal:
-                    return KnownMonikers.ClassInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ClassInternal);
 
                 case Glyph.CSharpFile:
-                    return KnownMonikers.CSFileNode;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.CSFileNode);
                 case Glyph.CSharpProject:
-                    return KnownMonikers.CSProjectNode;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.CSProjectNode);
 
                 case Glyph.ConstantPublic:
-                    return KnownMonikers.ConstantPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ConstantPublic);
                 case Glyph.ConstantProtected:
-                    return KnownMonikers.ConstantProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ConstantProtected);
                 case Glyph.ConstantPrivate:
-                    return KnownMonikers.ConstantPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ConstantPrivate);
                 case Glyph.ConstantInternal:
-                    return KnownMonikers.ConstantInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ConstantInternal);
 
                 case Glyph.DelegatePublic:
-                    return KnownMonikers.DelegatePublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.DelegatePublic);
                 case Glyph.DelegateProtected:
-                    return KnownMonikers.DelegateProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.DelegateProtected);
                 case Glyph.DelegatePrivate:
-                    return KnownMonikers.DelegatePrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.DelegatePrivate);
                 case Glyph.DelegateInternal:
-                    return KnownMonikers.DelegateInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.DelegateInternal);
 
                 case Glyph.EnumPublic:
-                    return KnownMonikers.EnumerationPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EnumerationPublic);
                 case Glyph.EnumProtected:
-                    return KnownMonikers.EnumerationProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EnumerationProtected);
                 case Glyph.EnumPrivate:
-                    return KnownMonikers.EnumerationPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EnumerationPrivate);
                 case Glyph.EnumInternal:
-                    return KnownMonikers.EnumerationInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EnumerationInternal);
 
                 case Glyph.EnumMemberPublic:
                 case Glyph.EnumMemberProtected:
                 case Glyph.EnumMemberPrivate:
                 case Glyph.EnumMemberInternal:
-                    return KnownMonikers.EnumerationItemPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EnumerationItemPublic);
 
                 case Glyph.Error:
-                    return KnownMonikers.StatusError;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.StatusError);
 
                 case Glyph.EventPublic:
-                    return KnownMonikers.EventPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EventPublic);
                 case Glyph.EventProtected:
-                    return KnownMonikers.EventProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EventProtected);
                 case Glyph.EventPrivate:
-                    return KnownMonikers.EventPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EventPrivate);
                 case Glyph.EventInternal:
-                    return KnownMonikers.EventInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.EventInternal);
 
                 // Extension methods have the same glyph regardless of accessibility.
                 case Glyph.ExtensionMethodPublic:
                 case Glyph.ExtensionMethodProtected:
                 case Glyph.ExtensionMethodPrivate:
                 case Glyph.ExtensionMethodInternal:
-                    return KnownMonikers.ExtensionMethod;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ExtensionMethod);
 
                 case Glyph.FieldPublic:
-                    return KnownMonikers.FieldPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.FieldPublic);
                 case Glyph.FieldProtected:
-                    return KnownMonikers.FieldProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.FieldProtected);
                 case Glyph.FieldPrivate:
-                    return KnownMonikers.FieldPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.FieldPrivate);
                 case Glyph.FieldInternal:
-                    return KnownMonikers.FieldInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.FieldInternal);
 
                 case Glyph.InterfacePublic:
-                    return KnownMonikers.InterfacePublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.InterfacePublic);
                 case Glyph.InterfaceProtected:
-                    return KnownMonikers.InterfaceProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.InterfaceProtected);
                 case Glyph.InterfacePrivate:
-                    return KnownMonikers.InterfacePrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.InterfacePrivate);
                 case Glyph.InterfaceInternal:
-                    return KnownMonikers.InterfaceInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.InterfaceInternal);
 
                 // TODO: Figure out the right thing to return here.
                 case Glyph.Intrinsic:
-                    return KnownMonikers.Type;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Type);
 
                 case Glyph.Keyword:
-                    return KnownMonikers.IntellisenseKeyword;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.IntellisenseKeyword);
 
                 case Glyph.Label:
-                    return KnownMonikers.Label;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Label);
 
                 case Glyph.Parameter:
                 case Glyph.Local:
-                    return KnownMonikers.LocalVariable;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.LocalVariable);
 
                 case Glyph.Namespace:
-                    return KnownMonikers.Namespace;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Namespace);
 
                 case Glyph.MethodPublic:
-                    return KnownMonikers.MethodPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MethodPublic);
                 case Glyph.MethodProtected:
-                    return KnownMonikers.MethodProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MethodProtected);
                 case Glyph.MethodPrivate:
-                    return KnownMonikers.MethodPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MethodPrivate);
                 case Glyph.MethodInternal:
-                    return KnownMonikers.MethodInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MethodInternal);
 
                 case Glyph.ModulePublic:
-                    return KnownMonikers.ModulePublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ModulePublic);
                 case Glyph.ModuleProtected:
-                    return KnownMonikers.ModuleProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ModuleProtected);
                 case Glyph.ModulePrivate:
-                    return KnownMonikers.ModulePrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ModulePrivate);
                 case Glyph.ModuleInternal:
-                    return KnownMonikers.ModuleInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ModuleInternal);
 
                 case Glyph.OpenFolder:
-                    return KnownMonikers.OpenFolder;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.OpenFolder);
 
                 case Glyph.Operator:
-                    return KnownMonikers.Operator;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Operator);
 
                 case Glyph.PropertyPublic:
-                    return KnownMonikers.PropertyPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.PropertyPublic);
                 case Glyph.PropertyProtected:
-                    return KnownMonikers.PropertyProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.PropertyProtected);
                 case Glyph.PropertyPrivate:
-                    return KnownMonikers.PropertyPrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.PropertyPrivate);
                 case Glyph.PropertyInternal:
-                    return KnownMonikers.PropertyInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.PropertyInternal);
 
                 case Glyph.RangeVariable:
-                    return KnownMonikers.FieldPublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.FieldPublic);
 
                 case Glyph.Reference:
-                    return KnownMonikers.Reference;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Reference);
+
+                //// this is not a copy-paste mistake, we were using these before in the previous GetImageMoniker()
+                //case Glyph.StructurePublic:
+                //    return KnownMonikers.ValueTypePublic;
+                //case Glyph.StructureProtected:
+                //    return KnownMonikers.ValueTypeProtected;
+                //case Glyph.StructurePrivate:
+                //    return KnownMonikers.ValueTypePrivate;
+                //case Glyph.StructureInternal:
+                //    return KnownMonikers.ValueTypeInternal;
 
                 case Glyph.StructurePublic:
-                    return KnownMonikers.ValueTypePublic;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ValueTypePublic);
                 case Glyph.StructureProtected:
-                    return KnownMonikers.ValueTypeProtected;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ValueTypeProtected);
                 case Glyph.StructurePrivate:
-                    return KnownMonikers.ValueTypePrivate;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ValueTypePrivate);
                 case Glyph.StructureInternal:
-                    return KnownMonikers.ValueTypeInternal;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.ValueTypeInternal);
 
                 case Glyph.TypeParameter:
-                    return KnownMonikers.Type;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Type);
 
                 case Glyph.Snippet:
-                    return KnownMonikers.Snippet;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.Snippet);
 
                 case Glyph.CompletionWarning:
-                    return KnownMonikers.IntellisenseWarning;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.IntellisenseWarning);
 
                 case Glyph.StatusInformation:
-                    return KnownMonikers.StatusInformation;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.StatusInformation);
 
                 case Glyph.NuGet:
-                    return KnownMonikers.NuGet;
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.NuGet);
+
+                case Glyph.TargetTypeMatch:
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.CorrelationScope);
 
                 default:
-                    throw new ArgumentException("glyph");
-            }
-        }
-
-        public static Glyph GetGlyph(this ImmutableArray<string> tags)
-        {
-            foreach (var tag in tags)
-            {
-                switch (tag)
-                {
-                    case WellKnownTags.Assembly:
-                        return Glyph.Assembly;
-
-                    case WellKnownTags.File:
-                        return tags.Contains(LanguageNames.VisualBasic) ? Glyph.BasicFile : Glyph.CSharpFile;
-
-                    case WellKnownTags.Project:
-                        return tags.Contains(LanguageNames.VisualBasic) ? Glyph.BasicProject : Glyph.CSharpProject;
-
-                    case WellKnownTags.Class:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.ClassProtected;
-                            case Accessibility.Private:
-                                return Glyph.ClassPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.ClassInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.ClassPublic;
-                        }
-
-                    case WellKnownTags.Constant:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.ConstantProtected;
-                            case Accessibility.Private:
-                                return Glyph.ConstantPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.ConstantInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.ConstantPublic;
-                        }
-
-                    case WellKnownTags.Delegate:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.DelegateProtected;
-                            case Accessibility.Private:
-                                return Glyph.DelegatePrivate;
-                            case Accessibility.Internal:
-                                return Glyph.DelegateInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.DelegatePublic;
-                        }
-
-                    case WellKnownTags.Enum:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.EnumProtected;
-                            case Accessibility.Private:
-                                return Glyph.EnumPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.EnumInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.EnumPublic;
-                        }
-
-                    case WellKnownTags.EnumMember:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.EnumMemberProtected;
-                            case Accessibility.Private:
-                                return Glyph.EnumMemberPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.EnumMemberInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.EnumMemberPublic;
-                        }
-
-                    case WellKnownTags.Error:
-                        return Glyph.Error;
-
-                    case WellKnownTags.Event:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.EventProtected;
-                            case Accessibility.Private:
-                                return Glyph.EventPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.EventInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.EventPublic;
-                        }
-
-                    case WellKnownTags.ExtensionMethod:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.ExtensionMethodProtected;
-                            case Accessibility.Private:
-                                return Glyph.ExtensionMethodPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.ExtensionMethodInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.ExtensionMethodPublic;
-                        }
-
-                    case WellKnownTags.Field:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.FieldProtected;
-                            case Accessibility.Private:
-                                return Glyph.FieldPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.FieldInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.FieldPublic;
-                        }
-
-                    case WellKnownTags.Interface:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.InterfaceProtected;
-                            case Accessibility.Private:
-                                return Glyph.InterfacePrivate;
-                            case Accessibility.Internal:
-                                return Glyph.InterfaceInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.InterfacePublic;
-                        }
-
-                    case WellKnownTags.Intrinsic:
-                        return Glyph.Intrinsic;
-
-                    case WellKnownTags.Keyword:
-                        return Glyph.Keyword;
-
-                    case WellKnownTags.Label:
-                        return Glyph.Label;
-
-                    case WellKnownTags.Local:
-                        return Glyph.Local;
-
-                    case WellKnownTags.Namespace:
-                        return Glyph.Namespace;
-
-                    case WellKnownTags.Method:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.MethodProtected;
-                            case Accessibility.Private:
-                                return Glyph.MethodPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.MethodInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.MethodPublic;
-                        }
-
-                    case WellKnownTags.Module:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.ModulePublic;
-                            case Accessibility.Private:
-                                return Glyph.ModulePrivate;
-                            case Accessibility.Internal:
-                                return Glyph.ModuleInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.ModulePublic;
-                        }
-
-                    case WellKnownTags.Folder:
-                        return Glyph.OpenFolder;
-
-                    case WellKnownTags.Operator:
-                        return Glyph.Operator;
-
-                    case WellKnownTags.Parameter:
-                        return Glyph.Parameter;
-
-                    case WellKnownTags.Property:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.PropertyProtected;
-                            case Accessibility.Private:
-                                return Glyph.PropertyPrivate;
-                            case Accessibility.Internal:
-                                return Glyph.PropertyInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.PropertyPublic;
-                        }
-
-                    case WellKnownTags.RangeVariable:
-                        return Glyph.RangeVariable;
-
-                    case WellKnownTags.Reference:
-                        return Glyph.Reference;
-
-                    case WellKnownTags.NuGet:
-                        return Glyph.NuGet;
-
-                    case WellKnownTags.Structure:
-                        switch (GetAccessibility(tags))
-                        {
-                            case Accessibility.Protected:
-                                return Glyph.StructureProtected;
-                            case Accessibility.Private:
-                                return Glyph.StructurePrivate;
-                            case Accessibility.Internal:
-                                return Glyph.StructureInternal;
-                            case Accessibility.Public:
-                            default:
-                                return Glyph.StructurePublic;
-                        }
-
-                    case WellKnownTags.TypeParameter:
-                        return Glyph.TypeParameter;
-
-                    case WellKnownTags.Snippet:
-                        return Glyph.Snippet;
-
-                    case WellKnownTags.Warning:
-                        return Glyph.CompletionWarning;
-
-                case WellKnownTags.StatusInformation:
-                    return Glyph.StatusInformation;
-                }
-            }
-
-            return Glyph.None;
-        }
-
-        private static Accessibility GetAccessibility(ImmutableArray<string> tags)
-        {
-            if (tags.Contains(WellKnownTags.Public))
-            {
-                return Accessibility.Public;
-            }
-            else if (tags.Contains(WellKnownTags.Protected))
-            {
-                return Accessibility.Protected;
-            }
-            else if (tags.Contains(WellKnownTags.Internal))
-            {
-                return Accessibility.Internal;
-            }
-            else if (tags.Contains(WellKnownTags.Private))
-            {
-                return Accessibility.Private;
-            }
-            else
-            {
-                return Accessibility.NotApplicable;
+                    throw new ArgumentException(nameof(glyph));
             }
         }
     }

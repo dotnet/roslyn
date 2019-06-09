@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -252,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             For Each pair As KeyValuePair(Of TypeParameterSymbol, TypeSymbol) In _fixedTypeParameters
-                If pair.Key = reducedFromTypeParameter Then
+                If TypeSymbol.Equals(pair.Key, reducedFromTypeParameter, TypeCompareKind.ConsiderEverything) Then
                     Return pair.Value
                 End If
             Next

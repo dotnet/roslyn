@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrAppDomain appDomain,
             bool includeInherited,
             bool hideNonPublic,
-            bool isProxyType)
+            bool isProxyType,
+            bool includeCompilerGenerated)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -65,9 +66,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
+                    var memberName = member.Name;
+                    if (!includeCompilerGenerated && memberName.IsCompilerGenerated())
+                    {
+                        continue;
+                    }
+
                     // The native EE shows proxy members regardless of accessibility if they have a
                     // DebuggerBrowsable attribute of any value. Match that behaviour here.
-                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(member.Name))
+                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(memberName))
                     {
                         if (!predicate(member))
                         {
@@ -75,7 +82,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
 
-                    var memberName = member.Name;
                     // This represents information about the immediately preceding (more derived)
                     // declaration with the same name as the current member.
                     var previousDeclaration = DeclarationInfo.None;
@@ -330,6 +336,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.GetMemberValue(name, (int)MemberTypes.Field, ParentTypeName: null, InspectionContext: inspectionContext);
         }
 
+        internal static DkmClrValue GetPropertyValue(this DkmClrValue value, string name, DkmInspectionContext inspectionContext)
+        {
+            return value.GetMemberValue(name, (int)MemberTypes.Property, ParentTypeName: null, InspectionContext: inspectionContext);
+        }
+
         internal static DkmClrValue GetNullableValue(this DkmClrValue value, Type nullableTypeArg, DkmInspectionContext inspectionContext)
         {
             var valueType = value.Type.GetLmrType();
@@ -457,7 +468,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes"/> (including inherited attributes)
+        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes()"/> (including inherited attributes)
         /// that is of type T, as well as the type that it targeted.
         /// </summary>
         internal static bool TryGetEvalAttribute<T>(this DkmClrType type, out DkmClrType attributeTarget, out T evalAttribute)
@@ -505,7 +516,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
                 }
-                result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+
+                // There can be multiple same attributes for derived classes.
+                // Debugger provides attributes starting from derived classes and then up to base ones.
+                // We should use derived attributes if there is more than one instance.
+                if (!result.ContainsKey(browsableAttribute.TargetMember))
+                {
+                    result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+                }
             }
             return result;
         }

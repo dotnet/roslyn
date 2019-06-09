@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim origArgNotNullableType As TypeSymbol = origArgType.GetNullableUnderlyingTypeOrSelf
             Dim origArgUnderlyingType As TypeSymbol = origArgNotNullableType.GetEnumUnderlyingTypeOrSelf
             Dim origArgUnderlyingSpecialType As SpecialType = origArgUnderlyingType.SpecialType
-            Debug.Assert(origArgType = node.Type)
+            Debug.Assert(TypeSymbol.Equals(origArgType, node.Type, TypeCompareKind.ConsiderEverything))
 
             Dim argument As BoundExpression = Visit(origArg)
 
@@ -147,6 +147,7 @@ lNotAndMinus:
                                                              Nothing,
                                                              ImmutableArray.Create(Of BoundExpression)(
                                                                  CreateCoalesceLambdaParameter(lambdaParameter)),
+                                                             Nothing,
                                                              Nothing,
                                                              [call].IsLValue,
                                                              suppressObjectClone:=True,

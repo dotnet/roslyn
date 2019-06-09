@@ -1,16 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -170,9 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // The information that is available varies by the type of the syntax node.
 
             SymbolInfo symbolInfo = SymbolInfo.None;
-            if (node is ExpressionSyntax)
+            if (node is ExpressionSyntax expr)
             {
-                ExpressionSyntax expr = (ExpressionSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(expr);
                 summary.ConstantValue = semanticModel.GetConstantValue(expr);
                 var typeInfo = semanticModel.GetTypeInfo(expr);
@@ -181,9 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(expr);
                 summary.MemberGroup = semanticModel.GetMemberGroup(expr);
             }
-            else if (node is AttributeSyntax)
+            else if (node is AttributeSyntax attribute)
             {
-                var attribute = (AttributeSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(attribute);
                 var typeInfo = semanticModel.GetTypeInfo(attribute);
                 summary.Type = (TypeSymbol)typeInfo.Type;
@@ -191,17 +194,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(attribute);
                 summary.MemberGroup = semanticModel.GetMemberGroup(attribute);
             }
-            else if (node is OrderingSyntax)
+            else if (node is OrderingSyntax ordering)
             {
-                symbolInfo = semanticModel.GetSymbolInfo((OrderingSyntax)node);
+                symbolInfo = semanticModel.GetSymbolInfo(ordering);
             }
-            else if (node is SelectOrGroupClauseSyntax)
+            else if (node is SelectOrGroupClauseSyntax selectOrGroupClause)
             {
-                symbolInfo = semanticModel.GetSymbolInfo((SelectOrGroupClauseSyntax)node);
+                symbolInfo = semanticModel.GetSymbolInfo(selectOrGroupClause);
             }
-            else if (node is ConstructorInitializerSyntax)
+            else if (node is ConstructorInitializerSyntax initializer)
             {
-                var initializer = (ConstructorInitializerSyntax)node;
                 symbolInfo = semanticModel.GetSymbolInfo(initializer);
                 var typeInfo = semanticModel.GetTypeInfo(initializer);
                 summary.Type = (TypeSymbol)typeInfo.Type;
@@ -211,16 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                throw new NotSupportedException("Type of syntax node is not supported by GetSemanticInfoSummary");
+                throw ExceptionUtilities.UnexpectedValue(node);
             }
 
             summary.Symbol = (Symbol)symbolInfo.Symbol;
             summary.CandidateReason = symbolInfo.CandidateReason;
             summary.CandidateSymbols = symbolInfo.CandidateSymbols;
 
-            if (node is IdentifierNameSyntax)
+            if (node is IdentifierNameSyntax identifier)
             {
-                summary.Alias = semanticModel.GetAliasInfo((IdentifierNameSyntax)node);
+                summary.Alias = semanticModel.GetAliasInfo(identifier);
             }
 
             return summary;
@@ -266,23 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return summary;
         }
 
-        internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this ISymbol symbol, bool forReturnType = false)
-        {
-            ArrayBuilder<SynthesizedAttributeData> attributes = null;
-            if (!forReturnType)
-            {
-                var context = new ModuleCompilationState();
-                ((Symbol)symbol).AddSynthesizedAttributes(context, ref attributes);
-            }
-            else
-            {
-                Assert.True(symbol.Kind == SymbolKind.Method, "Incorrect usage of GetSynthesizedAttributes");
-                ((MethodSymbol)symbol).AddSynthesizedReturnTypeAttributes(ref attributes);
-            }
-
-            return attributes != null ? attributes.ToImmutableAndFree() : ImmutableArray.Create<SynthesizedAttributeData>();
-        }
-
         public static List<string> LookupNames(this SemanticModel model, int position, INamespaceOrTypeSymbol container = null, bool namespacesAndTypesOnly = false, bool useBaseReferenceAccessibility = false)
         {
             Assert.True(!useBaseReferenceAccessibility || (object)container == null);
@@ -293,6 +278,127 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     ? model.LookupNamespacesAndTypes(position, container)
                     : model.LookupSymbols(position, container);
             return symbols.Select(s => s.Name).Distinct().ToList();
+        }
+
+        /// <summary>
+        /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
+        /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
+        /// </summary>
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
+        {
+            // When nullable analysis does not require a feature flag, this can be removed so that we
+            // don't need to create an extra compilation
+            if (compilation.Feature("run-nullable-analysis") != "true")
+            {
+                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
+            }
+
+            if (tree == null)
+            {
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    VerifyTypes(compilation, syntaxTree);
+                }
+
+                return;
+            }
+
+            var root = tree.GetRoot();
+            var allAnnotations = getAnnotations();
+            if (allAnnotations.IsEmpty)
+            {
+                return;
+            }
+
+            var model = compilation.GetSemanticModel(tree);
+            var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
+            foreach (var annotations in annotationsByMethod)
+            {
+                var methodSyntax = annotations.Key;
+                var method = model.GetDeclaredSymbol(methodSyntax);
+
+                var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+                var actualTypes = annotations.SelectAsArray(annotation =>
+                    {
+                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
+                        return TypeWithState.Create((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                    });
+                // Consider reporting the correct source with annotations on mismatch.
+                AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
+            }
+
+            ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+            {
+                var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                foreach (var token in root.DescendantTokens())
+                {
+                    foreach (var trivia in token.TrailingTrivia)
+                    {
+                        if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                        {
+                            var text = trivia.ToFullString();
+                            const string prefix = "/*T:";
+                            const string suffix = "*/";
+                            if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                            {
+                                var expr = getEnclosingExpression(token);
+                                Assert.True(expr != null, $"VerifyTypes could not find a matching expression for annotation '{text}'.");
+
+                                var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                                builder.Add((expr, content));
+                            }
+                        }
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            {
+                var node = token.Parent;
+                while (true)
+                {
+                    var expr = asExpression(node);
+                    if (expr != null)
+                    {
+                        return expr;
+                    }
+                    if (node == root)
+                    {
+                        break;
+                    }
+                    node = node.Parent;
+                }
+                return null;
+            }
+
+            ExpressionSyntax asExpression(SyntaxNode node)
+            {
+                while (true)
+                {
+                    switch (node)
+                    {
+                        case null:
+                            return null;
+                        case ParenthesizedExpressionSyntax paren:
+                            return paren.Expression;
+                        case IdentifierNameSyntax id when id.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node:
+                            node = memberAccess;
+                            continue;
+                        case ExpressionSyntax expr when expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == node:
+                            node = cond;
+                            continue;
+                        case ExpressionSyntax expr:
+                            return expr;
+                        case { Parent: var parent }:
+                            node = parent;
+                            continue;
+                    }
+                }
+            }
         }
     }
 }

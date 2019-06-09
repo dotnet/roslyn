@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("InvocationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class InvocationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public InvocationExpressionSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the regular signature help items
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
                                            .ToImmutableArray()
@@ -75,12 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // try to bind to the actual method
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            var matchedMethodSymbol = symbolInfo.Symbol as IMethodSymbol;
 
             // if the symbol could be bound, replace that item in the symbol list
-            if (matchedMethodSymbol != null && matchedMethodSymbol.IsGenericMethod)
+            if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
             {
-                methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+                methodGroup = methodGroup.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }
 
             methodGroup = methodGroup.Sort(
@@ -88,23 +92,29 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             if (methodGroup.Any())
             {
+                var (items, selectedItem) =
+                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, symbolInfo, cancellationToken);
+
                 return CreateSignatureHelpItems(
-                    GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                    items,
+                    textSpan,
+                    GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken),
+                    selectedItem);
             }
             else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
             {
-                return CreateSignatureHelpItems(
-                    GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService,
+                    documentationCommentFormattingService, within, expressionType, out var selectedItem, cancellationToken);
+
+                return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
             }
             else
             {

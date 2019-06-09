@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overloads Function Equals(other As TupleFieldSymbol) As Boolean
             Return other IsNot Nothing AndAlso
                 _tupleElementIndex = other._tupleElementIndex AndAlso
-                _containingTuple = other._containingTuple
+                TypeSymbol.Equals(_containingTuple, other._containingTuple, TypeCompareKind.ConsiderEverything)
         End Function
     End Class
 

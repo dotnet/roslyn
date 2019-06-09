@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 #If DEBUG Then
 ' We use a struct rather than a class to represent the state for efficiency
 ' for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -535,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' descend through Rest fields
                 ' force corresponding slots if do not exist
-                While containingType <> symbol.ContainingType
+                While Not TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything)
                     Dim restField = TryCast(containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault(), FieldSymbol)
                     If restField Is Nothing Then
                         Return -1

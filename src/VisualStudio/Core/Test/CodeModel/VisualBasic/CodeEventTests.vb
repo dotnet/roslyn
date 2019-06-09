@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -444,7 +445,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo(i As Integer)
+    Event $$Goo(i As Integer)
 End Class
 </Code>
 
@@ -468,7 +469,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Custom Event $$Foo As System.EventHandler
+    Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -496,7 +497,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo(i As Integer)
+    Event $$Goo(i As Integer)
 End Class
 </Code>
 
@@ -508,7 +509,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Event $$Foo(i As Integer)
+    Shared Event $$Goo(i As Integer)
 End Class
 </Code>
 
@@ -520,7 +521,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Custom Event $$Foo As System.EventHandler
+    Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -544,7 +545,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Custom Event $$Foo As System.EventHandler
+    Shared Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -571,11 +572,11 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo As System.EventHandler
+    Event $$Goo As System.EventHandler
 End Class
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 #End Region
 
@@ -820,14 +821,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo(i As Integer)
+    Event $$Goo(i As Integer)
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Event Foo(i As Integer)
+    Event Goo(i As Integer)
 End Class
 </Code>
 
@@ -839,14 +840,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo(i As Integer)
+    Event $$Goo(i As Integer)
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Shared Event Foo(i As Integer)
+    Shared Event Goo(i As Integer)
 End Class
 </Code>
 
@@ -858,14 +859,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Event $$Foo(i As Integer)
+    Shared Event $$Goo(i As Integer)
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Shared Event Foo(i As Integer)
+    Shared Event Goo(i As Integer)
 End Class
 </Code>
 
@@ -877,14 +878,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Event $$Foo(i As Integer)
+    Shared Event $$Goo(i As Integer)
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Event Foo(i As Integer)
+    Event Goo(i As Integer)
 End Class
 </Code>
 
@@ -896,7 +897,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Custom Event $$Foo As System.EventHandler
+    Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -915,7 +916,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Custom Event Foo As System.EventHandler
+    Custom Event Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -939,7 +940,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Custom Event $$Foo As System.EventHandler
+    Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -958,7 +959,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Shared Custom Event Foo As System.EventHandler
+    Shared Custom Event Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -982,7 +983,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Custom Event $$Foo As System.EventHandler
+    Shared Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -1001,7 +1002,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Shared Custom Event Foo As System.EventHandler
+    Shared Custom Event Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -1025,7 +1026,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Custom Event $$Foo As System.EventHandler
+    Shared Custom Event $$Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -1044,7 +1045,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Custom Event Foo As System.EventHandler
+    Custom Event Goo As System.EventHandler
         AddHandler(value As System.EventHandler)
 
         End AddHandler
@@ -1072,7 +1073,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Event $$Foo As System.EventHandler
+    Event $$Goo As System.EventHandler
 End Class
 </Code>
 

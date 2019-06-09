@@ -11,7 +11,6 @@ Public Class BasicTrackingDiagnosticAnalyzer
 
     Protected Overrides Function IsOnCodeBlockSupported(symbolKind As SymbolKind, methodKind As MethodKind, returnsVoid As Boolean) As Boolean
         Return MyBase.IsOnCodeBlockSupported(symbolKind, methodKind, returnsVoid) AndAlso
-            symbolKind <> SymbolKind.Event AndAlso
             methodKind <> MethodKind.Destructor AndAlso
             methodKind <> MethodKind.ExplicitInterfaceImplementation
     End Function

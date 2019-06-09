@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
@@ -17,9 +18,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
+    [UseExportProvider]
     public class SuggestionTagProducerTests
     {
-        private readonly DiagnosticTagProducer<SuggestionTag> _producer = new DiagnosticTagProducer<SuggestionTag>();
+        private readonly DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
             Assert.Equal(spansAndSelection.selection, spansAndSelection.spans.Single().Span.Span.ToTextSpan());
         }
 
-        private async Task<(ImmutableArray<ITagSpan<SuggestionTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
+        private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
             using (var workspace = TestWorkspace.CreateCSharp(content))
             {

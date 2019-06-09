@@ -2,6 +2,7 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' True if the property itself Is excluded from code covarage instrumentation.
+        ''' True if the property itself Is excluded from code coverage instrumentation.
         ''' True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         ''' </summary>
         Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
@@ -154,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return sourceProperty IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
-                sourceProperty.ContainingType = fromMember.ContainingType AndAlso
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
                 (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
                 ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
@@ -506,9 +507,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_ByRefReturnIsReadonly As Boolean Implements IPropertySymbol.ReturnsByRefReadonly
+            Get
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_RefKind As RefKind Implements IPropertySymbol.RefKind
+            Get
+                Return If(Me.ReturnsByRef, RefKind.Ref, RefKind.None)
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_NullableAnnotation As NullableAnnotation Implements IPropertySymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 

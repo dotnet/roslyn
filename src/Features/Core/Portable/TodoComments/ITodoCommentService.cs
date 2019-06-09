@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
-    internal struct TodoCommentDescriptor
+    internal readonly struct TodoCommentDescriptor
     {
         public string Text { get; }
         public int Priority { get; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// A TODO comment that has been found within the user's code.
     /// </summary>
-    internal struct TodoComment
+    internal readonly struct TodoComment
     {
         public TodoCommentDescriptor Descriptor { get; }
         public string Message { get; }
@@ -42,6 +42,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
     internal interface ITodoCommentService : ILanguageService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

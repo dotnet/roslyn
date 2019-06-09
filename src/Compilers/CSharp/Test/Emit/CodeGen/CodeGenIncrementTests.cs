@@ -107,7 +107,8 @@ class C
             TestIncrementCompilationAndOutput<float>(0, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         public void TestIncrementDecimal()
         {
             TestIncrementCompilationAndOutput<decimal>(-1, 0);

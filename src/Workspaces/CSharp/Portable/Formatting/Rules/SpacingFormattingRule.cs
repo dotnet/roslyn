@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class SpacingFormattingRule : BaseFormattingRule
     {
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (optionSet == null)
             {
@@ -38,7 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Case: public static implicit operator string(Program p) { return null; }
-            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
+            // Case: public static implicit operator int?(Program p) { return null; }
+            // Case: public static implicit operator int*(Program p) { return null; }
+            // Case: public static implicit operator int[](Program p) { return null; }
+            // Case: public static implicit operator (int, int)(Program p) { return null; }
+            // Case: public static implicit operator Action<int>(Program p) { return null; }
+            if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
+                && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }
@@ -65,22 +71,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Method Call
-            if (currentToken.IsOpenParenInArgumentList())
+            //   MethodName ( args )
+            // Or Positional Pattern
+            //   x is TypeName ( args )
+            if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
             }
 
-            if (previousToken.IsOpenParenInArgumentList() && currentToken.IsCloseParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
             }
 
-            if (previousToken.IsOpenParenInArgumentList())
+            if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
-            if (currentToken.IsCloseParenInArgumentList())
+            if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
@@ -124,26 +133,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinCastParentheses);
             }
 
+            // Semicolons in an empty for statement.  i.e.   for(;;)
+            if (previousParentKind == SyntaxKind.ForStatement
+                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent))
+            {
+                if (currentKind == SyntaxKind.SemicolonToken
+                    && (previousKind != SyntaxKind.SemicolonToken
+                        || optionSet.GetOption<bool>(CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement)))
+                {
+                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement);
+                }
+
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement);
+            }
+
             // For spacing between the parenthesis and the expression inside the control flow expression
             if (previousKind == SyntaxKind.OpenParenToken && IsControlFlowLikeKeywordStatementKind(previousParentKind))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
-            }
-
-            // Semicolons in an empty for statement.  i.e.   for(;;)
-            if (previousKind == SyntaxKind.OpenParenToken || previousKind == SyntaxKind.SemicolonToken)
-            {
-                if (previousToken.Parent.Kind() == SyntaxKind.ForStatement)
-                {
-                    var forStatement = (ForStatementSyntax)previousToken.Parent;
-                    if (forStatement.Initializers.Count == 0 &&
-                        forStatement.Declaration == null &&
-                        forStatement.Condition == null &&
-                        forStatement.Incrementors.Count == 0)
-                    {
-                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
-                    }
-                }
             }
 
             if (currentKind == SyntaxKind.CloseParenToken && IsControlFlowLikeKeywordStatementKind(currentParentKind))
@@ -280,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // No space after $" and $@" at the start of an interpolated string
+            // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
                 previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
@@ -327,15 +334,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
 
+            // Index expressions
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKindEx.IndexExpression)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Right of Range expressions
+            if (previousKind == SyntaxKindEx.DotDotToken && previousParentKind == SyntaxKindEx.RangeExpression)
+            {
+#if !CODE_STYLE
+                var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
+                var hasRightOperand = rangeExpression.RightOperand != null;
+#else
+                var childSyntax = previousToken.Parent.ChildNodesAndTokens();
+                var hasRightOperand = childSyntax.Count > 1 && childSyntax[childSyntax.Count - 2].IsKind(SyntaxKindEx.DotDotToken);
+#endif
+                if (hasRightOperand)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // Left of Range expressions
+            if (currentKind == SyntaxKindEx.DotDotToken && currentParentKind == SyntaxKindEx.RangeExpression)
+            {
+#if !CODE_STYLE
+                var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
+                var hasLeftOperand = rangeExpression.LeftOperand != null;
+#else
+                var childSyntax = currentToken.Parent.ChildNodesAndTokens();
+                var hasLeftOperand = childSyntax.Count > 1 && childSyntax[1].IsKind(SyntaxKindEx.DotDotToken);
+#endif
+                if (hasLeftOperand)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             SuppressVariableDeclaration(list, node, optionSet);
         }
+
+        private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
+            forStatement.Initializers.Count == 0
+            && forStatement.Declaration == null
+            && forStatement.Condition == null
+            && forStatement.Incrementors.Count == 0;
 
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet)
         {

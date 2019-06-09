@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -21,21 +19,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [TagType(typeof(IClassificationTag))]
     internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IForegroundNotificationService _notificationService;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ClassificationTypeMap _typeMap;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new ConditionalWeakTable<ITextBuffer, TagComputer>();
 
         [ImportingConstructor]
         public SyntacticClassificationTaggerProvider(
+            IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _notificationService = notificationService;
             _typeMap = typeMap;
-            _asyncListeners = asyncListeners;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -47,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
-                var asyncListener = new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.Classification);
-                tagComputer = new TagComputer(buffer, _notificationService, asyncListener, _typeMap, this);
+                tagComputer = new TagComputer(buffer, _notificationService, _listener, _typeMap, this);
                 _tagComputers.Add(buffer, tagComputer);
             }
 

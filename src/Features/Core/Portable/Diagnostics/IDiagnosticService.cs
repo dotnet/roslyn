@@ -4,13 +4,20 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    /// <summary>
+    /// Aggregates events from various diagnostic sources.
+    /// </summary>
     internal interface IDiagnosticService
     {
         /// <summary>
         /// Event to get notified as new diagnostics are discovered by IDiagnosticUpdateSource
+        /// 
+        /// Notifications for this event are serialized to preserve order.
+        /// However, individual event notifications may occur on any thread.
         /// </summary>
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 

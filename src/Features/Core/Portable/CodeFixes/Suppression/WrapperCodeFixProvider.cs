@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        private void RegisterSuppressionFixes(CodeFixContext context, IEnumerable<CodeFix> suppressionFixes)
+        private static void RegisterSuppressionFixes(CodeFixContext context, ImmutableArray<CodeFix> suppressionFixes)
         {
-            if (suppressionFixes != null)
+            if (!suppressionFixes.IsDefault)
             {
                 foreach (var suppressionFix in suppressionFixes)
                 {

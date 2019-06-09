@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal IEnumerable<DocumentSnapshotSpan> _spansTagged;
         internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
 
-        public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
+        public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
 
         /// <summary>
@@ -46,15 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-            : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) },
-                  caretPosition, textChangeRange, null, cancellationToken)
+            CancellationToken cancellationToken = default)
+            : this(state: null, ImmutableArray.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
+                   caretPosition, textChangeRange, existingTags: null, cancellationToken)
         {
         }
 
         internal TaggerContext(
             object state,
-            IEnumerable<DocumentSnapshotSpan> spansToTag,
+            ImmutableArray<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
@@ -75,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             tagSpans.Add(tag);
         }
 
+        public void ClearTags()
+        {
+            tagSpans.Clear();
+        }
+
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful 
         /// when the tagger decides to tag a different span than the entire file.  If a sub-span
@@ -86,11 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
         }
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)
+        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
         {
-            return _existingTags != null && _existingTags.TryGetValue(span.Snapshot.TextBuffer, out var tree)
-                ? tree.GetIntersectingSpans(span)
-                : SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
+            {
+                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
+                           .Where(s => s.Span.Contains(point));
+            }
+
+            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
         }
     }
 }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
+    <[UseExportProvider]>
     Public Class VisualBasicCommentSelectionTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
         Public Sub Comment1()
@@ -81,12 +82,11 @@ End Module</code>
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
-                    TestWaitIndicator.Default,
                     workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
                     workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
-                commandHandler.ExecuteCommand(textView, textBuffer, operation)
+                commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
                 Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
             End Using

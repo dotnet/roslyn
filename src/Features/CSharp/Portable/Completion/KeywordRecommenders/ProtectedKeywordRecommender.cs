@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 return CheckPreviousAccessibilityModifiers(context);
             }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 // protected things can't be in namespaces.
                 var typeDecl = context.ContainingTypeDeclaration;
@@ -62,12 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool CheckPreviousAccessibilityModifiers(CSharpSyntaxContext context)
         {
-            // We can show up after 'internal'.
+            // We can show up after 'internal' and 'private'.
             var precedingModifiers = context.PrecedingModifiers;
             return
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
-                !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword) &&
-                !precedingModifiers.Contains(SyntaxKind.PrivateKeyword);
+                !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword);
         }
     }
 }

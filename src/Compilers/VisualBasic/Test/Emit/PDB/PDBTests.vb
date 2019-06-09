@@ -1,15 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Reflection.PortableExecutable
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.DiaSymReader.Tools
-Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -18,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
 #Region "General"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding1()
-            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Foo.vb", encoding:=Nothing)
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Goo.vb", encoding:=Nothing)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B : End Class", path:="", encoding:=Nothing)
             Dim tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class C : End Class", encoding:=Nothing), path:="Bar.vb")
             Dim tree4 = SyntaxFactory.ParseSyntaxTree("Class D : End Class", path:="Baz.vb", encoding:=Encoding.UTF8)
@@ -35,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             Assert.False(result.Success)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmitDebugInfoForSourceTextWithoutEncoding2()
-            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Foo.vb", encoding:=Encoding.Unicode)
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Goo.vb", encoding:=Encoding.Unicode)
             Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B" & vbCrLf & "Sub F() : End Sub : End Class", path:="", encoding:=Nothing)
             Dim tree3 = SyntaxFactory.ParseSyntaxTree("Class C" & vbCrLf & "Sub F() : End Sub : End Class", path:="Bar.vb", encoding:=New UTF8Encoding(True, False))
             Dim tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class D" & vbCrLf & "Sub F() : End Sub : End Class", New UTF8Encoding(False, False)), path:="Baz.vb")
@@ -48,26 +47,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             result.Diagnostics.Verify()
             Assert.True(result.Success)
 
-            Dim hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()))
-            Dim hash3 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(True, False).GetBytesWithPreamble(tree3.ToString()))
-            Dim hash4 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(False, False).GetBytesWithPreamble(tree4.ToString()))
-
-            Dim checksum1 = String.Concat(hash1.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
-            Dim checksum3 = String.Concat(hash3.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
-            Dim checksum4 = String.Concat(hash4.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
+            Dim hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString())).ToArray()
+            Dim hash3 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(True, False).GetBytesWithPreamble(tree3.ToString())).ToArray()
+            Dim hash4 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(False, False).GetBytesWithPreamble(tree4.ToString())).ToArray()
 
             comp.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="Foo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum1 %>/>
-        <file id="2" name="Bar.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum3 %>/>
-        <file id="3" name="Baz.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum4 %>/>
+        <file id="1" name="Goo.vb" language="VB" checksumAlgorithm="SHA1" checksum=<%= BitConverter.ToString(hash1) %>/>
+        <file id="2" name="" language="VB"/>
+        <file id="3" name="Bar.vb" language="VB" checksumAlgorithm="SHA1" checksum=<%= BitConverter.ToString(hash3) %>/>
+        <file id="4" name="Baz.vb" language="VB" checksumAlgorithm="SHA1" checksum=<%= BitConverter.ToString(hash4) %>/>
     </files>
-</symbols>, options:=PdbToXmlOptions.ExcludeMethods)
+</symbols>, options:=PdbValidationOptions.ExcludeMethods)
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_DLL()
             Dim source = "
 Class C 
@@ -75,21 +71,24 @@ Class C
   End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
 
             Dim f = c.GetMember(Of MethodSymbol)("C.F")
             c.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C" methodName="F"/>
     <methods/>
-</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+</symbols>, debugEntryPoint:=f, options:=PdbValidationOptions.ExcludeScopes Or PdbValidationOptions.ExcludeSequencePoints Or PdbValidationOptions.ExcludeCustomDebugInformation)
 
             Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
             Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
             Assert.Equal(0, peEntryPointToken)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_EXE()
             Dim source = "
 Class M 
@@ -102,14 +101,17 @@ Class C
   End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+            Dim c = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugExe)
 
             Dim f = c.GetMember(Of MethodSymbol)("C.F")
             c.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="C" methodName="F"/>
     <methods/>
-</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+</symbols>, debugEntryPoint:=f, options:=PdbValidationOptions.ExcludeScopes Or PdbValidationOptions.ExcludeSequencePoints Or PdbValidationOptions.ExcludeCustomDebugInformation)
 
             Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
             Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
@@ -120,7 +122,7 @@ End Class
             Assert.Equal("Main", mdReader.GetString(methodDef.Name))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_Errors()
             Dim source1 = "
 Class C 
@@ -139,8 +141,8 @@ Class C
   End Sub
 End Class
 "
-            Dim c1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
-            Dim c2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll)
+            Dim c1 = CreateCompilationWithMscorlib40({source1}, options:=TestOptions.DebugDll)
+            Dim c2 = CreateCompilationWithMscorlib40({source2}, options:=TestOptions.DebugDll)
 
             Dim f1 = c1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = c2.GetMember(Of MethodSymbol)("C.F")
@@ -173,7 +175,7 @@ End Class
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasic()
             Dim source =
 <compilation>
@@ -187,20 +189,23 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16"/>
+                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="1"/>
+                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
@@ -208,10 +213,10 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="1"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="1"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="1"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -224,9 +229,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20"/>
+                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="1"/>
+                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -240,9 +245,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20"/>
+                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="1"/>
+                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -256,9 +261,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20"/>
+                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="1"/>
+                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -272,9 +277,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20"/>
+                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="1"/>
+                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -283,9 +288,9 @@ End Class
         </method>
         <method containingType="C1" name="Method">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
-                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50" document="1"/>
+                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <currentnamespace name=""/>
@@ -298,9 +303,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
+                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="1"/>
+                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="1"/>
+                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name="My"/>
@@ -314,9 +319,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
+                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="1"/>
+                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="1"/>
+                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -330,9 +335,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
+                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="1"/>
+                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="1"/>
+                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -346,9 +351,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
+                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="1"/>
+                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="1"/>
+                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -363,13 +368,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44"/>
-                <entry offset="0xb" hidden="true"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
+                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="1"/>
+                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="1"/>
+                <entry offset="0xb" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="1"/>
+                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="1"/>
+                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="1"/>
+                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -378,9 +383,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
+                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="1"/>
+                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="1"/>
+                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -388,9 +393,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
+                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="1"/>
+                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -404,12 +409,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59"/>
-                <entry offset="0xf" hidden="true"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
+                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="1"/>
+                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="1"/>
+                <entry offset="0xf" hidden="true" document="1"/>
+                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="1"/>
+                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="1"/>
+                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -418,19 +423,19 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
+                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="1"/>
+                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstructorsWithoutInitializers()
             Dim source =
 <compilation>
@@ -445,9 +450,12 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name=".ctor">
             <customDebugInfo>
@@ -456,8 +464,8 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
-                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14" document="1"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
@@ -471,9 +479,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="25"/>
-                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="28"/>
-                <entry offset="0xf" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="28" document="1"/>
+                <entry offset="0xf" startLine="7" startColumn="5" endLine="7" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="C" methodName=".ctor"/>
@@ -484,7 +492,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstructorsWithInitializers()
             Dim source =
 <compilation>
@@ -501,9 +509,12 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name=".ctor">
             <customDebugInfo>
@@ -512,9 +523,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="14"/>
-                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
-                <entry offset="0x18" startLine="6" startColumn="5" endLine="6" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="14" document="1"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28" document="1"/>
+                <entry offset="0x18" startLine="6" startColumn="5" endLine="6" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x19">
                 <importsforward declaringType="C" methodName=".cctor"/>
@@ -528,10 +539,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="25"/>
-                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
-                <entry offset="0x18" startLine="8" startColumn="13" endLine="8" endColumn="28"/>
-                <entry offset="0x1f" startLine="9" startColumn="5" endLine="9" endColumn="12"/>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28" document="1"/>
+                <entry offset="0x18" startLine="8" startColumn="13" endLine="8" endColumn="28" document="1"/>
+                <entry offset="0x1f" startLine="9" startColumn="5" endLine="9" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x20">
                 <importsforward declaringType="C" methodName=".cctor"/>
@@ -542,7 +553,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchFinally()
             Dim source =
 <compilation>
@@ -577,10 +588,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("M1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
         <method containingType="M1" name="Main">
@@ -595,29 +609,29 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12"/>
-                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34"/>
-                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8"/>
-                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8"/>
-                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="26"/>
-                <entry offset="0x11" hidden="true"/>
-                <entry offset="0x14" startLine="12" startColumn="17" endLine="12" endColumn="38"/>
-                <entry offset="0x1a" startLine="13" startColumn="13" endLine="13" endColumn="19"/>
-                <entry offset="0x1d" hidden="true"/>
-                <entry offset="0x24" startLine="14" startColumn="9" endLine="14" endColumn="30"/>
-                <entry offset="0x25" startLine="15" startColumn="17" endLine="15" endColumn="34"/>
-                <entry offset="0x2c" startLine="16" startColumn="13" endLine="16" endColumn="33"/>
-                <entry offset="0x33" startLine="17" startColumn="13" endLine="17" endColumn="18"/>
-                <entry offset="0x35" startLine="18" startColumn="13" endLine="18" endColumn="24"/>
-                <entry offset="0x3c" hidden="true"/>
-                <entry offset="0x3e" startLine="19" startColumn="9" endLine="19" endColumn="16"/>
-                <entry offset="0x3f" startLine="20" startColumn="17" endLine="20" endColumn="34"/>
-                <entry offset="0x46" startLine="21" startColumn="13" endLine="21" endColumn="33"/>
-                <entry offset="0x4e" startLine="22" startColumn="9" endLine="22" endColumn="16"/>
-                <entry offset="0x4f" startLine="24" startColumn="9" endLine="24" endColumn="29"/>
-                <entry offset="0x56" startLine="26" startColumn="5" endLine="26" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12" document="1"/>
+                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34" document="1"/>
+                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8" document="1"/>
+                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8" document="1"/>
+                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="26" document="1"/>
+                <entry offset="0x11" hidden="true" document="1"/>
+                <entry offset="0x14" startLine="12" startColumn="17" endLine="12" endColumn="38" document="1"/>
+                <entry offset="0x1a" startLine="13" startColumn="13" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
+                <entry offset="0x24" startLine="14" startColumn="9" endLine="14" endColumn="30" document="1"/>
+                <entry offset="0x25" startLine="15" startColumn="17" endLine="15" endColumn="34" document="1"/>
+                <entry offset="0x2c" startLine="16" startColumn="13" endLine="16" endColumn="33" document="1"/>
+                <entry offset="0x33" startLine="17" startColumn="13" endLine="17" endColumn="18" document="1"/>
+                <entry offset="0x35" startLine="18" startColumn="13" endLine="18" endColumn="24" document="1"/>
+                <entry offset="0x3c" hidden="true" document="1"/>
+                <entry offset="0x3e" startLine="19" startColumn="9" endLine="19" endColumn="16" document="1"/>
+                <entry offset="0x3f" startLine="20" startColumn="17" endLine="20" endColumn="34" document="1"/>
+                <entry offset="0x46" startLine="21" startColumn="13" endLine="21" endColumn="33" document="1"/>
+                <entry offset="0x4e" startLine="22" startColumn="9" endLine="22" endColumn="16" document="1"/>
+                <entry offset="0x4f" startLine="24" startColumn="9" endLine="24" endColumn="29" document="1"/>
+                <entry offset="0x56" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x57">
                 <namespace name="System" importlevel="file"/>
@@ -641,7 +655,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchWhen_Debug()
             Dim source =
 <compilation>
@@ -674,7 +688,7 @@ End Module
 </file>
 </compilation>
 
-            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe))
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe))
 
             v.VerifyIL("M1.Main", "
 {
@@ -759,6 +773,9 @@ End Module
 
             v.VerifyPdb("M1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
         <method containingType="M1" name="Main">
@@ -773,28 +790,28 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12"/>
-                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34"/>
-                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8"/>
-                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8"/>
-                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
-                <entry offset="0x12" hidden="true"/>
-                <entry offset="0x25" startLine="12" startColumn="9" endLine="12" endColumn="60"/>
-                <entry offset="0x2f" hidden="true"/>
-                <entry offset="0x35" hidden="true"/>
-                <entry offset="0x36" startLine="13" startColumn="17" endLine="13" endColumn="34"/>
-                <entry offset="0x3d" startLine="14" startColumn="13" endLine="14" endColumn="33"/>
-                <entry offset="0x44" startLine="15" startColumn="13" endLine="15" endColumn="18"/>
-                <entry offset="0x46" startLine="16" startColumn="13" endLine="16" endColumn="24"/>
-                <entry offset="0x4d" hidden="true"/>
-                <entry offset="0x4f" startLine="17" startColumn="9" endLine="17" endColumn="16"/>
-                <entry offset="0x50" startLine="18" startColumn="17" endLine="18" endColumn="34"/>
-                <entry offset="0x57" startLine="19" startColumn="13" endLine="19" endColumn="33"/>
-                <entry offset="0x5f" startLine="20" startColumn="9" endLine="20" endColumn="16"/>
-                <entry offset="0x60" startLine="22" startColumn="9" endLine="22" endColumn="29"/>
-                <entry offset="0x67" startLine="24" startColumn="5" endLine="24" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12" document="1"/>
+                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34" document="1"/>
+                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8" document="1"/>
+                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8" document="1"/>
+                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="22" document="1"/>
+                <entry offset="0x12" hidden="true" document="1"/>
+                <entry offset="0x25" startLine="12" startColumn="9" endLine="12" endColumn="60" document="1"/>
+                <entry offset="0x2f" hidden="true" document="1"/>
+                <entry offset="0x35" hidden="true" document="1"/>
+                <entry offset="0x36" startLine="13" startColumn="17" endLine="13" endColumn="34" document="1"/>
+                <entry offset="0x3d" startLine="14" startColumn="13" endLine="14" endColumn="33" document="1"/>
+                <entry offset="0x44" startLine="15" startColumn="13" endLine="15" endColumn="18" document="1"/>
+                <entry offset="0x46" startLine="16" startColumn="13" endLine="16" endColumn="24" document="1"/>
+                <entry offset="0x4d" hidden="true" document="1"/>
+                <entry offset="0x4f" startLine="17" startColumn="9" endLine="17" endColumn="16" document="1"/>
+                <entry offset="0x50" startLine="18" startColumn="17" endLine="18" endColumn="34" document="1"/>
+                <entry offset="0x57" startLine="19" startColumn="13" endLine="19" endColumn="33" document="1"/>
+                <entry offset="0x5f" startLine="20" startColumn="9" endLine="20" endColumn="16" document="1"/>
+                <entry offset="0x60" startLine="22" startColumn="9" endLine="22" endColumn="29" document="1"/>
+                <entry offset="0x67" startLine="24" startColumn="5" endLine="24" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
@@ -818,7 +835,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TryCatchWhen_Release()
             Dim source =
 <compilation>
@@ -844,7 +861,7 @@ End Module
 </file>
 </compilation>
 
-            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe))
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe))
 
             v.VerifyIL("M1.Main", "
 {
@@ -910,7 +927,7 @@ End Module
 ", sequencePoints:="M1.Main")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasic1()
             Dim source =
 <compilation>
@@ -929,12 +946,15 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -946,15 +966,15 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="15"/>
-                <entry offset="0x1" startLine="5" startColumn="13" endLine="5" endColumn="29"/>
-                <entry offset="0x3" hidden="true"/>
-                <entry offset="0x5" startLine="7" startColumn="17" endLine="7" endColumn="37"/>
-                <entry offset="0x9" startLine="8" startColumn="13" endLine="8" endColumn="18"/>
-                <entry offset="0xb" startLine="9" startColumn="9" endLine="9" endColumn="13"/>
-                <entry offset="0xc" startLine="6" startColumn="9" endLine="6" endColumn="26"/>
-                <entry offset="0x14" hidden="true"/>
-                <entry offset="0x17" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="13" endLine="5" endColumn="29" document="1"/>
+                <entry offset="0x3" hidden="true" document="1"/>
+                <entry offset="0x5" startLine="7" startColumn="17" endLine="7" endColumn="37" document="1"/>
+                <entry offset="0x9" startLine="8" startColumn="13" endLine="8" endColumn="18" document="1"/>
+                <entry offset="0xb" startLine="9" startColumn="9" endLine="9" endColumn="13" document="1"/>
+                <entry offset="0xc" startLine="6" startColumn="9" endLine="6" endColumn="26" document="1"/>
+                <entry offset="0x14" hidden="true" document="1"/>
+                <entry offset="0x17" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x18">
                 <currentnamespace name=""/>
@@ -968,7 +988,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBasicCtor()
             Dim source =
 <compilation>
@@ -981,16 +1001,19 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C1..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
-                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
-                <entry offset="0x13" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14" document="1"/>
+                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="50" document="1"/>
+                <entry offset="0x13" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x14">
                 <currentnamespace name=""/>
@@ -1000,7 +1023,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestLabels()
             Dim source =
 <compilation>
@@ -1017,18 +1040,21 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("C1..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
-                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="16"/>
-                <entry offset="0x9" startLine="4" startColumn="9" endLine="4" endColumn="16"/>
-                <entry offset="0xa" startLine="5" startColumn="9" endLine="5" endColumn="16"/>
-                <entry offset="0xb" startLine="7" startColumn="9" endLine="7" endColumn="20"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14" document="1"/>
+                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="16" document="1"/>
+                <entry offset="0x9" startLine="4" startColumn="9" endLine="4" endColumn="16" document="1"/>
+                <entry offset="0xa" startLine="5" startColumn="9" endLine="5" endColumn="16" document="1"/>
+                <entry offset="0xb" startLine="7" startColumn="9" endLine="7" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <currentnamespace name=""/>
@@ -1038,7 +1064,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IfStatement()
             Dim source =
 <compilation>
@@ -1063,7 +1089,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1097,6 +1123,9 @@ End Class
 
             v.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -1105,16 +1134,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="20"/>
-                <entry offset="0x8" hidden="true"/>
-                <entry offset="0xb" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0x12" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
-                <entry offset="0x15" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0x16" startLine="8" startColumn="13" endLine="8" endColumn="33"/>
-                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
-                <entry offset="0x1e" startLine="11" startColumn="9" endLine="11" endColumn="29"/>
-                <entry offset="0x25" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="20" document="1"/>
+                <entry offset="0x8" hidden="true" document="1"/>
+                <entry offset="0xb" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0x12" startLine="9" startColumn="9" endLine="9" endColumn="15" document="1"/>
+                <entry offset="0x15" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0x16" startLine="8" startColumn="13" endLine="8" endColumn="33" document="1"/>
+                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="15" document="1"/>
+                <entry offset="0x1e" startLine="11" startColumn="9" endLine="11" endColumn="29" document="1"/>
+                <entry offset="0x25" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <namespace name="System" importlevel="file"/>
@@ -1126,7 +1155,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DoWhileStatement()
             Dim source =
 <compilation>
@@ -1147,7 +1176,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1173,6 +1202,9 @@ End Class
 
             v.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -1181,13 +1213,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" hidden="true"/>
-                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0xb" startLine="5" startColumn="9" endLine="5" endColumn="21"/>
-                <entry offset="0x12" hidden="true"/>
-                <entry offset="0x15" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0xb" startLine="5" startColumn="9" endLine="5" endColumn="21" document="1"/>
+                <entry offset="0x12" hidden="true" document="1"/>
+                <entry offset="0x15" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
@@ -1200,7 +1232,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DoLoopWhileStatement()
             Dim source =
 <compilation>
@@ -1221,7 +1253,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1247,6 +1279,9 @@ End Class
 
             v.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -1255,12 +1290,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="11"/>
-                <entry offset="0x2" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0x9" startLine="7" startColumn="9" endLine="7" endColumn="23"/>
-                <entry offset="0x11" hidden="true"/>
-                <entry offset="0x14" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="11" document="1"/>
+                <entry offset="0x2" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0x9" startLine="7" startColumn="9" endLine="7" endColumn="23" document="1"/>
+                <entry offset="0x11" hidden="true" document="1"/>
+                <entry offset="0x14" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x15">
                 <namespace name="System" importlevel="file"/>
@@ -1273,7 +1308,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForStatement()
             Dim source =
 <compilation>
@@ -1294,7 +1329,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1345,6 +1380,9 @@ End Class
 
             v.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -1356,13 +1394,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39"/>
-                <entry offset="0x1b" hidden="true"/>
-                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0x24" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0x28" hidden="true"/>
-                <entry offset="0x36" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39" document="1"/>
+                <entry offset="0x1b" hidden="true" document="1"/>
+                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0x24" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0x28" hidden="true" document="1"/>
+                <entry offset="0x36" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x37">
                 <namespace name="System" importlevel="file"/>
@@ -1376,7 +1414,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForStatement_LateBound()
             Dim v = CompileAndVerify(
 <compilation>
@@ -1448,7 +1486,7 @@ End Class
             v.VerifyPdb("MyClass1.Main",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="87, 56, 72, A9, 63, E5, 5D,  C, F3, 97, 85, 44, CF, 51, 55, 8E, 76, E7, 1D, F1, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="87-56-72-A9-63-E5-5D-0C-F3-97-85-44-CF-51-55-8E-76-E7-1D-F1"/>
     </files>
     <methods>
         <method containingType="MyClass1" name="Main">
@@ -1487,7 +1525,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCaseStatement()
             Dim source =
 <compilation>
@@ -1511,7 +1549,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             Dim v = CompileAndVerify(compilation)
 
@@ -1557,6 +1595,9 @@ End Class
 
             v.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -1566,16 +1607,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="25"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
-                <entry offset="0x15" hidden="true"/>
-                <entry offset="0x18" startLine="7" startColumn="17" endLine="7" endColumn="37"/>
-                <entry offset="0x21" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
-                <entry offset="0x2c" hidden="true"/>
-                <entry offset="0x2f" startLine="9" startColumn="17" endLine="9" endColumn="37"/>
-                <entry offset="0x36" startLine="10" startColumn="9" endLine="10" endColumn="19"/>
-                <entry offset="0x37" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="25" document="1"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22" document="1"/>
+                <entry offset="0x15" hidden="true" document="1"/>
+                <entry offset="0x18" startLine="7" startColumn="17" endLine="7" endColumn="37" document="1"/>
+                <entry offset="0x21" startLine="8" startColumn="13" endLine="8" endColumn="22" document="1"/>
+                <entry offset="0x2c" hidden="true" document="1"/>
+                <entry offset="0x2f" startLine="9" startColumn="17" endLine="9" endColumn="37" document="1"/>
+                <entry offset="0x36" startLine="10" startColumn="9" endLine="10" endColumn="19" document="1"/>
+                <entry offset="0x37" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x38">
                 <namespace name="System" importlevel="file"/>
@@ -1588,7 +1629,7 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestIfThenAndBlocks()
             Dim source =
 <compilation>
@@ -1626,10 +1667,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
@@ -1652,48 +1696,48 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" startLine="6" startColumn="31" endLine="6" endColumn="49"/>
-                <entry offset="0xb" startLine="8" startColumn="9" endLine="8" endColumn="23"/>
-                <entry offset="0x11" hidden="true"/>
-                <entry offset="0x14" startLine="8" startColumn="28" endLine="8" endColumn="46"/>
-                <entry offset="0x1a" startLine="8" startColumn="49" endLine="8" endColumn="69"/>
-                <entry offset="0x23" startLine="8" startColumn="70" endLine="8" endColumn="74"/>
-                <entry offset="0x24" startLine="8" startColumn="75" endLine="8" endColumn="99"/>
-                <entry offset="0x2f" startLine="8" startColumn="102" endLine="8" endColumn="127"/>
-                <entry offset="0x3a" startLine="9" startColumn="9" endLine="9" endColumn="23"/>
-                <entry offset="0x41" hidden="true"/>
-                <entry offset="0x45" startLine="9" startColumn="24" endLine="9" endColumn="47"/>
-                <entry offset="0x50" startLine="9" startColumn="50" endLine="9" endColumn="74"/>
-                <entry offset="0x5d" startLine="9" startColumn="75" endLine="9" endColumn="79"/>
-                <entry offset="0x5e" startLine="9" startColumn="84" endLine="9" endColumn="103"/>
-                <entry offset="0x65" startLine="9" startColumn="106" endLine="9" endColumn="126"/>
-                <entry offset="0x6d" hidden="true"/>
-                <entry offset="0x6f" startLine="12" startColumn="13" endLine="12" endColumn="26"/>
-                <entry offset="0x75" hidden="true"/>
-                <entry offset="0x79" startLine="13" startColumn="17" endLine="13" endColumn="40"/>
-                <entry offset="0x84" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
-                <entry offset="0x87" startLine="14" startColumn="13" endLine="14" endColumn="30"/>
-                <entry offset="0x8d" hidden="true"/>
-                <entry offset="0x91" startLine="15" startColumn="21" endLine="15" endColumn="40"/>
-                <entry offset="0x98" startLine="16" startColumn="17" endLine="16" endColumn="38"/>
-                <entry offset="0xa0" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
-                <entry offset="0xa3" startLine="17" startColumn="13" endLine="17" endColumn="30"/>
-                <entry offset="0xa9" hidden="true"/>
-                <entry offset="0xad" startLine="18" startColumn="21" endLine="18" endColumn="40"/>
-                <entry offset="0xb4" startLine="19" startColumn="17" endLine="19" endColumn="38"/>
-                <entry offset="0xbc" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
-                <entry offset="0xbf" startLine="20" startColumn="13" endLine="20" endColumn="17"/>
-                <entry offset="0xc0" startLine="21" startColumn="21" endLine="21" endColumn="42"/>
-                <entry offset="0xc7" startLine="22" startColumn="17" endLine="22" endColumn="38"/>
-                <entry offset="0xcf" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
-                <entry offset="0xd0" startLine="25" startColumn="17" endLine="25" endColumn="40"/>
-                <entry offset="0xd5" startLine="26" startColumn="13" endLine="26" endColumn="21"/>
-                <entry offset="0xd8" startLine="27" startColumn="9" endLine="27" endColumn="13"/>
-                <entry offset="0xd9" startLine="11" startColumn="9" endLine="11" endColumn="23"/>
-                <entry offset="0xdf" hidden="true"/>
-                <entry offset="0xe3" startLine="29" startColumn="5" endLine="29" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" startLine="6" startColumn="31" endLine="6" endColumn="49" document="1"/>
+                <entry offset="0xb" startLine="8" startColumn="9" endLine="8" endColumn="23" document="1"/>
+                <entry offset="0x11" hidden="true" document="1"/>
+                <entry offset="0x14" startLine="8" startColumn="28" endLine="8" endColumn="46" document="1"/>
+                <entry offset="0x1a" startLine="8" startColumn="49" endLine="8" endColumn="69" document="1"/>
+                <entry offset="0x23" startLine="8" startColumn="70" endLine="8" endColumn="74" document="1"/>
+                <entry offset="0x24" startLine="8" startColumn="75" endLine="8" endColumn="99" document="1"/>
+                <entry offset="0x2f" startLine="8" startColumn="102" endLine="8" endColumn="127" document="1"/>
+                <entry offset="0x3a" startLine="9" startColumn="9" endLine="9" endColumn="23" document="1"/>
+                <entry offset="0x41" hidden="true" document="1"/>
+                <entry offset="0x45" startLine="9" startColumn="24" endLine="9" endColumn="47" document="1"/>
+                <entry offset="0x50" startLine="9" startColumn="50" endLine="9" endColumn="74" document="1"/>
+                <entry offset="0x5d" startLine="9" startColumn="75" endLine="9" endColumn="79" document="1"/>
+                <entry offset="0x5e" startLine="9" startColumn="84" endLine="9" endColumn="103" document="1"/>
+                <entry offset="0x65" startLine="9" startColumn="106" endLine="9" endColumn="126" document="1"/>
+                <entry offset="0x6d" hidden="true" document="1"/>
+                <entry offset="0x6f" startLine="12" startColumn="13" endLine="12" endColumn="26" document="1"/>
+                <entry offset="0x75" hidden="true" document="1"/>
+                <entry offset="0x79" startLine="13" startColumn="17" endLine="13" endColumn="40" document="1"/>
+                <entry offset="0x84" startLine="23" startColumn="13" endLine="23" endColumn="19" document="1"/>
+                <entry offset="0x87" startLine="14" startColumn="13" endLine="14" endColumn="30" document="1"/>
+                <entry offset="0x8d" hidden="true" document="1"/>
+                <entry offset="0x91" startLine="15" startColumn="21" endLine="15" endColumn="40" document="1"/>
+                <entry offset="0x98" startLine="16" startColumn="17" endLine="16" endColumn="38" document="1"/>
+                <entry offset="0xa0" startLine="23" startColumn="13" endLine="23" endColumn="19" document="1"/>
+                <entry offset="0xa3" startLine="17" startColumn="13" endLine="17" endColumn="30" document="1"/>
+                <entry offset="0xa9" hidden="true" document="1"/>
+                <entry offset="0xad" startLine="18" startColumn="21" endLine="18" endColumn="40" document="1"/>
+                <entry offset="0xb4" startLine="19" startColumn="17" endLine="19" endColumn="38" document="1"/>
+                <entry offset="0xbc" startLine="23" startColumn="13" endLine="23" endColumn="19" document="1"/>
+                <entry offset="0xbf" startLine="20" startColumn="13" endLine="20" endColumn="17" document="1"/>
+                <entry offset="0xc0" startLine="21" startColumn="21" endLine="21" endColumn="42" document="1"/>
+                <entry offset="0xc7" startLine="22" startColumn="17" endLine="22" endColumn="38" document="1"/>
+                <entry offset="0xcf" startLine="23" startColumn="13" endLine="23" endColumn="19" document="1"/>
+                <entry offset="0xd0" startLine="25" startColumn="17" endLine="25" endColumn="40" document="1"/>
+                <entry offset="0xd5" startLine="26" startColumn="13" endLine="26" endColumn="21" document="1"/>
+                <entry offset="0xd8" startLine="27" startColumn="9" endLine="27" endColumn="13" document="1"/>
+                <entry offset="0xd9" startLine="11" startColumn="9" endLine="11" endColumn="23" document="1"/>
+                <entry offset="0xdf" hidden="true" document="1"/>
+                <entry offset="0xe3" startLine="29" startColumn="5" endLine="29" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xe4">
                 <namespace name="System" importlevel="file"/>
@@ -1724,7 +1768,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestTopConditionDoLoop()
             Dim source =
 <compilation>
@@ -1758,10 +1802,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
@@ -1779,33 +1826,33 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" hidden="true"/>
-                <entry offset="0x5" startLine="8" startColumn="13" endLine="8" endColumn="26"/>
-                <entry offset="0xa" hidden="true"/>
-                <entry offset="0xd" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
-                <entry offset="0x18" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
-                <entry offset="0x1b" startLine="10" startColumn="13" endLine="10" endColumn="30"/>
-                <entry offset="0x20" hidden="true"/>
-                <entry offset="0x23" startLine="11" startColumn="21" endLine="11" endColumn="40"/>
-                <entry offset="0x2a" startLine="12" startColumn="17" endLine="12" endColumn="38"/>
-                <entry offset="0x32" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
-                <entry offset="0x35" startLine="13" startColumn="13" endLine="13" endColumn="30"/>
-                <entry offset="0x3b" hidden="true"/>
-                <entry offset="0x3f" startLine="14" startColumn="21" endLine="14" endColumn="40"/>
-                <entry offset="0x46" startLine="15" startColumn="17" endLine="15" endColumn="38"/>
-                <entry offset="0x4e" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
-                <entry offset="0x51" startLine="16" startColumn="13" endLine="16" endColumn="17"/>
-                <entry offset="0x52" startLine="17" startColumn="21" endLine="17" endColumn="42"/>
-                <entry offset="0x59" startLine="18" startColumn="17" endLine="18" endColumn="38"/>
-                <entry offset="0x61" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
-                <entry offset="0x62" startLine="21" startColumn="17" endLine="21" endColumn="40"/>
-                <entry offset="0x66" startLine="22" startColumn="13" endLine="22" endColumn="21"/>
-                <entry offset="0x68" startLine="23" startColumn="9" endLine="23" endColumn="13"/>
-                <entry offset="0x69" startLine="7" startColumn="9" endLine="7" endColumn="23"/>
-                <entry offset="0x6f" hidden="true"/>
-                <entry offset="0x73" startLine="25" startColumn="5" endLine="25" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" hidden="true" document="1"/>
+                <entry offset="0x5" startLine="8" startColumn="13" endLine="8" endColumn="26" document="1"/>
+                <entry offset="0xa" hidden="true" document="1"/>
+                <entry offset="0xd" startLine="9" startColumn="17" endLine="9" endColumn="40" document="1"/>
+                <entry offset="0x18" startLine="19" startColumn="13" endLine="19" endColumn="19" document="1"/>
+                <entry offset="0x1b" startLine="10" startColumn="13" endLine="10" endColumn="30" document="1"/>
+                <entry offset="0x20" hidden="true" document="1"/>
+                <entry offset="0x23" startLine="11" startColumn="21" endLine="11" endColumn="40" document="1"/>
+                <entry offset="0x2a" startLine="12" startColumn="17" endLine="12" endColumn="38" document="1"/>
+                <entry offset="0x32" startLine="19" startColumn="13" endLine="19" endColumn="19" document="1"/>
+                <entry offset="0x35" startLine="13" startColumn="13" endLine="13" endColumn="30" document="1"/>
+                <entry offset="0x3b" hidden="true" document="1"/>
+                <entry offset="0x3f" startLine="14" startColumn="21" endLine="14" endColumn="40" document="1"/>
+                <entry offset="0x46" startLine="15" startColumn="17" endLine="15" endColumn="38" document="1"/>
+                <entry offset="0x4e" startLine="19" startColumn="13" endLine="19" endColumn="19" document="1"/>
+                <entry offset="0x51" startLine="16" startColumn="13" endLine="16" endColumn="17" document="1"/>
+                <entry offset="0x52" startLine="17" startColumn="21" endLine="17" endColumn="42" document="1"/>
+                <entry offset="0x59" startLine="18" startColumn="17" endLine="18" endColumn="38" document="1"/>
+                <entry offset="0x61" startLine="19" startColumn="13" endLine="19" endColumn="19" document="1"/>
+                <entry offset="0x62" startLine="21" startColumn="17" endLine="21" endColumn="40" document="1"/>
+                <entry offset="0x66" startLine="22" startColumn="13" endLine="22" endColumn="21" document="1"/>
+                <entry offset="0x68" startLine="23" startColumn="9" endLine="23" endColumn="13" document="1"/>
+                <entry offset="0x69" startLine="7" startColumn="9" endLine="7" endColumn="23" document="1"/>
+                <entry offset="0x6f" hidden="true" document="1"/>
+                <entry offset="0x73" startLine="25" startColumn="5" endLine="25" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x74">
                 <namespace name="System" importlevel="file"/>
@@ -1829,7 +1876,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestBottomConditionDoLoop()
             Dim source =
 <compilation>
@@ -1864,12 +1911,15 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
@@ -1887,32 +1937,32 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11"/>
-                <entry offset="0x4" startLine="9" startColumn="13" endLine="9" endColumn="26"/>
-                <entry offset="0x9" hidden="true"/>
-                <entry offset="0xc" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
-                <entry offset="0x17" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
-                <entry offset="0x1a" startLine="11" startColumn="13" endLine="11" endColumn="30"/>
-                <entry offset="0x1f" hidden="true"/>
-                <entry offset="0x22" startLine="12" startColumn="21" endLine="12" endColumn="40"/>
-                <entry offset="0x29" startLine="13" startColumn="17" endLine="13" endColumn="38"/>
-                <entry offset="0x31" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
-                <entry offset="0x34" startLine="14" startColumn="13" endLine="14" endColumn="30"/>
-                <entry offset="0x3a" hidden="true"/>
-                <entry offset="0x3e" startLine="15" startColumn="21" endLine="15" endColumn="40"/>
-                <entry offset="0x45" startLine="16" startColumn="17" endLine="16" endColumn="38"/>
-                <entry offset="0x4d" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
-                <entry offset="0x50" startLine="17" startColumn="13" endLine="17" endColumn="17"/>
-                <entry offset="0x51" startLine="18" startColumn="21" endLine="18" endColumn="42"/>
-                <entry offset="0x58" startLine="19" startColumn="17" endLine="19" endColumn="38"/>
-                <entry offset="0x60" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
-                <entry offset="0x61" startLine="22" startColumn="17" endLine="22" endColumn="40"/>
-                <entry offset="0x65" startLine="23" startColumn="13" endLine="23" endColumn="21"/>
-                <entry offset="0x67" startLine="24" startColumn="9" endLine="24" endColumn="25"/>
-                <entry offset="0x6e" hidden="true"/>
-                <entry offset="0x72" startLine="26" startColumn="5" endLine="26" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11" document="1"/>
+                <entry offset="0x4" startLine="9" startColumn="13" endLine="9" endColumn="26" document="1"/>
+                <entry offset="0x9" hidden="true" document="1"/>
+                <entry offset="0xc" startLine="10" startColumn="17" endLine="10" endColumn="40" document="1"/>
+                <entry offset="0x17" startLine="20" startColumn="13" endLine="20" endColumn="19" document="1"/>
+                <entry offset="0x1a" startLine="11" startColumn="13" endLine="11" endColumn="30" document="1"/>
+                <entry offset="0x1f" hidden="true" document="1"/>
+                <entry offset="0x22" startLine="12" startColumn="21" endLine="12" endColumn="40" document="1"/>
+                <entry offset="0x29" startLine="13" startColumn="17" endLine="13" endColumn="38" document="1"/>
+                <entry offset="0x31" startLine="20" startColumn="13" endLine="20" endColumn="19" document="1"/>
+                <entry offset="0x34" startLine="14" startColumn="13" endLine="14" endColumn="30" document="1"/>
+                <entry offset="0x3a" hidden="true" document="1"/>
+                <entry offset="0x3e" startLine="15" startColumn="21" endLine="15" endColumn="40" document="1"/>
+                <entry offset="0x45" startLine="16" startColumn="17" endLine="16" endColumn="38" document="1"/>
+                <entry offset="0x4d" startLine="20" startColumn="13" endLine="20" endColumn="19" document="1"/>
+                <entry offset="0x50" startLine="17" startColumn="13" endLine="17" endColumn="17" document="1"/>
+                <entry offset="0x51" startLine="18" startColumn="21" endLine="18" endColumn="42" document="1"/>
+                <entry offset="0x58" startLine="19" startColumn="17" endLine="19" endColumn="38" document="1"/>
+                <entry offset="0x60" startLine="20" startColumn="13" endLine="20" endColumn="19" document="1"/>
+                <entry offset="0x61" startLine="22" startColumn="17" endLine="22" endColumn="40" document="1"/>
+                <entry offset="0x65" startLine="23" startColumn="13" endLine="23" endColumn="21" document="1"/>
+                <entry offset="0x67" startLine="24" startColumn="9" endLine="24" endColumn="25" document="1"/>
+                <entry offset="0x6e" hidden="true" document="1"/>
+                <entry offset="0x72" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x73">
                 <namespace name="System" importlevel="file"/>
@@ -1936,7 +1986,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestInfiniteLoop()
             Dim source =
 <compilation>
@@ -1958,10 +2008,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
@@ -1972,12 +2025,12 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11"/>
-                <entry offset="0x4" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="21"/>
-                <entry offset="0xa" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11" document="1"/>
+                <entry offset="0x4" startLine="9" startColumn="17" endLine="9" endColumn="40" document="1"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0xa" startLine="11" startColumn="9" endLine="11" endColumn="13" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xd">
                 <namespace name="System" importlevel="file"/>
@@ -1993,7 +2046,7 @@ End Module
         End Sub
 
         <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
 <compilation>
@@ -2014,13 +2067,16 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
-            ' By Design (better than Dev10): <entry offset="0x19" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
+            ' By Design (better than Dev10): <entry offset="0x19" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
@@ -2030,15 +2086,15 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="38"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="37"/>
-                <entry offset="0x6" hidden="true"/>
-                <entry offset="0x9" startLine="7" startColumn="13" endLine="7" endColumn="38"/>
-                <entry offset="0x14" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
-                <entry offset="0x17" startLine="8" startColumn="9" endLine="8" endColumn="13"/>
-                <entry offset="0x18" startLine="9" startColumn="13" endLine="9" endColumn="38"/>
-                <entry offset="0x23" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
-                <entry offset="0x24" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="38" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="37" document="1"/>
+                <entry offset="0x6" hidden="true" document="1"/>
+                <entry offset="0x9" startLine="7" startColumn="13" endLine="7" endColumn="38" document="1"/>
+                <entry offset="0x14" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x17" startLine="8" startColumn="9" endLine="8" endColumn="13" document="1"/>
+                <entry offset="0x18" startLine="9" startColumn="13" endLine="9" endColumn="38" document="1"/>
+                <entry offset="0x23" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x24" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x25">
                 <namespace name="System" importlevel="file"/>
@@ -2050,7 +2106,7 @@ End Module
         End Sub
 
         <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
 <compilation>
@@ -2077,7 +2133,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation).VerifyIL("MyMod.Main", "
 {
@@ -2106,6 +2162,9 @@ End Module
 
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="MyMod" methodName="Main"/>
     <methods>
         <method containingType="MyMod" name="Main">
@@ -2116,14 +2175,14 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="31"/>
-                <entry offset="0xc" startLine="8" startColumn="9" endLine="8" endColumn="28"/>
-                <entry offset="0x10" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
-                <entry offset="0x11" startLine="12" startColumn="9" endLine="12" endColumn="29"/>
-                <entry offset="0x15" startLine="14" startColumn="9" endLine="14" endColumn="15"/>
-                <entry offset="0x16" startLine="16" startColumn="9" endLine="16" endColumn="31"/>
-                <entry offset="0x21" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="31" document="1"/>
+                <entry offset="0xc" startLine="8" startColumn="9" endLine="8" endColumn="28" document="1"/>
+                <entry offset="0x10" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0x11" startLine="12" startColumn="9" endLine="12" endColumn="29" document="1"/>
+                <entry offset="0x15" startLine="14" startColumn="9" endLine="14" endColumn="15" document="1"/>
+                <entry offset="0x16" startLine="16" startColumn="9" endLine="16" endColumn="31" document="1"/>
+                <entry offset="0x21" startLine="17" startColumn="5" endLine="17" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x22">
                 <namespace name="System" importlevel="file"/>
@@ -2134,7 +2193,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingSequencePointForTrivialIfThen()
             Dim source =
 <compilation>
@@ -2174,13 +2233,16 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2194,20 +2256,20 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15"/>
-                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="24"/>
-                <entry offset="0x5" startLine="11" startColumn="9" endLine="11" endColumn="15"/>
-                <entry offset="0x6" startLine="14" startColumn="9" endLine="14" endColumn="24"/>
-                <entry offset="0xa" hidden="true"/>
-                <entry offset="0xb" startLine="16" startColumn="9" endLine="16" endColumn="12"/>
-                <entry offset="0xe" hidden="true"/>
-                <entry offset="0x15" startLine="17" startColumn="9" endLine="17" endColumn="30"/>
-                <entry offset="0x1d" hidden="true"/>
-                <entry offset="0x1f" startLine="18" startColumn="9" endLine="18" endColumn="16"/>
-                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="28"/>
-                <entry offset="0x25" hidden="true"/>
-                <entry offset="0x26" startLine="21" startColumn="9" endLine="21" endColumn="16"/>
-                <entry offset="0x27" startLine="23" startColumn="5" endLine="23" endColumn="12"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="24" document="1"/>
+                <entry offset="0x5" startLine="11" startColumn="9" endLine="11" endColumn="15" document="1"/>
+                <entry offset="0x6" startLine="14" startColumn="9" endLine="14" endColumn="24" document="1"/>
+                <entry offset="0xa" hidden="true" document="1"/>
+                <entry offset="0xb" startLine="16" startColumn="9" endLine="16" endColumn="12" document="1"/>
+                <entry offset="0xe" hidden="true" document="1"/>
+                <entry offset="0x15" startLine="17" startColumn="9" endLine="17" endColumn="30" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
+                <entry offset="0x1f" startLine="18" startColumn="9" endLine="18" endColumn="16" document="1"/>
+                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="28" document="1"/>
+                <entry offset="0x25" hidden="true" document="1"/>
+                <entry offset="0x26" startLine="21" startColumn="9" endLine="21" endColumn="16" document="1"/>
+                <entry offset="0x27" startLine="23" startColumn="5" endLine="23" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x28">
                 <namespace name="System" importlevel="file"/>
@@ -2222,7 +2284,7 @@ End Module
         End Sub
 
         <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
 <compilation>
@@ -2266,13 +2328,16 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
             ' startLine="33"
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
@@ -2293,43 +2358,43 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="31"/>
-                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="15"/>
-                <entry offset="0x5" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
-                <entry offset="0x9" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
-                <entry offset="0xd" startLine="11" startColumn="9" endLine="11" endColumn="14"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="14"/>
-                <entry offset="0x12" startLine="13" startColumn="9" endLine="13" endColumn="14"/>
-                <entry offset="0x15" startLine="14" startColumn="13" endLine="14" endColumn="32"/>
-                <entry offset="0x19" startLine="15" startColumn="9" endLine="15" endColumn="11"/>
-                <entry offset="0x1a" startLine="16" startColumn="13" endLine="16" endColumn="44"/>
-                <entry offset="0x2b" startLine="17" startColumn="13" endLine="17" endColumn="22"/>
-                <entry offset="0x43" hidden="true"/>
-                <entry offset="0x48" hidden="true"/>
-                <entry offset="0x4d" startLine="20" startColumn="21" endLine="20" endColumn="30"/>
-                <entry offset="0x54" startLine="21" startColumn="21" endLine="21" endColumn="49"/>
-                <entry offset="0x66" hidden="true"/>
-                <entry offset="0x68" startLine="23" startColumn="25" endLine="23" endColumn="53"/>
-                <entry offset="0x79" startLine="24" startColumn="25" endLine="24" endColumn="27"/>
-                <entry offset="0x7a" startLine="25" startColumn="29" endLine="25" endColumn="57"/>
-                <entry offset="0x8c" startLine="26" startColumn="29" endLine="26" endColumn="38"/>
-                <entry offset="0x93" startLine="27" startColumn="25" endLine="27" endColumn="47"/>
-                <entry offset="0xa8" hidden="true"/>
-                <entry offset="0xac" startLine="28" startColumn="25" endLine="28" endColumn="34"/>
-                <entry offset="0xc4" startLine="29" startColumn="21" endLine="29" endColumn="25"/>
-                <entry offset="0xc5" startLine="22" startColumn="21" endLine="22" endColumn="41"/>
-                <entry offset="0xdc" hidden="true"/>
-                <entry offset="0xe0" startLine="30" startColumn="17" endLine="30" endColumn="21"/>
-                <entry offset="0xe1" startLine="19" startColumn="17" endLine="19" endColumn="46"/>
-                <entry offset="0xf1" hidden="true"/>
-                <entry offset="0xf8" startLine="31" startColumn="17" endLine="31" endColumn="26"/>
-                <entry offset="0x110" startLine="32" startColumn="17" endLine="32" endColumn="46"/>
-                <entry offset="0x121" startLine="33" startColumn="13" endLine="33" endColumn="22"/>
-                <entry offset="0x122" startLine="18" startColumn="13" endLine="18" endColumn="26"/>
-                <entry offset="0x138" hidden="true"/>
-                <entry offset="0x13f" startLine="34" startColumn="9" endLine="34" endColumn="28"/>
-                <entry offset="0x158" hidden="true"/>
-                <entry offset="0x15f" startLine="35" startColumn="5" endLine="35" endColumn="12"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="15" document="1"/>
+                <entry offset="0x5" startLine="9" startColumn="9" endLine="9" endColumn="15" document="1"/>
+                <entry offset="0x9" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
+                <entry offset="0xd" startLine="11" startColumn="9" endLine="11" endColumn="14" document="1"/>
+                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="14" document="1"/>
+                <entry offset="0x12" startLine="13" startColumn="9" endLine="13" endColumn="14" document="1"/>
+                <entry offset="0x15" startLine="14" startColumn="13" endLine="14" endColumn="32" document="1"/>
+                <entry offset="0x19" startLine="15" startColumn="9" endLine="15" endColumn="11" document="1"/>
+                <entry offset="0x1a" startLine="16" startColumn="13" endLine="16" endColumn="44" document="1"/>
+                <entry offset="0x2b" startLine="17" startColumn="13" endLine="17" endColumn="22" document="1"/>
+                <entry offset="0x43" hidden="true" document="1"/>
+                <entry offset="0x48" hidden="true" document="1"/>
+                <entry offset="0x4d" startLine="20" startColumn="21" endLine="20" endColumn="30" document="1"/>
+                <entry offset="0x54" startLine="21" startColumn="21" endLine="21" endColumn="49" document="1"/>
+                <entry offset="0x66" hidden="true" document="1"/>
+                <entry offset="0x68" startLine="23" startColumn="25" endLine="23" endColumn="53" document="1"/>
+                <entry offset="0x79" startLine="24" startColumn="25" endLine="24" endColumn="27" document="1"/>
+                <entry offset="0x7a" startLine="25" startColumn="29" endLine="25" endColumn="57" document="1"/>
+                <entry offset="0x8c" startLine="26" startColumn="29" endLine="26" endColumn="38" document="1"/>
+                <entry offset="0x93" startLine="27" startColumn="25" endLine="27" endColumn="47" document="1"/>
+                <entry offset="0xa8" hidden="true" document="1"/>
+                <entry offset="0xac" startLine="28" startColumn="25" endLine="28" endColumn="34" document="1"/>
+                <entry offset="0xc4" startLine="29" startColumn="21" endLine="29" endColumn="25" document="1"/>
+                <entry offset="0xc5" startLine="22" startColumn="21" endLine="22" endColumn="41" document="1"/>
+                <entry offset="0xdc" hidden="true" document="1"/>
+                <entry offset="0xe0" startLine="30" startColumn="17" endLine="30" endColumn="21" document="1"/>
+                <entry offset="0xe1" startLine="19" startColumn="17" endLine="19" endColumn="46" document="1"/>
+                <entry offset="0xf1" hidden="true" document="1"/>
+                <entry offset="0xf8" startLine="31" startColumn="17" endLine="31" endColumn="26" document="1"/>
+                <entry offset="0x110" startLine="32" startColumn="17" endLine="32" endColumn="46" document="1"/>
+                <entry offset="0x121" startLine="33" startColumn="13" endLine="33" endColumn="22" document="1"/>
+                <entry offset="0x122" startLine="18" startColumn="13" endLine="18" endColumn="26" document="1"/>
+                <entry offset="0x138" hidden="true" document="1"/>
+                <entry offset="0x13f" startLine="34" startColumn="9" endLine="34" endColumn="28" document="1"/>
+                <entry offset="0x158" hidden="true" document="1"/>
+                <entry offset="0x15f" startLine="35" startColumn="5" endLine="35" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x160">
                 <namespace name="System" importlevel="file"/>
@@ -2347,7 +2412,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestImplicitLocals()
             Dim source =
 <compilation>
@@ -2372,12 +2437,15 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2391,19 +2459,19 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="15"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="20"/>
-                <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="34"/>
-                <entry offset="0xd" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
-                <entry offset="0xf" hidden="true"/>
-                <entry offset="0x11" startLine="11" startColumn="13" endLine="11" endColumn="48"/>
-                <entry offset="0x23" startLine="12" startColumn="13" endLine="12" endColumn="33"/>
-                <entry offset="0x2a" startLine="13" startColumn="13" endLine="13" endColumn="26"/>
-                <entry offset="0x30" startLine="14" startColumn="13" endLine="14" endColumn="23"/>
-                <entry offset="0x34" startLine="15" startColumn="9" endLine="15" endColumn="18"/>
-                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="20"/>
-                <entry offset="0x3b" hidden="true"/>
-                <entry offset="0x3f" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="20" document="1"/>
+                <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="34" document="1"/>
+                <entry offset="0xd" startLine="9" startColumn="9" endLine="9" endColumn="15" document="1"/>
+                <entry offset="0xf" hidden="true" document="1"/>
+                <entry offset="0x11" startLine="11" startColumn="13" endLine="11" endColumn="48" document="1"/>
+                <entry offset="0x23" startLine="12" startColumn="13" endLine="12" endColumn="33" document="1"/>
+                <entry offset="0x2a" startLine="13" startColumn="13" endLine="13" endColumn="26" document="1"/>
+                <entry offset="0x30" startLine="14" startColumn="13" endLine="14" endColumn="23" document="1"/>
+                <entry offset="0x34" startLine="15" startColumn="9" endLine="15" endColumn="18" document="1"/>
+                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="20" document="1"/>
+                <entry offset="0x3b" hidden="true" document="1"/>
+                <entry offset="0x3f" startLine="16" startColumn="5" endLine="16" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x40">
                 <namespace name="System" importlevel="file"/>
@@ -2418,7 +2486,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddRemoveHandler()
             Dim source =
 <compilation>
@@ -2441,12 +2509,15 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Module1" name="Main" parameterNames="args">
@@ -2461,13 +2532,13 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
-                <entry offset="0x1" startLine="5" startColumn="13" endLine="6" endColumn="74"/>
-                <entry offset="0x26" startLine="8" startColumn="13" endLine="8" endColumn="45"/>
-                <entry offset="0x31" startLine="10" startColumn="9" endLine="10" endColumn="41"/>
-                <entry offset="0x39" startLine="11" startColumn="9" endLine="11" endColumn="44"/>
-                <entry offset="0x41" startLine="13" startColumn="9" endLine="13" endColumn="28"/>
-                <entry offset="0x48" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="13" endLine="6" endColumn="74" document="1"/>
+                <entry offset="0x26" startLine="8" startColumn="13" endLine="8" endColumn="45" document="1"/>
+                <entry offset="0x31" startLine="10" startColumn="9" endLine="10" endColumn="41" document="1"/>
+                <entry offset="0x39" startLine="11" startColumn="9" endLine="11" endColumn="44" document="1"/>
+                <entry offset="0x41" startLine="13" startColumn="9" endLine="13" endColumn="28" document="1"/>
+                <entry offset="0x48" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x49">
                 <namespace name="System" importlevel="file"/>
@@ -2480,7 +2551,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_NoCaseBlocks()
             Dim source =
 <compilation>
@@ -2496,10 +2567,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2509,11 +2583,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="19"/>
-                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <namespace name="System" importlevel="file"/>
@@ -2527,7 +2601,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SingleCaseStatement()
             Dim source =
 <compilation>
@@ -2548,10 +2622,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2561,15 +2638,15 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0xd" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
-                <entry offset="0xe" startLine="9" startColumn="9" endLine="9" endColumn="24"/>
-                <entry offset="0x11" startLine="10" startColumn="13" endLine="10" endColumn="22"/>
-                <entry offset="0x14" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
-                <entry offset="0x15" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0xd" startLine="7" startColumn="9" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0xe" startLine="9" startColumn="9" endLine="9" endColumn="24" document="1"/>
+                <entry offset="0x11" startLine="10" startColumn="13" endLine="10" endColumn="22" document="1"/>
+                <entry offset="0x14" startLine="11" startColumn="9" endLine="11" endColumn="19" document="1"/>
+                <entry offset="0x15" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
@@ -2583,7 +2660,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_OnlyCaseStatements()
             Dim source =
 <compilation>
@@ -2603,7 +2680,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             CompileAndVerify(compilation).VerifyIL("Module1.Main", "
 {
@@ -2658,6 +2735,9 @@ End Module
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2669,18 +2749,18 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0xb" hidden="true"/>
-                <entry offset="0x10" startLine="7" startColumn="13" endLine="7" endColumn="19"/>
-                <entry offset="0x15" hidden="true"/>
-                <entry offset="0x1a" startLine="8" startColumn="13" endLine="8" endColumn="27"/>
-                <entry offset="0x2f" hidden="true"/>
-                <entry offset="0x34" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
-                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="19"/>
-                <entry offset="0x36" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0xb" hidden="true" document="1"/>
+                <entry offset="0x10" startLine="7" startColumn="13" endLine="7" endColumn="19" document="1"/>
+                <entry offset="0x15" hidden="true" document="1"/>
+                <entry offset="0x1a" startLine="8" startColumn="13" endLine="8" endColumn="27" document="1"/>
+                <entry offset="0x2f" hidden="true" document="1"/>
+                <entry offset="0x34" startLine="9" startColumn="13" endLine="9" endColumn="22" document="1"/>
+                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="19" document="1"/>
+                <entry offset="0x36" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x37">
                 <namespace name="System" importlevel="file"/>
@@ -2693,7 +2773,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SwitchTable()
             Dim source =
 <compilation>
@@ -2716,10 +2796,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2729,18 +2812,18 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x30" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0x31" startLine="7" startColumn="17" endLine="7" endColumn="39"/>
-                <entry offset="0x3e" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
-                <entry offset="0x3f" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
-                <entry offset="0x4c" startLine="10" startColumn="13" endLine="10" endColumn="42"/>
-                <entry offset="0x4f" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
-                <entry offset="0x50" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
-                <entry offset="0x5d" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
-                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x30" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0x31" startLine="7" startColumn="17" endLine="7" endColumn="39" document="1"/>
+                <entry offset="0x3e" startLine="8" startColumn="13" endLine="8" endColumn="19" document="1"/>
+                <entry offset="0x3f" startLine="9" startColumn="17" endLine="9" endColumn="39" document="1"/>
+                <entry offset="0x4c" startLine="10" startColumn="13" endLine="10" endColumn="42" document="1"/>
+                <entry offset="0x4f" startLine="11" startColumn="13" endLine="11" endColumn="22" document="1"/>
+                <entry offset="0x50" startLine="12" startColumn="17" endLine="12" endColumn="42" document="1"/>
+                <entry offset="0x5d" startLine="13" startColumn="9" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5f">
                 <namespace name="System" importlevel="file"/>
@@ -2754,7 +2837,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_SwitchTable_TempUsed()
             Dim source =
 <compilation>
@@ -2778,10 +2861,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2792,19 +2878,19 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28"/>
-                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="38"/>
-                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
-                <entry offset="0x43" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
-                <entry offset="0x50" startLine="10" startColumn="13" endLine="10" endColumn="42"/>
-                <entry offset="0x51" startLine="11" startColumn="17" endLine="11" endColumn="39"/>
-                <entry offset="0x5e" startLine="12" startColumn="13" endLine="12" endColumn="22"/>
-                <entry offset="0x5f" startLine="13" startColumn="17" endLine="13" endColumn="42"/>
-                <entry offset="0x6c" startLine="14" startColumn="9" endLine="14" endColumn="19"/>
-                <entry offset="0x6d" startLine="15" startColumn="5" endLine="15" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28" document="1"/>
+                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="38" document="1"/>
+                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="19" document="1"/>
+                <entry offset="0x43" startLine="9" startColumn="17" endLine="9" endColumn="39" document="1"/>
+                <entry offset="0x50" startLine="10" startColumn="13" endLine="10" endColumn="42" document="1"/>
+                <entry offset="0x51" startLine="11" startColumn="17" endLine="11" endColumn="39" document="1"/>
+                <entry offset="0x5e" startLine="12" startColumn="13" endLine="12" endColumn="22" document="1"/>
+                <entry offset="0x5f" startLine="13" startColumn="17" endLine="13" endColumn="42" document="1"/>
+                <entry offset="0x6c" startLine="14" startColumn="9" endLine="14" endColumn="19" document="1"/>
+                <entry offset="0x6d" startLine="15" startColumn="5" endLine="15" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6e">
                 <namespace name="System" importlevel="file"/>
@@ -2818,7 +2904,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_IfList()
             Dim source =
 <compilation>
@@ -2841,10 +2927,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2856,20 +2945,20 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0xb" hidden="true"/>
-                <entry offset="0xe" startLine="7" startColumn="17" endLine="7" endColumn="39"/>
-                <entry offset="0x1b" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
-                <entry offset="0x20" hidden="true"/>
-                <entry offset="0x23" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
-                <entry offset="0x30" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
-                <entry offset="0x42" hidden="true"/>
-                <entry offset="0x47" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
-                <entry offset="0x52" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
-                <entry offset="0x53" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0xb" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="7" startColumn="17" endLine="7" endColumn="39" document="1"/>
+                <entry offset="0x1b" startLine="8" startColumn="13" endLine="8" endColumn="19" document="1"/>
+                <entry offset="0x20" hidden="true" document="1"/>
+                <entry offset="0x23" startLine="9" startColumn="17" endLine="9" endColumn="39" document="1"/>
+                <entry offset="0x30" startLine="10" startColumn="13" endLine="10" endColumn="31" document="1"/>
+                <entry offset="0x42" hidden="true" document="1"/>
+                <entry offset="0x47" startLine="12" startColumn="17" endLine="12" endColumn="42" document="1"/>
+                <entry offset="0x52" startLine="13" startColumn="9" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x53" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x54">
                 <namespace name="System" importlevel="file"/>
@@ -2883,7 +2972,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_IfList_TempUsed()
             Dim source =
 <compilation>
@@ -2907,10 +2996,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2922,21 +3014,21 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28"/>
-                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
-                <entry offset="0xd" hidden="true"/>
-                <entry offset="0x10" startLine="7" startColumn="17" endLine="7" endColumn="38"/>
-                <entry offset="0x1d" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
-                <entry offset="0x22" hidden="true"/>
-                <entry offset="0x25" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
-                <entry offset="0x32" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
-                <entry offset="0x44" hidden="true"/>
-                <entry offset="0x47" startLine="11" startColumn="17" endLine="11" endColumn="39"/>
-                <entry offset="0x54" startLine="13" startColumn="17" endLine="13" endColumn="42"/>
-                <entry offset="0x5f" startLine="14" startColumn="9" endLine="14" endColumn="19"/>
-                <entry offset="0x60" startLine="15" startColumn="5" endLine="15" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28" document="1"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="19" document="1"/>
+                <entry offset="0xd" hidden="true" document="1"/>
+                <entry offset="0x10" startLine="7" startColumn="17" endLine="7" endColumn="38" document="1"/>
+                <entry offset="0x1d" startLine="8" startColumn="13" endLine="8" endColumn="19" document="1"/>
+                <entry offset="0x22" hidden="true" document="1"/>
+                <entry offset="0x25" startLine="9" startColumn="17" endLine="9" endColumn="39" document="1"/>
+                <entry offset="0x32" startLine="10" startColumn="13" endLine="10" endColumn="31" document="1"/>
+                <entry offset="0x44" hidden="true" document="1"/>
+                <entry offset="0x47" startLine="11" startColumn="17" endLine="11" endColumn="39" document="1"/>
+                <entry offset="0x54" startLine="13" startColumn="17" endLine="13" endColumn="42" document="1"/>
+                <entry offset="0x5f" startLine="14" startColumn="9" endLine="14" endColumn="19" document="1"/>
+                <entry offset="0x60" startLine="15" startColumn="5" endLine="15" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x61">
                 <namespace name="System" importlevel="file"/>
@@ -2950,7 +3042,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_SwitchTable_Hash()
             Dim source =
 <compilation>
@@ -2973,10 +3065,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -2987,18 +3082,18 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x135" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
-                <entry offset="0x136" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
-                <entry offset="0x143" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
-                <entry offset="0x144" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
-                <entry offset="0x151" startLine="10" startColumn="13" endLine="10" endColumn="58"/>
-                <entry offset="0x154" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
-                <entry offset="0x155" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
-                <entry offset="0x162" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
-                <entry offset="0x163" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x135" startLine="6" startColumn="13" endLine="6" endColumn="22" document="1"/>
+                <entry offset="0x136" startLine="7" startColumn="17" endLine="7" endColumn="40" document="1"/>
+                <entry offset="0x143" startLine="8" startColumn="13" endLine="8" endColumn="22" document="1"/>
+                <entry offset="0x144" startLine="9" startColumn="17" endLine="9" endColumn="40" document="1"/>
+                <entry offset="0x151" startLine="10" startColumn="13" endLine="10" endColumn="58" document="1"/>
+                <entry offset="0x154" startLine="11" startColumn="13" endLine="11" endColumn="22" document="1"/>
+                <entry offset="0x155" startLine="12" startColumn="17" endLine="12" endColumn="42" document="1"/>
+                <entry offset="0x162" startLine="13" startColumn="9" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x163" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x164">
                 <namespace name="System" importlevel="file"/>
@@ -3012,7 +3107,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_SwitchTable_NonHash()
             Dim source =
 <compilation>
@@ -3034,10 +3129,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -3047,17 +3145,17 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
-                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
-                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
-                <entry offset="0x45" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
-                <entry offset="0x46" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
-                <entry offset="0x53" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
-                <entry offset="0x56" startLine="12" startColumn="9" endLine="12" endColumn="19"/>
-                <entry offset="0x57" startLine="13" startColumn="5" endLine="13" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="22" document="1"/>
+                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="40" document="1"/>
+                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="22" document="1"/>
+                <entry offset="0x45" startLine="9" startColumn="13" endLine="9" endColumn="22" document="1"/>
+                <entry offset="0x46" startLine="10" startColumn="17" endLine="10" endColumn="40" document="1"/>
+                <entry offset="0x53" startLine="11" startColumn="13" endLine="11" endColumn="22" document="1"/>
+                <entry offset="0x56" startLine="12" startColumn="9" endLine="12" endColumn="19" document="1"/>
+                <entry offset="0x57" startLine="13" startColumn="5" endLine="13" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x58">
                 <namespace name="System" importlevel="file"/>
@@ -3071,7 +3169,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SelectCase_String_IfList()
             Dim source =
 <compilation>
@@ -3092,10 +3190,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1" name="Main">
@@ -3108,19 +3209,19 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
-                <entry offset="0x1a" hidden="true"/>
-                <entry offset="0x1d" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
-                <entry offset="0x2a" startLine="8" startColumn="13" endLine="8" endColumn="36"/>
-                <entry offset="0x4f" hidden="true"/>
-                <entry offset="0x54" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
-                <entry offset="0x64" hidden="true"/>
-                <entry offset="0x67" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
-                <entry offset="0x72" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
-                <entry offset="0x73" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22" document="1"/>
+                <entry offset="0x1a" hidden="true" document="1"/>
+                <entry offset="0x1d" startLine="7" startColumn="17" endLine="7" endColumn="40" document="1"/>
+                <entry offset="0x2a" startLine="8" startColumn="13" endLine="8" endColumn="36" document="1"/>
+                <entry offset="0x4f" hidden="true" document="1"/>
+                <entry offset="0x54" startLine="9" startColumn="13" endLine="9" endColumn="22" document="1"/>
+                <entry offset="0x64" hidden="true" document="1"/>
+                <entry offset="0x67" startLine="10" startColumn="17" endLine="10" endColumn="40" document="1"/>
+                <entry offset="0x72" startLine="11" startColumn="9" endLine="11" endColumn="19" document="1"/>
+                <entry offset="0x73" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x74">
                 <namespace name="System" importlevel="file"/>
@@ -3134,7 +3235,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontEmit_AnonymousType_NoKeys()
             Dim source =
 <compilation>
@@ -3147,10 +3248,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C1" name="Method">
             <customDebugInfo>
@@ -3159,9 +3263,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="36"/>
-                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="36" document="1"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
@@ -3172,7 +3276,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontEmit_AnonymousType_WithKeys()
             Dim source =
 <compilation>
@@ -3185,10 +3289,13 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C1" name="Method">
             <customDebugInfo>
@@ -3197,9 +3304,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="40"/>
-                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="40" document="1"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
@@ -3211,7 +3318,7 @@ End Class
         End Sub
 
         <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug727419()
             Dim source =
 <compilation>
@@ -3220,7 +3327,7 @@ Option Strict Off
 Option Explicit Off
 Imports System
 
-Class FooDerived
+Class GooDerived
     Public Sub ComputeMatrix(ByVal rank As Integer)
         Dim I As Integer
         Dim J As Long
@@ -3245,7 +3352,7 @@ End Class
 
 Module Variety
     Sub Main()
-        Dim a As New FooDerived()
+        Dim a As New GooDerived()
         a.ComputeMatrix(2)
     End Sub
 End Module
@@ -3253,15 +3360,18 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
-            compilation.VerifyPdb("FooDerived.ComputeMatrix",
+            compilation.VerifyPdb("GooDerived.ComputeMatrix",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="Variety" methodName="Main"/>
     <methods>
-        <method containingType="FooDerived" name="ComputeMatrix" parameterNames="rank">
+        <method containingType="GooDerived" name="ComputeMatrix" parameterNames="rank">
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
@@ -3273,18 +3383,18 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="52"/>
-                <entry offset="0x1" startLine="14" startColumn="15" endLine="14" endColumn="22"/>
-                <entry offset="0xa" startLine="15" startColumn="15" endLine="15" endColumn="25"/>
-                <entry offset="0x14" startLine="18" startColumn="9" endLine="18" endColumn="18"/>
-                <entry offset="0x17" startLine="19" startColumn="9" endLine="19" endColumn="30"/>
-                <entry offset="0x1e" hidden="true"/>
-                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="21"/>
-                <entry offset="0x25" startLine="21" startColumn="13" endLine="21" endColumn="34"/>
-                <entry offset="0x3f" startLine="22" startColumn="13" endLine="22" endColumn="29"/>
-                <entry offset="0x46" startLine="23" startColumn="9" endLine="23" endColumn="15"/>
-                <entry offset="0x4a" hidden="true"/>
-                <entry offset="0x4f" startLine="24" startColumn="5" endLine="24" endColumn="12"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="52" document="1"/>
+                <entry offset="0x1" startLine="14" startColumn="15" endLine="14" endColumn="22" document="1"/>
+                <entry offset="0xa" startLine="15" startColumn="15" endLine="15" endColumn="25" document="1"/>
+                <entry offset="0x14" startLine="18" startColumn="9" endLine="18" endColumn="18" document="1"/>
+                <entry offset="0x17" startLine="19" startColumn="9" endLine="19" endColumn="30" document="1"/>
+                <entry offset="0x1e" hidden="true" document="1"/>
+                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="21" document="1"/>
+                <entry offset="0x25" startLine="21" startColumn="13" endLine="21" endColumn="34" document="1"/>
+                <entry offset="0x3f" startLine="22" startColumn="13" endLine="22" endColumn="29" document="1"/>
+                <entry offset="0x46" startLine="23" startColumn="9" endLine="23" endColumn="15" document="1"/>
+                <entry offset="0x4a" hidden="true" document="1"/>
+                <entry offset="0x4f" startLine="24" startColumn="5" endLine="24" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x50">
                 <namespace name="System" importlevel="file"/>
@@ -3301,7 +3411,7 @@ End Module
         End Sub
 
         <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug722627()
             Dim source =
 <compilation>
@@ -3320,24 +3430,27 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
 
             compilation.VerifyPdb("SubMod.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="SubMod" methodName="Main"/>
     <methods>
         <method containingType="SubMod" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="1" endLine="4" endColumn="4"/>
-                <entry offset="0x2" startLine="5" startColumn="9" endLine="5" endColumn="16"/>
-                <entry offset="0x4" startLine="6" startColumn="1" endLine="6" endColumn="4"/>
-                <entry offset="0x5" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
-                <entry offset="0x7" startLine="8" startColumn="1" endLine="8" endColumn="4"/>
-                <entry offset="0x8" startLine="9" startColumn="9" endLine="9" endColumn="16"/>
-                <entry offset="0xa" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="1" endLine="4" endColumn="4" document="1"/>
+                <entry offset="0x2" startLine="5" startColumn="9" endLine="5" endColumn="16" document="1"/>
+                <entry offset="0x4" startLine="6" startColumn="1" endLine="6" endColumn="4" document="1"/>
+                <entry offset="0x5" startLine="7" startColumn="9" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x7" startLine="8" startColumn="1" endLine="8" endColumn="4" document="1"/>
+                <entry offset="0x8" startLine="9" startColumn="9" endLine="9" endColumn="16" document="1"/>
+                <entry offset="0xa" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb">
                 <namespace name="System" importlevel="file"/>
@@ -3349,7 +3462,7 @@ End Module
         End Sub
 
         <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
 <compilation>
@@ -3369,16 +3482,19 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="M1" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
-                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="12"/>
-                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8">
                 <namespace name="System" importlevel="file"/>
@@ -3387,8 +3503,8 @@ End Module
         </method>
         <method containingType="M1" name="S">
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="19"/>
-                <entry offset="0x1" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="M1" methodName="Main"/>
@@ -3398,7 +3514,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
+        <WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -3427,10 +3544,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="Module1" name="Main">
             <customDebugInfo>
@@ -3440,10 +3560,10 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="5" endLine="17" endColumn="15"/>
-                <entry offset="0x1" startLine="18" startColumn="13" endLine="18" endColumn="30"/>
-                <entry offset="0x4" startLine="19" startColumn="13" endLine="19" endColumn="25"/>
-                <entry offset="0xb" startLine="20" startColumn="5" endLine="20" endColumn="12"/>
+                <entry offset="0x0" startLine="17" startColumn="5" endLine="17" endColumn="15" document="1"/>
+                <entry offset="0x1" startLine="18" startColumn="13" endLine="18" endColumn="30" document="1"/>
+                <entry offset="0x4" startLine="19" startColumn="13" endLine="19" endColumn="25" document="1"/>
+                <entry offset="0xb" startLine="20" startColumn="5" endLine="20" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <namespace name="System" importlevel="file"/>
@@ -3454,9 +3574,9 @@ End Module
         </method>
         <method containingType="Module1+B2" name=".ctor" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="9" endLine="8" endColumn="37"/>
-                <entry offset="0x8" startLine="9" startColumn="13" endLine="9" endColumn="18"/>
-                <entry offset="0xf" startLine="10" startColumn="9" endLine="10" endColumn="16"/>
+                <entry offset="0x0" startLine="8" startColumn="9" endLine="8" endColumn="37" document="1"/>
+                <entry offset="0x8" startLine="9" startColumn="13" endLine="9" endColumn="18" document="1"/>
+                <entry offset="0xf" startLine="10" startColumn="9" endLine="10" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -3469,9 +3589,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="59"/>
-                <entry offset="0x1" startLine="13" startColumn="13" endLine="13" endColumn="29"/>
-                <entry offset="0xa" startLine="14" startColumn="9" endLine="14" endColumn="21"/>
+                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="59" document="1"/>
+                <entry offset="0x1" startLine="13" startColumn="13" endLine="13" endColumn="29" document="1"/>
+                <entry offset="0xa" startLine="14" startColumn="9" endLine="14" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -3482,7 +3602,7 @@ End Module
         End Sub
 
         <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug760994()
             Dim source =
 <compilation>
@@ -3511,17 +3631,20 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("CLAZZ..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="CLAZZ" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="21"/>
-                <entry offset="0x1b" startLine="4" startColumn="12" endLine="4" endColumn="31"/>
-                <entry offset="0x22" startLine="6" startColumn="12" endLine="6" endColumn="31"/>
-                <entry offset="0x29" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="21" document="1"/>
+                <entry offset="0x1b" startLine="4" startColumn="12" endLine="4" endColumn="31" document="1"/>
+                <entry offset="0x22" startLine="6" startColumn="12" endLine="6" endColumn="31" document="1"/>
+                <entry offset="0x29" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2a">
                 <namespace name="System" importlevel="file"/>
@@ -3532,7 +3655,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub WRN_PDBConstantStringValueTooLong()
             Dim longStringValue = New String("a"c, 2050)
 
@@ -3544,16 +3667,16 @@ Imports System
 Module Module1
 
     Sub Main()
-        Const foo as String = "<%= longStringValue %>"
+        Const goo as String = "<%= longStringValue %>"
 
         Console.WriteLine("Hello Word.")
-        Console.WriteLine(foo)
+        Console.WriteLine(goo)
     End Sub
 End Module
 </file>
             </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             Dim exebits = New IO.MemoryStream()
             Dim pdbbits = New IO.MemoryStream()
@@ -3562,7 +3685,7 @@ End Module
 
             'this new warning was abandoned
 
-            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) & "..."))
+            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) & "..."))
 
             ''ensure that the warning is suppressable
             'compilation = CreateCompilationWithMscorlibAndVBRuntime(source, OptionsExe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(False).
@@ -3575,12 +3698,12 @@ End Module
             '    WithSpecificDiagnosticOptions(New Dictionary(Of Integer, ReportWarning) From {{CInt(ERRID.WRN_PDBConstantStringValueTooLong), ReportWarning.Error}}))
             'result = compilation.Emit(exebits, Nothing, "DontCare", pdbbits, Nothing)
             'Assert.False(result.Success)
-            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("foo", longStringValue.Substring(0, 20) & "...").WithWarningAsError(True),
-            '                              Diagnostic(ERRID.ERR_WarningTreatedAsError).WithArguments("The value assigned to the constant string 'foo' is too long to be used in a PDB file. Consider shortening the value, otherwise the string's value will not be visible in the debugger. Only the debug experience is affected."))
+            'result.Diagnostics.Verify(Diagnostic(ERRID.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) & "...").WithWarningAsError(True),
+            '                              Diagnostic(ERRID.ERR_WarningTreatedAsError).WithArguments("The value assigned to the constant string 'goo' is too long to be used in a PDB file. Consider shortening the value, otherwise the string's value will not be visible in the debugger. Only the debug experience is affected."))
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoDebugInfoForEmbeddedSymbols()
             Dim source =
 <compilation>
@@ -3594,12 +3717,15 @@ Public Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
 
             ' Dev11 generates debug info for embedded symbols. There is no reason to do so since the source code is not available to the user.
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F" parameterNames="z">
             <customDebugInfo>
@@ -3608,9 +3734,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="51"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="23"/>
-                <entry offset="0xa" startLine="6" startColumn="5" endLine="6" endColumn="17"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="51" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="23" document="1"/>
+                <entry offset="0xa" startLine="6" startColumn="5" endLine="6" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <type name="Microsoft.VisualBasic.Strings" importlevel="file"/>
@@ -3622,7 +3748,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
+        <WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -3642,10 +3769,13 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.MakeIncrementer",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="Module1" name="MakeIncrementer" parameterNames="n">
             <customDebugInfo>
@@ -3660,10 +3790,10 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="72"/>
-                <entry offset="0x1" hidden="true"/>
-                <entry offset="0xe" startLine="8" startColumn="9" endLine="10" endColumn="21"/>
-                <entry offset="0x1d" startLine="11" startColumn="5" endLine="11" endColumn="17"/>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="72" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="8" startColumn="9" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0x1d" startLine="11" startColumn="5" endLine="11" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -3681,7 +3811,7 @@ End Module
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
         <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
 <compilation>
@@ -3692,15 +3822,18 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("C..ctor",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" startLine="2" startColumn="13" endLine="2" endColumn="39"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="2" startColumn="13" endLine="2" endColumn="39" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x18">
                 <currentnamespace name=""/>
@@ -3715,7 +3848,7 @@ End Class
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SequencePointAtOffset0()
             Dim source =
 <compilation>
@@ -3730,10 +3863,13 @@ Module M
 End Module
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="M" name=".cctor">
             <customDebugInfo>
@@ -3747,7 +3883,7 @@ End Module
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21"/>
+                <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
@@ -3761,8 +3897,8 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107"/>
-                <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112"/>
+                <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x17">
                 <importsforward declaringType="M" methodName=".cctor"/>
@@ -3777,11 +3913,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57"/>
-                <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62"/>
-                <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112"/>
-                <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21"/>
+                <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62" document="1"/>
+                <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112" document="1"/>
+                <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x5d">
                 <importsforward declaringType="M" methodName=".cctor"/>
@@ -3796,8 +3932,8 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60"/>
-                <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62"/>
+                <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="M" methodName=".cctor"/>
@@ -3811,9 +3947,9 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95"/>
-                <entry offset="0x1" hidden="true"/>
-                <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112"/>
+                <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor"/>
@@ -3826,7 +3962,7 @@ End Module
 
         <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
         <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RaiseEvent001()
             Dim source =
 <compilation>
@@ -3846,11 +3982,11 @@ End Class
 </compilation>
 
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
-            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("Console")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
 
             CompileAndVerify(compilation).VerifyIL("IntervalUpdate.Update", "
 {
@@ -3871,12 +4007,15 @@ End Class
 
             compilation.VerifyPdb(
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16"/>
+                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="1"/>
+                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
@@ -3884,10 +4023,10 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="1"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="1"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="1"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -3900,9 +4039,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20"/>
+                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="1"/>
+                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -3916,9 +4055,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20"/>
+                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="1"/>
+                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -3932,9 +4071,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20"/>
+                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="1"/>
+                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -3948,9 +4087,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20"/>
+                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="1"/>
+                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -3959,9 +4098,9 @@ End Class
         </method>
         <method containingType="IntervalUpdate" name="Update">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37"/>
-                <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37" document="1"/>
+                <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name=""/>
@@ -3969,9 +4108,9 @@ End Class
         </method>
         <method containingType="IntervalUpdate" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
-                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8">
                 <importsforward declaringType="IntervalUpdate" methodName="Update"/>
@@ -3984,9 +4123,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
+                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="1"/>
+                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="1"/>
+                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name="My"/>
@@ -4000,9 +4139,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
+                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="1"/>
+                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="1"/>
+                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4016,9 +4155,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
+                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="1"/>
+                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="1"/>
+                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4032,9 +4171,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
+                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="1"/>
+                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="1"/>
+                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4049,13 +4188,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44"/>
-                <entry offset="0xb" hidden="true"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
+                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="1"/>
+                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="1"/>
+                <entry offset="0xb" hidden="true" document="1"/>
+                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="1"/>
+                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="1"/>
+                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="1"/>
+                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4064,9 +4203,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
+                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="1"/>
+                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="1"/>
+                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4074,9 +4213,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
+                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="1"/>
+                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4090,12 +4229,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59"/>
-                <entry offset="0xf" hidden="true"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
+                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="1"/>
+                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="1"/>
+                <entry offset="0xf" hidden="true" document="1"/>
+                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="1"/>
+                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="1"/>
+                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4104,20 +4243,20 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
+                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="1"/>
+                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
         <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub WinFormMain()
             Dim source =
 <compilation>
@@ -4156,11 +4295,11 @@ End Class
 </compilation>
             Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(
                 OutputKind.WindowsApplication,
-                KeyValuePair.Create(Of String, Object)("_MyType", "WindowsForms"),
-                KeyValuePair.Create(Of String, Object)("Config", "Debug"),
-                KeyValuePair.Create(Of String, Object)("DEBUG", -1),
-                KeyValuePair.Create(Of String, Object)("TRACE", -1),
-                KeyValuePair.Create(Of String, Object)("PLATFORM", "AnyCPU"))
+                KeyValuePairUtil.Create(Of String, Object)("_MyType", "WindowsForms"),
+                KeyValuePairUtil.Create(Of String, Object)("Config", "Debug"),
+                KeyValuePairUtil.Create(Of String, Object)("DEBUG", -1),
+                KeyValuePairUtil.Create(Of String, Object)("TRACE", -1),
+                KeyValuePairUtil.Create(Of String, Object)("PLATFORM", "AnyCPU"))
 
             Dim parseOptions As VisualBasicParseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
@@ -4168,23 +4307,26 @@ End Class
                 optimizationLevel:=OptimizationLevel.Debug,
                 parseOptions:=parseOptions,
                 mainTypeName:="My.MyApplication")
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemWindowsFormsRef}, compOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemWindowsFormsRef}, compOptions)
             comp.VerifyDiagnostics()
 
             ' Just care that there's at least one non-hidden sequence point.
             comp.VerifyPdb("My.MyApplication.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <entryPoint declaringType="My.MyApplication" methodName="Main" parameterNames="Args"/>
     <methods>
         <method containingType="My.MyApplication" name="Main" parameterNames="Args">
             <sequencePoints>
-                <entry offset="0x0" startLine="76" startColumn="9" endLine="76" endColumn="55"/>
-                <entry offset="0x1" startLine="77" startColumn="13" endLine="77" endColumn="16"/>
-                <entry offset="0x2" startLine="78" startColumn="16" endLine="78" endColumn="133"/>
-                <entry offset="0xf" startLine="79" startColumn="13" endLine="79" endColumn="20"/>
-                <entry offset="0x11" startLine="80" startColumn="13" endLine="80" endColumn="20"/>
-                <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37"/>
-                <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16"/>
+                <entry offset="0x0" startLine="76" startColumn="9" endLine="76" endColumn="55" document="1"/>
+                <entry offset="0x1" startLine="77" startColumn="13" endLine="77" endColumn="16" document="1"/>
+                <entry offset="0x2" startLine="78" startColumn="16" endLine="78" endColumn="133" document="1"/>
+                <entry offset="0xf" startLine="79" startColumn="13" endLine="79" endColumn="20" document="1"/>
+                <entry offset="0x11" startLine="80" startColumn="13" endLine="80" endColumn="20" document="1"/>
+                <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37" document="1"/>
+                <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1f">
                 <currentnamespace name="My"/>
@@ -4194,7 +4336,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SynthesizedVariableForSelectCastValue()
             Dim source =
 <compilation>
@@ -4215,10 +4357,13 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim c = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.DebugDll)
             c.VerifyDiagnostics()
             c.VerifyPdb("C.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C" name="F" parameterNames="args">
             <customDebugInfo>
@@ -4227,16 +4372,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="28"/>
-                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="28"/>
-                <entry offset="0x32" startLine="5" startColumn="13" endLine="5" endColumn="21"/>
-                <entry offset="0x33" startLine="6" startColumn="17" endLine="6" endColumn="37"/>
-                <entry offset="0x3c" startLine="7" startColumn="13" endLine="7" endColumn="21"/>
-                <entry offset="0x3d" startLine="8" startColumn="17" endLine="8" endColumn="37"/>
-                <entry offset="0x46" startLine="9" startColumn="13" endLine="9" endColumn="21"/>
-                <entry offset="0x47" startLine="10" startColumn="17" endLine="10" endColumn="37"/>
-                <entry offset="0x50" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
-                <entry offset="0x51" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="28" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="28" document="1"/>
+                <entry offset="0x32" startLine="5" startColumn="13" endLine="5" endColumn="21" document="1"/>
+                <entry offset="0x33" startLine="6" startColumn="17" endLine="6" endColumn="37" document="1"/>
+                <entry offset="0x3c" startLine="7" startColumn="13" endLine="7" endColumn="21" document="1"/>
+                <entry offset="0x3d" startLine="8" startColumn="17" endLine="8" endColumn="37" document="1"/>
+                <entry offset="0x46" startLine="9" startColumn="13" endLine="9" endColumn="21" document="1"/>
+                <entry offset="0x47" startLine="10" startColumn="17" endLine="10" endColumn="37" document="1"/>
+                <entry offset="0x50" startLine="11" startColumn="9" endLine="11" endColumn="19" document="1"/>
+                <entry offset="0x51" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x52">
                 <namespace name="System" importlevel="file"/>
@@ -4248,7 +4393,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Constant_AllTypes()
             Dim source =
 <compilation>
@@ -4305,15 +4450,18 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
+            Dim c = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
 
             c.VerifyPdb("C`1.F",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C`1" name="F">
             <sequencePoints>
-                <entry offset="0x0" startLine="18" startColumn="5" endLine="18" endColumn="25"/>
-                <entry offset="0x1" startLine="48" startColumn="5" endLine="48" endColumn="12"/>
+                <entry offset="0x0" startLine="18" startColumn="5" endLine="18" endColumn="25" document="1"/>
+                <entry offset="0x1" startLine="48" startColumn="5" endLine="48" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <namespace name="System" importlevel="file"/>
@@ -4350,7 +4498,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportsInAsync()
             Dim source =
 "Imports System.Linq
@@ -4364,6 +4512,9 @@ End Class"
             Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
@@ -4376,15 +4527,15 @@ End Class"
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" startLine="4" startColumn="5" endLine="4" endColumn="38"/>
-                <entry offset="0x8" startLine="5" startColumn="13" endLine="5" endColumn="26"/>
-                <entry offset="0x1f" startLine="6" startColumn="9" endLine="6" endColumn="32"/>
-                <entry offset="0x4f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
-                <entry offset="0x51" hidden="true"/>
-                <entry offset="0x58" hidden="true"/>
-                <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
-                <entry offset="0x7e" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="4" startColumn="5" endLine="4" endColumn="38" document="1"/>
+                <entry offset="0x8" startLine="5" startColumn="13" endLine="5" endColumn="26" document="1"/>
+                <entry offset="0x1f" startLine="6" startColumn="9" endLine="6" endColumn="32" document="1"/>
+                <entry offset="0x4f" startLine="7" startColumn="5" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x51" hidden="true" document="1"/>
+                <entry offset="0x58" hidden="true" document="1"/>
+                <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17" document="1"/>
+                <entry offset="0x7e" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8b">
                 <importsforward declaringType="C+_Closure$__" methodName="_Lambda$__1-0" parameterNames="i"/>
@@ -4398,7 +4549,7 @@ End Class"
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportsInAsyncLambda()
             Dim source =
 "Imports System.Linq
@@ -4414,6 +4565,9 @@ End Class"
             Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
 <symbols>
+    <files>
+        <file id="1" name="" language="VB"/>
+    </files>
     <methods>
         <method containingType="C+_Closure$__+VB$StateMachine___Lambda$__1-0" name="MoveNext">
             <customDebugInfo>
@@ -4426,14 +4580,14 @@ End Class"
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x7" startLine="5" startColumn="13" endLine="5" endColumn="24"/>
-                <entry offset="0x8" startLine="6" startColumn="21" endLine="6" endColumn="34"/>
-                <entry offset="0x1f" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
-                <entry offset="0x4f" startLine="8" startColumn="13" endLine="8" endColumn="20"/>
-                <entry offset="0x51" hidden="true"/>
-                <entry offset="0x58" hidden="true"/>
-                <entry offset="0x74" hidden="true"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="5" startColumn="13" endLine="5" endColumn="24" document="1"/>
+                <entry offset="0x8" startLine="6" startColumn="21" endLine="6" endColumn="34" document="1"/>
+                <entry offset="0x1f" startLine="7" startColumn="17" endLine="7" endColumn="40" document="1"/>
+                <entry offset="0x4f" startLine="8" startColumn="13" endLine="8" endColumn="20" document="1"/>
+                <entry offset="0x51" hidden="true" document="1"/>
+                <entry offset="0x58" hidden="true" document="1"/>
+                <entry offset="0x74" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x8b">
                 <importsforward declaringType="C" methodName="M"/>
@@ -4448,6 +4602,17 @@ End Class"
 </symbols>)
         End Sub
 
-    End Class
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        Public Sub InvalidCharacterInPdbPath()
+            Using outStream = Temp.CreateFile().Open()
+                Dim Compilation = CreateEmptyCompilation("")
+                Dim result = Compilation.Emit(outStream, options:=New EmitOptions(pdbFilePath:="test\\?.pdb", debugInformationFormat:=DebugInformationFormat.Embedded))
 
+                Assert.False(result.Success)
+                ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
+            End Using
+        End Sub
+    End Class
 End Namespace

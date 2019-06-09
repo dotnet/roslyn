@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
 
         void ICommandHandlerService.Execute<T>(IContentType contentType, T args, Action lastHandler)
         {
-            using (Logger.LogBlock(FunctionId.CommandHandler_ExecuteHandlers, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.CommandHandler_ExecuteHandlers, a => a?.ToString(), args, CancellationToken.None))
             {
                 ExecuteHandlers(GetHandlers<T>(contentType), args, lastHandler);
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             if (commandHandlers.Count > 0)
             {
                 // Build up chain of handlers.
-                var handlerChain = lastHandler ?? delegate { return default(CommandState); };
+                var handlerChain = lastHandler ?? delegate { return default; };
                 for (int i = commandHandlers.Count - 1; i >= 1; i--)
                 {
                     // Declare locals to ensure that we don't end up capturing the wrong thing
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
                 return lastHandler();
             }
 
-            return default(CommandState);
+            return default;
         }
     }
 }

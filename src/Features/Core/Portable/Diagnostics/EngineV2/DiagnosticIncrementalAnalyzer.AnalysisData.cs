@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Simple data holder for local diagnostics for an analyzer
         /// </summary>
-        private struct DocumentAnalysisData
+        private readonly struct DocumentAnalysisData
         {
             public static readonly DocumentAnalysisData Empty = new DocumentAnalysisData(VersionStamp.Default, ImmutableArray<DiagnosticData>.Empty);
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 this.Version = version;
                 this.Items = items;
-                this.OldItems = default(ImmutableArray<DiagnosticData>);
+                this.OldItems = default;
             }
 
             public DocumentAnalysisData(VersionStamp version, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems) :
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
-        private struct ProjectAnalysisData
+        private readonly struct ProjectAnalysisData
         {
             /// <summary>
             /// ProjectId of this data

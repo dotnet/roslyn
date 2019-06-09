@@ -1,34 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class SerializableTaggedText
-    {
-        public string Tag;
-        public string Text;
-
-        public static SerializableTaggedText Dehydrate(TaggedText taggedText)
-        {
-            return new SerializableTaggedText { Tag = taggedText.Tag, Text = taggedText.Text };
-        }
-
-        internal static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> displayTaggedParts)
-        {
-            return displayTaggedParts.Select(Dehydrate).ToArray();
-        }
-
-        public TaggedText Rehydrate()
-        {
-            return new TaggedText(Tag, Text);
-        }
-    }
-
     #region NavigateTo
 
     internal class SerializableNavigateToSearchResult
@@ -39,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public NavigateToMatchKind MatchKind;
         public bool IsCaseSensitive;
         public string Name;
-        public TextSpan[] NameMatchSpans;
+        public IList<TextSpan> NameMatchSpans;
         public string SecondarySort;
         public string Summary;
 
@@ -54,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 MatchKind = result.MatchKind,
                 IsCaseSensitive = result.IsCaseSensitive,
                 Name = result.Name,
-                NameMatchSpans = result.NameMatchSpans.ToArray(),
+                NameMatchSpans = result.NameMatchSpans,
                 SecondarySort = result.SecondarySort,
                 Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
@@ -65,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
-                Name, NameMatchSpans.ToImmutableArray(),
+                Name, NameMatchSpans.ToImmutableArrayOrEmpty(),
                 SecondarySort, Summary, NavigableItem.Rehydrate(solution));
         }
 
@@ -104,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public Glyph Glyph;
 
-        public SerializableTaggedText[] DisplayTaggedParts;
+        public IList<TaggedText> DisplayTaggedParts;
 
         public bool DisplayFileLocation;
 
@@ -113,34 +93,29 @@ namespace Microsoft.CodeAnalysis.Remote
         public DocumentId Document;
         public TextSpan SourceSpan;
 
-        SerializableNavigableItem[] ChildItems;
+        public IList<SerializableNavigableItem> ChildItems;
 
         public static SerializableNavigableItem Dehydrate(INavigableItem item)
         {
             return new SerializableNavigableItem
             {
                 Glyph = item.Glyph,
-                DisplayTaggedParts = SerializableTaggedText.Dehydrate(item.DisplayTaggedParts),
+                DisplayTaggedParts = item.DisplayTaggedParts,
                 DisplayFileLocation = item.DisplayFileLocation,
                 IsImplicitlyDeclared = item.IsImplicitlyDeclared,
                 Document = item.Document.Id,
                 SourceSpan = item.SourceSpan,
-                ChildItems = SerializableNavigableItem.Dehydrate(item.ChildItems)
+                ChildItems = item.ChildItems.SelectAsArray(Dehydrate)
             };
-        }
-
-        private static SerializableNavigableItem[] Dehydrate(ImmutableArray<INavigableItem> childItems)
-        {
-            return childItems.Select(Dehydrate).ToArray();
         }
 
         public INavigableItem Rehydrate(Solution solution)
         {
             var childItems = ChildItems == null
                 ? ImmutableArray<INavigableItem>.Empty
-                : ChildItems.Select(c => c.Rehydrate(solution)).ToImmutableArray();
+                : ChildItems.SelectAsArray(c => c.Rehydrate(solution));
             return new NavigableItem(
-                Glyph, DisplayTaggedParts.Select(p => p.Rehydrate()).ToImmutableArray(),
+                Glyph, DisplayTaggedParts.ToImmutableArrayOrEmpty(),
                 DisplayFileLocation, IsImplicitlyDeclared,
                 solution.GetDocument(Document),
                 SourceSpan,

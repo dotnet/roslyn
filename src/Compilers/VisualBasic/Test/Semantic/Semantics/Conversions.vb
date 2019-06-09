@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
+        Private Const s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()
@@ -2777,7 +2777,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2831,7 +2831,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -2882,7 +2882,7 @@ End Class
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "TI1Array").WithArguments("TestInterface1()", "Integer()", "TestInterface1", "Integer"),
                 Diagnostic(ERRID.ERR_ConvertArrayMismatch4, "InArray").WithArguments("Integer()", "TestInterface1()", "Integer", "TestInterface1"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
@@ -3048,7 +3048,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3085,7 +3085,7 @@ End Class
                 Diagnostic(ERRID.ERR_IdentityDirectCastForFloat, "[Do]"),
                 Diagnostic(ERRID.ERR_TypeMismatch2, "Si").WithArguments("Single", "Double"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3225,7 +3225,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3253,7 +3253,7 @@ End Class
                 Diagnostic(ERRID.ERR_TypeMismatch2, "St").WithArguments("String", "Char()"),
                 Diagnostic(ERRID.ERR_TryCastOfUnconstrainedTypeParam1, "T").WithArguments("T"))
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_VoidValue, "Console.WriteLine()"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "UnknownType").WithArguments("UnknownType"),
@@ -3293,7 +3293,7 @@ End Class
                 Dim compilationDef =
     <compilation name="VBExplicitConversions1">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
 Option Strict Off
@@ -3465,7 +3465,7 @@ UShort: 12
         Public Sub DirectCast1()
             Dim compilationDef =
 <compilation name="DirectCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -3704,7 +3704,7 @@ Decimal: 24
         Public Sub TryCast1()
             Dim compilationDef =
 <compilation name="TryCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -4023,9 +4023,9 @@ Public Module Program
         Dim inner As New C1(Of Integer).S1
         outer.EnumField = C1(Of Integer).E1.A
         inner.EnumField = C1(Of Integer).E1.A     
-        Foo(inner.EnumField)
+        Goo(inner.EnumField)
     End Sub
-    Sub Foo(x As Object)
+    Sub Goo(x As Object)
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,
@@ -4207,7 +4207,7 @@ End Module
         <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4240,7 +4240,7 @@ End Module
         <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4263,7 +4263,7 @@ End Module
         <WorkItem(545760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545760")>
         <Fact()>
         Public Sub Bug14409_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4295,8 +4295,8 @@ BC30519: Overload resolution failed because no accessible 'Test' can be called w
 
         <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
         <Fact()>
-        Public Sub Bug571095()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        Public Sub Bug571095_01()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 imports System
@@ -4330,10 +4330,47 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer(*,*)'.
 
         End Sub
 
+        <WorkItem(571095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571095")>
+        <Fact()>
+        Public Sub Bug571095_02()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+imports System
+
+Module Module1
+    Sub Main()
+        Dim Y(10) As Integer
+        'COMPILEERROR: BC30311, "Y"
+        For Each x As string() In Y
+            Console.WriteLine(x)
+        Next x
+        'COMPILEERROR: BC30311, "Y"
+        For Each x As Integer() In Y
+            Console.WriteLine(x)
+        Next x
+    End Sub
+End Module
+
+    ]]></file>
+    </compilation>, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30311: Value of type 'Integer' cannot be converted to 'String()'.
+        For Each x As string() In Y
+                                  ~
+BC30311: Value of type 'Integer' cannot be converted to 'Integer()'.
+        For Each x As Integer() In Y
+                                   ~
+</expected>)
+
+        End Sub
+
         <WorkItem(31, "https://roslyn.codeplex.com/workitem/31")>
         <Fact()>
         Public Sub BugCodePlex_31()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Option Strict On
@@ -4415,7 +4452,7 @@ CType(value As BooleanEx) As Boolean")
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_01()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4454,7 +4491,7 @@ BC30439: Constant expression not representable in type 'Integer'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_02()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4493,7 +4530,7 @@ BC30439: Constant expression not representable in type 'Integer?'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_03()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4534,7 +4571,7 @@ BC30439: Constant expression not representable in type 'Short'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_04()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4596,7 +4633,7 @@ BC30439: Constant expression not representable in type 'Short?'.
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_05()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4630,7 +4667,7 @@ End Module
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_06()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4664,7 +4701,7 @@ End Module
         <WorkItem(1099862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099862")>
         <Fact()>
         Public Sub Bug1099862_07()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -4688,7 +4725,7 @@ BC30439: Constant expression not representable in type 'Integer?'.
         <WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2094")>
         <Fact()>
         Public Sub DirectCastNothingToAStructure()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Class Program
@@ -4730,7 +4767,7 @@ Expected - 2
         <WorkItem(8475, "https://github.com/dotnet/roslyn/issues/8475")>
         <Fact()>
         Public Sub ConvertConstantBeforeItsDeclaration()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Class Program
@@ -4753,7 +4790,7 @@ BC32000: Local variable 'STR' cannot be referred to before it is declared.
         <WorkItem(9887, "https://github.com/dotnet/roslyn/issues/9887")>
         <Fact()>
         Public Sub ConvertReferenceTypeToIntrinsicValueType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -19,11 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // TODO(cyrusn): lambda/anon methods can have out/ref parameters
             return
                 context.TargetToken.IsTypeParameterVarianceContext() ||
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                IsOutParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext();
+        }
+
+        private static bool IsOutParameterModifierContext(int position, CSharpSyntaxContext context)
+        {
+            return context.SyntaxTree.IsParameterModifierContext(
+                       position, context.LeftToken, includeOperators: false, out _, out var previousModifier) &&
+                   previousModifier == SyntaxKind.None;
         }
     }
 }

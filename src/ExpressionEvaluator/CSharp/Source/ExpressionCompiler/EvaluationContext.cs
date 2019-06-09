@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly CSharpCompilation Compilation;
 
         private readonly MethodSymbol _currentFrame;
+        private readonly MethodSymbol _currentSourceMethod;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableSortedSet<int> _inScopeHoistedLocalSlots;
         private readonly MethodDebugInfo<TypeSymbol, LocalSymbol> _methodDebugInfo;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MethodSymbol currentFrame,
+            MethodSymbol currentSourceMethod,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
             _currentFrame = currentFrame;
+            _currentSourceMethod = currentSourceMethod;
             _locals = locals;
             _inScopeHoistedLocalSlots = inScopeHoistedLocalSlots;
             _methodDebugInfo = methodDebugInfo;
@@ -56,28 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <summary>
         /// Create a context for evaluating expressions at a type scope.
         /// </summary>
-        /// <param name="previous">Previous context, if any, for possible re-use.</param>
-        /// <param name="metadataBlocks">Module metadata</param>
+        /// <param name="compilation">Compilation.</param>
         /// <param name="moduleVersionId">Module containing type</param>
         /// <param name="typeToken">Type metadata token</param>
         /// <returns>Evaluation context</returns>
         /// <remarks>
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
-        internal static EvaluationContext CreateTypeContext(
-            CSharpMetadataContext previous,
-            ImmutableArray<MetadataBlock> metadataBlocks,
-            Guid moduleVersionId,
-            int typeToken)
-        {
-            // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks) ?
-                previous.Compilation :
-                metadataBlocks.ToCompilation();
-
-            return CreateTypeContext(compilation, moduleVersionId, typeToken);
-        }
-
         internal static EvaluationContext CreateTypeContext(
             CSharpCompilation compilation,
             Guid moduleVersionId,
@@ -92,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 null,
                 compilation,
                 currentFrame,
+                null,
                 default(ImmutableArray<LocalSymbol>),
                 ImmutableSortedSet<int>.Empty,
                 MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
@@ -121,24 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var offset = NormalizeILOffset(ilOffset);
 
-            // Re-use the previous compilation if possible.
-            CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
-            {
-                // Re-use entire context if method scope has not changed.
-                var previousContext = previous.EvaluationContext;
-                if (previousContext != null &&
-                    previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
-                {
-                    return previousContext;
-                }
-                compilation = previous.Compilation;
-            }
-            else
-            {
-                compilation = metadataBlocks.ToCompilation();
-            }
+            CSharpCompilation compilation = metadataBlocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
 
             return CreateMethodContext(
                 compilation,
@@ -150,26 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localSignatureToken);
         }
 
+        /// <summary>
+        /// Create a context for evaluating expressions within a method scope.
+        /// </summary>
+        /// <param name="compilation">Compilation.</param>
+        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
+        /// <param name="moduleVersionId">Module containing method</param>
+        /// <param name="methodToken">Method metadata token</param>
+        /// <param name="methodVersion">Method version.</param>
+        /// <param name="ilOffset">IL offset of instruction pointer in method</param>
+        /// <param name="localSignatureToken">Method local signature token</param>
+        /// <returns>Evaluation context</returns>
         internal static EvaluationContext CreateMethodContext(
-            CSharpCompilation compilation,
-            object symReader,
-            Guid moduleVersionId,
-            int methodToken,
-            int methodVersion,
-            uint ilOffset,
-            int localSignatureToken)
-        {
-            return CreateMethodContext(
-                compilation,
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                NormalizeILOffset(ilOffset),
-                localSignatureToken);
-        }
-
-        private static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
             object symReader,
             Guid moduleVersionId,
@@ -179,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int localSignatureToken)
         {
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+            var currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodHandle);
             var localSignatureHandle = (localSignatureToken != 0) ? (StandaloneSignatureHandle)MetadataTokens.Handle(localSignatureToken) : default(StandaloneSignatureHandle);
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
@@ -210,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
+                currentSourceMethod,
                 localsBuilder.ToImmutableAndFree(),
                 inScopeHoistedLocals,
                 debugInfo);
@@ -220,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new CompilationContext(
                 this.Compilation,
                 _currentFrame,
+                _currentSourceMethod,
                 _locals,
                 _inScopeHoistedLocalSlots,
                 _methodDebugInfo);
@@ -255,14 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     using (var stream = new MemoryStream())
                     {
                         Cci.PeWriter.WritePeToStream(
-                            new EmitContext(moduleBuilder, null, diagnostics),
+                            new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                             context.MessageProvider,
                             () => stream,
                             getPortablePdbStreamOpt: null,
                             nativePdbWriterOpt: null,
                             pdbPathOpt: null,
-                            allowMissingMethodBodies: false,
+                            metadataOnly: false,
                             isDeterministic: false,
+                            emitTestCoverageData: false,
+                            privateKeyOpt: null,
                             cancellationToken: default(CancellationToken));
                         if (!diagnostics.HasAnyErrors())
                         {
@@ -316,14 +286,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
+                    metadataOnly: false,
                     isDeterministic: false,
+                    emitTestCoverageData: false,
+                    privateKeyOpt: null,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -400,14 +372,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
+                    metadataOnly: false,
                     isDeterministic: false,
+                    emitTestCoverageData: false,
+                    privateKeyOpt: null,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -447,14 +421,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
-                        allowMissingMethodBodies: false,
+                        metadataOnly: false,
                         isDeterministic: false,
+                        emitTestCoverageData: false,
+                        privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())

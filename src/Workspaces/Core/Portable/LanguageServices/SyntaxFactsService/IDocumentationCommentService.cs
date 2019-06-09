@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal interface IDocumentationCommentService
     {
-        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken);
     }
 }

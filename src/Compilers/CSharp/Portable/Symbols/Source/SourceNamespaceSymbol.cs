@@ -4,17 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class SourceNamespaceSymbol : NamespaceSymbol
+    internal sealed partial class SourceNamespaceSymbol : NamespaceSymbol
     {
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
@@ -32,33 +29,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
-        internal SourceNamespaceSymbol(SourceModuleSymbol module, Symbol container, MergedNamespaceDeclaration mergedDeclaration)
+        internal SourceNamespaceSymbol(
+            SourceModuleSymbol module, Symbol container,
+            MergedNamespaceDeclaration mergedDeclaration,
+            DiagnosticBag diagnostics)
         {
+            Debug.Assert(mergedDeclaration != null);
             _module = module;
             _container = container;
             _mergedDeclaration = mergedDeclaration;
+
+            foreach (var singleDeclaration in mergedDeclaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
-        {
-            get { return _mergedDeclaration; }
-        }
+            => _mergedDeclaration;
 
         public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _container;
-            }
-        }
+            => _container;
 
         public override AssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return _module.ContainingAssembly;
-            }
-        }
+            => _module.ContainingAssembly;
 
         internal IEnumerable<Imports> GetBoundImportsMerged()
         {
@@ -73,12 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override string Name
-        {
-            get
-            {
-                return _mergedDeclaration.Name;
-            }
-        }
+            => _mergedDeclaration.Name;
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
@@ -97,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
                         _mergedDeclaration.NameLocations,
-                        default(ImmutableArray<Location>));
+                        default);
                 }
 
                 return _locations;
@@ -108,12 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ComputeDeclaringReferencesCore();
-            }
-        }
+            => ComputeDeclaringReferencesCore();
 
         private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
         {
@@ -134,13 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = _lazyAllMembers;
             }
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return result.DeOrder();
-#else
-            return result;
-#endif
+            return result.ConditionallyDeOrder();
         }
 
         public override ImmutableArray<Symbol> GetMembers()
@@ -248,55 +226,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
+                Interlocked.CompareExchange(ref _nameToTypeMembersMap, GetTypesFromMemberMap(GetNameToMembersMap()), null);
+            }
 
-                var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
+            return _nameToTypeMembersMap;
+        }
 
-                Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> map = this.GetNameToMembersMap();
-                foreach (var kvp in map)
+        private static Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
+        {
+            var dictionary = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
+
+            foreach (var kvp in map)
+            {
+                ImmutableArray<NamespaceOrTypeSymbol> members = kvp.Value;
+
+                bool hasType = false;
+                bool hasNamespace = false;
+
+                foreach (var symbol in members)
                 {
-                    ImmutableArray<NamespaceOrTypeSymbol> members = kvp.Value;
-
-                    bool hasType = false;
-                    bool hasNamespace = false;
-
-                    foreach (var symbol in members)
+                    if (symbol.Kind == SymbolKind.NamedType)
                     {
-                        if (symbol.Kind == SymbolKind.NamedType)
-                        {
-                            hasType = true;
-                            if (hasNamespace)
-                            {
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            Debug.Assert(symbol.Kind == SymbolKind.Namespace);
-                            hasNamespace = true;
-                            if (hasType)
-                            {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (hasType)
-                    {
+                        hasType = true;
                         if (hasNamespace)
                         {
-                            dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().AsImmutable());
+                            break;
                         }
-                        else
+                    }
+                    else
+                    {
+                        Debug.Assert(symbol.Kind == SymbolKind.Namespace);
+                        hasNamespace = true;
+                        if (hasType)
                         {
-                            dictionary.Add(kvp.Key, members.As<NamedTypeSymbol>());
+                            break;
                         }
                     }
                 }
 
-                Interlocked.CompareExchange(ref _nameToTypeMembersMap, dictionary, null);
+                if (hasType)
+                {
+                    if (hasNamespace)
+                    {
+                        dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().AsImmutable());
+                    }
+                    else
+                    {
+                        dictionary.Add(kvp.Key, members.As<NamedTypeSymbol>());
+                    }
+                }
             }
 
-            return _nameToTypeMembersMap;
+            return dictionary;
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(DiagnosticBag diagnostics)
@@ -315,14 +296,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 builder.Add(BuildSymbol(declaration, diagnostics));
             }
+
             var result = builder.CreateMap();
 
+            CheckMembers(this, result, diagnostics);
+
+            return result;
+        }
+
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, DiagnosticBag diagnostics)
+        {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
 
-            if (this.ContainingAssembly.Modules.Length > 1)
+            if (@namespace.ContainingAssembly.Modules.Length > 1)
             {
-                mergedAssemblyNamespace = this.ContainingAssembly.GetAssemblyNamespace(this) as MergedNamespaceSymbol;
+                mergedAssemblyNamespace = @namespace.ContainingAssembly.GetAssemblyNamespace(@namespace) as MergedNamespaceSymbol;
             }
 
             foreach (var name in result.Keys)
@@ -344,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Check for collision with declarations from added modules.
                         foreach (NamespaceSymbol constituent in mergedAssemblyNamespace.ConstituentNamespaces)
                         {
-                            if ((object)constituent != (object)this)
+                            if ((object)constituent != (object)@namespace)
                             {
                                 // For whatever reason native compiler only detects conflicts against types.
                                 // It doesn't complain when source declares a type with the same name as 
@@ -365,14 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        if (nts is SourceNamedTypeSymbol && other is SourceNamedTypeSymbol &&
-                            (nts as SourceNamedTypeSymbol).IsPartial && (other as SourceNamedTypeSymbol).IsPartial)
+                        if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
                         {
-                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations[0], symbol);
+                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations[0], name, this);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
                         }
                     }
 
@@ -382,15 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
-                        if ((declaredAccessibility & (Accessibility.Public | Accessibility.Internal)) != declaredAccessibility)
+                        if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
-                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations.FirstOrNone());
                         }
                     }
                 }
             }
-
-            return result;
         }
 
         private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, DiagnosticBag diagnostics)
@@ -398,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Namespace:
-                    return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration);
+                    return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Struct:
                 case DeclarationKind.Interface:
@@ -455,11 +441,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Check if any namespace declaration block intersects with the given tree/span.
-            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            foreach (var declaration in _mergedDeclaration.Declarations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (syntaxRef.SyntaxTree != tree)
+                var declarationSyntaxRef = declaration.SyntaxReference;
+                if (declarationSyntaxRef.SyntaxTree != tree)
                 {
                     continue;
                 }
@@ -469,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var syntax = syntaxRef.GetSyntax(cancellationToken);
+                var syntax = NamespaceDeclarationSyntaxReference.GetSyntax(declarationSyntaxRef, cancellationToken);
                 if (syntax.FullSpan.IntersectsWith(definedWithinSpan.Value))
                 {
                     return true;

@@ -1,13 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Microsoft.Managed.Core.targets"/>
+
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
                   @(_CoreCompileResourceInputs);
                   $(ApplicationIcon);
                   $(AssemblyOriginatorKeyFile);
-                  @(ReferencePath);
+                  @(ReferencePathWithRefAssemblies);
                   @(CompiledLicenseFile);
                   @(LinkResource);
                   @(EmbeddedDocumentation);
@@ -16,14 +18,16 @@
                   @(CustomAdditionalCompileInputs);
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
-                  @(EmbeddedFiles)"
+                  @(EmbeddedFiles);
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
+                   @(IntermediateRefAssembly);
                    @(_DebugSymbolsIntermediatePath);
                    $(NonExistentFile);
                    @(CustomAdditionalCompileOutputs)"
           Returns="@(VbcCommandLineArgs)"
-          DependsOnTargets="$(CoreCompileDependsOn)">
+          DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
     <PropertyGroup>
       <_NoWarnings Condition="'$(WarningLevel)' == '0'">true</_NoWarnings>
       <_NoWarnings Condition="'$(WarningLevel)' == '1'">false</_NoWarnings>
@@ -34,33 +38,12 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(DebugSymbols)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
-      <ReferencePath>
-        <EmbedInteropTypes />
-      </ReferencePath>
-    </ItemGroup>
-
-    <!-- Prefer32Bit was introduced in .NET 4.5. Set it to false if we are targeting 4.0 -->
-    <PropertyGroup Condition="('$(TargetFrameworkVersion)' == 'v4.0')">
-      <Prefer32Bit>false</Prefer32Bit>
-    </PropertyGroup>
-
-    <!-- TODO: Remove this ItemGroup once it has been moved to "_GenerateCompileInputs" target in Microsoft.Common.CurrentVersion.targets.
-         https://github.com/dotnet/roslyn/issues/12223 -->
-    <ItemGroup Condition="('$(AdditionalFileItemNames)' != '')">
-      <AdditionalFileItems Include="$(AdditionalFileItemNames)" />
-      <AdditionalFiles Include="@(%(AdditionalFileItems.Identity))" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
-      <UseSharedCompilation>true</UseSharedCompilation>
-    </PropertyGroup>
-
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Vbc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true'"
          AdditionalLibPaths="$(AdditionalLibPaths)"
          AddModules="@(AddModules)"
          AdditionalFiles="@(AdditionalFiles)"
+         AnalyzerConfigFiles="@(EditorConfigFiles)"
          Analyzers="@(Analyzer)"
          BaseAddress="$(BaseAddress)"
          ChecksumAlgorithm="$(ChecksumAlgorithm)"
@@ -69,8 +52,10 @@
          DebugType="$(DebugType)"
          DefineConstants="$(FinalDefineConstants)"
          DelaySign="$(DelaySign)"
+         DisableSdkPath="$(DisableSdkPath)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
+         EmbedAllSources="$(EmbedAllSources)"
          EmbeddedFiles="@(EmbeddedFiles)"
          EmitDebugInformation="$(DebugSymbols)"
          EnvironmentVariables="$(VbcEnvironment)"
@@ -102,12 +87,14 @@
          OptionStrict="$(OptionStrict)"
          OptionStrictType="$(OptionStrictType)"
          OutputAssembly="@(IntermediateAssembly)"
+         OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
-         References="@(ReferencePath)"
+         References="@(ReferencePathWithRefAssemblies)"
+         RefOnly="$(ProduceOnlyReferenceAssembly)"
          RemoveIntegerChecks="$(RemoveIntegerChecks)"
          ReportAnalyzer="$(ReportAnalyzer)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
@@ -115,6 +102,7 @@
          RootNamespace="$(RootNamespace)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SdkPath="$(FrameworkPathOverride)"
+         SharedCompilationId="$(SharedCompilationId)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

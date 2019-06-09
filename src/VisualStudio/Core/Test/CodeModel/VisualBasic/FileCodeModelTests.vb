@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
@@ -26,7 +26,7 @@ End Interface
 Structure S
 End Structure
 Enum E
-    Foo
+    Goo
 End Enum
 Delegate Sub D()
 </Code>
@@ -63,9 +63,9 @@ Delegate Sub D()
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
-&lt;Assembly: Foo(0, True, S:="x")&gt;
+&lt;Assembly: Goo(0, True, S:="x")&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits System.Attribute
 
     Public Sub New(i As Integer, b As Boolean)
@@ -91,8 +91,8 @@ End Class
                 Assert.NotNull(codeAttribute)
 
                 Assert.Same(workspaceAndFileCodeModel.FileCodeModel, codeAttribute.Parent)
-                Assert.Equal("Foo", codeAttribute.Name)
-                Assert.Equal("FooAttribute", codeAttribute.FullName)
+                Assert.Equal("Goo", codeAttribute.Name)
+                Assert.Equal("GooAttribute", codeAttribute.FullName)
                 Assert.Equal("Assembly", codeAttribute.Target)
                 Assert.Equal("0, True, S:=""x""", codeAttribute.Value)
 
@@ -215,7 +215,7 @@ End Class
         End Function
 
         Private Async Function TestAddAttributeWithBatchModeAsync(code As XElement, expectedCode As XElement, testOperation As Action(Of EnvDTE.FileCodeModel, Boolean), batch As Boolean) As Task
-            Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"Test calls TestAddAttributeWithBatchModeAsync which means we're creating new CodeModel elements.")
+            WpfTestRunner.RequireWpfFact($"Test calls {NameOf(Me.TestAddAttributeWithBatchModeAsync)} which means we're creating new {NameOf(EnvDTE.CodeModel)} elements.")
 
             ' NOTE: this method is the same as MyBase.TestOperation, but tells the lambda whether we are batching or not.
             ' This is because the tests have different behavior up until EndBatch is called.
@@ -546,23 +546,23 @@ End Class
             Dim code =
 <Code>
 Class B : End Class
-Interface $$IFoo : End Interface
+Interface $$IGoo : End Interface
 Interface IBar : End Interface
 </Code>
 
             Dim expected =
 <Code>
 Class B : End Class
-Interface IFoo : End Interface
+Interface IGoo : End Interface
 Interface IBar : End Interface
 
 Public Class C
     Inherits B
-    Implements IFoo, IBar
+    Implements IGoo, IBar
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IFoo", "IBar"}})
+            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
 #End Region
@@ -942,7 +942,7 @@ End Class
                 Dim buffer = state.Workspace.Documents.Single().TextBuffer
                 buffer.Replace(New Text.Span(0, 1), "c")
 
-                WpfTestCase.RequireWpfFact("Test requires FileCodeModel.EndBatch")
+                WpfTestRunner.RequireWpfFact($"Test requires {NameOf(EnvDTE80.FileCodeModel2)}.{NameOf(EnvDTE80.FileCodeModel2.EndBatch)}")
                 fileCodeModel.EndBatch()
 
                 Assert.Contains("Class C", buffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
@@ -1009,7 +1009,7 @@ End Class
     </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1249,6 +1249,29 @@ End Class
                     Assert.Equal(1, member1.NodeKey.Ordinal)
                     Assert.Equal("C.E As System.EventHandler", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+
+        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
+            Dim code =
+<code>
+Class C
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeElement = DirectCast(fileCodeModel.CodeElements(0), EnvDTE80.CodeElement2)
+                    Assert.Equal("C", codeElement.Name)
+
+                    codeElement.RenameSymbol("D")
+
+                    ' This not only asserts that the rename happened successfully, but that the element was correctly updated
+                    ' so the underlying node key is still valid.
+                    Assert.Equal("D", codeElement.Name)
                 End Sub)
         End Sub
 

@@ -1,6 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -82,22 +84,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
+            Dim moduleVersionId = moduleInstance.Mvid
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
-            Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain)
+            Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
-            Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks) Then
-                compilation = previous.Compilation
-            Else
-                compilation = metadataBlocks.ToCompilation()
-                appDomain.SetMetadataContext(New VisualBasicMetadataContext(metadataBlocks, compilation))
+            Dim kind = GetMakeAssemblyReferencesKind()
+            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
+            Dim previousContext As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(contextId, previousContext)
+
+            Dim compilation = previousContext.Compilation
+            If compilation Is Nothing Then
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+                appDomain.SetMetadataContext(
+                    New MetadataContext(Of VisualBasicMetadataContext)(
+                        metadataBlocks,
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(compilation))),
+                    report:=kind = MakeAssemblyReferencesKind.AllReferences)
             End If
 
             Return compilation
         End Function
 
         Friend Overrides Function GetMethod(compilation As VisualBasicCompilation, instructionAddress As DkmClrInstructionAddress) As MethodSymbol
-            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, instructionAddress.MethodId.Token)
+            Dim methodHandle = CType(MetadataTokens.Handle(instructionAddress.MethodId.Token), MethodDefinitionHandle)
+            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle)
         End Function
 
         Friend Overrides Function GetTypeNameDecoder(compilation As VisualBasicCompilation, method As MethodSymbol) As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)

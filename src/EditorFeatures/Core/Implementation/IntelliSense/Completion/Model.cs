@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 PointTrackingMode.Positive);
         }
 
-        private static CompletionItem CreateDefaultSuggestionModeItem() => CompletionItem.Create(displayText: "");
+        private static CompletionItem CreateDefaultSuggestionModeItem()
+            => CompletionItem.Create(displayText: "");
 
         public bool IsSoftSelection
         {
@@ -164,15 +165,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private Model With(
-            Optional<ImmutableArray<CompletionItem>> filteredItems = default(Optional<ImmutableArray<CompletionItem>>),
-            Optional<CompletionItem> selectedItem = default(Optional<CompletionItem>),
-            Optional<ImmutableDictionary<CompletionItemFilter, bool>> filterState = default(Optional<ImmutableDictionary<CompletionItemFilter, bool>>),
-            Optional<string> filterText = default(Optional<string>),
-            Optional<bool> isHardSelection = default(Optional<bool>),
-            Optional<bool> isUnique = default(Optional<bool>),
-            Optional<bool> useSuggestionMode = default(Optional<bool>),
-            Optional<CompletionItem> suggestionModeItem = default(Optional<CompletionItem>),
-            Optional<ITrackingPoint> commitTrackingSpanEndPoint = default(Optional<ITrackingPoint>))
+            Optional<ImmutableArray<CompletionItem>> filteredItems = default,
+            Optional<CompletionItem> selectedItem = default,
+            Optional<ImmutableDictionary<CompletionItemFilter, bool>> filterState = default,
+            Optional<string> filterText = default,
+            Optional<bool> isHardSelection = default,
+            Optional<bool> isUnique = default,
+            Optional<bool> useSuggestionMode = default,
+            Optional<CompletionItem> suggestionModeItem = default,
+            Optional<ITrackingPoint> commitTrackingSpanEndPoint = default)
         {
             var newFilteredItems = filteredItems.HasValue ? filteredItems.Value : FilteredItems;
             var newSelectedItem = selectedItem.HasValue ? selectedItem.Value : SelectedItemOpt;

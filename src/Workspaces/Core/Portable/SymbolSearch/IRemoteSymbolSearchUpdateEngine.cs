@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -9,8 +11,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity);
-        Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string name);
-        Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity);
+        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken);
+        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name, CancellationToken cancellationToken);
+        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken);
     }
 }

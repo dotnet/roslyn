@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
-        private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+        private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
 
-        internal OptionPreviewControl(IServiceProvider serviceProvider, Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(serviceProvider)
+        internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
         {
             InitializeComponent();
 
@@ -39,27 +39,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             listViewContentControl.Content = listview;
 
-             _serviceProvider = serviceProvider;
+            _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
         }
 
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = (AutomationDelegatingListView)sender;
-            var checkbox = listView.SelectedItem as CheckBoxOptionViewModel;
-            if (checkbox != null)
+            if (listView.SelectedItem is CheckBoxOptionViewModel checkbox)
             {
                 ViewModel.UpdatePreview(checkbox.GetPreview());
             }
 
-            var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-            if (radioButton != null)
+            if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
             {
                 ViewModel.UpdatePreview(radioButton.Preview);
             }
 
-            var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-            if (checkBoxWithCombo != null)
+            if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
             {
                 ViewModel.UpdatePreview(checkBoxWithCombo.GetPreview());
             }
@@ -70,22 +67,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
                 var listView = (AutomationDelegatingListView)sender;
-                var checkBox = listView.SelectedItem as CheckBoxOptionViewModel;
-                if (checkBox != null)
+                if (listView.SelectedItem is CheckBoxOptionViewModel checkBox)
                 {
                     checkBox.IsChecked = !checkBox.IsChecked;
                     e.Handled = true;
                 }
 
-                var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-                if (radioButton != null)
+                if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
                 {
                     radioButton.IsChecked = true;
                     e.Handled = true;
                 }
 
-                var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-                if (checkBoxWithCombo != null)
+                if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
                 {
                     checkBoxWithCombo.IsChecked = !checkBoxWithCombo.IsChecked;
                     e.Handled = true;
@@ -93,18 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnLoad()
         {
-            var optionSet = this.OptionService.GetOptions();
-            var changedOptions = this.ViewModel.ApplyChangedOptions(optionSet);
-
-            this.OptionService.SetOptions(changedOptions);
-            OptionLogger.Log(optionSet, changedOptions);
-        }
-
-        internal override void LoadSettings()
-        {
-            this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
+            this.ViewModel = _createViewModel(this.OptionStore, _serviceProvider);
 
             // Use the first item's preview.
             var firstItem = this.ViewModel.Items.OfType<CheckBoxOptionViewModel>().First();

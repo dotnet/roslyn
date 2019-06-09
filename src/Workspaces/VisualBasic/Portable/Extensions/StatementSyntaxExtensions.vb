@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetModifiers(member As StatementSyntax) As IEnumerable(Of SyntaxToken)
+        Public Function GetModifiers(member As SyntaxNode) As SyntaxTokenList
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
@@ -212,11 +212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End Select
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of SyntaxToken)()
+            Return Nothing
         End Function
 
         <Extension()>
-        Public Function WithModifiers(member As StatementSyntax, modifiers As SyntaxTokenList) As StatementSyntax
+        Public Function WithModifiers(Of TNode As SyntaxNode)(member As TNode, modifiers As SyntaxTokenList) As TNode
+            Return DirectCast(WithModifiersHelper(member, modifiers), TNode)
+        End Function
+
+        Private Function WithModifiersHelper(member As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock
@@ -299,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetNameToken(member As DeclarationStatementSyntax) As SyntaxToken
+        Public Function GetNameToken(member As StatementSyntax) As SyntaxToken
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
@@ -679,12 +683,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If statement IsNot Nothing Then
                 ' VB statements are *really* weird.  Take, for example:
                 '
-                ' if foo
+                ' if goo
                 '
                 ' This is a MultiLineIfBlock (a statement), with an IfPart (not a statement) with an
                 ' IfStatement (a statement).
                 '
-                ' We want to find the thing that contains the 'if foo' statement that really isn't
+                ' We want to find the thing that contains the 'if goo' statement that really isn't
                 ' the MultiLineIfBlock.  So we find the first ancestor statement that does *not* have
                 ' the same starting position as the statement we're on.  
                 Dim outerStatement = statement.GetAncestors(Of StatementSyntax)().Where(Function(s) s.SpanStart <> statement.SpanStart).FirstOrDefault()

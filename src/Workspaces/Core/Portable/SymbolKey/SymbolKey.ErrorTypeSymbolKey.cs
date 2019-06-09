@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                     r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
                 if (typeArguments.Any(s_typeIsNull))
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 return CreateSymbolInfo(errorTypes.Select(t => t.Construct(typeArguments)));

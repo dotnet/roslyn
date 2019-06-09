@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         Private Const BC37284 As String = NameOf(BC37284)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(BC37284)
         End Sub
@@ -25,10 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         Protected Overrides Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind() = SyntaxKind.EndOfLineTrivia
-        End Function
-
-        Protected Overrides Function IsNewLine(ch As Char) As Boolean
-            Return SyntaxFacts.IsNewLine(ch)
         End Function
     End Class
 End Namespace

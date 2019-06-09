@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
             }
 
-            return entry.IdentifierCache.GetOrAdd(normalized, 
+            return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
                     syntaxFacts, document, version, root, sourceText, key, cancellationToken));
         }
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
-            Func<SyntaxToken, bool> candidate = t =>
+            bool candidate(SyntaxToken t) =>
                 syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
 
             // identifier is not escaped
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static void Start(SemanticModel model)
         {
-            Contract.Requires(model != null);
+            Debug.Assert(model != null);
 
             using (s_gate.DisposableWrite())
             {

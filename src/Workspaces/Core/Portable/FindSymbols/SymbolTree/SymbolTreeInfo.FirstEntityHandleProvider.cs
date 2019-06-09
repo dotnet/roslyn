@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // We'll never get function pointer types in any types we care about, so we can
             // just return the empty string.  Similarly, as we never construct generics,
             // there is no need to provide anything for the generic parameter names.
-            public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default(EntityHandle);
-            public EntityHandle GetGenericMethodParameter(object genericContext, int index) => default(EntityHandle);
-            public EntityHandle GetGenericTypeParameter(object genericContext, int index) => default(EntityHandle);
+            public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default;
+            public EntityHandle GetGenericMethodParameter(object genericContext, int index) => default;
+            public EntityHandle GetGenericTypeParameter(object genericContext, int index) => default;
 
-            public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default(EntityHandle);
+            public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default;
         }
     }
 }

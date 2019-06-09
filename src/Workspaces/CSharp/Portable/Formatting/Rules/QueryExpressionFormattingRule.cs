@@ -1,26 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = AnchorIndentationFormattingRule.Name)]
     internal class QueryExpressionFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
-            var queryExpression = node as QueryExpressionSyntax;
-            if (queryExpression != null)
+            if (node is QueryExpressionSyntax queryExpression)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, queryExpression.GetFirstToken(includeZeroWidth: true), queryExpression.GetLastToken(includeZeroWidth: true));
             }
@@ -56,20 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, baseToken, startToken, endToken);
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
-            var queryExpression = node as QueryExpressionSyntax;
-            if (queryExpression != null)
+            if (node is QueryExpressionSyntax queryExpression)
             {
                 AddIndentBlockOperationsForFromClause(list, queryExpression.FromClause);
 
                 foreach (var queryClause in queryExpression.Body.Clauses)
                 {
                     // if it is nested query expression
-                    var fromClause = queryClause as FromClauseSyntax;
-                    if (fromClause != null)
+                    if (queryClause is FromClauseSyntax fromClause)
                     {
                         AddIndentBlockOperationsForFromClause(list, fromClause);
                     }
@@ -86,32 +83,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
-
-            var queryClause = node as QueryClauseSyntax;
-            if (queryClause != null)
+            nextOperation.Invoke();
+            switch (node)
             {
-                var firstToken = queryClause.GetFirstToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, firstToken, queryClause.GetLastToken(includeZeroWidth: true));
-            }
+                case QueryClauseSyntax queryClause:
+                    {
+                        var firstToken = queryClause.GetFirstToken(includeZeroWidth: true);
+                        AddAnchorIndentationOperation(list, firstToken, queryClause.GetLastToken(includeZeroWidth: true));
+                        return;
+                    }
 
-            var selectOrGroupClause = node as SelectOrGroupClauseSyntax;
-            if (selectOrGroupClause != null)
-            {
-                var firstToken = selectOrGroupClause.GetFirstToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, firstToken, selectOrGroupClause.GetLastToken(includeZeroWidth: true));
-            }
+                case SelectOrGroupClauseSyntax selectOrGroupClause:
+                    {
+                        var firstToken = selectOrGroupClause.GetFirstToken(includeZeroWidth: true);
+                        AddAnchorIndentationOperation(list, firstToken, selectOrGroupClause.GetLastToken(includeZeroWidth: true));
+                        return;
+                    }
 
-            var continuation = node as QueryContinuationSyntax;
-            if (continuation != null)
-            {
-                AddAnchorIndentationOperation(list, continuation.IntoKeyword, continuation.GetLastToken(includeZeroWidth: true));
+                case QueryContinuationSyntax continuation:
+                    AddAnchorIndentationOperation(list, continuation.IntoKeyword, continuation.GetLastToken(includeZeroWidth: true));
+                    return;
             }
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.IsNestedQueryExpression())
             {

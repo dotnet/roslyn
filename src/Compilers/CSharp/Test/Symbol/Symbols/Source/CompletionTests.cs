@@ -25,7 +25,7 @@ class A {
     public int F(int x, int y) {}
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateEmptyCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -37,7 +37,7 @@ class A {
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(x.HasComplete(CompletionPart.Type));
 
-            var xType = x.Type;
+            var xType = x.TypeWithAnnotations;
             Assert.True(x.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
@@ -45,7 +45,7 @@ class A {
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(y.HasComplete(CompletionPart.Type));
 
-            var yType = y.Type;
+            var yType = y.TypeWithAnnotations;
             Assert.True(y.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType)); // needed to look in A's base for y's type
 
@@ -65,7 +65,7 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text, skipUsesIsNullable: true);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -76,13 +76,13 @@ class A {
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
-            var pType = p.Type;
+            var pType = p.TypeWithAnnotations;
             var pParameters = p.Parameters;
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));
 
             p = a.GetMember<PropertySymbol>("this[]");
-            pType = p.Type;
+            pType = p.TypeWithAnnotations;
             pParameters = p.Parameters;
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));
@@ -134,7 +134,7 @@ class A {
         }
 
         /// <summary>
-        /// This test demonstrates the correctness of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This test demonstrates the correctness of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// </summary>
         [Fact]
         public void TestHasAtMostOneBitSet()
@@ -147,7 +147,7 @@ class A {
         }
 
         /// <summary>
-        /// This is the simple implementation of the sbyte version of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This is the simple implementation of the sbyte version of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// Hopefully, it is obviously correct.
         /// </summary>
         private static bool HasAtMostOneBitSetSafe(sbyte bits)
@@ -168,7 +168,7 @@ class A {
         }
 
         /// <summary>
-        /// This is the sbyte version of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This is the sbyte version of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// It can be exhaustively tested more quickly than the full version.
         /// </summary>
         private static bool HasAtMostOneBitSetFast(sbyte bits)

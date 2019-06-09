@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
-        private CSharpCodeModelServiceFactory(
+        public CSharpCodeModelServiceFactory(
             IEditorOptionsFactoryService editorOptionsFactoryService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {

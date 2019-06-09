@@ -2,16 +2,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
+    {
+        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+    }
+
     internal sealed partial class SyntaxTreeIndex
     {
         // The probability of getting a false positive when calling ContainsIdentifier.
@@ -23,9 +32,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
             new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
 
-        private static async Task<SyntaxTreeIndex> CreateInfoAsync(Document document, CancellationToken cancellationToken)
+        /// <summary>
+        /// String interning table so that we can share many more strings in our DeclaredSymbolInfo
+        /// buckets.  Keyed off a Project instance so that we share all these strings as we create
+        /// the or load the index items for this a specific Project.  This helps as we will generally 
+        /// be creating or loading all the index items for the documents in a Project at the same time.
+        /// Once this project is let go of (which happens with any solution change) then we'll dump
+        /// this string table.  The table will have already served its purpose at that point and 
+        /// doesn't need to be kept around further.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
+            new ConditionalWeakTable<Project, StringTable>();
+
+        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
+            Document document, Checksum checksum, CancellationToken cancellationToken)
         {
+            var project = document.Project;
+            var stringTable = GetStringTable(project);
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -44,6 +70,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsBaseConstructorInitializer = false;
                 var containsElementAccess = false;
                 var containsIndexerMemberCref = false;
+                var containsDeconstruction = false;
+                var containsAwait = false;
+                var containsTupleExpressionOrTupleType = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -66,6 +95,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                             containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
+
+                            containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
+                                || syntaxFacts.IsDeconstructionForEachStatement(node);
+
+                            containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
+                            containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
+                                syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
+
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
                             // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
@@ -76,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out var declaredSymbolInfo))
+                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
@@ -88,6 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 $@"Invalid span in {nameof(declaredSymbolInfo)}.
 {nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
 {nameof(root.FullSpan)} = {root.FullSpan}";
+
                                     FatalError.ReportWithoutCrash(new InvalidOperationException(message));
                                 }
                             }
@@ -154,10 +192,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     }
                 }
 
-                var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
                 return new SyntaxTreeIndex(
-                    version,
+                    checksum,
                     new LiteralInfo(
                         new BloomFilter(FalsePositiveProbability, stringLiterals, longLiterals)),
                     new IdentifierInfo(
@@ -173,7 +209,10 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsThisConstructorInitializer,
                             containsBaseConstructorInitializer,
                             containsElementAccess,
-                            containsIndexerMemberCref),
+                            containsIndexerMemberCref,
+                            containsDeconstruction,
+                            containsAwait,
+                            containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutableAndFree()));
             }
@@ -185,6 +224,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
             }
         }
 
+        private static StringTable GetStringTable(Project project)
+            => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
+
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
         {
             if (ignoreCase)
@@ -192,32 +234,32 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
                 return;
             }
 
             identifiers = SharedPools.StringHashSet.AllocateAndClear();
             escapedIdentifiers = SharedPools.StringHashSet.AllocateAndClear();
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
         }
 
         private static void Free(bool ignoreCase, HashSet<string> identifiers, HashSet<string> escapedIdentifiers)
         {
             if (ignoreCase)
             {
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Debug.Assert(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
 
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(identifiers);
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(escapedIdentifiers);
                 return;
             }
 
-            Contract.Requires(identifiers.Comparer == StringComparer.Ordinal);
-            Contract.Requires(escapedIdentifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(identifiers.Comparer == StringComparer.Ordinal);
+            Debug.Assert(escapedIdentifiers.Comparer == StringComparer.Ordinal);
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);

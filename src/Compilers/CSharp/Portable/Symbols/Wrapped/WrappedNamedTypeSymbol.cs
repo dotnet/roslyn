@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return _underlyingType.ObsoleteAttributeData; }
@@ -200,9 +202,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType.MarshallingCharSet; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return _underlyingType.IsSerializable; }
+        }
+
+        public override bool IsRefLikeType
+        {
+            get { return _underlyingType.IsRefLikeType; }
+        }
+
+        public override bool IsReadOnly
+        {
+            get { return _underlyingType.IsReadOnly; }
         }
 
         internal override bool HasDeclarativeSecurity
