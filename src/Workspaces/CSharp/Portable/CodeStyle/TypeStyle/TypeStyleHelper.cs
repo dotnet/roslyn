@@ -37,16 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
 
-            if (isTypeApparentContext &&
-                stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
+            if (isTypeApparentContext || isTypeExplicitContext)
             {
-                return true;
-            }
+                if (isTypeApparentContext &&
+                    stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
+                {
+                    return true;
+                }
 
-            if (isTypeExplicitContext &&
-                stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
-            {
-                return true;
+                if (isTypeExplicitContext &&
+                    stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
+                {
+                    return true;
+                }
+
+                return false;
             }
 
             return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
@@ -63,16 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
 
-            if (isTypeApparentContext &&
-                !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
+            if (isTypeApparentContext || isTypeExplicitContext)
             {
-                return true;
-            }
+                if (isTypeApparentContext &&
+                    !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
+                {
+                    return true;
+                }
 
-            if (isTypeExplicitContext &&
-                !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
-            {
-                return true;
+                if (isTypeExplicitContext &&
+                    !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
+                {
+                    return true;
+                }
+
+                return false;
             }
 
             return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
