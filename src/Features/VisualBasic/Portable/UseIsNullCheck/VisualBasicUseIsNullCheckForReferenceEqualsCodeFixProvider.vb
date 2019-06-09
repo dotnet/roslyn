@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
 
-        Protected Overrides Function CreateNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
+        Protected Overrides Function CreateNotNullCheck(argument As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.IsNotExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()

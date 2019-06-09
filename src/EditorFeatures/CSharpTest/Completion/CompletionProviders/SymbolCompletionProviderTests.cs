@@ -10148,6 +10148,73 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Target");
         }
 
+        [WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodWithParamsBeforeParams()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Goo(builder =>
+        {
+            builder.$$
+        });
+    }
+
+    void Goo(Action<Builder> action, params Action<AnotherBuilder>[] otherActions)
+    {
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+};
+
+class AnotherBuilder
+{
+    public int AnotherSomething { get; set; }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "AnotherSomething");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault");
+            await VerifyItemExistsAsync(markup, "Something");
+        }
+
+        [WorkItem(36029, "https://github.com/dotnet/roslyn/issues/36029")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodWithParamsInParams()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Goo(b0 => { }, b1 => {}, b2 => { b2.$$ });
+    }
+
+    void Goo(Action<Builder> action, params Action<AnotherBuilder>[] otherActions)
+    {
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+};
+
+class AnotherBuilder
+{
+    public int AnotherSomething { get; set; }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Something");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault");
+            await VerifyItemExistsAsync(markup, "AnotherSomething");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {

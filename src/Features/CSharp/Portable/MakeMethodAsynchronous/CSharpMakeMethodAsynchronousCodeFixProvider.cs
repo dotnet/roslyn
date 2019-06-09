@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
+        protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
+        {
+            return IsIAsyncEnumerableOrEnumerator(type, knownTypes)
+                || IsTaskLike(type, knownTypes);
+        }
+
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             KnownTypes knownTypes)

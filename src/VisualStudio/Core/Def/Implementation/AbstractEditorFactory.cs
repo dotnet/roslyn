@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -241,14 +242,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
             // Is this being added from a template?
-            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
+            if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0 &&
+                pHier.TryGetProjectGuid(out var projectGuid))
             {
                 var waitIndicator = _componentModel.GetService<IWaitIndicator>();
                 // TODO(cyrusn): Can this be cancellable?
                 waitIndicator.Wait(
                     "Intellisense",
                     allowCancel: false,
-                    action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
+                    action: c => FormatDocumentCreatedFromTemplate(projectGuid, pszMkDocument, c.CancellationToken));
             }
 
             return VSConstants.S_OK;
@@ -259,8 +261,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
+        private void FormatDocumentCreatedFromTemplate(Guid projectGuid, string filePath, CancellationToken cancellationToken)
         {
+            Debug.Assert(projectGuid != Guid.Empty);
+
             // A file has been created on disk which the user added from the "Add Item" dialog. We need
             // to include this in a workspace to figure out the right options it should be formatted with.
             // This requires us to place it in the correct project.
@@ -271,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var projectId in solution.ProjectIds)
             {
-                if (workspace.GetHierarchy(projectId) == hierarchy)
+                if (workspace.GetProjectGuid(projectId) == projectGuid)
                 {
                     projectIdToAddTo = projectId;
                     break;

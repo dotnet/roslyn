@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 diagnostic.WarningLevel,
                 descriptor.CustomTags.ToImmutableArray(),
                 diagnostic.Properties,
-                diagnostic.Workspace,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,
                 diagnostic.AdditionalLocations,

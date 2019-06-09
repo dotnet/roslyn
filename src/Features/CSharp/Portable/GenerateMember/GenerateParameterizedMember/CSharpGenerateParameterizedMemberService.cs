@@ -112,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 CancellationToken cancellationToken)
             {
                 var methodTypeParameter = GetMethodTypeParameter(type, cancellationToken);
-                return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
+                return methodTypeParameter != null
+                    ? methodTypeParameter
+                    : CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique)).WithNullability(NullableAnnotation.NotApplicable);
             }
 
             private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
@@ -170,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 {
                     foreach (var typeArgument in ((GenericNameSyntax)State.SimpleNameOpt).TypeArgumentList.Arguments)
                     {
-                        var type = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type;
-                        result.Add(type);
+                        var typeInfo = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
+                        result.Add(typeInfo.Type.WithNullability(typeInfo.Nullability.Annotation));
                     }
                 }
 

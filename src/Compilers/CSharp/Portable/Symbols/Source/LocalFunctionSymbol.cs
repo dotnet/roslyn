@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override RefKind RefKind => _refKind;
 
         internal void ComputeReturnType()

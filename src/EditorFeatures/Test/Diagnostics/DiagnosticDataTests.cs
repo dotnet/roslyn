@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -103,10 +104,18 @@ namespace B
             var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", code);
 
             var data = new DiagnosticData(
-                "test1", "Test", "test1 message", "test1 message format",
-                DiagnosticSeverity.Info, false, 1,
-                workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
-                    null, "originalFile1", startLine, startColumn, endLine, endColumn));
+                id: "test1",
+                category: "Test",
+                message: "test1 message",
+                enuMessageForBingSearch: "test1 message format",
+                severity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: false,
+                warningLevel: 1,
+                projectId: document.Project.Id,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn));
 
             var text = await document.GetTextAsync();
             var actual = data.GetExistingOrCalculatedTextSpan(text);

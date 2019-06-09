@@ -217,6 +217,11 @@ public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 public class MyAttribute : Attribute { public int Value {get; set;} }",
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
+
+            var attributes = Generator.GetAttributes(Generator.AddAttributes(
+                Generator.NamespaceDeclaration("n"),
+                Generator.Attribute("Attr")));
+            Assert.True(attributes.Count == 1);
         }
 
         private AttributeData GetAttributeData(string decl, string use)

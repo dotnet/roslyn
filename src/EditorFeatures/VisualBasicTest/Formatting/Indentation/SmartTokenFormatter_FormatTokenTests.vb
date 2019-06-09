@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
@@ -198,7 +199,7 @@ End Class
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                             formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New SmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
+                Dim smartFormatter = New VisualBasicSmartTokenFormatter(Await document.GetOptionsAsync(CancellationToken.None), formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
 
                 Using edit = buffer.CreateEdit()

@@ -193,6 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
             {
+                _scopeCreator._solutionLoaded = true;
                 _scopeCreator.StopTrackingAllProjects();
 
                 return VSConstants.S_OK;

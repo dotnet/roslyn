@@ -48,6 +48,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -195,12 +196,13 @@
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
           BeforeTargets="AfterBuild"
-          DependsOnTargets="_CalculateDependenciesToInsert"
+          DependsOnTargets="_CalculateDependenciesToInsert;GetAssemblyVersion"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
+    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
 
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            ISymbol interfaceMember,
+            SymbolAndProjectId interfaceMemberAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // results in C.
 
             var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var interfaceMember = interfaceMemberAndProjectId.Symbol;
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
@@ -167,20 +168,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces. 
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var typeSymbolCompilation = typeSymbolProject == null ?
-                                        null :
-                                        await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
+
+            var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
+            var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
+                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(typeSymbol =>
                     SymbolFinder.OriginalSymbolsMatch(
-                        m,
+                        typeSymbol,
                         interfaceMember,
                         solution,
                         typeSymbolCompilation,
-                        symbolToMatchCompilation: null,
+                        interfaceMemberCompilation,
                         cancellationToken));
 
                 if (constructedInterfaceMember == null)
@@ -210,6 +212,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return arrBuilder.ToImmutableAndFree();
+
+            // local functions
+
+            static Task<Compilation> GetCompilationOrNullAsync(Project project, CancellationToken cancellationToken)
+                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Default<Compilation>();
         }
 
 
@@ -908,5 +915,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return false;
         }
+
+        public static bool IsDisposable(this ITypeSymbol type, ITypeSymbol iDisposableType)
+            => iDisposableType != null &&
+               (Equals(iDisposableType, type) ||
+                type?.AllInterfaces.Contains(iDisposableType) == true);
     }
 }
