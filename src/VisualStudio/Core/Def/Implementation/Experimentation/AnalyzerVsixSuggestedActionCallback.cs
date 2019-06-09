@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -37,9 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private LiveCodeAnalysisInstallStatus _installStatus = LiveCodeAnalysisInstallStatus.Unknown;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerVsixSuggestedActionCallback(
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
             SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -105,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private bool IsCandidate()
         {
-            // if this user ever participated in the experiement and then uninstall the vsix, then
+            // if this user ever participated in the experiment and then uninstall the vsix, then
             // this user will never be candidate again.
             if (_workspace.Options.GetOption(AnalyzerABTestOptions.ParticipatedInExperiment))
             {

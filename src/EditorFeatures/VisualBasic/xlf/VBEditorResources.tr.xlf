@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">Belge Biçimlendiriliyor...</target>
+        <target state="translated">Belge biçimlendiriliyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
-        <target state="translated">Yeni satır ekle</target>
+        <target state="translated">Yeni Satır Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_Paste">
@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic Düzgün Listesi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Multiple Types&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">Desteklenmiyor</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">Satır işleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Abstract Sınıfını veya Interface Uygula</target>
         <note />
       </trans-unit>
     </body>

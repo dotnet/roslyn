@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.VolatileKeyword:
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
+                    case SyntaxKind.RefKeyword:
                         result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
@@ -124,9 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
-        public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, SyntaxToken targetToken, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
+            return
+                (targetToken.IsKind(SyntaxKind.DotDotToken) && position == targetToken.SpanStart + 1) ||
+                syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -514,60 +517,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
-            this SyntaxNode root, TextSpan textSpan)
+        public static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
+            this SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
         {
-            var token = root.FindToken(textSpan.Start);
+            var token = root.FindTokenOnRightOfPosition(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {
                 if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
-                    return GetMembersInSpan(textSpan, containingType, firstMember);
+                    return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection);
                 }
             }
 
             return ImmutableArray<MemberDeclarationSyntax>.Empty;
         }
 
-        private static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
+        private static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
-            MemberDeclarationSyntax firstMember)
+            MemberDeclarationSyntax firstMember,
+            bool allowPartialSelection)
         {
-            var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
-            try
+            var members = containingType.Members;
+            var fieldIndex = members.IndexOf(firstMember);
+            if (fieldIndex < 0)
             {
-
-                var members = containingType.Members;
-                var fieldIndex = members.IndexOf(firstMember);
-                if (fieldIndex < 0)
-                {
-                    return ImmutableArray<MemberDeclarationSyntax>.Empty;
-                }
-
-                for (var i = fieldIndex; i < members.Count; i++)
-                {
-                    var member = members[i];
-                    if (textSpan.Contains(member.Span))
-                    {
-                        selectedMembers.Add(member);
-                    }
-                    else if (textSpan.OverlapsWith(member.Span))
-                    {
-                        return ImmutableArray<MemberDeclarationSyntax>.Empty;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return selectedMembers.ToImmutable();
+                return ImmutableArray<MemberDeclarationSyntax>.Empty;
             }
-            finally
+
+            var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
+            for (var i = fieldIndex; i < members.Count; i++)
             {
-                selectedMembers.Free();
+                var member = members[i];
+                if (IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection))
+                {
+                    selectedMembers.Add(member);
+                }
+            }
+
+            return selectedMembers.ToImmutableAndFree();
+
+            // local functions
+            static bool IsSelectedFieldOrProperty(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
+            {
+                if (!member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyDeclaration))
+                {
+                    return false;
+                }
+
+                // first, check if entire member is selected
+                if (textSpan.Contains(member.Span))
+                {
+                    return true;
+                }
+
+                if (!allowPartialSelection)
+                {
+                    return false;
+                }
+
+                // next, check if identifier is at least partially selected
+                switch (member)
+                {
+                    case FieldDeclarationSyntax field:
+                        var variables = field.Declaration.Variables;
+                        foreach (var variable in variables)
+                        {
+                            if (textSpan.OverlapsWith(variable.Identifier.Span))
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    case PropertyDeclarationSyntax property:
+                        return textSpan.OverlapsWith(property.Identifier.Span);
+                    default:
+                        return false;
+                }
             }
         }
 

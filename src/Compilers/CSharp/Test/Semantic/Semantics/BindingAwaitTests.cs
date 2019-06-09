@@ -2569,7 +2569,7 @@ class App {
         return;
     }
 }";
-            CreateWinRtCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithWinRT(source).VerifyDiagnostics(
                 // (12,9): error CS4035: 'Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>' could be found (are you missing a using directive for 'System'?)
                 //         await DeviceInformation.FindAllAsync();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, "await DeviceInformation.FindAllAsync()").WithArguments("Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>", "GetAwaiter", "System")
@@ -2829,8 +2829,8 @@ class Repro
 
             var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
             var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.Fails);
 

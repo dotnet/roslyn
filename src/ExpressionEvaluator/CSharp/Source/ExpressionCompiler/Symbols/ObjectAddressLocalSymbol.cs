@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _address = address;
         }
 
-        internal override bool IsWritable
+        internal override bool IsWritableVariable
         {
             // Return true?
             get { return false; }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 receiverOpt: null,
                 method: method,
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
-            Debug.Assert(call.Type == this.Type);
+            Debug.Assert(TypeSymbol.Equals(call.Type, this.Type, TypeCompareKind.ConsiderEverything2));
             return call;
         }
     }

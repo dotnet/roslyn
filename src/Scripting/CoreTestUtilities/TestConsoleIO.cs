@@ -26,18 +26,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
         }
 
-        public override ConsoleColor ForegroundColor
-        {
-            set
-            {
-                ((Writer)Out).CurrentColor = value;
-            }
-        }
+        public override void SetForegroundColor(ConsoleColor consoleColor) => ((Writer)Out).CurrentColor = consoleColor;
 
-        public override void ResetColor()
-        {
-            ForegroundColor = InitialColor;
-        }
+        public override void ResetColor() => SetForegroundColor(InitialColor);
 
         private sealed class Reader : StringReader
         {

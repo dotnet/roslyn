@@ -12,16 +12,6 @@
         <target state="translated">Caracteres inválidos no nome do assembly</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">Falha do MSBuild ao processar o arquivo '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">Falha do MSBuild ao processar o arquivo '{0}' com a mensagem: {1}</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

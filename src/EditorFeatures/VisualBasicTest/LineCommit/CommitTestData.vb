@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Text
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
             _formatter = New FormatterMock(workspace)
             _inlineRenameService = New InlineRenameServiceMock()
-            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService)
+            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService, workspace.GetService(Of IThreadingContext))
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -61,8 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 commitManagerFactory,
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ISmartIndentationService),
-                textUndoHistoryRegistry,
-                workspace.GetService(Of Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator))
+                textUndoHistoryRegistry)
         End Sub
 
         Friend Sub AssertHadCommit(expectCommit As Boolean)

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseDefaultLiteralDiagnosticAnalyzer(), new CSharpUseDefaultLiteralCodeFixProvider());
 
-        private static readonly CSharpParseOptions s_parseOptions = 
+        private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         private static readonly TestParameters s_testParameters =
@@ -203,7 +204,7 @@ class C
     {
         var s = [||]default(string);
     }
-}",  parameters: s_testParameters);
+}", parameters: s_testParameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
@@ -430,6 +431,209 @@ struct S
 
     public new bool Equals(S s) => true;
 }", parseOptions: s_parseOptions);
+        }
+
+        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool) when true:
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default when true:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideWhenClause()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when [||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is [||]default(bool));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is ([||]default(bool)));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternIs_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)[||]default(bool));
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)default);
+    }
+}", parameters: s_testParameters);
         }
     }
 }

@@ -73,13 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BindSelectBlock(DirectCast(node, SelectBlockSyntax), diagnostics)
 
                 Case SyntaxKind.CaseStatement
-                    ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
-                    ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
-                    ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
-                    Debug.Assert(node.ContainsDiagnostics)
-                    Dim caseStatement = DirectCast(node, CaseStatementSyntax)
-                    Dim statement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
-                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(statement), hasErrors:=True)
+                    Return BindStandAloneCaseStatement(DirectCast(node, CaseStatementSyntax), diagnostics)
 
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
@@ -268,6 +262,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function
 
+        Private Function BindStandAloneCaseStatement(caseStatement As CaseStatementSyntax, diagnostics As DiagnosticBag) As BoundBadStatement
+            ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
+            ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
+            ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
+            Debug.Assert(caseStatement.ContainsDiagnostics)
+            Dim statement As BoundCaseStatement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
+            Dim children = ArrayBuilder(Of BoundNode).GetInstance(statement.CaseClauses.Length)
+
+            For Each clause As BoundCaseClause In statement.CaseClauses
+                Select Case clause.Kind
+                    Case BoundKind.SimpleCaseClause, BoundKind.RelationalCaseClause
+                        children.Add(DirectCast(clause, BoundSingleValueCaseClause).ValueOpt)
+                    Case BoundKind.RangeCaseClause
+                        Dim range = DirectCast(clause, BoundRangeCaseClause)
+                        children.Add(range.LowerBoundOpt)
+                        children.Add(range.UpperBoundOpt)
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
+                End Select
+            Next
+
+            Return New BoundBadStatement(caseStatement, children.ToImmutableAndFree(), hasErrors:=True)
+        End Function
+
         Private Function BindMethodBlock(methodBlock As MethodBlockBaseSyntax, diagnostics As DiagnosticBag) As BoundBlock
             Dim statements As ArrayBuilder(Of BoundStatement) = ArrayBuilder(Of BoundStatement).GetInstance
             Dim locals As ImmutableArray(Of LocalSymbol) = ImmutableArray(Of LocalSymbol).Empty
@@ -284,9 +302,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If localForFunctionValue IsNot Nothing Then
                 ' Declare local variable for function return 
-                statements.Add(New BoundLocalDeclaration(methodBlock.BlockStatement,
-                                                         localForFunctionValue,
-                                                         Nothing))
+                Dim localDeclaration = New BoundLocalDeclaration(methodBlock.BlockStatement,
+                                                                 localForFunctionValue,
+                                                                 Nothing)
+                localDeclaration.SetWasCompilerGenerated()
+                statements.Add(localDeclaration)
             End If
 
             Dim blockBinder = Me.GetBinder(DirectCast(methodBlock, VisualBasicSyntaxNode))
@@ -1018,7 +1038,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
+                        ' The assert below is disabled due to https://github.com/dotnet/roslyn/issues/27533, need to follow up
+                        'Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
                     Next
 #End If
 
@@ -1482,6 +1503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          collectionSyntax As ExpressionSyntax,
                          <Out()> ByRef collectionExpression As BoundExpression,
                          <Out()> ByRef currentType As TypeSymbol,
+                         <Out()> ByRef elementType As TypeSymbol,
                          <Out()> ByRef isEnumerable As Boolean,
                          <Out()> ByRef boundGetEnumeratorCall As BoundExpression,
                          <Out()> ByRef boundEnumeratorPlaceholder As BoundLValuePlaceholder,
@@ -1494,6 +1516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             collectionExpression = Nothing
             currentType = Nothing
+            elementType = Nothing
             isEnumerable = False
             boundGetEnumeratorCall = Nothing
             boundEnumeratorPlaceholder = Nothing
@@ -1528,11 +1551,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 collectionExpression = MakeRValue(collectionExpression, diagnostics)
             End If
 
-            Dim unconvertedCollectionType = collectionExpression.Type
-
             ' check if the collection is valid for a for each
             collectionExpression = InterpretForEachStatementCollection(collectionExpression,
                                                                        currentType,
+                                                                       elementType,
                                                                        isEnumerable,
                                                                        boundGetEnumeratorCall,
                                                                        boundEnumeratorPlaceholder,
@@ -1543,20 +1565,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                        isOrInheritsFromOrImplementsIDisposable,
                                                                        diagnostics)
 
-            If Not collectionExpression.HasErrors AndAlso Not currentType.IsErrorType Then
-                ' currentType may be "Object" because it's basically the return type of the "Current"
-                ' property. If it's an array type the inferred local type should be the element type.
-                If collectionExpression.Type.IsArrayType Then
-                    Return DirectCast(collectionExpression.Type, ArrayTypeSymbol).ElementType
-                ElseIf unconvertedCollectionType IsNot Nothing AndAlso unconvertedCollectionType.IsStringType Then
-                    ' Reproduce dev11 behavior: we're always going to lower a foreach loop over a string to a for loop 
-                    ' over the string's Chars indexer.  Therefore, we should infer "char", regardless of what the spec
-                    ' indicates the element type is.  This actually matters in practice because the System.String in
-                    ' the portable library doesn't have a pattern GetEnumerator method or implement IEnumerable(Of char).
-                    Return GetSpecialType(SpecialType.System_Char, collectionExpression.Syntax, diagnostics)
-                Else
-                    Return currentType
-                End If
+            If elementType IsNot Nothing Then
+                Return elementType
             End If
 
             Return type
@@ -2447,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(node.Name, useSiteDiagnostics)
 
-                Debug.Assert(targetAsEvent.Type = eventField.Type OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
+                Debug.Assert(TypeSymbol.Equals(targetAsEvent.Type, eventField.Type, TypeCompareKind.ConsiderEverything) OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
 
                 receiver = New BoundFieldAccess(node.Name,
                                                 targetAsEvent.ReceiverOpt,
@@ -2504,7 +2514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundBadStatement(node, StaticCast(Of BoundNode).From(boundArguments).Add(target), True)
                 End If
 
-                If fireMethod.ContainingType <> Me.ContainingType Then
+                If Not TypeSymbol.Equals(fireMethod.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything) Then
                     ' Re: Dev10
                     ' // UNDONE: harishk - note that this is different from the check for an
                     ' // accessible event field for non-block events. This is because there
@@ -2562,7 +2572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim expression = statement.Expression
 
-            Dim boundExpression As boundExpression
+            Dim boundExpression As BoundExpression
 
             Select Case expression.Kind
                 Case SyntaxKind.InvocationExpression,
@@ -2652,7 +2662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindPrintStatement(printStmt As PrintStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim boundExpression As boundExpression = BindRValue(printStmt.Expression, diagnostics)
+            Dim boundExpression As BoundExpression = BindRValue(printStmt.Expression, diagnostics)
             Return New BoundExpressionStatement(printStmt, boundExpression)
         End Function
 
@@ -2946,7 +2956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If result.IsGood AndAlso
                         result.Symbols(0).Kind = SymbolKind.Local Then
 
-                        Dim localSymbol = DirectCast(result.Symbols(0), localSymbol)
+                        Dim localSymbol = DirectCast(result.Symbols(0), LocalSymbol)
                         If localSymbol.IdentifierToken = identifier Then
                             ' This is an inferred local, we will need to compute its type.
                             isInferredLocal = True
@@ -3311,6 +3321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim forEachStatement = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax)
 
             Dim currentType As TypeSymbol = Nothing
+            Dim elementType As TypeSymbol = Nothing
             Dim isEnumerable As Boolean = False
             Dim needToDispose As Boolean = False
             Dim isOrInheritsFromOrImplementsIDisposable As Boolean = False
@@ -3337,6 +3348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     forEachStatement.Expression,
                                                     collection,
                                                     currentType,
+                                                    elementType,
                                                     isEnumerable,
                                                     boundGetEnumeratorCall,
                                                     boundEnumeratorPlaceholder,
@@ -3366,6 +3378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' check if the collection is valid for a for each statement
                 collection = InterpretForEachStatementCollection(collection,
                                                                  currentType,
+                                                                 elementType,
                                                                  isEnumerable,
                                                                  boundGetEnumeratorCall,
                                                                  boundEnumeratorPlaceholder,
@@ -3375,25 +3388,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  needToDispose,
                                                                  isOrInheritsFromOrImplementsIDisposable,
                                                                  diagnostics)
-            End If
-
-            Dim currentPlaceholderType = currentType
-
-            Dim collectionType = collection.Type
-            If Not (collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray) Then
-                Dim isStringForEach = collectionType.IsStringType
-                If Not isStringForEach AndAlso collection.Kind = BoundKind.Conversion Then
-                    Dim conversion As BoundConversion = DirectCast(collection, BoundConversion)
-                    If Not conversion.ExplicitCastInCode Then
-                        Dim unconvertedCollectionType = conversion.Operand.Type
-                        isStringForEach = unconvertedCollectionType IsNot Nothing AndAlso unconvertedCollectionType.IsStringType
-                    End If
-                End If
-                If isStringForEach Then
-                    If currentPlaceholderType IsNot Nothing AndAlso currentPlaceholderType.SpecialType <> SpecialType.System_Char Then
-                        currentPlaceholderType = GetSpecialType(SpecialType.System_Char, node, diagnostics)
-                    End If
-                End If
             End If
 
             '
@@ -3407,8 +3401,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' the current's get method
             If currentType IsNot Nothing AndAlso Not controlVariableOpt.HasErrors Then
                 Dim controlVariableType = controlVariableOpt.Type
-                If Not (controlVariableType.IsErrorType OrElse currentType.IsErrorType) Then
-                    boundCurrentPlaceholder = New BoundRValuePlaceholder(collectionSyntax, currentPlaceholderType)
+                If Not (controlVariableType.IsErrorType OrElse currentType.IsErrorType OrElse elementType.IsErrorType) Then
+                    Dim boundElement As BoundExpression
+
                     ' "Current" is converted to the type of the control variable as if
                     ' it were an explicit cast. This language rule exists because there is
                     ' no way to write a cast, and the type of the IEnumerator.Current is Object,
@@ -3417,32 +3412,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  Dim I, A() As Integer : For Each I in A : Next
                     '
                     ' invalid in strict mode.
-                    boundCurrentConversion = ApplyConversion(collectionSyntax,
-                                                             controlVariableType,
-                                                             boundCurrentPlaceholder,
-                                                             isExplicit:=True,
-                                                             diagnostics:=diagnostics)
-                    boundCurrentConversion.SetWasCompilerGenerated()
-                End If
 
-                ' for multidimensional arrays make additional check that array element is castable to iteration variable type
-                ' we need to do this because multidimensional arrays only implement nongeneric IEnumerable 
-                ' so the cast from Current --> control variable will statically succeed (since Current returns object)
-                ' We however can know the element type and may know that under no condition the cast will work at run time
-                ' So we will check that here.
-                If collection.Type.IsArrayType Then
-                    Dim elementType = DirectCast(collection.Type, ArrayTypeSymbol).ElementType
+                    If Conversions.IsIdentityConversion(Conversions.ClassifyConversion(elementType, currentType, useSiteDiagnostics:=Nothing).Key) Then
+                        boundCurrentPlaceholder = New BoundRValuePlaceholder(collectionSyntax, elementType)
+                        boundElement = boundCurrentPlaceholder
+                    Else
+                        boundCurrentPlaceholder = New BoundRValuePlaceholder(collectionSyntax, currentType)
+                        boundElement = ApplyConversion(collectionSyntax,
+                                                       elementType,
+                                                       boundCurrentPlaceholder,
+                                                       isExplicit:=True,
+                                                       diagnostics:=diagnostics)
+                        boundElement.SetWasCompilerGenerated()
+                    End If
 
-                    If Not elementType.IsErrorType AndAlso Not controlVariableType.IsErrorType Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Dim conv = Conversions.ClassifyConversion(elementType, controlVariableType, useSiteDiagnostics).Key
-
-                        If diagnostics.Add(collectionSyntax, useSiteDiagnostics) Then
-                            ' Suppress additional diagnostics
-                            diagnostics = New DiagnosticBag()
-                        ElseIf Not Conversions.ConversionExists(conv) Then
-                            ReportDiagnostic(diagnostics, collectionSyntax, ERRID.ERR_TypeMismatch2, elementType, controlVariableType)
-                        End If
+                    If boundElement Is boundCurrentPlaceholder OrElse
+                       Not Conversions.IsIdentityConversion(Conversions.ClassifyConversion(controlVariableType, elementType, useSiteDiagnostics:=Nothing).Key) Then
+                        boundCurrentConversion = ApplyConversion(collectionSyntax,
+                                                                 controlVariableType,
+                                                                 boundElement,
+                                                                 isExplicit:=True,
+                                                                 diagnostics:=diagnostics)
+                        boundCurrentConversion.SetWasCompilerGenerated()
+                    Else
+                        boundCurrentConversion = boundElement
                     End If
                 End If
             End If
@@ -3475,7 +3468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' create TryCast
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conversionKind As conversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteDiagnostics)
+                    Dim conversionKind As ConversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteDiagnostics)
 
                     If diagnostics.Add(collectionSyntax, useSiteDiagnostics) Then
                         ' Suppress additional diagnostics
@@ -3498,6 +3491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim enumeratorInfo = New ForEachEnumeratorInfo(boundGetEnumeratorCall,
                                                            boundMoveNextCall,
                                                            boundCurrentAccess,
+                                                           elementType,
                                                            needToDispose,
                                                            isOrInheritsFromOrImplementsIDisposable,
                                                            boundDisposeCondition,
@@ -3663,6 +3657,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="collection">The collection of the for each statement.</param>
         ''' <param name="currentType">If the collection meets all criteria, currentType contains the type of the element from 
         ''' the collection that get's returned by the current property.</param>
+        ''' <param name="elementType">Element type of the collection, could be different from <paramref name="currentType"/>. 
+        ''' For example, based on the pattern <paramref name="currentType"/> for an array is Object, but the <paramref name="elementType"/>
+        ''' is the element type of the array.</param>
         ''' <param name="isEnumerable">if set to <c>true</c>, the collection is enumerable (matches design pattern, IEnumerable 
         ''' or IEnumerable(Of T); otherwise (string or arrays) it's set to false.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
@@ -3670,6 +3667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function InterpretForEachStatementCollection(
             collection As BoundExpression,
             <Out()> ByRef currentType As TypeSymbol,
+            <Out()> ByRef elementType As TypeSymbol,
             <Out()> ByRef isEnumerable As Boolean,
             <Out()> ByRef boundGetEnumeratorCall As BoundExpression,
             <Out()> ByRef boundEnumeratorPlaceholder As BoundLValuePlaceholder,
@@ -3682,6 +3680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundExpression
 
             currentType = Nothing
+            elementType = Nothing
             isEnumerable = False
             needToDispose = False
             isOrInheritsFromOrImplementsIDisposable = False
@@ -3720,34 +3719,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      detailedDiagnostics) Then
 
                 diagnostics.AddRange(detailedDiagnostics)
-
+                elementType = currentType
                 ' TODO(rbeckers) check if the long note about spurious errors in Dev10 (statement_semantics.cpp, line 5250) needs 
                 ' to be copied. 
                 ' We only pass in a temporary diagnostic bag into this method. The method itself only adds to it in case of 
                 ' ambiguous lookups or a failed overload resolution for the current property access. 
                 isEnumerable = True
-
-                If collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray Then
-                    Dim arrayType = DirectCast(collectionType, ArrayTypeSymbol)
-                    currentType = arrayType.ElementType
-
-                    ' if IEnumerable is missing, there should be no diagnostic, because in this case it would not be needed to
-                    ' generate IL. The only side effect would be that the ConvertedType of the semantic info does not show
-                    ' IEnumerable.
-                    Dim ienumerable = Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable)
-
-                    ' this is only needed to report the converted type of the semantic model
-                    ' to be IEnumerable in case of arrays. The resulting bound conversion will be thrown away in the
-                    ' rewriter.
-                    targetCollectionType = ienumerable
-
-                    ' TODO: consider special casing strings and one dimensional arrays in the semantic info
-                End If
             Else
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
                 Dim ienumerableUseSiteDiagnostics = DiagnosticBag.GetInstance
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
-                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
+                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
                 If Not collection.IsNothingLiteral AndAlso
@@ -3790,7 +3772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> OptionStrict.On) OrElse
                        (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics, matchingInterfaces)) Then
 
-                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (matchingInterfaces.First = ienumerable AndAlso matchingInterfaces.Count = 1))
+                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (TypeSymbol.Equals(matchingInterfaces.First, ienumerable, TypeCompareKind.ConsiderEverything) AndAlso matchingInterfaces.Count = 1))
 
                         diagnostics.Add(collectionSyntax, useSiteDiagnostics)
 
@@ -3937,11 +3919,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                           diagnostics)
 
                             currentType = boundCurrentAccess.Type
+                            elementType = currentType
                         End If
                     End If
                 End If
 
-                Debug.Assert(interfaceSpecialType <> SpecialType.None OrElse Not collectionType.IsStringType OrElse currentType.SpecialType = SpecialType.System_Char)
+                If collectionType IsNot Nothing Then
+                    If collectionType.IsArrayType() Then
+                        Dim arrayType = DirectCast(collectionType, ArrayTypeSymbol)
+                        elementType = arrayType.ElementType
+
+                        If arrayType.IsSZArray Then
+                            currentType = elementType
+                        End If
+                    ElseIf collectionType.IsStringType() Then
+                        elementType = GetSpecialType(SpecialType.System_Char, collectionSyntax, diagnostics)
+                        currentType = elementType
+                    End If
+                End If
 
                 ' if it's enumerable, we'll need to check if the enumerator is disposable.
                 Dim idisposable = GetSpecialType(SpecialType.System_IDisposable, collectionSyntax, diagnostics)
@@ -4056,7 +4051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' GetEnumerator
             '
             ' first, get GetEnumerator function that takes no arguments, also search in extension methods
-            Dim lookupResult As New lookupResult()
+            Dim lookupResult As New LookupResult()
             If Not GetMemberIfMatchesRequirements(WellKnownMemberNames.GetEnumeratorMethodName,
                                                    collectionType,
                                                    s_isFunctionWithoutArguments,
@@ -4322,28 +4317,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Else
                 ' derivedType could be an interface
-                If derivedType.OriginalDefinition = interfaceType Then
+                If TypeSymbol.Equals(derivedType.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything) Then
                     If matchingInterfaces Is Nothing Then
                         Return True
                     End If
 
-                    matchingInterfaces.Add(DirectCast(derivedType, NamedTypeSymbol))
+                    RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, DirectCast(derivedType, NamedTypeSymbol))
                 End If
 
                 ' implements or inherits interface
                 For Each interfaceOfDerived In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    If interfaceOfDerived.OriginalDefinition = interfaceType Then
+                    If TypeSymbol.Equals(interfaceOfDerived.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything) Then
                         If matchingInterfaces Is Nothing Then
                             Return True
                         End If
 
-                        matchingInterfaces.Add(interfaceOfDerived)
+                        RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, interfaceOfDerived)
                     End If
                 Next
             End If
 
             Return matchingInterfaces IsNot Nothing AndAlso matchingInterfaces.Count > 0
         End Function
+
+        Private Shared Sub RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces As HashSet(Of NamedTypeSymbol), interfaceOfDerived As NamedTypeSymbol)
+            Debug.Assert(matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames OrElse
+                         matchingInterfaces.Comparer Is EqualityComparer(Of NamedTypeSymbol).Default)
+
+            If Not matchingInterfaces.Add(interfaceOfDerived) AndAlso
+               matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames AndAlso
+               Not interfaceOfDerived.IsDefinition Then
+
+                ' Keep the last match in the set
+                matchingInterfaces.Remove(interfaceOfDerived)
+                matchingInterfaces.Add(interfaceOfDerived)
+            End If
+        End Sub
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
@@ -4423,7 +4432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' check if all declared variables are initialized                    
                     If localDeclarations.Kind = BoundKind.LocalDeclaration Then
-                        Dim boundLocalDeclaration = DirectCast(localDeclarations, boundLocalDeclaration)
+                        Dim boundLocalDeclaration = DirectCast(localDeclarations, BoundLocalDeclaration)
 
                         Dim initializerExpression = boundLocalDeclaration.InitializerOpt
                         If initializerExpression Is Nothing Then
@@ -4452,6 +4461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     End If
                 Next
+
             Else
                 ' the using block has an expression as resource
                 Debug.Assert(usingStatement.Expression IsNot Nothing)
@@ -4471,9 +4481,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Bind the body of the using statement.
             Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
-            Dim usingInfo As New usingInfo(node, placeholderInfo)
+            Dim usingInfo As New UsingInfo(node, placeholderInfo)
+            Dim locals As ImmutableArray(Of LocalSymbol) = GetUsingBlockLocals(usingBinder)
 
-            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo)
+            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo, locals)
+        End Function
+
+        Private Function GetUsingBlockLocals(currentBinder As Binder) As ImmutableArray(Of LocalSymbol)
+            Dim usingBlockBinder As UsingBlockBinder
+
+            Do
+                usingBlockBinder = TryCast(currentBinder, UsingBlockBinder)
+
+                If usingBlockBinder IsNot Nothing Then
+                    Return usingBlockBinder.Locals
+                End If
+
+                currentBinder = currentBinder.ContainingBinder
+            Loop While currentBinder IsNot Nothing
+
+            Debug.Fail("Failed to find UsingBlockBinder")
+            Return ImmutableArray(Of LocalSymbol).Empty
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(
@@ -4793,7 +4821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If Not previousType.IsErrorType() Then
-                        If previousType = exceptionType Then
+                        If TypeSymbol.Equals(previousType, exceptionType, TypeCompareKind.ConsiderEverything) Then
                             ReportDiagnostic(diagnostics, declaration, ERRID.WRN_DuplicateCatch, exceptionType)
                             Exit For
                         End If

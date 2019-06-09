@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Declaration introduced or resource held by the using.
         /// </summary>
         IOperation Resources { get; }
+
+        /// <summary>
+        /// Locals declared within the <see cref="Resources"/> with scope spanning across this entire <see cref="IUsingOperation"/>.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 

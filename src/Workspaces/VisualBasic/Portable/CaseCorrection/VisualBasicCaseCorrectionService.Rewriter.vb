@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
                 If _syntaxFactsService.IsIdentifier(newToken) Then
                     Return VisitIdentifier(token, newToken)
-                ElseIf _syntaxFactsService.IsKeyword(newToken) OrElse _syntaxFactsService.IsContextualKeyword(newToken) Then
+                ElseIf _syntaxFactsService.IsReservedOrContextualKeyword(newToken) Then
                     Return VisitKeyword(newToken)
                 ElseIf token.IsNumericLiteral() Then
                     Return VisitNumericLiteral(newToken)
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                             Dim name = preprocessingSymbolInfo.Symbol.Name
                             If Not String.IsNullOrEmpty(name) AndAlso name <> token.ValueText Then
                                 ' Name should differ only in case
-                                Contract.Requires(name.Equals(token.ValueText, StringComparison.OrdinalIgnoreCase))
+                                Debug.Assert(name.Equals(token.ValueText, StringComparison.OrdinalIgnoreCase))
 
                                 Return GetIdentifierWithCorrectedName(name, newToken)
                             End If
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                         ' If this is a partial method implementation part, then case correct the method name to match the partial method definition part.
                         Dim definitionPart As IMethodSymbol = Nothing
                         Dim otherPartOfPartial = GetOtherPartOfPartialMethod(methodDeclaration, definitionPart)
-                        If otherPartOfPartial IsNot Nothing And otherPartOfPartial Is definitionPart Then
+                        If otherPartOfPartial IsNot Nothing And Equals(otherPartOfPartial, definitionPart) Then
                             Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, otherPartOfPartial)
                         End If
                     Else
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                             If methodDeclaration IsNot Nothing Then
                                 Dim definitionPart As IMethodSymbol = Nothing
                                 Dim otherPartOfPartial = GetOtherPartOfPartialMethod(methodDeclaration, definitionPart)
-                                If otherPartOfPartial IsNot Nothing And otherPartOfPartial Is definitionPart Then
+                                If otherPartOfPartial IsNot Nothing And Equals(otherPartOfPartial, definitionPart) Then
                                     Dim ordinal As Integer = 0
                                     For Each param As SyntaxNode In methodDeclaration.ParameterList.Parameters
                                         If param Is parameterSyntax Then
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                                         ordinal = ordinal + 1
                                     Next
 
-                                    Contract.Requires(otherPartOfPartial.Parameters.Length > ordinal)
+                                    Debug.Assert(otherPartOfPartial.Parameters.Length > ordinal)
                                     Dim otherPartParam = otherPartOfPartial.Parameters(ordinal)
 
                                     ' We don't want to rename the parameter if names are not equal ignoring case.

@@ -52,10 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function Parenthesize(expression As ExpressionSyntax) As ParenthesizedExpressionSyntax
-            Return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
-                                .WithTriviaFrom(expression) _
-                                .WithAdditionalAnnotations(Simplifier.Annotation)
+        Public Function Parenthesize(expression As ExpressionSyntax, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
+            Dim result = SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
+                                      .WithTriviaFrom(expression)
+            Return If(addSimplifierAnnotation,
+                      result.WithAdditionalAnnotations(Simplifier.Annotation),
+                      result)
         End Function
 
 
@@ -329,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsInRefContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+            Dim simpleArgument = TryCast(expression?.Parent, SimpleArgumentSyntax)
 
             If simpleArgument Is Nothing Then
                 Return False
@@ -389,6 +391,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If expression Is assignmentStatement.Left Then
                         Return True
                     End If
+                End If
+
+                If expression.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                   expression.Parent.IsParentKind(SyntaxKind.SimpleArgument) Then
+
+                    ' <C(Prop:=1)>
+                    ' this is only a write to Prop
+                    Return True
                 End If
 
                 If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
@@ -1030,13 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                replacementNode = memberAccess.Name
-                replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
-                    .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
-                        memberAccess.Name.Identifier,
-                        semanticModel)) _
-                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
-                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
                 issueSpan = memberAccess.Expression.Span
 
                 If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
@@ -1051,6 +1055,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
+        End Function
+
+        <Extension>
+        Public Function GetNameWithTriviaMoved(memberAccess As MemberAccessExpressionSyntax,
+                                               semanticModel As SemanticModel) As SimpleNameSyntax
+            Dim replacementNode = memberAccess.Name
+            replacementNode = DirectCast(replacementNode, SimpleNameSyntax) _
+                .WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    memberAccess.Name.Identifier,
+                    semanticModel)) _
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+
+            Return replacementNode
         End Function
 
         <Extension>
@@ -1091,7 +1109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <Remarks>
         ''' Note: This helper exists solely to work around Bug 1012713. Once it is fixed, this helper must be
         ''' deleted in favor of <see cref="InsideCrefReference(ExpressionSyntax)"/>.
-        ''' Context: Bug 1012713 makes it so that the compiler doesn't support `PredefinedType.Member` inside crefs 
+        ''' Context: Bug 1012713 makes it so that the compiler doesn't support <c>PredefinedType.Member</c> inside crefs 
         ''' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
         ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
         ''' </Remarks>

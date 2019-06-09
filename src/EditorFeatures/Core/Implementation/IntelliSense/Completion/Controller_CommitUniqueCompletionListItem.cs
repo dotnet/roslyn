@@ -4,22 +4,24 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.GetCommandState(CommitUniqueCompletionListItemCommandArgs args, Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<CommitUniqueCompletionListItemCommandArgs>.GetCommandState(CommitUniqueCompletionListItemCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();
         }
 
-        void ICommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(
-            CommitUniqueCompletionListItemCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<CommitUniqueCompletionListItemCommandArgs>.ExecuteCommand(
+            CommitUniqueCompletionListItemCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
 
@@ -72,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // We're kicking off async work.  Track this with an async token for test purposes.
             var token = ((IController<Model>)this).BeginAsyncOperation(nameof(CommitUniqueCompletionListItemAsynchronously));
 
-            var task = currentTask.ContinueWith(t =>
+            var task = currentTask.ContinueWith(async t =>
             {
-                this.AssertIsForeground();
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
 
                 if (this.sessionOpt == currentSession &&
                     this.sessionOpt.Computation.ModelTask == currentTask)
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // Nothing happened between when we were invoked and now.
                     CommitIfUnique(t.Result);
                 }
-            }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, ForegroundTaskScheduler);
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
 
             task.CompletesAsyncOperation(token);
         }

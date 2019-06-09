@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CompletionServiceTests
         <Fact>
         Public Async Function TestCompletionDoesNotCrashWhenSyntaxTreeNotPresent() As Task

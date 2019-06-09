@@ -55,11 +55,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
+        private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
-            Contract.ThrowIfNull(sender);
-            var source = (IDiagnosticUpdateSource)sender;
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (!RequireRunningEventTasks(source, ev))
             {
@@ -75,7 +72,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                ev.RaiseEvent(handler => handler(sender, args));
+                ev.RaiseEvent(handler => handler(source, args));
+            }).CompletesAsyncOperation(eventToken);
+        }
+
+        private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
+            if (!RequireRunningEventTasks(source, ev))
+            {
+                return;
+            }
+
+            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
+            _eventQueue.ScheduleTask(() =>
+            {
+                using (var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject())
+                {
+                    var removed = pooledObject.Object;
+                    if (!ClearDiagnosticsReportedBySource(source, removed))
+                    {
+                        // there is no change, nothing to raise events for.
+                        return;
+                    }
+
+                    foreach (var args in removed)
+                    {
+                        ev.RaiseEvent(handler => handler(source, args));
+                    }
+                }
             }).CompletesAsyncOperation(eventToken);
         }
 
@@ -105,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
             {
-                Contract.Requires(_updateSources.Contains(source));
+                Debug.Assert(_updateSources.Contains(source));
 
                 // check cheap early bail out
                 if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
@@ -150,10 +175,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private bool ClearDiagnosticsReportedBySource(IDiagnosticUpdateSource source, List<DiagnosticsUpdatedArgs> removed)
+        {
+            // we expect source who uses this ability to have small number of diagnostics.
+            lock (_gate)
+            {
+                Debug.Assert(_updateSources.Contains(source));
+
+                // 2 different workspaces (ex, PreviewWorkspaces) can return same Args.Id, we need to
+                // distinguish them. so we separate diagnostics per workspace map.
+                if (!_map.TryGetValue(source, out var workspaceMap))
+                {
+                    return false;
+                }
+
+                foreach (var (workspace, map) in workspaceMap)
+                {
+                    foreach (var (id, data) in map)
+                    {
+                        removed.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, data.Workspace, solution: null, data.ProjectId, data.DocumentId));
+                    }
+                }
+
+                // all diagnostics from the source is cleared
+                _map.Remove(source);
+                return true;
+            }
+        }
+
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
             AssertIfNull(e.Diagnostics);
-            RaiseDiagnosticsUpdated(sender, e);
+
+            // all events are serialized by async event handler
+            RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
+        }
+
+        private void OnCleared(object sender, EventArgs e)
+        {
+            // all events are serialized by async event handler
+            RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
         public IEnumerable<DiagnosticData> GetDiagnostics(
@@ -188,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     using (var pool = SharedPools.Default<List<Data>>().GetPooledObject())
                     {
                         AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                        Contract.Requires(pool.Object.Count == 0 || pool.Object.Count == 1);
+                        Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
 
                         if (pool.Object.Count == 1)
                         {
@@ -342,11 +403,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (obj == null)
             {
-                Contract.Requires(false, "who returns invalid data?");
+                Debug.Assert(false, "who returns invalid data?");
             }
         }
 
-        private struct Data
+        private readonly struct Data
         {
             public readonly Workspace Workspace;
             public readonly ProjectId ProjectId;

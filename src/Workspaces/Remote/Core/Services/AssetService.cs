@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -15,22 +16,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetService
+    internal class AssetService : IAssetProvider
     {
-        private static readonly Serializer s_serializer = new Serializer(SolutionService.PrimaryWorkspace);
-
+        private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int scopeId, AssetStorage assetStorage)
+        public AssetService(int scopeId, AssetStorage assetStorage, ISerializerService serializerService)
         {
             _scopeId = scopeId;
             _assetStorage = assetStorage;
-        }
-
-        public static T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
+            _serializerService = serializerService;
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
@@ -155,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 // ask one of asset source for data
-                return await source.RequestAssetsAsync(_scopeId, checksums, cancellationToken).ConfigureAwait(false);
+                return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {

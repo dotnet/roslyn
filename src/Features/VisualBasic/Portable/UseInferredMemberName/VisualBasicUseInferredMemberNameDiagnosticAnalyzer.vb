@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     ''' <summary>
-    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as `(a:=a, b:=b)` or `New With {.a = a, .b = b}`
+    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as <c>(a:=a, b:=b)</c> or <c>New With {.a = a, .b = b}</c>
     ''' </summary>
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseInferredMemberNameDiagnosticAnalyzer
@@ -48,9 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             ' Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Value),
-                    nameColonEquals.GetLocation()))
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    nameColonEquals.GetLocation(),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations:=Nothing,
+                    properties:=Nothing))
 
             ' Also fade out the part of the name-colon-equals syntax
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
@@ -76,9 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             ' Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Value),
-                    syntaxTree.GetLocation(fadeSpan)))
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    syntaxTree.GetLocation(fadeSpan),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations:=Nothing,
+                    properties:=Nothing))
 
             ' Also fade out the part of the name-equals syntax
             context.ReportDiagnostic(

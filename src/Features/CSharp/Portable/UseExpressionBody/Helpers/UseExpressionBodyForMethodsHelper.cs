@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal class UseExpressionBodyForMethodsHelper : 
+    internal class UseExpressionBodyForMethodsHelper :
         UseExpressionBodyHelper<MethodDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForMethodsHelper Instance = new UseExpressionBodyForMethodsHelper();
@@ -40,7 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override MethodDeclarationSyntax WithBody(MethodDeclarationSyntax declaration, BlockSyntax body)
             => declaration.WithBody(body);
 
-        protected override bool CreateReturnStatementForExpression(MethodDeclarationSyntax declaration)
-            => !declaration.ReturnType.IsVoid();
+        protected override bool CreateReturnStatementForExpression(
+            SemanticModel semanticModel, MethodDeclarationSyntax declaration)
+        {
+            if (declaration.Modifiers.Any(SyntaxKind.AsyncKeyword))
+            {
+                // if it's 'async TaskLike' (where TaskLike is non-generic) we do *not* want to
+                // create a return statement.  This is just the 'async' version of a 'void' method.
+                var method = semanticModel.GetDeclaredSymbol(declaration);
+                return method.ReturnType is INamedTypeSymbol namedType && namedType.Arity != 0;
+            }
+
+            return !declaration.ReturnType.IsVoid();
+        }
     }
 }

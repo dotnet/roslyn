@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
-            this DkmClrRuntimeInstance runtime, 
-            DkmClrAppDomain appDomain, 
+            this DkmClrRuntimeInstance runtime,
+            DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
             // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.
@@ -302,23 +302,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (flags & desired) == desired;
         }
 
-        internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static MetadataContext<TAssemblyContext> GetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
-            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<MetadataContext<TAssemblyContext>>>();
+            return (dataItem == null) ? default(MetadataContext<TAssemblyContext>) : dataItem.MetadataContext;
         }
 
-        internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
-            where TMetadataContext : struct
+        internal static void SetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain, MetadataContext<TAssemblyContext> context, bool report)
+            where TAssemblyContext : struct
         {
-            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
+            if (report)
+            {
+                var process = appDomain.Process;
+                var message = DkmUserMessage.Create(
+                    process.Connection,
+                    process,
+                    DkmUserMessageOutputKind.UnfilteredOutputWindowMessage,
+                    $"EE: AppDomain {appDomain.Id}, blocks {context.MetadataBlocks.Length}, contexts {context.AssemblyContexts.Count}" + Environment.NewLine,
+                    MessageBoxFlags.MB_OK,
+                    0);
+                message.Post();
+            }
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<MetadataContext<TAssemblyContext>>(context));
         }
 
-        internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : struct
+        internal static void RemoveMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain)
+            where TAssemblyContext : struct
         {
-            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+            appDomain.RemoveDataItem<MetadataContextItem<TAssemblyContext>>();
         }
 
         private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem

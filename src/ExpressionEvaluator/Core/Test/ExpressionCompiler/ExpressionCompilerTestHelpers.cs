@@ -18,7 +18,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,6 +27,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
+using PDB::Roslyn.Test.Utilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -552,6 +552,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
+        internal static void VerifyResolutionRequests(EEMetadataReferenceResolver resolver, (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
+        {
+#if DEBUG
+            var expected = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
+            var actual = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
+            expected.AddRange(expectedRequests);
+            sort(expected);
+            actual.AddRange(resolver.Requests.Select(pair => (pair.Key, pair.Value.Identity, pair.Value.Count)));
+            sort(actual);
+            AssertEx.Equal(expected, actual);
+            actual.Free();
+            expected.Free();
+
+            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
+            {
+                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
+            }
+#endif
+        }
+
+        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, Guid[] moduleVersionIds)
+            where TAssemblyContext : struct
+        {
+            var actualIds = metadataContext.AssemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
+            Array.Sort(actualIds);
+            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            Array.Sort(expectedIds);
+            AssertEx.Equal(expectedIds, actualIds);
+        }
+
         internal static ISymUnmanagedReader ConstructSymReaderWithImports(ImmutableArray<byte> peImage, string methodName, params string[] importStrings)
         {
             using (var peReader = new PEReader(peImage))
@@ -728,7 +758,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 {
                     var sequencePoints = symMethod.GetSequencePoints();
                     ilOffset = atLineNumber < 0
-                        ? sequencePoints.Where(sp => sp.StartLine != SequencePointList.HiddenSequencePointLine).Select(sp => sp.Offset).FirstOrDefault()
+                        ? sequencePoints.Where(sp => sp.StartLine != Cci.SequencePoint.HiddenLine).Select(sp => sp.Offset).FirstOrDefault()
                         : sequencePoints.First(sp => sp.StartLine == atLineNumber).Offset;
                 }
             }

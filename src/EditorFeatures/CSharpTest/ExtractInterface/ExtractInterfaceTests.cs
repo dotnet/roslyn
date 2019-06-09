@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1059,8 +1061,9 @@ class $$Test<T, U>
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
@@ -1079,17 +1082,10 @@ class $$Test<T, U>
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new ExtractInterfaceCommandHandler();
-                var delegatedToNext = false;
-                CommandState nextHandler()
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
+                var handler = new ExtractInterfaceCommandHandler(exportProvider.GetExportedValue<IThreadingContext>());
 
-                var state = handler.GetCommandState(new Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+                var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer));
+                Assert.True(state.IsUnspecified);
             }
         }
 
@@ -1177,6 +1173,38 @@ class $$TestClass
 @"interface ITestClass
 {
     ref readonly int this[int p1] { get; }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestUnmanagedConstraint_Type()
+        {
+            var markup = @"
+class $$TestClass<T> where T : unmanaged
+{
+    public void M(T arg) => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass<T> where T : unmanaged
+{
+    void M(T arg);
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestUnmanagedConstraint_Method()
+        {
+            var markup = @"
+class $$TestClass
+{
+    public void M<T>() where T : unmanaged => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass
+{
+    void M<T>() where T : unmanaged;
 }");
         }
     }

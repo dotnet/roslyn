@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-        public virtual BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public virtual BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
             Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(original));
             return InstrumentStatement(original, rewritten);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.DoStatement);
-            return ifConditionGotoStart; 
+            return ifConditionGotoStart;
         }
 
         public virtual BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
@@ -223,18 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
-        {
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
-            return InstrumentStatement(original, rewritten);
-        }
-
         /// <summary>
         /// Instrument a switch case when clause, which is translated to a conditional branch to the body of the case block.
         /// </summary>
         /// <param name="original">the bound expression of the when clause</param>
         /// <param name="ifConditionGotoBody">the lowered conditional branch into the case block</param>
-        public virtual BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        public virtual BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>() != null);
@@ -259,14 +253,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            Debug.Assert(original.Kind == BoundKind.SwitchStatement || original.Kind == BoundKind.PatternSwitchStatement);
+            Debug.Assert(original.Kind == BoundKind.SwitchStatement);
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             Debug.Assert(factory != null);
             return rewrittenExpression;
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        public virtual BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             return bindings;
         }

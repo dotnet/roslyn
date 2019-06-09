@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly IList<SolutionPreviewItem> _previews;
         public readonly SolutionChangeSummary ChangeSummary;
 
-        public SolutionPreviewResult(SolutionPreviewItem preview, SolutionChangeSummary changeSummary = null)
-            : this(new List<SolutionPreviewItem> { preview }, changeSummary)
+        public SolutionPreviewResult(IThreadingContext threadingContext, SolutionPreviewItem preview, SolutionChangeSummary changeSummary = null)
+            : this(threadingContext, new List<SolutionPreviewItem> { preview }, changeSummary)
         {
         }
 
-        public SolutionPreviewResult(IList<SolutionPreviewItem> previews, SolutionChangeSummary changeSummary = null)
+        public SolutionPreviewResult(IThreadingContext threadingContext, IList<SolutionPreviewItem> previews, SolutionChangeSummary changeSummary = null)
+            : base(threadingContext)
         {
             _previews = previews ?? SpecializedCollections.EmptyList<SolutionPreviewItem>();
             this.ChangeSummary = changeSummary;
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return new SolutionPreviewResult(
+                result1.ThreadingContext,
                 result1._previews.Concat(result2._previews).ToList(),
                 result1.ChangeSummary ?? result2.ChangeSummary);
         }

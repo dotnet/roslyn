@@ -1,37 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Differencing;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
+    [UseExportProvider]
     public class PreviewWorkspaceTests
     {
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewServices()
         {
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 Assert.True(service is PreviewSolutionCrawlerRegistrationServiceFactory.Service);
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
-            using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(EditorServicesUtil.ExportProvider.AsExportProvider())))
+            using (var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider)))
             {
                 var solution = previewWorkspace.CurrentSolution
                                                .AddProject("project", "project.dll", LanguageNames.CSharp)
@@ -203,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.CreateExportProvider()))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
@@ -217,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
 
                 // create a diff view
-                WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
+                WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
                 using (var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None)))
@@ -228,12 +226,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), diagnosticService, foregroundService, listenerProvider);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
@@ -255,7 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        [Trait(Traits.Editor, Traits.Editors.Preview)]
+        [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
+        [ConditionalFact(typeof(x86))]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes)))
+                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, AllNullabilityIgnoringSymbolComparer.Instance)))
                 {
                     return;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     if (accessibleInstanceConstructors.Any())
                     {
                         var delegatedConstructor = _service.GetDelegatingConstructor(
-                            _document,
+                            _semanticDocument,
                             _state.ObjectCreationExpressionOpt,
                             _state.BaseTypeOrInterfaceOpt,
                             accessibleInstanceConstructors,
@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private void AddProperties(ArrayBuilder<ISymbol> members)
             {
-                var typeInference = _document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInference = _semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
                 foreach (var property in _state.PropertiesToGenerate)
                 {
-                    if (_service.TryGenerateProperty(property, _document.SemanticModel, typeInference, _cancellationToken, out var generatedProperty))
+                    if (_service.TryGenerateProperty(property, _semanticDocument.SemanticModel, typeInference, _cancellationToken, out var generatedProperty))
                     {
                         members.Add(generatedProperty);
                     }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return;
                 }
 
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
                 members.Add(factory.CreateBaseDelegatingConstructor(
                     methodSymbol, DetermineName()));
             }
@@ -202,18 +202,17 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private void AddFieldDelegatingConstructor(
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
-                var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
 
-                var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _document.SemanticModel, _intoNamespace, _cancellationToken);
+                var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
-                var parameterNames = _service.GenerateParameterNames(_document.SemanticModel, argumentList, _cancellationToken);
+                var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 var parameterToNewFieldMap = new Dictionary<string, string>();
 
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 for (var i = 0; i < parameterNames.Count; i++)
                 {
                     var refKind = syntaxFacts.GetRefKindOfArgument(argumentList[i]);
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var parameterName = parameterNames[i];
                     var parameterType = parameterTypes[i];
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
-                        _document.SemanticModel.Compilation, availableTypeParameters);
+                        _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
                     if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: true))
                     {
@@ -243,11 +242,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
                     var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                        _document.SemanticModel.Compilation,
+                        _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
                         parameterToExistingFieldMap, parameterToNewFieldMap,
-                        addNullChecks: false, preferThrowExpression: false,
-                        cancellationToken: _cancellationToken);
+                        addNullChecks: false, preferThrowExpression: false);
                     members.AddRange(fields);
                     members.Add(constructor);
                 }
@@ -257,8 +255,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private void AddExceptionConstructors(ArrayBuilder<ISymbol> members)
             {
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
-                var exceptionType = _document.SemanticModel.Compilation.ExceptionType();
+                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
+                var exceptionType = _semanticDocument.SemanticModel.Compilation.ExceptionType();
                 var constructors =
                    exceptionType.InstanceConstructors
                        .Where(c => c.DeclaredAccessibility == Accessibility.Public || c.DeclaredAccessibility == Accessibility.Protected)
@@ -279,7 +277,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 if (_state.IsException)
                 {
-                    var serializableType = _document.SemanticModel.Compilation.SerializableAttributeType();
+                    var serializableType = _semanticDocument.SemanticModel.Compilation.SerializableAttributeType();
                     if (serializableType != null)
                     {
                         var attribute = CodeGenerationSymbolFactory.CreateAttributeData(serializableType);
@@ -292,7 +290,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private Accessibility DetermineAccessibility()
             {
-                return _service.GetAccessibility(_state, _document.SemanticModel, _intoNamespace, _cancellationToken);
+                return _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
             }
 
             private DeclarationModifiers DetermineModifiers()
@@ -327,7 +325,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private INamedTypeSymbol RemoveUnavailableTypeParameters(INamedTypeSymbol type)
             {
                 return type.RemoveUnavailableTypeParameters(
-                    _document.SemanticModel.Compilation, GetAvailableTypeParameters()) as INamedTypeSymbol;
+                    _semanticDocument.SemanticModel.Compilation, GetAvailableTypeParameters()) as INamedTypeSymbol;
             }
 
             private string DetermineName()
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters()
-                => _service.GetTypeParameters(_state, _document.SemanticModel, _cancellationToken);
+                => _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);
 
             private TypeKind DetermineTypeKind()
             {
@@ -349,7 +347,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             protected IList<ITypeParameterSymbol> GetAvailableTypeParameters()
             {
-                var availableInnerTypeParameters = _service.GetTypeParameters(_state, _document.SemanticModel, _cancellationToken);
+                var availableInnerTypeParameters = _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);
                 var availableOuterTypeParameters = !_intoNamespace && _state.TypeToGenerateInOpt != null
                     ? _state.TypeToGenerateInOpt.GetAllTypeParameters()
                     : SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private async Task<Result> SingleEncapsulateFieldResultAsync(Document document, TextSpan span, int index, bool updateReferences, CancellationToken cancellationToken)
         {
             var fields = (await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-            Contract.Requires(fields.Length > index);
+            Debug.Assert(fields.Length > index);
 
             var field = fields[index];
             var result = await EncapsulateFieldAsync(field, document, updateReferences, cancellationToken).ConfigureAwait(false);
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var failedFieldSymbols = new List<IFieldSymbol>();
 
             var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
-            Contract.Requires(fields.Any());
+            Debug.Assert(fields.Any());
 
             // For now, build up the multiple field case by encapsulating one at a time.
             Result result = null;
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
                     solution = await Renamer.RenameSymbolAsync(solution,
-                        SymbolAndProjectId.Create(field, projectId), 
+                        SymbolAndProjectId.Create(field, projectId),
                         finalFieldName, solution.Options,
                         location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
                         cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), 
+                    solution, SymbolAndProjectId.Create(field, projectId),
                     generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -291,12 +292,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         protected IPropertySymbol GenerateProperty(
-            string propertyName, string fieldName, 
-            Accessibility accessibility, 
-            IFieldSymbol field, 
-            INamedTypeSymbol containingSymbol, 
-            SyntaxAnnotation annotation, 
-            Document document, 
+            string propertyName, string fieldName,
+            Accessibility accessibility,
+            IFieldSymbol field,
+            INamedTypeSymbol containingSymbol,
+            SyntaxAnnotation annotation,
+            Document document,
             CancellationToken cancellationToken)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();

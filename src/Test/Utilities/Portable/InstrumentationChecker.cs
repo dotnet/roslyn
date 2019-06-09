@@ -288,7 +288,7 @@ End Namespace
         /// <param name="snippet">
         /// A short snippet of code capturing the what you expect the span for this method to look like.
         /// It will be verified against the start of the actual method source span.
-        /// If no snippet is passed in, then snippet validation will be disabled for the whole method (subsequent calls to `True` or `False`).
+        /// If no snippet is passed in, then snippet validation will be disabled for the whole method (subsequent calls to <c>True</c> or <c>False</c>).
         /// </param>
         public MethodChecker Method(int method, int file, string snippet = null, bool expectBodySpan = true)
         {

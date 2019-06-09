@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis
             this.Data = reader.ReadString();
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteInt64(_id);

@@ -1,21 +1,27 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    [ExportCommandHandler(nameof(SplitStringLiteralCommandHandler), ContentTypeNames.CSharpContentType)]
-    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(SplitStringLiteralCommandHandler))]
+    internal partial class SplitStringLiteralCommandHandler : VSCommanding.ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -29,17 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public string DisplayName => CSharpEditorResources.Split_string;
+
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
-            if (!ExecuteCommandWorker(args))
-            {
-                nextHandler();
-            }
+            return ExecuteCommandWorker(args);
         }
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
@@ -74,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             if (document != null)
             {
                 var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                var enabled = options.GetOption(
-                    SplitStringLiteralOptions.Enabled);
+                var enabled = options.GetOption(SplitStringLiteralOptions.Enabled);
+                var indentStyle = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
                 if (enabled)
                 {
@@ -127,11 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
+            var indentStyle = options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
 
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
-            var splitter = StringSplitter.Create(document, position, root, sourceText, useTabs, tabSize, cancellationToken);
+            var splitter = StringSplitter.Create(
+                document, position, root, sourceText,
+                useTabs, tabSize, indentStyle, cancellationToken);
             if (splitter == null)
             {
                 return null;

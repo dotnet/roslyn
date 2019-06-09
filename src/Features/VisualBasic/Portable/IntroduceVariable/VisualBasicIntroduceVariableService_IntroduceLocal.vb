@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                         SyntaxFactory.EqualsValue(value:=expression.WithoutTrailingTrivia().WithoutLeadingTrivia()))))
 
             If Not declarationStatement.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then
-                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
+                declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
             End If
 
             If TypeOf container Is SingleLineLambdaExpressionSyntax Then

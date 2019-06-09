@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(528223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528223")>
         <Fact>
         Public Sub BC30934ERR_RequiredAttributeConstConversion2_1()
-            Dim errs = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim errs = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -110,7 +110,7 @@ End Namespace
 </compilation>
 
             ' Not Breaking anymore - Dev11 gives NO error
-            CreateCompilationWithMscorlibAndVBRuntime(text).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntime(text).VerifyDiagnostics()
 
         End Sub
 
@@ -118,7 +118,7 @@ End Namespace
         <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef01()
-            Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -150,7 +150,7 @@ End Module
         <WorkItem(531310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531310")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef02()
-            Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -180,7 +180,7 @@ End Module
         <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr01()
-            Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -276,7 +276,7 @@ End Module
         <WorkItem(543241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543241")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr02()
-            Dim errs = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim errs = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Imports System
@@ -307,7 +307,7 @@ End Module
         <WorkItem(544500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
         <Fact>
         Public Sub PartialConstructors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -355,7 +355,7 @@ BC30269: 'Private Sub New(x As T, y As C1(Of U, V).C1(Of U), z As U, w As C1(Of 
         <WorkItem(544500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544500")>
         <Fact>
         Public Sub PartialConstructors2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -523,7 +523,7 @@ End Module
 
             ' Native: error BC32126: Methods of 'System.Nullable(Of T)' cannot be used as operands of the 'AddressOf' operator.
             ' Roslyn: No error
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
             Imports System

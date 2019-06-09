@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return Machine.ArmThumb2;
                     case Platform.X64:
                         return Machine.Amd64;
+                    case Platform.Arm64:
+                        return Machine.Arm64;
                     case Platform.Itanium:
                         return Machine.IA64;
                     default:

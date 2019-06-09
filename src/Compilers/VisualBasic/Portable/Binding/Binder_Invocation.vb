@@ -144,6 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         callExpr.MethodGroupOpt,
                         callExpr.ReceiverOpt,
                         callExpr.Arguments,
+                        callExpr.DefaultArguments,
                         callExpr.ConstantValueOpt,
                         isLValue:=False,
                         suppressObjectClone:=False,
@@ -843,7 +844,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
             End If
 
-            boundArguments = PassArguments(node, bestResult, boundArguments, diagnostics)
+            Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node, bestResult, boundArguments, diagnostics)
+            boundArguments = argumentInfo.Arguments
             Debug.Assert(Not boundArguments.IsDefault)
 
             Dim hasErrors As Boolean = False
@@ -942,7 +944,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constantValue,
                     returnType,
                     suppressObjectClone:=False,
-                    hasErrors:=hasErrors)
+                    hasErrors:=hasErrors,
+                    defaultArguments:=argumentInfo.DefaultArguments)
 
             Else
                 Dim [property] = DirectCast(methodOrProperty, PropertySymbol)
@@ -976,6 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property].IsWritable(receiver, Me),
                     receiver,
                     boundArguments,
+                    argumentInfo.DefaultArguments,
                     hasErrors:=hasErrors)
             End If
 
@@ -1772,7 +1776,7 @@ ProduceBoundNode:
                 Dim container As NamedTypeSymbol = bestSymbols(0).ContainingType
 
                 For i As Integer = 1 To bestSymbols.Length - 1 Step 1
-                    If bestSymbols(i).ContainingType <> container Then
+                    If Not TypeSymbol.Equals(bestSymbols(i).ContainingType, container, TypeCompareKind.ConsiderEverything) Then
                         withContainingTypeInDiagnostics = True
                     End If
                 Next
@@ -1868,7 +1872,7 @@ ProduceBoundNode:
                                                          callerInfoOpt:=callerInfoOpt,
                                                          representCandidateInDiagnosticsOpt:=Nothing)
 
-                diagnosticPerSymbol.Add(KeyValuePair.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
+                diagnosticPerSymbol.Add(KeyValuePairUtil.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
 
             Next
 
@@ -2631,7 +2635,7 @@ ProduceBoundNode:
             ByRef candidate As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag
-        ) As ImmutableArray(Of BoundExpression)
+        ) As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector)
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
 
@@ -2643,6 +2647,7 @@ ProduceBoundNode:
 
             Dim parameterToArgumentMap = ArrayBuilder(Of Integer).GetInstance(paramCount, -1)
             Dim argumentsInOrder = ArrayBuilder(Of BoundExpression).GetInstance(paramCount)
+            Dim defaultArguments = BitVector.Null
 
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
 
@@ -2746,10 +2751,15 @@ ProduceBoundNode:
                 If argument Is Nothing Then
                     Debug.Assert(Not candidate.OptionalArguments.IsEmpty, "Optional arguments expected")
 
+                    If defaultArguments.IsNull Then
+                        defaultArguments = BitVector.Create(paramCount)
+                    End If
+
                     ' Deal with Optional arguments
                     Dim defaultArgument As OverloadResolution.OptionalArgument = candidate.OptionalArguments(paramIndex)
                     argument = defaultArgument.DefaultValue
                     argumentIsDefaultValue = True
+                    defaultArguments(paramIndex) = True
                     Debug.Assert(argument IsNot Nothing)
                     conversion = defaultArgument.Conversion
 
@@ -2786,7 +2796,7 @@ ProduceBoundNode:
             End If
 
             parameterToArgumentMap.Free()
-            Return argumentsInOrder.ToImmutableAndFree()
+            Return (argumentsInOrder.ToImmutableAndFree(), defaultArguments)
         End Function
 
 

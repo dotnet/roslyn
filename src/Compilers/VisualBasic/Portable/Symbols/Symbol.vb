@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend MustInherit Class Symbol
-        Implements ISymbol, IMessageSerializable
+        Implements ISymbol, IFormattable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -1191,5 +1191,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #End Region
+
+        Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+            Return ToString()
+        End Function
     End Class
 End Namespace

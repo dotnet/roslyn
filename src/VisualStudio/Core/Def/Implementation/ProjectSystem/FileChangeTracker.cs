@@ -6,16 +6,17 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed class FileChangeTracker : IVsFileChangeEvents, IDisposable
+    internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDisposable
     {
-        private const uint FileChangeFlags = (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size);
+        private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-        private static readonly Lazy<uint?> s_none = new Lazy<uint?>(() => null, LazyThreadSafetyMode.ExecutionAndPublication);
+        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(ct => null, cacheResult: true);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// this file. This field may never be null, but might be a Lazy that has a value of null if
         /// we either failed to subscribe over never have tried to subscribe.
         /// </summary>
-        private Lazy<uint?> _fileChangeCookie;
+        private AsyncLazy<uint?> _fileChangeCookie;
 
         public event EventHandler UpdatedOnDisk;
 
@@ -67,6 +68,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _filePath; }
         }
 
+        /// <summary>
+        /// Returns true if a previous call to <see cref="StartFileChangeListeningAsync"/> has completed.
+        /// </summary>
+        public bool PreviousCallToStartFileChangeHasAsynchronouslyCompleted
+        {
+            get
+            {
+                var cookie = _fileChangeCookie;
+                return cookie != s_none && cookie.TryGetValue(out _);
+            }
+        }
+
         public void AssertUnsubscription()
         {
             // We must have been disposed properly.
@@ -76,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureSubscription()
         {
             // make sure we have file notification subscribed
-            var unused = _fileChangeCookie.Value;
+            var unused = _fileChangeCookie.GetValue(CancellationToken.None);
         }
 
         public void StartFileChangeListeningAsync()
@@ -88,45 +101,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Contract.ThrowIfTrue(_fileChangeCookie != s_none);
 
-            _fileChangeCookie = new Lazy<uint?>(() =>
+            _fileChangeCookie = new AsyncLazy<uint?>(async cancellationToken =>
+            {
+                try
+                {
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, FileChangeFlags, this).ConfigureAwait(false);
+                }
+                catch (Exception e) when (ReportException(e))
+                {
+                    return null;
+                }
+            }, cancellationToken =>
             {
                 try
                 {
                     Marshal.ThrowExceptionForHR(
-                        _fileChangeService.AdviseFileChange(_filePath, FileChangeFlags, this, out var newCookie));
+                        _fileChangeService.AdviseFileChange(_filePath, (uint)FileChangeFlags, this, out var newCookie));
                     return newCookie;
                 }
-                catch (Exception e) when (ShouldTrapException(e))
+                catch (Exception e) when (ReportException(e))
                 {
                     return null;
                 }
-            }, LazyThreadSafetyMode.ExecutionAndPublication);
+            }, cacheResult: true);
 
             lock (s_lastBackgroundTaskGate)
             {
-                s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.Value, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.GetValueAsync(CancellationToken.None), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
             }
         }
 
-        private static bool ShouldTrapException(Exception e)
+        private static bool ReportException(Exception e)
         {
-            if (e is FileNotFoundException)
+            // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
+            if (!(e is PathTooLongException))
             {
-                // The IVsFileChange implementation shouldn't ever be throwing exceptions like this, but it's a
-                // transient file system issue (perhaps the file being deleted while we're changing subscriptions)
-                // and so there's nothing better to do. We'll still non-fatal to track the rate this is happening
                 return FatalError.ReportWithoutCrash(e);
             }
-            else if (e is PathTooLongException)
-            {
-                // Nothing better we can do. We won't be able to open this file either, and thus we'll do our usual
-                // reporting of unopenable/missing files to the output window as usual.
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+
+            // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from
+            // StopFileChangeListening or Dispose which causes all sorts of downstream problems.
+            return true;
         }
 
         public void StopFileChangeListening()
@@ -144,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            var fileChangeCookie = _fileChangeCookie.Value;
+            var fileChangeCookie = _fileChangeCookie.GetValue(CancellationToken.None);
             _fileChangeCookie = s_none;
 
             // We may have tried to subscribe but failed, so have to check a second time
@@ -155,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Marshal.ThrowExceptionForHR(
                         _fileChangeService.UnadviseFileChange(fileChangeCookie.Value));
                 }
-                catch (Exception e) when (ShouldTrapException(e))
+                catch (Exception e) when (ReportException(e))
                 {
                 }
             }
@@ -180,6 +195,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
 
             return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChanged(string pszDirectory)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx(string pszDirectory, string pszFile)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
+        {
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsFreeThreadedFileChangeEvents.DirectoryChanged(string pszDirectory)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
+        }
+
+        int IVsFreeThreadedFileChangeEvents.DirectoryChangedEx(string pszDirectory, string pszFile)
+        {
+            throw new Exception("We only watch files; we should never be seeing directory changes!");
         }
     }
 }

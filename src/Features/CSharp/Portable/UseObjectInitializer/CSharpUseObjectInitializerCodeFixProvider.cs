@@ -20,8 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseObjectInitializerCodeFixProvider()
+        {
+        }
+
         protected override StatementSyntax GetNewStatement(
-            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation, 
+            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return statement.ReplaceNode(

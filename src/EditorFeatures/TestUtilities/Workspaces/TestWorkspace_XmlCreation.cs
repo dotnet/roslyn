@@ -76,11 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
-            XElement element = null;
-            if (options is Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
+            var element = new XElement(CompilationOptionsElementName);
+
+            if (options is CodeAnalysis.CSharp.CSharpCompilationOptions csOptions)
             {
-                element = new XElement(CompilationOptionsElementName,
-                    vbOptions.GlobalImports.AsEnumerable().Select(i => new XElement(GlobalImportElementName, i.Name)));
+                element.SetAttributeValue(AllowUnsafeAttributeName, csOptions.AllowUnsafe);
+            }
+            else if (options is CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
+            {
+                element.Add(vbOptions.GlobalImports.AsEnumerable().Select(i => new XElement(GlobalImportElementName, i.Name)));
 
                 if (vbOptions.RootNamespace != null)
                 {
@@ -90,8 +94,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (options.CheckOverflow)
             {
-                element = element ?? new XElement(CompilationOptionsElementName);
                 element.SetAttributeValue(CheckOverflowAttributeName, true);
+            }
+
+            if (options.OutputKind != OutputKind.DynamicallyLinkedLibrary)
+            {
+                element = element ?? new XElement(CompilationOptionsElementName);
+                element.SetAttributeValue(OutputKindName, options.OutputKind);
             }
 
             return element;

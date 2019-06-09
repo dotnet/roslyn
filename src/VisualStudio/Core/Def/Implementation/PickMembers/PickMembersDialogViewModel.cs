@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index > 0;
             }
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                 {
                     return false;
                 }
-                
+
                 var index = SelectedIndex.Value;
                 return index < MemberContainers.Count - 1;
             }

@@ -9,8 +9,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
-            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -117,15 +115,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
-            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -240,15 +236,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
-            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -371,15 +365,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_DifferentAssemblyWithSameTypeName() As Task
-            Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -508,7 +500,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
     End Class
 End Namespace

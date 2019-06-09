@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
@@ -61,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
@@ -85,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o, i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
@@ -109,6 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 

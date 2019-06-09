@@ -904,6 +904,11 @@ Done:
         ''' </summary>
         Private Shared Function AreConstraintTypesSubset(constraintTypes1 As ArrayBuilder(Of TypeSymbol), constraintTypes2 As ArrayBuilder(Of TypeSymbol)) As Boolean
             For Each constraintType In constraintTypes1
+                ' Skip object type.
+                If constraintType.IsObjectType() Then
+                    Continue For
+                End If
+
                 If Not ContainsIgnoringCustomModifiers(constraintTypes2, constraintType) Then
                     Return False
                 End If

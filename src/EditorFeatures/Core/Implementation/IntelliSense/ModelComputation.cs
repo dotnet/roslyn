@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -49,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         #endregion
 
-        public ModelComputation(IController<TModel> controller, TaskScheduler computationTaskScheduler)
+        public ModelComputation(IThreadingContext threadingContext, IController<TModel> controller, TaskScheduler computationTaskScheduler)
+            : base(threadingContext)
         {
             _controller = controller;
             __taskScheduler = computationTaskScheduler;
@@ -121,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             bool updateController = true)
         {
             AssertIsForeground();
+
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
             // Mark that an async operation has begun.  This way tests know to wait until the
@@ -142,22 +145,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // then we don't need to notify as a later task will do so.
             _notifyControllerTask = Task.Factory.ContinueWhenAll(
                 new[] { _notifyControllerTask, nextTask },
-                tasks =>
-                    {
-                        this.AssertIsForeground();
-                        if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
-                        {
-                            _stopCancellationToken.ThrowIfCancellationRequested();
+                async tasks =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
+                    _stopCancellationToken.ThrowIfCancellationRequested();
 
-                            // Check if we're still the last task.  If so then we should update the
-                            // controller. Otherwise there's a pending task that should run.  We
-                            // don't need to update the controller (and the presenters) until our
-                            // chain is finished.
-                            updateController &= nextTask == _lastTask;
-                            OnModelUpdated(nextTask.Result, updateController);
-                        }
-                    },
-                _stopCancellationToken, TaskContinuationOptions.None, ForegroundTaskScheduler);
+                    if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
+                    {
+                        _stopCancellationToken.ThrowIfCancellationRequested();
+
+                        // Check if we're still the last task.  If so then we should update the
+                        // controller. Otherwise there's a pending task that should run.  We
+                        // don't need to update the controller (and the presenters) until our
+                        // chain is finished.
+                        updateController &= nextTask == _lastTask;
+                        OnModelUpdated(nextTask.Result, updateController);
+                    }
+                },
+                _stopCancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
 
             // When we've notified the controller of our result, we consider the async operation
             // to be completed.

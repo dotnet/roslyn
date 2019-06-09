@@ -43,7 +43,7 @@ namespace NB
 {
     class C { }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             var namespaceNames = new[]
             {

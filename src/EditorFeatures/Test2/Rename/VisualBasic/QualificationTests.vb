@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
+    <[UseExportProvider]>
     Public Class QualificationTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 

@@ -10,5 +10,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         Substring = 2,
         Regular = 3,
         None = 4,
+        CamelCaseExact = 5,
+        CamelCasePrefix = 6,
+        CamelCaseNonContiguousPrefix = 7,
+        CamelCaseSubstring = 8,
+        CamelCaseNonContiguousSubstring = 9,
+        Fuzzy = 10
     }
 }

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private readonly ISmartIndentationService _smartIndentationService;
 
         [ImportingConstructor]
-        public CSharpEditorBraceCompletionSessionFactory(ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpEditorBraceCompletionSessionFactory(IThreadingContext threadingContext, ISmartIndentationService smartIndentationService, ITextBufferUndoManagerProvider undoManager)
+            : base(threadingContext)
         {
             _smartIndentationService = smartIndentationService;
             _undoManager = undoManager;

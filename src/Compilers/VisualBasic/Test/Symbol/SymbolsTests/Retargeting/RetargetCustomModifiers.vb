@@ -75,6 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
             Assert.Equal(0, p6.CustomModifiers.Length)
 
             Assert.True(p6.[Type].IsErrorType())
+            Assert.IsType(Of PointerTypeSymbol)(p6.Type)
+            Assert.False(DirectCast(p6.Type, INamedTypeSymbol).IsSerializable)
 
             Assert.[False](m7.IsSub)
             Assert.Equal(1, m7.ReturnTypeCustomModifiers.Length)

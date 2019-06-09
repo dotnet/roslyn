@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 // it write out nothing to stream. for null kind and checksum, checksum/transportation framework knows
                 // there is no data in stream and skip reading any data from the stream.
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

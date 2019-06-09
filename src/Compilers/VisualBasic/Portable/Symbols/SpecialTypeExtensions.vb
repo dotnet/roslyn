@@ -5,26 +5,6 @@ Imports System.Runtime.CompilerServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module SpecialTypeExtensions
         <Extension>
-        Public Function IsNumericType(this As SpecialType) As Boolean
-            Select Case this
-                Case SpecialType.System_Byte,
-                     SpecialType.System_SByte,
-                     SpecialType.System_Int16,
-                     SpecialType.System_UInt16,
-                     SpecialType.System_Int32,
-                     SpecialType.System_UInt32,
-                     SpecialType.System_Int64,
-                     SpecialType.System_UInt64,
-                     SpecialType.System_Single,
-                     SpecialType.System_Double,
-                     SpecialType.System_Decimal
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
-        <Extension>
         Public Function IsIntegralType(this As SpecialType) As Boolean
             Select Case this
                 Case SpecialType.System_Byte,
@@ -35,32 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                      SpecialType.System_UInt32,
                      SpecialType.System_Int64,
                      SpecialType.System_UInt64
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
-        <Extension>
-        Public Function IsUnsignedIntegralType(this As SpecialType) As Boolean
-            Select Case this
-                Case SpecialType.System_Byte,
-                     SpecialType.System_UInt16,
-                     SpecialType.System_UInt32,
-                     SpecialType.System_UInt64
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
-        <Extension>
-        Public Function IsSignedIntegralType(this As SpecialType) As Boolean
-            Select Case this
-                Case SpecialType.System_SByte,
-                     SpecialType.System_Int16,
-                     SpecialType.System_Int32,
-                     SpecialType.System_Int64
                     Return True
                 Case Else
                     Return False

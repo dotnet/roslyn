@@ -78,8 +78,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
-                fixAllActionEquivalenceKey:=VBFeaturesResources.Add_Me)
+                options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion))
         End Function
     End Class
 End Namespace

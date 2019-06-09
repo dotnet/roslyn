@@ -9,7 +9,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     /// Current usage:
     ///  (1) C# dynamic invocation expression.
-    ///  (2) VB late bound invocation expression.
+    ///  (2) C# dynamic collection element initializer.
+    ///      For example, in the following collection initializer: <code>new C() { do1, do2, do3 }</code> where
+    ///      the doX objects are of type dynamic, we'll have 3 <see cref="IDynamicInvocationOperation"/> with do1, do2, and
+    ///      do3 as their arguments.
+    ///  (3) VB late bound invocation expression.
+    ///  (4) VB dynamic collection element initializer.
+    ///      Similar to the C# example, <code>New C() From {do1, do2, do3}</code> will generate 3 <see cref="IDynamicInvocationOperation"/>
+    ///      nodes with do1, do2, and do3 as their arguments, respectively.
     /// </para>
     /// </summary>
     /// <remarks>

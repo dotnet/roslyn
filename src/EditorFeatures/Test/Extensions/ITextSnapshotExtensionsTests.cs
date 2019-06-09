@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
+    [UseExportProvider]
     public class ITextSnapshotExtensionsTests
     {
         [Fact]
@@ -159,19 +159,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         [Fact]
-        public void GetPointTest()
+        public void TryGetPointValueTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.GetPoint(3, 0));
+            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.TryGetPoint(3, 0).Value);
         }
 
         [Fact]
-        public void GetLineAndColumnTest()
+        public void TryGetPointNullTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndColumn(16, out var line, out var col);
+            Assert.Null(snapshot.TryGetPoint(3000, 0));
+        }
+
+        [Fact]
+        public void GetLineAndCharacterTest()
+        {
+            var snapshot = GetSampleCodeSnapshot();
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, col);
+            Assert.Equal(1, character);
         }
 
         private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)

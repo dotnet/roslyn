@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private class GenerateEqualsAndGetHashCodeWithDialogCodeAction : CodeActionWithOptions
         {
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
-            private readonly AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
+            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _service, _document, _textSpan, _containingType, result.Members, 
+                    _document, _textSpan, _containingType, result.Members,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }

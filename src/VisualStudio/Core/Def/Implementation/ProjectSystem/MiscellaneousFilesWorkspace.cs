@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
@@ -53,7 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
+            IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
-            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(assertIsForeground: true);
+            _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: true);
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
@@ -81,7 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            // misc workspace will enable syntax errors and semantic errors for script files for
+            // all participating projects in the workspace
+            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax | DiagnosticProvider.Options.ScriptSemantic);
         }
 
         internal void StopSolutionCrawler()
@@ -104,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IEnumerable<MetadataReference> CreateMetadataReferences()
         {
             var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var searchPaths = ReferencePathUtilities.GetReferencePaths();
+            var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                    let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)
@@ -129,13 +132,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // 2) the old file was a different extension that we weren't tracking, which may have now changed
                 if (TryUntrackClosingDocument(docCookie, pszMkDocumentOld) || TryGetLanguageInformation(pszMkDocumentOld) == null)
                 {
-                    // Add the new one, if appropriate. 
+                    // Add the new one, if appropriate.
                     TrackOpenedDocument(docCookie, pszMkDocumentNew);
                 }
             }
 
-            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call 
-            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to 
+            // When starting a diff, the RDT doesn't call OnBeforeDocumentWindowShow, but it does call
+            // OnAfterAttributeChangeEx for the temporary buffer. The native IDE used this even to
             // add misc files, so we'll do the same.
             if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_DocDataReloaded) != 0)
             {
@@ -200,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in 
+            // We don't want to realize the document here unless it's already initialized. Document initialization is watched in
             // OnAfterAttributeChangeEx and will retrigger this if it wasn't already done.
             if (_runningDocumentTable.IsDocumentInitialized(docCookie) && !_docCookieToWorkspaceRegistration.ContainsKey(docCookie))
             {
@@ -321,7 +324,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _foregroundThreadAffinitization.AssertIsForeground();
 
-            var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            var vsTextBuffer = (IVsTextBuffer)(object)_runningDocumentTable.GetDocumentData(docCookie);
             var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
 
             if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))
@@ -349,13 +354,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
+            var fileExtension = PathUtilities.GetExtension(filePath);
+
             var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
             var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
-            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptions();
+
+            // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
+            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
             if (parseOptionsOpt != null &&
                 compilationOptionsOpt != null &&
-                PathUtilities.GetExtension(filePath) == languageInformation.ScriptExtension)
+                fileExtension == languageInformation.ScriptExtension)
             {
                 parseOptionsOpt = parseOptionsOpt.WithKind(SourceCodeKind.Script);
 
@@ -367,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var baseDirectory = PathUtilities.GetDirectoryName(filePath);
 
-                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886): 
+                // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886):
                 // - Need to have a way to specify these somewhere in VS options.
                 // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
                 // - Add default namespace imports, default metadata references to match csi.rsp
@@ -385,10 +395,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
+            var sourceCodeKind = GetSourceCodeKind(parseOptionsOpt, fileExtension, languageInformation);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 filePath,
-                sourceCodeKind: parseOptionsOpt?.Kind ?? SourceCodeKind.Regular,
+                sourceCodeKind: sourceCodeKind,
                 loader: new FileTextLoader(filePath, defaultEncoding: null),
                 filePath: filePath);
 
@@ -408,8 +419,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 metadataReferences: _metadataReferences);
 
             // Miscellaneous files projects are never fully loaded since, by definition, it won't know
-            // what the full set of information is.
-            return projectInfo.WithHasAllInformation(hasAllInformation: false);
+            // what the full set of information is except when the file is script code.
+            return projectInfo.WithHasAllInformation(hasAllInformation: sourceCodeKind == SourceCodeKind.Script);
+        }
+
+        private SourceCodeKind GetSourceCodeKind(
+            ParseOptions parseOptionsOpt,
+            string fileExtension,
+            LanguageInformation languageInformation)
+        {
+            if (parseOptionsOpt != null)
+            {
+                return parseOptionsOpt.Kind;
+            }
+
+            return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
+                SourceCodeKind.Script : SourceCodeKind.Regular;
         }
 
         private void DetachFromDocument(uint docCookie, string moniker)

@@ -59,5 +59,13 @@ namespace Microsoft.CodeAnalysis
         /// Set to True if compiler generated /implicitly computed by compiler code
         /// </summary>
         bool IsImplicit { get; }
+
+        /// <summary>
+        /// Optional semantic model that was used to generate this operation.
+        /// Non-null for operations generated from source with <see cref="SemanticModel.GetOperation(SyntaxNode, System.Threading.CancellationToken)"/> API
+        /// and operation callbacks made to analyzers.
+        /// Null for operations inside a <see cref="FlowAnalysis.ControlFlowGraph"/>.
+        /// </summary>
+        SemanticModel SemanticModel { get; }
     }
 }

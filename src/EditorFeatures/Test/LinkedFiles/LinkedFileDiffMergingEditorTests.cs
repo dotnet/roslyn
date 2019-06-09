@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new TestCodeRefactoringProvider();
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20370")]
+        [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspace.Create(WorkspaceXml))
@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
                 var expectedCode = "private class D { }";
 
-                await TestActionsOnLinkedFiles(
+                await TestActionOnLinkedFiles(
                     workspace,
                     expectedText: expectedCode,
-                    index: 0,
-                    actions: codeIssueOrRefactoring.Actions,
+                    action: codeIssueOrRefactoring.Actions[0],
                     expectedPreviewContents: expectedCode);
             }
         }

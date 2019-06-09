@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.BuildTasks {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ErrorString {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -221,6 +220,51 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string General_ToolFileNotFound {
             get {
                 return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File &quot;{0}&quot; could not be read: {1}.
+        /// </summary>
+        internal static string General_UnableToReadFile {
+            get {
+                return ResourceManager.GetString("General_UnableToReadFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} contains duplicate items &apos;{1}&apos; with conflicting metadata &apos;{2}&apos;: &apos;{3}&apos; and &apos;{4}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_ContainsDuplicate {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.ContainsDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: &apos;{2}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_NoSuchTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoSuchTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} items must include at least one top-level (not nested) item when {1} is true.
+        /// </summary>
+        internal static string MapSourceRoots_NoTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} paths are required to end with a slash or backslash: &apos;{1}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_PathMustEndWithSlashOrBackslash {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.PathMustEndWithSlashOrBackslash", resourceCulture);
             }
         }
         

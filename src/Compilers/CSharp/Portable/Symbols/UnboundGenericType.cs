@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -43,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class UnboundArgumentErrorTypeSymbol : ErrorTypeSymbol
     {
-        public static ImmutableArray<TypeWithModifiers> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
+        public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
         {
-            var result = ArrayBuilder<TypeWithModifiers>.GetInstance();
+            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             for (int i = 0; i < n; i++)
             {
                 string name = (i < typeParameters.Length) ? typeParameters[i].Name : string.Empty;
-                result.Add(new TypeWithModifiers(new UnboundArgumentErrorTypeSymbol(name, errorInfo)));
+                result.Add(TypeWithAnnotations.Create(new UnboundArgumentErrorTypeSymbol(name, errorInfo)));
             }
             return result.ToImmutableAndFree();
         }
@@ -90,8 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
+            Debug.Assert(isValueTypeOverrideOpt == null);
+
             if ((object)t2 == (object)this)
             {
                 return true;

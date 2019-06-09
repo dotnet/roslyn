@@ -181,5 +181,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                                           .Concat(this.SuffixDisplayParts)
                                           .Concat(this.SelectedDisplayParts);
         }
+
+        public override string ToString()
+        {
+            var prefix = string.Concat(PrefixDisplayParts);
+            var display = string.Concat(DisplayParts);
+            var suffix = string.Concat(SuffixDisplayParts);
+            return string.Concat(prefix, display, suffix);
+        }
     }
 }

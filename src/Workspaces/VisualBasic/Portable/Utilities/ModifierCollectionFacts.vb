@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Private ReadOnly _declarationTypes As PossibleDeclarationTypes
 
         Public Sub New(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken)
-            Contract.Requires(token = syntaxTree.GetTargetToken(position, cancellationToken))
+            Debug.Assert(token = syntaxTree.GetTargetToken(position, cancellationToken))
 
             Dim targetToken = token
 

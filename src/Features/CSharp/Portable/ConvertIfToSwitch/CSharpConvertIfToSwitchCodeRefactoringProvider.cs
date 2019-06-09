@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertIfToSwitchCodeRefactoringProvider)), Shared]
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpConvertIfToSwitchCodeRefactoringProvider()
+        {
+        }
+
         protected override IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
             => new CSharpAnalyzer(syntaxFacts, semanticModel);
 
@@ -25,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             {
             }
 
-            protected override string Title => CSharpFeaturesResources.Convert_if_to_switch;
+            protected override string Title => CSharpFeaturesResources.Convert_to_switch;
 
             protected override IPattern<CasePatternSwitchLabelSyntax> CreatePatternFromExpression(ExpressionSyntax operand)
             {

@@ -16,6 +16,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Friend Partial Class VisualBasicProximityExpressionsService
         Implements IProximityExpressionsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Async Function GetProximityExpressionsAsync(
             document As Document,
             position As Integer,

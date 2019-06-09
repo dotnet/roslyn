@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 context.RegisterCodeFix(action, diagnostic);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

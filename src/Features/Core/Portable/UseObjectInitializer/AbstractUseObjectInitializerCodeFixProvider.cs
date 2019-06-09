@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +18,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
@@ -45,14 +45,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// diagnostics, we don't know how to map the span of the diagnostic to the current snapshot
         /// we're tagging.
         /// </summary>
-        private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot = 
+        private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot =
             new ConditionalWeakTable<object, ITextSnapshot>();
 
         protected AbstractDiagnosticsTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
-            : base(listener, notificationService)
+            : base(threadingContext, listener, notificationService)
         {
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             ProduceTags(context, spanToTag);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             foreach (var updateArg in eventArgs)
             {
                 ProduceTags(
-                    context, spanToTag, workspace, document, 
+                    context, spanToTag, workspace, document,
                     suppressedDiagnosticsSpans, updateArg, cancellationToken);
             }
         }
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
-            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, 
+            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans,
             UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
             try

@@ -30,20 +30,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken callerCancellation)
+            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, callerCancellation))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                 {
                     try
                     {
-                        return await _owner.RunServiceAsync(cancellationToken =>
+                        return await _owner.RunServiceAsync(() =>
                         {
-                            return _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            return _owner.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => ReadAssets(s, scopeId, checksums, c), cancellationToken);
-                        }, callerCancellation).ConfigureAwait(false);
+                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
+                        }, cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception ex) when (ReportUnlessCanceled(ex, callerCancellation))
+                    catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
             {
-                if (!cancellationToken.IsCancellationRequested &&
-                    ((IDisposableObservable)_owner.Rpc).IsDisposed)
+                if (!cancellationToken.IsCancellationRequested && _owner.IsDisposed)
                 {
                     // kill OOP if snapshot service got disconnected due to this exception.
                     FailFast.OnFatalException(ex);
@@ -63,7 +62,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private IList<(Checksum, object)> ReadAssets(
-                Stream stream, int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+                Stream stream,
+                int scopeId,
+                ISet<Checksum> checksums,
+                ISerializerService serializerService,
+                CancellationToken cancellationToken)
             {
                 var results = new List<(Checksum, object)>();
 
@@ -87,7 +90,7 @@ This data should always be correct as we're never persisting the data between se
                         var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                         // in service hub, cancellation means simply closed stream
-                        var @object = AssetService.Deserialize<object>(kind, reader, cancellationToken);
+                        var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
                         results.Add((responseChecksum, @object));
                     }

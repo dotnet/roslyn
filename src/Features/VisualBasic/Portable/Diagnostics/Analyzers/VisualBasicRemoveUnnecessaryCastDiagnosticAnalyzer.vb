@@ -11,19 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer
-        Inherits RemoveUnnecessaryCastDiagnosticAnalyzerBase(Of SyntaxKind)
+        Inherits RemoveUnnecessaryCastDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax)
 
-        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.CTypeExpression,
-                                                                                                          SyntaxKind.DirectCastExpression,
-                                                                                                          SyntaxKind.TryCastExpression,
-                                                                                                          SyntaxKind.PredefinedCastExpression)
-        Public Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
-            Get
-                Return s_kindsOfInterest
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
+            ImmutableArray.Create(SyntaxKind.CTypeExpression,
+                                  SyntaxKind.DirectCastExpression,
+                                  SyntaxKind.TryCastExpression,
+                                  SyntaxKind.PredefinedCastExpression)
 
-        Protected Overrides Function IsUnnecessaryCast(model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function IsUnnecessaryCast(model As SemanticModel, node As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.CTypeExpression, SyntaxKind.DirectCastExpression, SyntaxKind.TryCastExpression
                     Return DirectCast(node, CastExpressionSyntax).IsUnnecessaryCast(model, assumeCallKeyword:=True, cancellationToken:=cancellationToken)
@@ -34,15 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
             End Select
         End Function
 
-        Protected Overrides Function GetDiagnosticSpan(node As SyntaxNode) As TextSpan
-            Select Case node.Kind
-                Case SyntaxKind.CTypeExpression, SyntaxKind.DirectCastExpression, SyntaxKind.TryCastExpression
-                    Return DirectCast(node, CastExpressionSyntax).Keyword.Span
-                Case SyntaxKind.PredefinedCastExpression
-                    Return DirectCast(node, PredefinedCastExpressionSyntax).Keyword.Span
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
+        Protected Overrides Function GetFadeSpan(node As ExpressionSyntax) As TextSpan
+            Return node.GetFirstToken().Span
         End Function
     End Class
 End Namespace

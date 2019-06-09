@@ -19,13 +19,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private readonly SemaphoreSlim _gate;
-
-        private KeepAliveSession _sessionDoNotAccessDirectly;
 
         protected AbstractTodoCommentService(Workspace workspace)
         {
-            _gate = new SemaphoreSlim(initialCount: 1);
             _workspace = workspace;
         }
 
@@ -61,32 +57,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
             RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
-            if (keepAliveSession == null)
-            {
-                // The client is not currently running, so we don't have any results.
-                return SpecializedCollections.EmptyList<TodoComment>();
-            }
-
-            var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
-                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+            var result = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
                 document.Project.Solution,
+                nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                 new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
 
             return result ?? SpecializedCollections.EmptyList<TodoComment>();
-        }
-
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
-        {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (_sessionDoNotAccessDirectly == null)
-                {
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                return _sessionDoNotAccessDirectly;
-            }
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(

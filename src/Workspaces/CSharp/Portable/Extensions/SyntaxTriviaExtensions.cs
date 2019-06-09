@@ -185,6 +185,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);
         }
 
+        public static IEnumerable<SyntaxTrivia> FilterComments(this IEnumerable<SyntaxTrivia> trivia, bool addElasticMarker)
+        {
+            var previousIsSingleLineComment = false;
+            foreach (var t in trivia)
+            {
+                if (previousIsSingleLineComment && t.IsEndOfLine())
+                {
+                    yield return t;
+                }
+
+                if (t.IsSingleOrMultiLineComment())
+                {
+                    yield return t;
+                }
+
+                previousIsSingleLineComment = t.IsSingleLineComment();
+            }
+
+            if (addElasticMarker)
+            {
+                yield return SyntaxFactory.ElasticMarker;
+            }
+        }
+
 #if false
         public static int Width(this SyntaxTrivia trivia)
         {

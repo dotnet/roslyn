@@ -4,7 +4,9 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -27,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAction(action);
             VerifySyntaxKinds(syntaxKinds);
+        }
+
+        internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            VerifyAction(action);
+            VerifyOperationKinds(operationKinds);
         }
 
         internal static void VerifyArguments(Diagnostic diagnostic, Compilation compilationOpt, Func<Diagnostic, bool> isSupportedDiagnostic)
@@ -135,6 +143,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private static void VerifyOperationKinds(ImmutableArray<OperationKind> operationKinds)
+        {
+            if (operationKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(operationKinds));
+            }
+
+            if (operationKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(operationKinds));
+            }
+        }
+
         internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
             where TKey : class
         {
@@ -147,6 +168,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentNullException(nameof(valueProvider));
             }
+        }
+
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph> getControlFlowGraphOpt, CancellationToken cancellationToken)
+        {
+            IOperation rootOperation = operation.GetRootOperation();
+            return getControlFlowGraphOpt != null ?
+                getControlFlowGraphOpt(rootOperation) :
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
         }
     }
 }

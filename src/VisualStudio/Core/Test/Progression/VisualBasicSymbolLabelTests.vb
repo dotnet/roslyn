@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class VisualBasicSymbolLabelTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545008")>
         Public Async Function TestMethodWithOptionalParameter() As Task

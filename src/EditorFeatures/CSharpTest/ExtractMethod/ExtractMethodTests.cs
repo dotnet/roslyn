@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,9 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1665,7 +1666,7 @@ class Program
         // b
         [|System.Console.WriteLine();|]
     }
-}", 
+}",
 @"class C
 {
     void M()
@@ -3754,6 +3755,99 @@ class Program
     private static void NewMethod()
     {
         int i = 10;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoNoYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoYesYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");|]
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
     }
 }";
 
@@ -10258,8 +10352,9 @@ namespace ClassLibrary9
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractMethodCommandDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
@@ -10278,18 +10373,10 @@ namespace ClassLibrary9
                 var handler = new ExtractMethodCommandHandler(
                     workspace.GetService<ITextBufferUndoManagerProvider>(),
                     workspace.GetService<IEditorOperationsFactoryService>(),
-                    workspace.GetService<IInlineRenameService>(),
-                    workspace.GetService<Host.IWaitIndicator>());
-                var delegatedToNext = false;
-                CommandState nextHandler()
-                {
-                    delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
+                    workspace.GetService<IInlineRenameService>());
 
-                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
-                Assert.True(delegatedToNext);
-                Assert.False(state.IsAvailable);
+                var state = handler.GetCommandState(new ExtractMethodCommandArgs(textView, textView.TextBuffer));
+                Assert.True(state.IsUnspecified);
             }
         }
 
@@ -10664,6 +10751,388 @@ namespace ClassLibrary9
     }
 }";
 
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedInside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(ref enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(ref IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            // allowMovingDeclaration: false is default behavior on VS. 
+            // it doesn't affect result mostly but it does affect for symbols in unreachable code since
+            // data flow in and out for the symbol is always set to false
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedOutside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static void NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            var i = enumerable.Any();
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedBoth()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestLocalFunctionParameters()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                [|Bar(value, value2);|]
+            }
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                NewMethod(value, value2);
+            }
+        }
+
+        private void NewMethod(int value, int value2)
+        {
+            Bar(value, value2);
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDataFlowInButNoReadInside()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            [|if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }|]
+        }
+    }
+}";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            NewMethod(ref test, a);
+        }
+
+        private static void NewMethod(ref object test, bool a)
+        {
+            if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task AllowBestEffortForUnknownVariableDataFlow()
+        {
+            var code = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        [|if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }|]
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        NewMethod(ref test, a);
+    }
+
+    private static void NewMethod(ref object test, bool a)
+    {
+        if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }
+    }
+}";
+            await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+        }
+
+        [WorkItem(30750, "https://github.com/dotnet/roslyn/issues/30750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInInterface()
+        {
+            var code = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        [|Foo();|]
+    }
+}";
+            var expected = @"
+interface Program
+{
+    void Foo();
+
+    void Test()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+        Foo();
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedConstructors()
+        {
+            var code = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = [|bar|];
+}";
+            var expected = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = GetBar(bar);
+
+    private static string GetBar(string bar)
+    {
+        return bar;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedFinalizers()
+        {
+            var code = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = [|true|];
+}";
+            var expected = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = NewMethod();
+
+    private static bool NewMethod()
+    {
+        return true;
+    }
+}";
             await TestExtractMethodAsync(code, expected);
         }
     }

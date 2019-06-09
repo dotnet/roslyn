@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -16,12 +18,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog => VisualStudio.ExtractInterfaceDialog;
 
-        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpExtractInterfaceDialog))
+        public CSharpExtractInterfaceDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpExtractInterfaceDialog))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void VerifyCancellation()
         {
             SetUpEditor(@"class C$$
@@ -45,7 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void CheckFileName()
         {
             SetUpEditor(@"class C$$
@@ -67,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void VerifySelectAndDeselectAllButtons()
         {
             SetUpEditor(@"class C$$
@@ -105,7 +107,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             ExtractInterfaceDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
         public void OnlySelectedItemsAreGenerated()
         {
             SetUpEditor(@"class C$$
@@ -140,6 +142,147 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     void M2();
 }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFile()
+        {
+            SetUpEditor(@"class C$$
+{
+    public void M() { }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    void M();
+}
+
+class C : IC
+{
+    public void M() { }
+}
+");
+
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFileOnlySelectedItems()
+        {
+            SetUpEditor(@"class C$$
+{
+    public void M1() { }
+    public void M2() { }
+}
+");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+            ExtractInterfaceDialog.ClickDeselectAll();
+            ExtractInterfaceDialog.ToggleItem("M2()");
+            ExtractInterfaceDialog.SelectSameFile();
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    void M2();
+}
+
+class C : IC
+{
+    public void M1() { }
+    public void M2() { }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFileNamespace()
+        {
+            SetUpEditor(@"namespace A
+{
+    class C$$
+    {
+        public void M() { }
+    }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"namespace A
+{
+    interface IC
+    {
+        void M();
+    }
+
+    class C : IC
+    {
+        public void M() { }
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameWithTypes()
+        {
+            SetUpEditor(@"class C$$
+{
+    public bool M() => false;
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"interface IC
+{
+    bool M();
+}
+
+class C : IC
+{
+    public bool M() => false;
+}
+");
         }
     }
 }

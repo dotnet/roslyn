@@ -9,21 +9,7 @@ Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
-    Friend Class VisualBasicAddImportCodeFixProvider
-        Inherits AbstractAddImportCodeFixProvider
-
-        Public Sub New()
-        End Sub
-
-        ''' <summary>
-        ''' For testing purposes so that tests can pass in mocks for these values.
-        ''' </summary>
-        Friend Sub New(installerService As IPackageInstallerService,
-                       searchService As ISymbolSearchService)
-            MyBase.New(installerService, searchService)
-        End Sub
-
+    Friend Module AddImportDiagnosticIds
         ''' <summary>
         ''' Type xxx is not defined
         ''' </summary>
@@ -99,11 +85,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         ''' </summary>
         Friend Const BC30182 = "BC30182"
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
+        Public ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610,
                                              BC36719, BC30512, BC30390, BC42309, BC30182, IDEDiagnosticIds.UnboundIdentifierId)
             End Get
         End Property
+    End Module
+
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
+    Friend Class VisualBasicAddImportCodeFixProvider
+        Inherits AbstractAddImportCodeFixProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        ''' <summary>	
+        ''' For testing purposes so that tests can pass in mocks for these values.	
+        ''' </summary>	
+        Friend Sub New(installerService As IPackageInstallerService,
+                       searchService As ISymbolSearchService)
+            MyBase.New(installerService, searchService)
+        End Sub
+
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = AddImportDiagnosticIds.FixableDiagnosticIds
     End Class
 End Namespace

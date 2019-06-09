@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem FixItem(CompletionItem item)
         {
             // remember provider so we can find it again later
-            item = item.AddProperty("Provider", this.Provider.Name);
+            item.ProviderName = this.Provider.Name;
 
             item.Span = this.CompletionListSpan;
 

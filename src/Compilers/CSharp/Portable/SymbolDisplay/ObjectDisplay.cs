@@ -10,7 +10,7 @@ using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Displays a value in the C# style.
     /// </summary>
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the Formatter project and we don't want it to be public there.
     /// </remarks>
     /// <seealso cref="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObjectDisplay"/>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     internal static class ObjectDisplay
     {
         /// <summary>

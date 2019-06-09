@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
             if (oldSolution == newSolution)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             if (projectId == null && documentId != null)
@@ -54,13 +56,16 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.ScheduleTask(() =>
                 {
-                    var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.WorkspaceChanged");
+                    using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
+                    {
+                        var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+                        ev.RaiseEvent(handler => handler(this, args));
+                    }
+                }, WorkspaceChangeEventName);
             }
             else
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -116,11 +121,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.WorkspaceChanged");
+                }, DocumentOpenedEventName);
             }
             else
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -149,11 +154,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.DocumentClosed");
+                }, DocumentClosedEventName);
             }
             else
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -196,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

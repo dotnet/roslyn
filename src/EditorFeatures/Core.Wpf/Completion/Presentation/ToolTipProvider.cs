@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -9,11 +8,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class ToolTipProvider : IUIElementProvider<VSCompletion, ICompletionSession>
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IClassificationFormatMap _formatMap;
 
@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly TextBlock _defaultTextBlock;
 
         [ImportingConstructor]
-        public ToolTipProvider(ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ToolTipProvider(IThreadingContext threadingContext, ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
         {
+            _threadingContext = threadingContext;
             _typeMap = typeMap;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _defaultTextBlock = new TaggedText(TextTags.Text, "...").ToTextBlock(_formatMap, typeMap);
@@ -50,18 +52,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
-            return new CancellableContentControl(this, item);
+            var textSnapshot = context.Properties.GetProperty<ITextSnapshot>(CompletionPresenterSession.TextSnapshotKey);
+            var document = textSnapshot?.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return null;
+            }
+
+            return new CancellableContentControl(this, item, document);
         }
 
         private class CancellableContentControl : ContentControl
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ToolTipProvider _toolTipProvider;
 
-            public CancellableContentControl(ToolTipProvider toolTipProvider, CustomCommitCompletion item)
+            public CancellableContentControl(
+                ToolTipProvider toolTipProvider,
+                CustomCommitCompletion item,
+                Document document)
             {
-                Debug.Assert(_foregroundObject.IsForeground());
+                Debug.Assert(toolTipProvider._threadingContext.JoinableTaskContext.IsOnMainThread);
                 _toolTipProvider = toolTipProvider;
 
                 // Set our content to be "..." initially.
@@ -70,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // Kick off the task to produce the new content.  When it completes, call back on 
                 // the UI thread to update the display.
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                item.GetDescriptionAsync(_cancellationTokenSource.Token)
+                item.GetDescriptionAsync(document, _cancellationTokenSource.Token)
                               .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
                                             TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
 
@@ -81,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             private void ProcessDescription(Task<CompletionDescription> obj)
             {
-                Debug.Assert(_foregroundObject.IsForeground());
+                Debug.Assert(_toolTipProvider._threadingContext.JoinableTaskContext.IsOnMainThread);
 
                 // If we were canceled, or didn't run all the way to completion, then don't bother
                 // updating the UI.
@@ -92,78 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 }
 
                 var description = obj.Result;
-                this.Content = GetTextBlock(description.TaggedParts);
+                this.Content = description.TaggedParts.ToTextBlock(_toolTipProvider._formatMap, _toolTipProvider._typeMap);
 
                 // The editor will pull AutomationProperties.Name from our UIElement and expose
                 // it to automation.
                 AutomationProperties.SetName(this, description.Text);
-            }
-
-
-            public static Run GetRun(TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
-            {
-                var text = GetVisibleDisplayString(part, includeLeftToRightMarker: true);
-
-                var run = new Run(text);
-
-                var format = formatMap.GetTextProperties(typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag)));
-                run.SetTextProperties(format);
-
-                return run;
-            }
-
-            private const string LeftToRightMarkerPrefix = "\u200e";
-
-            private static string GetVisibleDisplayString(TaggedText part, bool includeLeftToRightMarker)
-            {
-                var text = part.Text;
-
-                if (includeLeftToRightMarker)
-                {
-                    var classificationTypeName = ClassificationTags.GetClassificationTypeName(part.Tag);
-                    if (classificationTypeName == ClassificationTypeNames.Punctuation ||
-                        classificationTypeName == ClassificationTypeNames.WhiteSpace)
-                    {
-                        text = LeftToRightMarkerPrefix + text;
-                    }
-                }
-
-                return text;
-            }
-
-            private TextBlock GetTextBlock(ImmutableArray<TaggedText> parts)
-            {
-                var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
-
-                result.SetDefaultTextProperties(_toolTipProvider._formatMap);
-
-                foreach (var part in parts)
-                {
-                    result.Inlines.Add(GetRun(part, _toolTipProvider._formatMap, _toolTipProvider._typeMap));
-                }
-
-                return result;
-            }
-
-            private static IList<ClassificationSpan> GetClassificationSpans(
-                IEnumerable<TaggedText> parts,
-                ITextSnapshot textSnapshot,
-                ClassificationTypeMap typeMap)
-            {
-                var result = new List<ClassificationSpan>();
-
-                var index = 0;
-                foreach (var part in parts)
-                {
-                    var text = part.ToString();
-                    result.Add(new ClassificationSpan(
-                        new SnapshotSpan(textSnapshot, new Microsoft.VisualStudio.Text.Span(index, text.Length)),
-                        typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag))));
-
-                    index += text.Length;
-                }
-
-                return result;
             }
         }
     }

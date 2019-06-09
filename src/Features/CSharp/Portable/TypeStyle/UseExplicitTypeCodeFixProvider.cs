@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseExplicitTypeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
@@ -30,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -46,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private async Task HandleDeclarationAsync(
-            Document document, SyntaxEditor editor, 
+        internal static async Task HandleDeclarationAsync(
+            Document document, SyntaxEditor editor,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -55,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             TypeSyntax typeSyntax = null;
             ParenthesizedVariableDesignationSyntax parensDesignation = null;
+            if (declarationContext is RefTypeSyntax refType)
+            {
+                declarationContext = declarationContext.Parent;
+            }
+
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
                 typeSyntax = varDecl.Type;
@@ -78,8 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
-                var typeName = typeSymbol.GenerateTypeSyntax()
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+
+                // We're going to be passed through the simplifier.  Tell it to not just convert
+                // this back to var (as that would defeat the purpose of this refactoring entirely).
+                var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
                     .WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia());
                 Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
@@ -99,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
+        private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
         {
             Debug.Assert(typeSymbol.IsTupleType);
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;

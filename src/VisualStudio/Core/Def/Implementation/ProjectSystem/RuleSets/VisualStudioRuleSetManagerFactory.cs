@@ -16,25 +16,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceServiceFactory(typeof(VisualStudioRuleSetManager), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioRuleSetManagerFactory : IWorkspaceServiceFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly FileChangeWatcherProvider _fileChangeWatcherProvider;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         public VisualStudioRuleSetManagerFactory(
-            SVsServiceProvider serviceProvider,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
             IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _serviceProvider = serviceProvider;
+            _fileChangeWatcherProvider = fileChangeWatcherProvider;
             _foregroundNotificationService = foregroundNotificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            IVsFileChangeEx fileChangeService = (IVsFileChangeEx)_serviceProvider.GetService(typeof(SVsFileChangeEx));
-            return new VisualStudioRuleSetManager(fileChangeService, _foregroundNotificationService, _listener);
+            return new VisualStudioRuleSetManager(_fileChangeWatcherProvider.Watcher, _foregroundNotificationService, _listener);
         }
     }
 }

@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private const string SerializationFormat = "2";
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);

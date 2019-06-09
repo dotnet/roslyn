@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsKeyword(triggerToken))
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
@@ -217,14 +217,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             return new SymbolInlineRenameInfo(
-                refactorNotifyServices, document, triggerToken.Span, 
+                refactorNotifyServices, document, triggerToken.Span,
                 symbolAndProjectId, forceRenameOverloads, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var token = syntaxTree.GetTouchingWordAsync(position, syntaxFacts, cancellationToken, findInsideTrivia: true).WaitAndGetResult(cancellationToken);
 
             return token;

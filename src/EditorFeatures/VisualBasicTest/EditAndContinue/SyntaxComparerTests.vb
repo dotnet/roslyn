@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <[UseExportProvider]>
     Public Class SyntaxComparerTests
         Inherits BasicTestBase
 
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(-1, 1),
                 New SequenceEdit(1, 0),
                 New SequenceEdit(0, -1)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(-1, 1),
                 New SequenceEdit(1, 0),
                 New SequenceEdit(0, -1)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(1, -1),
                 New SequenceEdit(0, 1),
                 New SequenceEdit(-1, 0)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 New SequenceEdit(1, -1),
                 New SequenceEdit(0, 1),
                 New SequenceEdit(-1, 0)
-            }, edits, itemInspector:=Function(e) e.GetDebuggerDisplay())
+            }, edits, itemInspector:=Function(e) e.GetTestAccessor().GetDebuggerDisplay())
         End Sub
 
         <Fact>

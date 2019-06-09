@@ -85,7 +85,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, New MetadataReference() {})
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, New MetadataReference() {})
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>
@@ -159,7 +159,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef)
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>
@@ -263,7 +263,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, New MetadataReference() {})
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, New MetadataReference() {})
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation,
 <expected>
@@ -357,7 +357,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, New MetadataReference() {})
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, New MetadataReference() {})
 
             CompilationUtils.AssertTheseCompileDiagnostics(compilation,
 <expected>

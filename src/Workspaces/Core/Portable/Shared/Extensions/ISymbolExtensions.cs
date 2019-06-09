@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ToDisplayString(SymbolDisplayFormats.SignatureFormat);
         }
 
+        public static bool HasPublicResultantVisibility(this ISymbol symbol)
+            => symbol.GetResultantVisibility() == SymbolVisibility.Public;
+
         public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
         {
             // Start by assuming it's visible.
@@ -101,6 +104,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<TSymbol> ExplicitOrImplicitInterfaceImplementations<TSymbol>(this TSymbol symbol)
+            where TSymbol : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers().OfType<TSymbol>());
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<TSymbol>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
@@ -126,9 +139,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
-                if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary)
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    return true;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
+                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -151,9 +170,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsErrorType(this ISymbol symbol)
-        {
-            return (symbol as ITypeSymbol)?.IsErrorType() == true;
-        }
+            => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
         public static bool IsModuleType(this ISymbol symbol)
         {
@@ -211,6 +228,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsReducedExtension(this ISymbol symbol)
         {
             return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.ReducedExtension;
+        }
+
+        public static bool IsEnumMember(this ISymbol symbol)
+        {
+            return symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
         }
 
         public static bool IsExtensionMethod(this ISymbol symbol)
@@ -488,58 +510,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return type;
             }
 
-            if (symbol is IMethodSymbol method && !method.Parameters.Any(p => p.RefKind != RefKind.None))
+            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
             {
+                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
+                var skip = extensionUsedAsInstance ? 1 : 0;
+
+                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
+
                 // Convert the symbol to Func<...> or Action<...>
-                if (method.ReturnsVoid)
-                {
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    count = Math.Max(0, count);
-                    if (count == 0)
-                    {
-                        // Action
-                        return compilation.ActionType();
-                    }
-                    else
-                    {
-                        // Action<TArg1, ..., TArgN>
-                        var actionName = "System.Action`" + count;
-                        var actionType = compilation.GetTypeByMetadataName(actionName);
+                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
+                    ? WithArity("System.Action", count)
+                    : WithArity("System.Func", count + 1));
 
-                        if (actionType != null)
-                        {
-                            var types = method.Parameters
-                                .Skip(skip)
-                                .Select(p =>
-                                    p.Type == null ?
-                                    compilation.GetSpecialType(SpecialType.System_Object) :
-                                    p.Type)
-                                .ToArray();
-                            return actionType.Construct(types);
-                        }
-                    }
-                }
-                else
+                if (delegateType != null)
                 {
-                    // Func<TArg1,...,TArgN,TReturn>
-                    //
-                    // +1 for the return type.
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    var functionName = "System.Func`" + (count + 1);
-                    var functionType = compilation.GetTypeByMetadataName(functionName);
+                    var types = method.Parameters
+                        .Skip(skip)
+                        .Select(p => (p.Type ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(p.NullableAnnotation));
 
-                    if (functionType != null)
+                    if (!method.ReturnsVoid)
                     {
-                        var types = method.Parameters
-                            .Skip(skip)
-                            .Select(p => p.Type)
-                            .Concat(method.ReturnType)
-                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
-                            .ToArray();
-                        return functionType.Construct(types);
+                        // +1 for the return type.
+                        types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullability(method.ReturnNullableAnnotation));
                     }
+
+                    return delegateType.TryConstruct(types.ToArray());
                 }
             }
 
@@ -557,28 +552,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.Kind == SymbolKind.Namespace;
         }
 
-        public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
+        public static bool IsOrContainsAccessibleAttribute(
+            this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
         {
-            if (symbol is IAliasSymbol alias)
-            {
-                symbol = alias.Target;
-            }
-
-            var namespaceOrType = symbol as INamespaceOrTypeSymbol;
+            var namespaceOrType = symbol is IAliasSymbol alias ? alias.Target : symbol as INamespaceOrTypeSymbol;
             if (namespaceOrType == null)
             {
                 return false;
             }
 
-            if (namespaceOrType.IsAttribute() && namespaceOrType.IsAccessibleWithin(withinType ?? withinAssembly))
+            // PERF: Avoid allocating a lambda capture
+            foreach (var type in namespaceOrType.GetAllTypes(cancellationToken))
             {
-                return true;
-            }
-
-            // PERF: Avoid allocating a lambda capture as this method is recursive
-            foreach (var namedType in namespaceOrType.GetTypeMembers())
-            {
-                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                if (type.IsAttribute() && type.IsAccessibleWithin(withinType ?? withinAssembly))
                 {
                     return true;
                 }
@@ -728,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeClass == hideModuleNameAttribute)
+                if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
                 {
                     return true;
                 }
@@ -748,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeConstructor == constructor &&
+                if (Equals(attribute.AttributeConstructor, constructor) &&
                     attribute.ConstructorArguments.Length == 1 &&
                     attribute.ConstructorArguments.First().Value is int)
                 {
@@ -808,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     foreach (var constructor in attributeConstructors)
                     {
-                        if (attribute.AttributeConstructor == constructor)
+                        if (Equals(attribute.AttributeConstructor, constructor))
                         {
                             var actualFlags = 0;
 
@@ -881,13 +867,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             switch (symbol)
             {
                 case ILocalSymbol localSymbol:
-                    return localSymbol.Type;
+                    return localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
                 case IFieldSymbol fieldSymbol:
-                    return fieldSymbol.Type;
+                    return fieldSymbol.Type.WithNullability(fieldSymbol.NullableAnnotation);
                 case IPropertySymbol propertySymbol:
-                    return propertySymbol.Type;
+                    return propertySymbol.Type.WithNullability(propertySymbol.NullableAnnotation);
                 case IParameterSymbol parameterSymbol:
-                    return parameterSymbol.Type;
+                    return parameterSymbol.Type.WithNullability(parameterSymbol.NullableAnnotation);
                 case IAliasSymbol aliasSymbol:
                     return aliasSymbol.Target as ITypeSymbol;
             }
@@ -935,6 +921,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
         }
+
+        public static bool IsValidGetAwaiter(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAwaiter &&
+            VerifyGetAwaiter(symbol);
 
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {

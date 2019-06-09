@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
+    [UseExportProvider]
     public partial class LinkedFileDiffMergingTests
     {
         private void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)

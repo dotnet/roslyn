@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Kind of the clause.
         /// </summary>
         CaseKind CaseKind { get; }
+
+        /// <summary>
+        /// Label associated with the case clause, if any.
+        /// </summary>
+        ILabelSymbol Label { get; }
     }
 }
 

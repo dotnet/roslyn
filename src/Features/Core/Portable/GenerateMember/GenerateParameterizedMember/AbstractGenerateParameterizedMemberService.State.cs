@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
             }
 
-            protected async Task<bool> TryFinishInitializingState(TService service, SemanticDocument document, CancellationToken cancellationToken)
+            protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 this.TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(this.TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;

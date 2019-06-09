@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -452,8 +453,8 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "Program");
-		}
-		
+        }
+
         [WorkItem(14084, "https://github.com/dotnet/roslyn/issues/14084")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InMethodCallBeforeAssignment1()

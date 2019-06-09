@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
             }
-            
+
             BoundExpression result = oldNodeOpt != null ?
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
                 new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
 
-            if (fieldSymbol.IsFixed)
+            if (fieldSymbol.IsFixedSizeBuffer)
             {
                 // a reference to a fixed buffer is translated into its address
                 result = new BoundAddressOfOperator(syntax, result, type, false);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeTupleFieldAccess(
             SyntaxNode syntax,
-            FieldSymbol tupleField, 
+            FieldSymbol tupleField,
             BoundExpression rewrittenReceiver,
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)
@@ -64,7 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.BadExpression(tupleField.Type);
             }
 
-            if (underlyingField.ContainingType != currentLinkType)
+            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            {
+                // Optimization: `default((int, string)).Item2` is simply `default(string)`
+                return new BoundDefaultExpression(syntax, tupleField.Type);
+            }
+
+            if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
                 var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
@@ -81,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol nestedFieldSymbol = tupleRestField.AsMember(currentLinkType);
                     rewrittenReceiver = _factory.Field(rewrittenReceiver, nestedFieldSymbol);
 
-                    currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TupleUnderlyingType;
+                    currentLinkType = currentLinkType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type.TupleUnderlyingType;
                 }
-                while (underlyingField.ContainingType != currentLinkType);
+                while (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2));
             }
 
             // make a field access for the most local access

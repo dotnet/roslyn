@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Partial Public Class RenameEngineTests
+        <[UseExportProvider]>
         Public Class CSharpConflicts
             Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -2811,7 +2812,7 @@ class C
                 </Workspace>, renameTo:="Zoo")
 
 
-                result.AssertLabeledSpansAre("cref1", "C.Zoo{T}", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("cref1", "Zoo{T}", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 

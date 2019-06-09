@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// this object is supposed to be live very short but created a lot of time. that is why it is struct. 
     /// (same reason why SyntaxToken is struct - to reduce heap allocation)
     /// </summary>
-    internal struct TokenData : IEqualityComparer<TokenData>, IEquatable<TokenData>, IComparable<TokenData>, IComparer<TokenData>
+    internal readonly struct TokenData : IEqualityComparer<TokenData>, IEquatable<TokenData>, IComparable<TokenData>, IComparer<TokenData>
     {
-        public TokenData(TokenStream tokenStream, int indexInStream, SyntaxToken token) : this()
+        public TokenData(TokenStream tokenStream, int indexInStream, SyntaxToken token)
         {
             Contract.ThrowIfNull(tokenStream);
             Contract.ThrowIfFalse((indexInStream == -1) || (0 <= indexInStream && indexInStream < tokenStream.TokenCount));
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this is expansive check. but there is no other way to check.
             var commonRoot = this.Token.GetCommonRoot(other.Token);
-            Contract.Requires(commonRoot != null);
+            Debug.Assert(commonRoot != null);
 
             var tokens = commonRoot.DescendantTokens();
 

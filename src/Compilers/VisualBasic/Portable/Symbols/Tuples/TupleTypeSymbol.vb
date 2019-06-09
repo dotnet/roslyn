@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsSerializable As Boolean
+        Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return Me._underlyingType.IsSerializable
             End Get
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim otherUnderlying = otherTuple.TupleUnderlyingType
-            If (Me.TupleUnderlyingType <> otherUnderlying) Then
+            If (Not TypeSymbol.Equals(Me.TupleUnderlyingType, otherUnderlying, TypeCompareKind.ConsiderEverything)) Then
                 Return False
             End If
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
+    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IndentationResult instead.")]
     internal struct IndentationResult
     {
         /// <summary>
@@ -36,15 +38,28 @@ namespace Microsoft.CodeAnalysis.Editor
             this.BasePosition = basePosition;
             this.Offset = offset;
         }
+
+        public static implicit operator Indentation.IndentationResult(IndentationResult result)
+            => new Indentation.IndentationResult(result.BasePosition, result.Offset);
     }
 
+    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
+    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface IIndentationService : ILanguageService
     {
         Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 
+    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
+    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface ISynchronousIndentationService : ILanguageService
     {
+        /// <summary>
+        /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the
+        /// <paramref name="document"/> does not want any sort of automatic indentation.  May also return
+        /// <see langword="null"/> if the line in question is not blank and thus indentation should
+        /// be deferred to the formatting command handler to handle.
+        /// </summary>
         IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 }

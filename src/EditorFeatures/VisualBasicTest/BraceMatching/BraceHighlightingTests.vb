@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -12,6 +13,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
+    <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
         Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
@@ -19,9 +21,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Function
 
         Private Async Function ProduceTagsAsync(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As Tasks.Task(Of IEnumerable(Of ITagSpan(Of BraceHighlightTag)))
-            WpfTestCase.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{"ProduceTagsAsync"} creates asynchronous taggers")
+            WpfTestRunner.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{NameOf(Me.ProduceTagsAsync)} creates asynchronous taggers")
 
             Dim producer = New BraceHighlightingViewTaggerProvider(
+                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
                 AsynchronousOperationListenerProvider.NullProvider)

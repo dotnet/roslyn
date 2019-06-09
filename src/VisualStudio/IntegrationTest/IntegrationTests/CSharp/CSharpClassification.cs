@@ -3,7 +3,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -12,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpClassification(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpClassification))
+        public CSharpClassification(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpClassification))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.Editor.SetText(@"using System;
@@ -46,7 +48,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.PlaceCaret("Program");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
             VisualStudio.Editor.PlaceCaret("Main");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Hello");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.Editor.PlaceCaret("<summary", charsOffset: -1);
@@ -65,7 +67,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void SemanticClassification()
         {
             VisualStudio.Editor.SetText(@"
@@ -100,7 +102,7 @@ class Program : Attribute
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
             VisualStudio.Editor.SetText(@"
@@ -123,7 +125,7 @@ namespace ClassLibrary1
 
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
             VisualStudio.Editor.PlaceCaret("Goo");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Bar");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.MoveCaret(0);
@@ -131,7 +133,7 @@ namespace ClassLibrary1
             VisualStudio.Editor.PlaceCaret("Goo");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.PlaceCaret("Bar");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
         }
     }
 }

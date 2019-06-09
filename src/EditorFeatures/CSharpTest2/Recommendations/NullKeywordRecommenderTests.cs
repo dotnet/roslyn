@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -248,19 +248,6 @@ $$");
         }"));
         }
 
-#if false
-        [WorkItem(8486)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInValueSwitch()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (0)
-        {
-            case $$
-        }"));
-        }
-#endif
-
         [WorkItem(543766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543766")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDefaultParameterValue()
@@ -305,6 +292,22 @@ class Program
 /// <see cref=""System.$$"" />
 class C { }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIs()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"if (x is $$"));
+        }
+
+        [WorkItem(25293, "https://github.com/dotnet/roslyn/issues/25293")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIs_BeforeExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+int x;
+int y = x is $$ Method();
+"));
         }
     }
 }

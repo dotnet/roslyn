@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for code fixes provided by an <see cref="CodeFixProvider"/>.
+    /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
     public struct CodeFixContext
     {

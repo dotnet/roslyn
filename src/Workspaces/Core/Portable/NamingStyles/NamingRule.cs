@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         public readonly SymbolSpecification SymbolSpecification;
         public readonly NamingStyle NamingStyle;
-        public readonly DiagnosticSeverity EnforcementLevel;
+        public readonly ReportDiagnostic EnforcementLevel;
 
-        public NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, DiagnosticSeverity enforcementLevel)
+        public NamingRule(SymbolSpecification symbolSpecification, NamingStyle namingStyle, ReportDiagnostic enforcementLevel)
         {
             SymbolSpecification = symbolSpecification;
             NamingStyle = namingStyle;

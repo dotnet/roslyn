@@ -54,6 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return False
         End Function
 
+        Friend Overrides Function IsAcceptedUnmanagedTypeModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with unmanaged generic type constraints
+            Return False
+        End Function
+
         Friend Overrides Function GetSZArrayTypeSymbol(moduleSymbol As PEModuleSymbol, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType

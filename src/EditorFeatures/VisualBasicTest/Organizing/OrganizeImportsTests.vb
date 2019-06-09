@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
+    <[UseExportProvider]>
     Public Class OrganizeImportsTests
         Private Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,

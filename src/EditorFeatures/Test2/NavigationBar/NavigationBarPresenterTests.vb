@@ -1,15 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.VisualStudio.Text
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
+    <[UseExportProvider]>
     Public Class NavigationBarControllerTests
-        Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Sub TestDoNotRecomputeAfterFullRecompute()
             Using workspace = TestWorkspace.Create(
@@ -50,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     <Project Language="C#" CommonReferences="true">
                         <Document>{|Document:class C { $$ }|}</Document>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument}, LanguageNames.CSharp)
@@ -66,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                Dim provider = ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
+                Dim provider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.True(presentItemsCalled)
@@ -93,7 +92,7 @@ class C
                     <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                         <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -151,7 +150,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -207,7 +206,7 @@ class C
                     <Project Language="C#" CommonReferences="true" AssemblyName="CProj">
                         <Document IsLinkFile="true" LinkAssemblyName="BProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"AProj", "BProj", "CProj"}
@@ -246,7 +245,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VB-Proj1">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"VBProj", "VB-Proj1"}
@@ -283,7 +282,7 @@ Class C
 End Class
                         </Document>
                     </Project>
-                </Workspace>, exportProvider:=ExportProvider)
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim document = workspace.Documents.Single()
 
@@ -311,8 +310,8 @@ End Class
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
-                Await workspaceWaiter.CreateWaitTask()
-                Await navigationBarWaiter.CreateWaitTask()
+                Await workspaceWaiter.CreateExpeditedWaitTask()
+                Await navigationBarWaiter.CreateExpeditedWaitTask()
 
                 Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 

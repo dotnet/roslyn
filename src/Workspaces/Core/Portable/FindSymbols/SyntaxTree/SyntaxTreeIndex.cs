@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -35,19 +35,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
-            Contract.Requires(document.IsFromPrimaryBranch());
-
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-
-            // Check if we've already created and persisted the index for this document.
-            if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
+            using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
             {
-                return;
-            }
+                Debug.Assert(document.IsFromPrimaryBranch());
 
-            // If not, create and save the index.
-            var data = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
-            await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+
+                // Check if we've already created and persisted the index for this document.
+                if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
+                using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate_Create, cancellationToken))
+                {
+                    // If not, create and save the index.
+                    var data = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
+                    await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
         public static async Task<SyntaxTreeIndex> GetIndexAsync(

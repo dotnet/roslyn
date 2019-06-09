@@ -183,6 +183,30 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
+        }
+
+        void Patterns(object o, object p)
+        {
+            var b = o is string s;
+            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            switch (o, p)
+            {
+                case (2, 1): break;
+                case (2, 2) q: break;
+                case X(2, 3): break;
+                case X(2, 4) q: break;
+                case X { A: 2, B: 5 }: break;
+                case X { A: 2, B: 6 } q: break;
+                case X(2, 1) { A: 2, B: 7 }: break;
+                case X(2, 4) { A: 2, B: 8 } q: break;
+                case { A: 3, B: 9 }: break;
+                case { A: 3, B: 10 } q: break;
+                case X q: break;
+                case var (x, y) when x == y: break;
+                case var (x, (y, z)) when x == y: break;
+                case _: break;
+            }
         }
 
         [method: Obsolete]
@@ -212,6 +236,8 @@ namespace My
             var local3 = 0, local4 = 1;
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
+            local5 ??= null;
+            local5 = (local5 ??= null);
             var local6 = local5 is Action;
 
             var u = 1u;
@@ -301,6 +327,8 @@ namespace My
                 1.1f
             };
             var (tuple, _) = (named: 1, 2);
+            bool tupleEquality = (1, (2, 3)) == (1, (2, 3));
+            bool tupleInequality = (1, (2, 3)) != (1, (2, 3));
             int[, ,] cube = { { { 111, 112, }, { 121, 122 } }, { { 211, 212 }, { 221, 222 } } };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
@@ -324,11 +352,16 @@ namespace My
                     break;
                 case int i:
                     break;
+                // case Type (int x, 3) { A: _, B: 7 } identifier:
+                //     break;
+                // case var (x, y, (z, w)):
+                //     break;
                 default:
                     {
                         return;
                     }
             }
+            var z7 = 1 switch { 1 => 1 };
             while (i &lt; 10)
             {
                 ++i;
@@ -386,7 +419,7 @@ namespace My
             {
                 *intref = 1;
             }
-            fixed (int* p = stackalloc int[100])
+            fixed (int* p = stackalloc int[] { 100 }, q = stackalloc[] { 100 })
             {
                 *intref = 1;
             }
@@ -807,6 +840,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i &lt;&lt;= i;/*&lt;&lt;=*/
             i &gt;&gt;= i;/*&gt;&gt;=*/
             object s = x =&gt; x + 1;/*=&gt;*/
+            var index = ^1;
+            var range = 1..2;
             Point point;
             unsafe
             {
@@ -1155,7 +1190,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get
@@ -2199,7 +2234,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get

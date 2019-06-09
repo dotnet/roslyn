@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
-
         public CodeGenAsyncSpillTests()
         {
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options);
         }
 
         [Fact]
@@ -597,8 +594,8 @@ public class Test
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
+            v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+@"{
   // Code size      273 (0x111)
   .maxstack  5
   .locals init (int V_0,
@@ -944,7 +941,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -959,7 +956,7 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
              {
                  AssertEx.Equal(new[]
                  {
@@ -2419,7 +2416,7 @@ class Driver
             CompileAndVerify(source, expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SpillArglist()
         {
             var source = @"
@@ -3292,6 +3289,56 @@ public class C
                 //         Assign(second: ref P, first: await t);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
                 );
+        }
+
+        [Fact]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
+        public void AwaitWithInParameter_ArgModifier()
+        {
+            CreateCompilation(@"
+using System.Threading.Tasks;
+class Foo
+{
+    async Task A(string s, Task<int> task)
+    {
+        C(in s, await task);
+    }
+
+    void C(in object obj, int length) {}
+}").VerifyDiagnostics(
+                // (7,14): error CS1503: Argument 1: cannot convert from 'in string' to 'in object'
+                //         C(in s, await task);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "in string", "in object").WithLocation(7, 14));
+        }
+
+        [Fact]
+        [WorkItem(27831, "https://github.com/dotnet/roslyn/issues/27831")]
+        public void AwaitWithInParameter_NoArgModifier()
+        {
+            CompileAndVerify(@"
+using System;
+using System.Threading.Tasks;
+class Foo
+{
+    static async Task Main()
+    {
+        await A(""test"", Task.FromResult(4));
+    }
+    
+    static async Task A(string s, Task<int> task)
+    {
+        B(s, await task);
+    }
+
+    static void B(in object obj, int v)
+    {
+        Console.WriteLine(obj);
+        Console.WriteLine(v);
+    }
+}", expectedOutput: @"
+test
+4
+");
         }
     }
 }

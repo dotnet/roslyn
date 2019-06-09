@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="New_">
         <source>New</source>
-        <target state="translated">新規作成</target>
+        <target state="translated">新規</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Events">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
-        <target state="translated">ドキュメントをフォーマットしています...</target>
+        <target state="translated">ドキュメントを書式設定しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_new_line">
@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic の再フォーマット</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;複数の種類&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">サポートされていません</target>
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">行コミット</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">抽象クラスまたはインターフェイスの実装</target>
         <note />
       </trans-unit>
     </body>

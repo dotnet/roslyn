@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
                    refactorNotifyServices,
-                   new BlankLineInGeneratedMethodFormattingRule(),
-                   new EndRegionFormattingRule())
+                   BlankLineInGeneratedMethodFormattingRule.Instance,
+                   EndRegionFormattingRule.Instance)
         {
         }
 
@@ -1152,7 +1152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            if (node is AccessorDeclarationSyntax || 
+            if (node is AccessorDeclarationSyntax ||
                 node is ArrowExpressionClauseSyntax)
             {
                 return GetAccess(node.FirstAncestorOrSelf<BasePropertyDeclarationSyntax>());
@@ -2386,7 +2386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     {
                         var newBody = SyntaxFactory.Block();
                         newBody = newBody.WithCloseBraceToken(newBody.CloseBraceToken.WithTrailingTrivia(method.SemicolonToken.TrailingTrivia));
-                        member = method.WithSemicolonToken(default(SyntaxToken)).WithBody(newBody);
+                        member = method.WithSemicolonToken(default).WithBody(newBody);
                     }
                 }
                 else
@@ -2406,7 +2406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                             var newBody = SyntaxFactory.Block();
                             newBody = newBody.WithCloseBraceToken(newBody.CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia));
-                            var updatedAccessor = accessor.WithSemicolonToken(default(SyntaxToken)).WithBody(newBody);
+                            var updatedAccessor = accessor.WithSemicolonToken(default).WithBody(newBody);
                             updatedAccessors.Add(updatedAccessor);
                         }
 

@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Scripting.Common</PackageId>
+    <PackageDescription>
+      Microsoft .NET Compiler Platform ("Roslyn") shared scripting package.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 
+      Workaround for https://github.com/NuGet/Home/issues/1471.
+
+      RoslynTools.LightUp.System.Runtime.Loader distributes System.Runtime.Loader in ref/netstandard1.3 directory,
+      so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
+      is .NET Core.
+    -->
+    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>Hosting\Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
+      <Link>Hosting\Resolvers\ClrGlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>Hosting\Resolvers\FusionAssemblyIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+      <Link>Hosting\Resolvers\GacFileResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+      <Link>Hosting\Resolvers\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>Hosting\Resolvers\GlobalAssemblyCacheLocation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
+      <Link>Hosting\Resolvers\MonoGlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Update="ScriptingResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ScriptingResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
+    <InternalsVisibleTo Include="csi" />
+    <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveHost" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="ScriptingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>

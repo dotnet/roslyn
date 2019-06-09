@@ -16,8 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     [ExportLanguageService(typeof(IIntroduceVariableService), LanguageNames.CSharp), Shared]
     internal partial class CSharpIntroduceVariableService :
-        AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax>
+        AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax, NameSyntax>
     {
+        [ImportingConstructor]
+        public CSharpIntroduceVariableService()
+        {
+        }
+
         protected override bool IsInNonFirstQueryClause(ExpressionSyntax expression)
         {
             var query = expression.GetAncestor<QueryExpressionSyntax>();

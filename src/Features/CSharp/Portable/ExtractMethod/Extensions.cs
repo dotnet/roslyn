@@ -263,11 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return node is ExpressionSyntax;
         }
 
-        public static bool IsErrorType(this ITypeSymbol type)
-        {
-            return type == null || type.Kind == SymbolKind.ErrorType;
-        }
-
         public static bool IsObjectType(this ITypeSymbol type)
         {
             return type == null || type.SpecialType == SpecialType.System_Object;

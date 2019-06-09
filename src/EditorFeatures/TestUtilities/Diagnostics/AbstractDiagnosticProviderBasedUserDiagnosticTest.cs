@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -36,6 +38,84 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
+        internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+        {
+            if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+            {
+                if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                {
+                    // The message only displayed if either enabled and not hidden, or configurable
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [Fact]
+        public void TestSupportedDiagnosticsMessageTitle()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    {
+                        // The title only displayed for rule configuration
+                        continue;
+                    }
+
+                    Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
+                }
+            }
+        }
+
+        [Fact]
+        public void TestSupportedDiagnosticsMessageDescription()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    if (ShouldSkipMessageDescriptionVerification(descriptor))
+                    {
+                        continue;
+                    }
+
+                    Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        public void TestSupportedDiagnosticsMessageHelpLinkUri()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+                }
+            }
+        }
+
         internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
@@ -48,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
@@ -61,19 +141,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
             if (fixer == null)
             {
-                return diagnostics.Select(d => Tuple.Create(d, (CodeFixCollection) null));
+                return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
             }
-            
+
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-            return await GetDiagnosticAndFixesAsync(
-                dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
+            var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
+                dxs, fixer, testDriver, document, span, annotation, parameters.index);
+
+            // If we are also testing non-fixable diagnostics,
+            // then the result diagnostics need to include all diagnostics,
+            // not just the fixable ones returned from GetDiagnosticAndFixesAsync.
+            if (parameters.retainNonFixableDiagnostics)
+            {
+                resultDiagnostics = diagnostics;
+            }
+
+            return (resultDiagnostics, codeActions, actionToInvoke);
         }
 
         protected async Task TestDiagnosticInfoAsync(
@@ -99,7 +189,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testOptions = new TestParameters(parseOptions, compilationOptions, options);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
+                diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
                 Assert.Equal(1, diagnostics.Count());
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
@@ -130,5 +221,56 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
+
+        #region Parentheses options
+
+        private static readonly CodeStyleOption<ParenthesesPreference> IgnorePreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
+
+        private static readonly CodeStyleOption<ParenthesesPreference> RequireForPrecedenceClarityPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Suggestion);
+
+        private static readonly CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Suggestion);
+
+        private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
+        {
+            yield return CodeStyleOptions.ArithmeticBinaryParentheses;
+            yield return CodeStyleOptions.RelationalBinaryParentheses;
+            yield return CodeStyleOptions.OtherBinaryParentheses;
+        }
+
+        protected IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses);
+
+        protected IDictionary<OptionKey, object> RequireRelationalBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.RelationalBinaryParentheses);
+
+        protected IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses);
+
+        private IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllParenthesesOptions()
+            => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions.OtherParentheses);
+
+        protected IDictionary<OptionKey, object> IgnoreAllParentheses
+            => OptionsSet(GetAllParenthesesOptions().Select(
+                o => SingleOption(o, IgnorePreference)).ToArray());
+
+        protected IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses
+            => OptionsSet(GetAllParenthesesOptions().Select(
+                o => SingleOption(o, RemoveIfUnnecessaryPreference)).ToArray());
+
+        protected IDictionary<OptionKey, object> RequireAllParenthesesForClarity
+            => OptionsSet(GetAllExceptOtherParenthesesOptions()
+                    .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
+                    .Concat(SingleOption(CodeStyleOptions.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
+
+        private IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option)
+            => OptionsSet(GetAllParenthesesOptions()
+                    .Where(o => o != option)
+                    .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
+                    .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
+
+        #endregion
     }
 }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             int position,
             bool absent,
             string insertText,
-            CSharpParseOptions options, 
+            CSharpParseOptions options,
             int? matchPriority)
         {
             text = text.Substring(0, position) + insertText + "/**/" + text.Substring(position);
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context)).Single();
+                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)

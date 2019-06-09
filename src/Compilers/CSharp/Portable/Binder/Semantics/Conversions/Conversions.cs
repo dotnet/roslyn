@@ -13,22 +13,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Binder _binder;
 
         public Conversions(Binder binder)
-            : this(binder, currentRecursionDepth: 0)
+            : this(binder, currentRecursionDepth: 0, includeNullability: false, otherNullabilityOpt: null)
         {
         }
 
-        private Conversions(Binder binder, int currentRecursionDepth)
-            : base(binder.Compilation.Assembly.CorLibrary, currentRecursionDepth)
+        private Conversions(Binder binder, int currentRecursionDepth, bool includeNullability, Conversions otherNullabilityOpt)
+            : base(binder.Compilation.Assembly.CorLibrary, currentRecursionDepth, includeNullability, otherNullabilityOpt)
         {
             _binder = binder;
         }
 
         protected override ConversionsBase CreateInstance(int currentRecursionDepth)
         {
-            return new Conversions(_binder, currentRecursionDepth);
+            return new Conversions(_binder, currentRecursionDepth, IncludeNullability, otherNullabilityOpt: null);
         }
 
         private CSharpCompilation Compilation { get { return _binder.Compilation; } }
+
+        protected override ConversionsBase WithNullabilityCore(bool includeNullability)
+        {
+            Debug.Assert(IncludeNullability != includeNullability);
+            return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
+        }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -56,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (destination == Compilation.GetWellKnownType(WellKnownType.System_IFormattable) ||
-                    destination == Compilation.GetWellKnownType(WellKnownType.System_FormattableString))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
@@ -71,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, ref useSiteDiagnostics, inferWithDynamic: true);
+                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
+                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType);
                 analyzedArguments.Free();
                 return resolution;
             }
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
                         }
-                        else if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T && !method.IsOverride)
+                        else if (method.ContainingType.IsNullableType() && !method.IsOverride)
                         {
                             // CS1728: Cannot bind delegate to '{0}' because it is a member of 'System.Nullable<T>'
                             diagnostics.Add(
@@ -165,10 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var overloadDiagnostics = DiagnosticBag.GetInstance();
 
-                        result.ReportDiagnostics(binder, expr.Syntax.Location, overloadDiagnostics,
-                            expr.Name,
-                            resolution.MethodGroup.Receiver, resolution.AnalyzedArguments, resolution.MethodGroup.Methods.ToImmutable(),
-                            typeContainingConstructor: null, delegateTypeBeingInvoked: null, isMethodGroupConversion: true);
+                        result.ReportDiagnostics(
+                            binder: binder, location: expr.Syntax.Location, nodeOpt: expr.Syntax, diagnostics: overloadDiagnostics,
+                            name: expr.Name,
+                            receiver: resolution.MethodGroup.Receiver, invokedExpression: expr.Syntax, arguments: resolution.AnalyzedArguments,
+                            memberGroup: resolution.MethodGroup.Methods.ToImmutable(),
+                            typeContainingConstructor: null, delegateTypeBeingInvoked: null,
+                            isMethodGroupConversion: true, returnRefKind: invokeMethodOpt?.RefKind, delegateType: targetType);
 
                         if (!overloadDiagnostics.IsEmptyWithoutResolution)
                         {
@@ -189,12 +199,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
 
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            Debug.Assert((object)delegateInvokeMethod != null && !delegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
-            GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, Compilation);
+            GetDelegateArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
-                methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
+                methods: methodGroup.Methods,
+                typeArguments: methodGroup.TypeArguments,
+                receiver: methodGroup.Receiver,
+                arguments: analyzedArguments,
+                result: result,
+                useSiteDiagnostics: ref useSiteDiagnostics,
+                isMethodGroupConversion: true,
+                returnRefKind: delegateInvokeMethod.RefKind,
+                returnType: delegateInvokeMethod.ReturnType);
             var conversion = ToConversion(result, methodGroup, delegateType);
 
             analyzedArguments.Free();
@@ -218,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        compilation.GetSpecialType(SpecialType.System_Object), parameter.CustomModifiers, parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
                 }
 
                 analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
@@ -262,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
-                !method.IsOverride)
+            if (method.ContainingType.IsNullableType() && !method.IsOverride)
             {
                 return Conversion.NoConversion;
             }
@@ -286,37 +304,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            if (sourceExpression.Syntax.IsLocalVariableDeclarationInitializationForPointerStackalloc())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
-                Debug.Assert(sourceExpression.ElementType != null);
+                Debug.Assert((object)sourceExpression.ElementType != null);
 
-                var pointerConversion = default(Conversion);
-                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
-                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+                var sourceAsPointer = new PointerTypeSymbol(TypeWithAnnotations.Create(sourceExpression.ElementType));
+                var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)
                 {
-                    // Report unsafe errors
-                    _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
-
                     return Conversion.MakeStackAllocToPointerType(pointerConversion);
                 }
                 else
                 {
                     var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
-                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);
                         var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
 
                         if (spanConversion.Exists)
                         {
-                            // Report errors if Span ctor is missing, or using an older C# version
-                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
-                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
-                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
-
                             return Conversion.MakeStackAllocToSpanType(spanConversion);
                         }
                     }

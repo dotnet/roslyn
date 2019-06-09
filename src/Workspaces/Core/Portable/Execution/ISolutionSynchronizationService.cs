@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// 
         /// this asset can be something that is not part of <see cref="PinnedRemotableDataScope"/> 
         /// 
-        /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
+        /// TODO: currently, this asset must be something <see cref="ISerializerService"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
         void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken);

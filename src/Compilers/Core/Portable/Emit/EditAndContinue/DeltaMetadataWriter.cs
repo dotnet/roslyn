@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
-                        _parameterDefList.Add(KeyValuePair.Create(methodDef, paramDef));
+                        _parameterDefList.Add(KeyValuePairUtil.Create(methodDef, paramDef));
                     }
 
                     if (methodDef.GenericParameterCount > 0)
@@ -654,9 +654,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
-                
+
                 BlobHandle blobIndex = metadata.GetOrAddBlob(writer);
-                
+
                 localSignatureHandle = GetOrAddStandaloneSignatureHandle(blobIndex);
                 writer.Free();
             }

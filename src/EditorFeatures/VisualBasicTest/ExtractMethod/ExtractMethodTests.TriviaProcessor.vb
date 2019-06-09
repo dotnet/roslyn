@@ -3,6 +3,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class TriviaProcessor
 
             <WorkItem(539281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539281")>

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     AssemblyIdentity currentIdentity = sameName[i].Key;
 
-                    if (comparer(identity.Version, currentIdentity.Version, sameName[i].Value) && 
+                    if (comparer(identity.Version, currentIdentity.Version, sameName[i].Value) &&
                         AssemblyIdentity.EqualIgnoringNameAndVersion(currentIdentity, identity))
                     {
                         value = sameName[i].Value;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Add(AssemblyIdentity identity, TValue value)
         {
-            var pair = KeyValuePair.Create(identity, value);
+            var pair = KeyValuePairUtil.Create(identity, value);
 
             OneOrMany<KeyValuePair<AssemblyIdentity, TValue>> sameName;
             _map[identity.Name] = _map.TryGetValue(identity.Name, out sameName) ? sameName.Add(pair) : OneOrMany.Create(pair);

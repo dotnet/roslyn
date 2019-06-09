@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     public static class RQName
     {
         /// <summary>
-        /// Returns an RQName for the given symbol, or <code>null</code>if the symbol cannot be represented by an RQName.
+        /// Returns an RQName for the given symbol, or <see langword="null"/> if the symbol cannot be represented by an RQName.
         /// </summary>
         /// <param name="symbol">The symbol to build an RQName for.</param>
         /// <returns>A string suitable to pass as the pszRQName argument to methods in <see cref="IVsRefactorNotify"/>

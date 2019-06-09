@@ -179,10 +179,9 @@ namespace N1 {
     internal interface I1 {}
     enum E1 { Red }
     delegate void D1(int i);
-
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
 
@@ -226,7 +225,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -252,7 +251,7 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
             int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
@@ -295,7 +294,7 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
 
@@ -401,7 +400,7 @@ namespace N1.N2 {
 
 namespace System {}
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
@@ -441,7 +440,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -508,7 +507,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -597,7 +596,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc1", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc2", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc3", SymbolKind.Local);
@@ -632,7 +631,7 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab1", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab2", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab3", SymbolKind.Label);
@@ -658,7 +657,7 @@ namespace N1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ConsoleAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ListOfIntAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "GooAlias", SymbolKind.Alias);
@@ -684,7 +683,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range1", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range2", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryContinuationSyntax>(comp, tree, "range3", SymbolKind.RangeVariable);
@@ -713,7 +712,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             CheckLambdaDeclaringSyntax<ParenthesizedLambdaExpressionSyntax>(comp, tree, "/*1*/");
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
@@ -731,7 +730,7 @@ class C
             var source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
             var source2 = Parse("namespace N { struct S { } }");
             var source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
-            var comp0 = CreateStandardCompilation(new[] { source0, source1, source2, source3 });
+            var comp0 = CreateCompilation(new[] { source0, source1, source2, source3 });
             comp0.VerifyDiagnostics();
             Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
 

@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textChange = new TextChange(new TextSpan(startPosition, endPosition - startPosition), str);
             var typeSpanToAnnotate = new TextSpan(startPosition + "case ".Length, fullyQualifiedTypeName.Length);
 
-            var textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var textWithCaseAdded = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
             var syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken);

@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText: escapedName + ColonString,
+                        displayText: escapedName,
+                        displayTextSuffix: ColonString,
                         symbols: ImmutableArray.Create(parameter),
                         rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                         contextPosition: token.SpanStart,
@@ -255,7 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                // Do not insert colon on <Tab> so that user can complete out a variable name that does not currently exist.
+                // ch == null is to support the old completion only.
+                // Do not insert an extra colon if colon has been explicitly typed.
+                (ch == null || ch == '\t' || ch == ':') ? selectedItem.DisplayText : selectedItem.GetEntireDisplayText()));
         }
     }
 }

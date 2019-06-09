@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         internal static Span SpanToShow;
         internal static PreviewTagger Tagger;
 
-        public PreviewUpdater(ITextView textView)
+        public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
+            : base(threadingContext)
         {
             PreviewUpdater.TextView = textView;
             Tagger = new PreviewTagger(textView, textView.TextBuffer);
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             TextView.TextBuffer.ChangeContentType(contentType, null);

@@ -3,18 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
+using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class Editor_InProc
     {
         public string GetSelectedNavBarItem(int comboBoxIndex)
-            =>  ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
+            => ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
 
         public string[] GetNavBarItems(int comboBoxIndex)
             => ExecuteOnActiveView(v =>
@@ -47,7 +55,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ExecuteOnActiveView(v =>
             {
                 var combobox = GetNavigationBarComboBoxes(v)[index];
-                combobox.Focus();
+                FocusManager.SetFocusedElement(FocusManager.GetFocusScope(combobox), combobox);
                 combobox.IsDropDownOpen = true;
             });
         }
@@ -61,12 +69,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             ExpandNavigationBar(comboboxIndex);
-            System.Windows.Forms.SendKeys.SendWait("{HOME}");
+            _sendKeys.Send(VirtualKey.Home);
             for (int i = 0; i < itemIndex; i++)
             {
-                System.Windows.Forms.SendKeys.SendWait("{DOWN}");
+                _sendKeys.Send(VirtualKey.Down);
             }
-            System.Windows.Forms.SendKeys.SendWait("{ENTER}");
+
+            _sendKeys.Send(VirtualKey.Enter);
         }
 
         public bool IsNavBarEnabled()
@@ -81,6 +90,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static UIElement GetNavbar(IWpfTextView textView)
         {
+            // Visual Studio 2019
+            var editorAdaptersFactoryService = GetComponentModelService<IVsEditorAdaptersFactoryService>();
+            var viewAdapter = editorAdaptersFactoryService.GetViewAdapter(textView);
+
+            // Make sure we have the top pane
+            //
+            // The docs are wrong. When a secondary view exists, it is the secondary view which is on top. The primary
+            // view is only on top when there is no secondary view.
+            var codeWindow = TryGetCodeWindow(viewAdapter);
+            if (ErrorHandler.Succeeded(codeWindow.GetSecondaryView(out var secondaryViewAdapter)))
+            {
+                viewAdapter = secondaryViewAdapter;
+            }
+
+            var textViewHost = editorAdaptersFactoryService.GetWpfTextViewHost(viewAdapter);
+            var dropDownMargin = textViewHost.GetTextViewMargin("DropDownMargin");
+            if (dropDownMargin != null)
+            {
+                return ((Decorator)dropDownMargin.VisualElement).Child;
+            }
+
+            // Visual Studio 2017
             var control = textView.VisualElement;
             while (control != null)
             {
@@ -96,52 +127,72 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var vsDropDownBarAdapterMargin = topMarginControl.Content as UIElement;
             return vsDropDownBarAdapterMargin;
         }
-    }
 
-    internal static class ReflectionExtensions
-    {
-        public static PropertyType GetPropertyValue<PropertyType>(this object instance, string propertyName)
+        private static IVsCodeWindow TryGetCodeWindow(IVsTextView textView)
         {
-            return (PropertyType)GetPropertyValue(instance, propertyName);
-        }
-
-        public static object GetPropertyValue(this object instance, string propertyName)
-        {
-            Type type = instance.GetType();
-            PropertyInfo propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            if (propertyInfo == null)
+            if (textView == null)
             {
-                throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
-            }
-            object result = propertyInfo.GetValue(instance, null);
-            return result;
-        }
-
-        public static object GetFieldValue(this object instance, string fieldName)
-        {
-            Type type = instance.GetType();
-            FieldInfo fieldInfo = null;
-            while (type != null)
-            {
-                fieldInfo = type.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (fieldInfo != null)
-                {
-                    break;
-                }
-                type = type.BaseType;
+                throw new ArgumentNullException(nameof(textView));
             }
 
-            if (fieldInfo == null)
+            if (!(textView is IObjectWithSite objectWithSite))
             {
-                throw new FieldAccessException("Field " + fieldName + " was not found on type " + type.ToString());
+                return null;
             }
-            object result = fieldInfo.GetValue(instance);
-            return result; // you can place a breakpoint here (for debugging purposes)
-        }
 
-        public static FieldType GetFieldValue<FieldType>(this object instance, string fieldName)
-        {
-            return (FieldType)GetFieldValue(instance, fieldName);
+            var riid = typeof(IOleServiceProvider).GUID;
+            objectWithSite.GetSite(ref riid, out var ppvSite);
+            if (ppvSite == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            IOleServiceProvider oleServiceProvider = null;
+            try
+            {
+                oleServiceProvider = Marshal.GetObjectForIUnknown(ppvSite) as IOleServiceProvider;
+            }
+            finally
+            {
+                Marshal.Release(ppvSite);
+            }
+
+            if (oleServiceProvider == null)
+            {
+                return null;
+            }
+
+            var guidService = typeof(SVsWindowFrame).GUID;
+            riid = typeof(IVsWindowFrame).GUID;
+            if (ErrorHandler.Failed(oleServiceProvider.QueryService(ref guidService, ref riid, out var ppvObject)) || ppvObject == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            IVsWindowFrame frame = null;
+            try
+            {
+                frame = Marshal.GetObjectForIUnknown(ppvObject) as IVsWindowFrame;
+            }
+            finally
+            {
+                Marshal.Release(ppvObject);
+            }
+
+            riid = typeof(IVsCodeWindow).GUID;
+            if (ErrorHandler.Failed(frame.QueryViewInterface(ref riid, out ppvObject)) || ppvObject == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            try
+            {
+                return Marshal.GetObjectForIUnknown(ppvObject) as IVsCodeWindow;
+            }
+            finally
+            {
+                Marshal.Release(ppvObject);
+            }
         }
     }
 }

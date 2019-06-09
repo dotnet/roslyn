@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
@@ -10,13 +9,23 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.SymbolMapping
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTestState
+        Private Shared ReadOnly DefaultCatalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic _
+                .WithPart(GetType(CallHierarchyProvider)) _
+                .WithPart(GetType(DefaultSymbolMappingService)) _
+                .WithPart(GetType(EditorNotificationServiceFactory))
+        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(DefaultCatalog)
+
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
         Friend ReadOnly Workspace As TestWorkspace
@@ -95,17 +104,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             notificationService.NotificationCallback = Sub(message, title, severity) NotificationMessage = message
 
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler({_presenter}, provider, TestWaitIndicator.Default)
+            _commandHandler = New CallHierarchyCommandHandler({_presenter}, provider)
         End Sub
 
-        Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As VisualStudio.Composition.ExportProvider
-            Dim catalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic _
-                .WithPart(GetType(CallHierarchyProvider)) _
-                .WithPart(GetType(DefaultSymbolMappingService)) _
-                .WithPart(GetType(EditorNotificationServiceFactory)) _
-                .WithParts(additionalTypes)
+        Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As ExportProvider
+            If Not additionalTypes.Any Then
+                Return ExportProviderFactory.CreateExportProvider()
+            End If
 
-            Return MinimalTestExportProvider.CreateExportProvider(catalog)
+            Dim catalog = DefaultCatalog.WithParts(additionalTypes)
+            Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState
@@ -118,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Function GetRoot() As CallHierarchyItem
             Dim args = New ViewCallHierarchyCommandArgs(_textView, _subjectBuffer)
-            _commandHandler.ExecuteCommand(args, Sub() Exit Sub)
+            _commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
             Return _presenter.PresentedRoot
         End Function
 

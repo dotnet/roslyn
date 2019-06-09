@@ -1,14 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -16,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class InlineRenameTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -277,7 +277,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesDoesNotCrash() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[public class [|$$C|] { } // [|C|]]]></Document>
@@ -287,14 +287,15 @@ End Class
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesHandlesBothProjects() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
@@ -311,14 +312,15 @@ public partial class C { }
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesWithPrivateAccessibility() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
@@ -340,14 +342,15 @@ public partial class C { }
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1040098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040098")>
         Public Async Function RenameInLinkedFilesWithPublicAccessibility() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                             <Document FilePath="C.cs"><![CDATA[
@@ -369,14 +372,15 @@ public partial class C { }
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
         Public Async Function RenameTypeInLinkedFiles() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
                             <Document FilePath="C.cs"><![CDATA[
@@ -388,14 +392,15 @@ public class [|$$C|] { }
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Async Function RenameInCommentsAndStringsCSharp() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -422,9 +427,10 @@ class Program
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+            End Using
 
-            workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -451,9 +457,10 @@ class Program
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+            End Using
 
-            workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -480,14 +487,15 @@ class Program
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+            End Using
         End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Async Function RenameInCommentsAndStringsVisualBasic() As Task
-            Dim workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
@@ -512,9 +520,10 @@ End Class
                         </Project>
                     </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+            End Using
 
-            workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -539,9 +548,10 @@ End Class
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+            End Using
 
-            workspace = CreateWorkspaceWithWaiter(
+            Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -566,7 +576,8 @@ End Class
                     </Project>
                 </Workspace>)
 
-            Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+            End Using
         End Function
 
         <WpfFact>
@@ -1127,7 +1138,7 @@ class C
                 Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     New ProgressTracker(),
                     CancellationToken.None)

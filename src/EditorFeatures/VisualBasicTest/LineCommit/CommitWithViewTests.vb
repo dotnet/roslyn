@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
+    <[UseExportProvider]>
     Public Class CommitWithViewTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
@@ -293,7 +295,9 @@ End Module
                 </Workspace>)
 
                 testData.EditorOperations.InsertText("_")
-                testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine())
+                testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer),
+                                                       Sub() testData.EditorOperations.InsertNewLine(),
+                                                       TestCommandExecutionContext.Create())
 
                 ' So far we should have had no commit
                 testData.AssertHadCommit(False)
@@ -823,7 +827,7 @@ End Module|]</Document>
                 Dim view = document.GetTextView()
                 view.Selection.Select(snapshotspan, isReversed:=False)
                 Dim selArgs = New FormatSelectionCommandArgs(view, document.GetTextBuffer())
-                testData.CommandHandler.ExecuteCommand(selArgs, Sub() Return)
+                testData.CommandHandler.ExecuteCommand(selArgs, Sub() Return, TestCommandExecutionContext.Create())
             End Using
         End Sub
 

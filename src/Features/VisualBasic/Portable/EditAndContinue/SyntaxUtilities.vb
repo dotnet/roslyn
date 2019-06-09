@@ -67,18 +67,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                           leftPosition As Integer,
                                           rightRoot As SyntaxNode,
                                           <Out> ByRef leftNode As SyntaxNode,
-                                          <Out> ByRef rightNode As SyntaxNode)
+                                          <Out> ByRef rightNodeOpt As SyntaxNode)
             leftNode = leftRoot
-            rightNode = rightRoot
+            rightNodeOpt = rightRoot
             While True
-                Debug.Assert(leftNode.RawKind = rightNode.RawKind)
+                If rightNodeOpt IsNot Nothing AndAlso leftNode.RawKind <> rightNodeOpt.RawKind Then
+                    rightNodeOpt = Nothing
+                End If
+
                 Dim childIndex As Integer = 0
                 Dim leftChild = leftNode.ChildThatContainsPosition(leftPosition, childIndex)
                 If leftChild.IsToken Then
                     Return
                 End If
 
-                rightNode = rightNode.ChildNodesAndTokens()(childIndex).AsNode()
+                If rightNodeOpt IsNot Nothing Then
+                    Dim rightNodeChildNodesAndTokens = rightNodeOpt.ChildNodesAndTokens()
+                    If childIndex >= 0 AndAlso childIndex < rightNodeChildNodesAndTokens.Count Then
+                        rightNodeOpt = rightNodeChildNodesAndTokens(childIndex).AsNode()
+                    Else
+                        rightNodeOpt = Nothing
+                    End If
+                End If
+
                 leftNode = leftChild.AsNode()
             End While
         End Sub

@@ -70,9 +70,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
+            Dim initializerLocation As Location = token.GetLocation()
             Dim symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken)
             Dim symbol = TryCast(symbolInfo.Symbol, ITypeSymbol)
-            Dim initializerLocation As Location = token.GetLocation()
+            If TypeOf symbol Is ITypeParameterSymbol Then
+                Dim typeParameterSymbol = TryCast(symbolInfo.Symbol, ITypeParameterSymbol)
+                Return Tuple.Create(Of ITypeSymbol, Location)(typeParameterSymbol.GetNamedTypeSymbolConstraint(), initializerLocation)
+            End If
+
             Return Tuple.Create(symbol, initializerLocation)
         End Function
 
@@ -91,6 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 IsValidProperty(member) AndAlso
                 Not member.IsStatic AndAlso
                 member.IsAccessibleWithin(containingType)
+        End Function
+
+        Protected Overrides Function EscapeIdentifier(symbol As ISymbol) As String
+            Return symbol.Name.EscapeIdentifier()
         End Function
 
         Private Function IsValidProperty(member As ISymbol) As Boolean

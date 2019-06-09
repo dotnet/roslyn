@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                 // back off and wait for next time slot.
                                 this.UpdateLastAccessTime();
-                                await this.WaitForIdleAsync().ConfigureAwait(false);
+                                await this.WaitForIdleAsync(Listener).ConfigureAwait(false);
                             }
                             while (true);
                         }

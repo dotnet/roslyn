@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -32,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 
         [ImportingConstructor]
         public BraceHighlightingViewTaggerProvider(
+            IThreadingContext threadingContext,
             IBraceMatchingService braceMatcherService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(listenerProvider.GetListener(FeatureAttribute.BraceHighlighting), notificationService)
+                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting), notificationService)
         {
             _braceMatcherService = braceMatcherService;
         }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);

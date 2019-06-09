@@ -7,12 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
-    public partial struct SyntaxList<TNode>
+    public readonly partial struct SyntaxList<TNode>
     {
         [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         public struct Enumerator
         {
-            private SyntaxList<TNode> _list;
+            private readonly SyntaxList<TNode> _list;
             private int _index;
 
             internal Enumerator(SyntaxList<TNode> list)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         {
             private Enumerator _e;
 
-            internal EnumeratorImpl(SyntaxList<TNode> list)
+            internal EnumeratorImpl(in SyntaxList<TNode> list)
             {
                 _e = new Enumerator(list);
             }

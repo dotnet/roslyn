@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -75,6 +75,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Always_include_snippets {
             get {
                 return ResourceManager.GetString("Always_include_snippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply all C# formatting rules (indentation, wrapping, spacing).
+        /// </summary>
+        internal static string Apply_all_csharp_formatting_rules_indentation_wrapping_spacing {
+            get {
+                return ResourceManager.GetString("Apply_all_csharp_formatting_rules_indentation_wrapping_spacing", resourceCulture);
             }
         }
         
@@ -138,6 +147,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string CSharp {
             get {
                 return ResourceManager.GetString("CSharp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# Coding Conventions.
+        /// </summary>
+        internal static string CSharp_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("CSharp_Coding_Conventions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# Formatting Rules.
+        /// </summary>
+        internal static string CSharp_Formatting_Rules {
+            get {
+                return ResourceManager.GetString("CSharp_Formatting_Rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard.
+        /// </summary>
+        internal static string Discard {
+            get {
+                return ResourceManager.GetString("Discard", resourceCulture);
             }
         }
         
@@ -223,6 +259,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format Document Settings (Experiment) .
+        /// </summary>
+        internal static string Format_document_settings {
+            get {
+                return ResourceManager.GetString("Format_document_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        internal static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Event Subscription.
+        /// </summary>
+        internal static string Generate_Event_Subscription {
+            get {
+                return ResourceManager.GetString("Generate_Event_Subscription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Generate XML documentation comments for ///.
         /// </summary>
         internal static string Generate_XML_documentation_comments_for {
@@ -282,6 +345,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Ignore_spaces_in_declaration_statements {
             get {
                 return ResourceManager.GetString("Ignore_spaces_in_declaration_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |.
+        /// </summary>
+        internal static string In_arithmetic_binary_operators {
+            get {
+                return ResourceManager.GetString("In_arithmetic_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In other binary operators:  &amp;&amp;   ||   ??.
+        /// </summary>
+        internal static string In_other_binary_operators {
+            get {
+                return ResourceManager.GetString("In_other_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=.
+        /// </summary>
+        internal static string In_relational_binary_operators {
+            get {
+                return ResourceManager.GetString("In_relational_binary_operators", resourceCulture);
             }
         }
         
@@ -574,6 +664,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inside namespace.
+        /// </summary>
+        internal static string Inside_namespace {
+            get {
+                return ResourceManager.GetString("Inside_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Label Indentation.
         /// </summary>
         internal static string Label_Indentation {
@@ -696,6 +795,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outside namespace.
+        /// </summary>
+        internal static string Outside_namespace {
+            get {
+                return ResourceManager.GetString("Outside_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perform additional code cleanup during formatting.
+        /// </summary>
+        internal static string Perform_additional_code_cleanup_during_formatting {
+            get {
+                return ResourceManager.GetString("Perform_additional_code_cleanup_during_formatting", resourceCulture);
             }
         }
         
@@ -934,11 +1051,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; for reference equality checks.
         /// </summary>
-        internal static string Prefer_is_null_over_ReferenceEquals {
+        internal static string Prefer_is_null_for_reference_equality_checks {
             get {
-                return ResourceManager.GetString("Prefer_is_null_over_ReferenceEquals", resourceCulture);
+                return ResourceManager.GetString("Prefer_is_null_for_reference_equality_checks", resourceCulture);
             }
         }
         
@@ -957,6 +1074,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_pattern_matching_over_is_with_cast_check {
             get {
                 return ResourceManager.GetString("Prefer_pattern_matching_over_is_with_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer switch expression.
+        /// </summary>
+        internal static string Prefer_switch_expression {
+            get {
+                return ResourceManager.GetString("Prefer_switch_expression", resourceCulture);
             }
         }
         
@@ -984,6 +1110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_var {
             get {
                 return ResourceManager.GetString("Prefer_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preferred &apos;using&apos; directive placement.
+        /// </summary>
+        internal static string Preferred_using_directive_placement {
+            get {
+                return ResourceManager.GetString("Preferred_using_directive_placement", resourceCulture);
             }
         }
         
@@ -1038,6 +1173,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Remove_spaces_before_and_after_binary_operators {
             get {
                 return ResourceManager.GetString("Remove_spaces_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary usings.
+        /// </summary>
+        internal static string Remove_unnecessary_usings {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_usings", resourceCulture);
             }
         }
         
@@ -1150,6 +1294,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show items from unimported namespaces (experimental).
+        /// </summary>
+        internal static string Show_items_from_unimported_namespaces {
+            get {
+                return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show name s_uggestions.
         /// </summary>
         internal static string Show_name_suggestions {
@@ -1195,6 +1348,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sort usings.
+        /// </summary>
+        internal static string Sort_usings {
+            get {
+                return ResourceManager.GetString("Sort_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Split string literals on _enter.
         /// </summary>
         internal static string Split_string_literals_on_enter {
@@ -1204,20 +1366,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggest usings for types in .NET Framework assemblies.
+        /// </summary>
+        internal static string Suggest_usings_for_types_in_dotnet_framework_assemblies {
+            get {
+                return ResourceManager.GetString("Suggest_usings_for_types_in_dotnet_framework_assemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
         /// </summary>
         internal static string Suggest_usings_for_types_in_NuGet_packages {
             get {
                 return ResourceManager.GetString("Suggest_usings_for_types_in_NuGet_packages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggest usings for types in _reference assemblies.
-        /// </summary>
-        internal static string Suggest_usings_for_types_in_reference_assemblies {
-            get {
-                return ResourceManager.GetString("Suggest_usings_for_types_in_reference_assemblies", resourceCulture);
             }
         }
         
@@ -1249,6 +1411,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused local.
+        /// </summary>
+        internal static string Unused_local {
+            get {
+                return ResourceManager.GetString("Unused_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
         /// </summary>
         internal static string Use_var_when_generating_locals {
@@ -1267,11 +1438,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; preferences:.
+        /// </summary>
+        internal static string using_preferences_colon {
+            get {
+                return ResourceManager.GetString("using_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;var&apos; preferences:.
         /// </summary>
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When on multiple lines.
+        /// </summary>
+        internal static string When_on_multiple_lines {
+            get {
+                return ResourceManager.GetString("When_on_multiple_lines", resourceCulture);
             }
         }
         

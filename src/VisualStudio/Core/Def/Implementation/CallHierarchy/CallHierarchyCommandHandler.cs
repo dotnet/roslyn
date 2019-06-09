@@ -1,85 +1,91 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.SymbolMapping;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
-    [ExportCommandHandler("CallHierarchy", ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [Name("CallHierarchy")]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
-    internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCommandArgs>
+    internal class CallHierarchyCommandHandler : VSCommanding.ICommandHandler<ViewCallHierarchyCommandArgs>
     {
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
-        private readonly IWaitIndicator _waitIndicator;
+
+        public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
 
         [ImportingConstructor]
-        public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider, IWaitIndicator waitIndicator)
+        public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider)
         {
             _presenter = presenters.FirstOrDefault();
             _provider = provider;
-            _waitIndicator = waitIndicator;
         }
 
-        public void ExecuteCommand(ViewCallHierarchyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            AddRootNode(args);
-        }
-
-        private void AddRootNode(ViewCallHierarchyCommandArgs args)
-        {
-            _waitIndicator.Wait(EditorFeaturesResources.Call_Hierarchy, EditorFeaturesResources.Computing_Call_Hierarchy_Information, allowCancel: true, action: waitcontext =>
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
+            {
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(cancellationToken);
+                if (document == null)
                 {
-                    var cancellationToken = waitcontext.CancellationToken;
-                    var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
+                    return true;
+                }
+
+                var workspace = document.Project.Solution.Workspace;
+                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
+                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, caretPosition, workspace, cancellationToken)
+                    .WaitAndGetResult(cancellationToken);
+
+                if (symbolUnderCaret != null)
+                {
+                    // Map symbols so that Call Hierarchy works from metadata-as-source
+                    var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+                    var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    if (mapping.Symbol != null)
                     {
-                        return;
-                    }
-
-                    var workspace = document.Project.Solution.Workspace;
-                    var semanticModel = document.GetSemanticModelAsync(waitcontext.CancellationToken).WaitAndGetResult(cancellationToken);
-
-                    var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                    var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, caretPosition, workspace, cancellationToken)
-                        .WaitAndGetResult(cancellationToken);
-
-                    if (symbolUnderCaret != null)
-                    {
-                        // Map symbols so that Call Hierarchy works from metadata-as-source
-                        var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
-                        var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, waitcontext.CancellationToken).WaitAndGetResult(cancellationToken);
-
-                        if (mapping.Symbol != null)
+                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        if (node != null)
                         {
-                            var node = _provider.CreateItem(mapping.Symbol, mapping.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).WaitAndGetResult(cancellationToken);
-                            if (node != null)
-                            {
-                                _presenter.PresentRoot((CallHierarchyItem)node);
-                            }
+                            _presenter.PresentRoot((CallHierarchyItem)node);
                         }
                     }
-                    else
-                    {
-                        var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
-                    }
-                });
+                }
+                else
+                {
+                    // We are about to show a modal UI dialog so we should take over the command execution
+                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // and also will take it into consideration when measuring command handling duration.
+                    waitScope.Context.TakeOwnership();
+                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
+                }
+            }
+
+            return true;
         }
 
-        public CommandState GetCommandState(ViewCallHierarchyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
         {
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
     }
 }

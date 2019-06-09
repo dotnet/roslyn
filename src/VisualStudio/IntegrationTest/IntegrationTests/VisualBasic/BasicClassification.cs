@@ -3,7 +3,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -12,12 +14,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicClassification(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicClassification))
+        public BasicClassification(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicClassification))
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Verify_Color_Of_Some_Tokens()
         {
             VisualStudio.Editor.SetText(@"Imports System
@@ -63,7 +65,7 @@ End Namespace");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "comment");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Semantic_Classification()
         {
             VisualStudio.Editor.SetText(@"

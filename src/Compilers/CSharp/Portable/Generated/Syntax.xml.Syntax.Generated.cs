@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>SyntaxToken representing the identifier of the simple name.</summary>
     public abstract SyntaxToken Identifier { get; }
+    public SimpleNameSyntax WithIdentifier(SyntaxToken identifier) => WithIdentifierCore(identifier);
+    internal abstract SimpleNameSyntax WithIdentifierCore(SyntaxToken identifier);
   }
 
   /// <summary>Class which represents the syntax node for identifier name.</summary>
@@ -85,7 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public IdentifierNameSyntax WithIdentifier(SyntaxToken identifier)
+    internal override SimpleNameSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new IdentifierNameSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(identifier);
     }
@@ -251,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public GenericNameSyntax WithIdentifier(SyntaxToken identifier)
+    internal override SimpleNameSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new GenericNameSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(identifier, this.TypeArgumentList);
     }
@@ -1954,6 +1958,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  /// <summary>Class which represents the syntax node for a range expression.</summary>
+  public sealed partial class RangeExpressionSyntax : ExpressionSyntax
+  {
+    private ExpressionSyntax leftOperand;
+    private ExpressionSyntax rightOperand;
+
+    internal RangeExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
+    public ExpressionSyntax LeftOperand 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.leftOperand);
+        }
+    }
+
+    /// <summary>SyntaxToken representing the operator of the range expression.</summary>
+    public SyntaxToken OperatorToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
+    public ExpressionSyntax RightOperand 
+    {
+        get
+        {
+            return this.GetRed(ref this.rightOperand, 2);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.leftOperand);
+            case 2: return this.GetRed(ref this.rightOperand, 2);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.leftOperand;
+            case 2: return this.rightOperand;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitRangeExpression(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitRangeExpression(this);
+    }
+
+    public RangeExpressionSyntax Update(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
+    {
+        if (leftOperand != this.LeftOperand || operatorToken != this.OperatorToken || rightOperand != this.RightOperand)
+        {
+            var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public RangeExpressionSyntax WithLeftOperand(ExpressionSyntax leftOperand)
+    {
+        return this.Update(leftOperand, this.OperatorToken, this.RightOperand);
+    }
+
+    public RangeExpressionSyntax WithOperatorToken(SyntaxToken operatorToken)
+    {
+        return this.Update(this.LeftOperand, operatorToken, this.RightOperand);
+    }
+
+    public RangeExpressionSyntax WithRightOperand(ExpressionSyntax rightOperand)
+    {
+        return this.Update(this.LeftOperand, this.OperatorToken, rightOperand);
+    }
+  }
+
   /// <summary>Class which represents the syntax node for implicit element access expression.</summary>
   public sealed partial class ImplicitElementAccessSyntax : ExpressionSyntax
   {
@@ -3428,6 +3526,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>SeparatedSyntaxList of ArgumentSyntax nodes representing the list of arguments.</summary>
     public abstract SeparatedSyntaxList<ArgumentSyntax> Arguments { get; }
+    public BaseArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments) => WithArgumentsCore(arguments);
+    internal abstract BaseArgumentListSyntax WithArgumentsCore(SeparatedSyntaxList<ArgumentSyntax> arguments);
+
+    public BaseArgumentListSyntax AddArguments(params ArgumentSyntax[] items) => AddArgumentsCore(items);
+    internal abstract BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items);
   }
 
   /// <summary>Class which represents the syntax node for the list of arguments.</summary>
@@ -3511,7 +3614,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openParenToken, this.Arguments, this.CloseParenToken);
     }
 
-    public ArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
+    internal override BaseArgumentListSyntax WithArgumentsCore(SeparatedSyntaxList<ArgumentSyntax> arguments) => WithArguments(arguments);
+    public new ArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
     {
         return this.Update(this.OpenParenToken, arguments, this.CloseParenToken);
     }
@@ -3520,8 +3624,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenParenToken, this.Arguments, closeParenToken);
     }
+    internal override BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items) => AddArguments(items);
 
-    public ArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
+    public new ArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
@@ -3608,7 +3713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openBracketToken, this.Arguments, this.CloseBracketToken);
     }
 
-    public BracketedArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
+    internal override BaseArgumentListSyntax WithArgumentsCore(SeparatedSyntaxList<ArgumentSyntax> arguments) => WithArguments(arguments);
+    public new BracketedArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments)
     {
         return this.Update(this.OpenBracketToken, arguments, this.CloseBracketToken);
     }
@@ -3617,8 +3723,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenBracketToken, this.Arguments, closeBracketToken);
     }
+    internal override BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items) => AddArguments(items);
 
-    public BracketedArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
+    public new BracketedArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
@@ -3999,9 +4106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the "async" token.</summary>
     public abstract SyntaxToken AsyncKeyword { get; }
+    public AnonymousFunctionExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => WithAsyncKeywordCore(asyncKeyword);
+    internal abstract AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword);
 
     /// <summary>ExpressionSyntax or BlockSyntax representing the body of the lambda expression.</summary>
     public abstract CSharpSyntaxNode Body { get; }
+    public AnonymousFunctionExpressionSyntax WithBody(CSharpSyntaxNode body) => WithBodyCore(body);
+    internal abstract AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body);
   }
 
   /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
@@ -4095,7 +4206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+    internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
+    public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
         return this.Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Body);
     }
@@ -4110,7 +4222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Body);
     }
 
-    public AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
+    public new AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
     {
         return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, body);
     }
@@ -4132,6 +4245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>SyntaxToken representing equals greater than.</summary>
     public abstract SyntaxToken ArrowToken { get; }
+    public LambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => WithArrowTokenCore(arrowToken);
+    internal abstract LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken);
+
+    public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
+    public new LambdaExpressionSyntax WithBody(CSharpSyntaxNode body) => (LambdaExpressionSyntax)WithBodyCore(body);
   }
 
   /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
@@ -4225,7 +4343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+    internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
+    public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
         return this.Update(asyncKeyword, this.Parameter, this.ArrowToken, this.Body);
     }
@@ -4235,12 +4354,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, parameter, this.ArrowToken, this.Body);
     }
 
-    public SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
+    internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
+    public new SimpleLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
     {
         return this.Update(this.AsyncKeyword, this.Parameter, arrowToken, this.Body);
     }
 
-    public SimpleLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
+    public new SimpleLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
     {
         return this.Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, body);
     }
@@ -4421,7 +4542,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+    internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
+    public new ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
     {
         return this.Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Body);
     }
@@ -4431,12 +4553,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, parameterList, this.ArrowToken, this.Body);
     }
 
-    public ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
+    internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
+    public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken)
     {
         return this.Update(this.AsyncKeyword, this.ParameterList, arrowToken, this.Body);
     }
 
-    public ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+    internal override AnonymousFunctionExpressionSyntax WithBodyCore(CSharpSyntaxNode body) => WithBody(body);
+    public new ParenthesizedLambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
     {
         return this.Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, body);
     }
@@ -5081,6 +5205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
   public sealed partial class StackAllocArrayCreationExpressionSyntax : ExpressionSyntax
   {
     private TypeSyntax type;
+    private InitializerExpressionSyntax initializer;
 
     internal StackAllocArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
@@ -5102,11 +5227,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    /// <summary>InitializerExpressionSyntax node representing the initializer of the stackalloc array creation expression.</summary>
+    public InitializerExpressionSyntax Initializer 
+    {
+        get
+        {
+            return this.GetRed(ref this.initializer, 2);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
             case 1: return this.GetRed(ref this.type, 1);
+            case 2: return this.GetRed(ref this.initializer, 2);
             default: return null;
         }
     }
@@ -5115,6 +5250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         switch (index)
         {
             case 1: return this.type;
+            case 2: return this.initializer;
             default: return null;
         }
     }
@@ -5129,11 +5265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitStackAllocArrayCreationExpression(this);
     }
 
-    public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type)
+    public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
     {
-        if (stackAllocKeyword != this.StackAllocKeyword || type != this.Type)
+        if (stackAllocKeyword != this.StackAllocKeyword || type != this.Type || initializer != this.Initializer)
         {
-            var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type);
+            var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -5145,12 +5281,121 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public StackAllocArrayCreationExpressionSyntax WithStackAllocKeyword(SyntaxToken stackAllocKeyword)
     {
-        return this.Update(stackAllocKeyword, this.Type);
+        return this.Update(stackAllocKeyword, this.Type, this.Initializer);
     }
 
     public StackAllocArrayCreationExpressionSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.StackAllocKeyword, type);
+        return this.Update(this.StackAllocKeyword, type, this.Initializer);
+    }
+
+    public StackAllocArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer)
+    {
+        return this.Update(this.StackAllocKeyword, this.Type, initializer);
+    }
+  }
+
+  /// <summary>Class which represents the syntax node for implicit stackalloc array creation expression.</summary>
+  public sealed partial class ImplicitStackAllocArrayCreationExpressionSyntax : ExpressionSyntax
+  {
+    private InitializerExpressionSyntax initializer;
+
+    internal ImplicitStackAllocArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
+    public SyntaxToken StackAllocKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).stackAllocKeyword, this.Position, 0); }
+    }
+
+    /// <summary>SyntaxToken representing the open bracket.</summary>
+    public SyntaxToken OpenBracketToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).openBracketToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    /// <summary>SyntaxToken representing the close bracket.</summary>
+    public SyntaxToken CloseBracketToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ImplicitStackAllocArrayCreationExpressionSyntax)this.Green).closeBracketToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
+    public InitializerExpressionSyntax Initializer 
+    {
+        get
+        {
+            return this.GetRed(ref this.initializer, 3);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 3: return this.GetRed(ref this.initializer, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 3: return this.initializer;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitImplicitStackAllocArrayCreationExpression(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitImplicitStackAllocArrayCreationExpression(this);
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+    {
+        if (stackAllocKeyword != this.StackAllocKeyword || openBracketToken != this.OpenBracketToken || closeBracketToken != this.CloseBracketToken || initializer != this.Initializer)
+        {
+            var newNode = SyntaxFactory.ImplicitStackAllocArrayCreationExpression(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax WithStackAllocKeyword(SyntaxToken stackAllocKeyword)
+    {
+        return this.Update(stackAllocKeyword, this.OpenBracketToken, this.CloseBracketToken, this.Initializer);
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
+    {
+        return this.Update(this.StackAllocKeyword, openBracketToken, this.CloseBracketToken, this.Initializer);
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken)
+    {
+        return this.Update(this.StackAllocKeyword, this.OpenBracketToken, closeBracketToken, this.Initializer);
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer)
+    {
+        return this.Update(this.StackAllocKeyword, this.OpenBracketToken, this.CloseBracketToken, initializer);
+    }
+
+    public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
+    {
+        return this.WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
   }
 
@@ -6711,6 +6956,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  public sealed partial class DiscardPatternSyntax : PatternSyntax
+  {
+    internal DiscardPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken UnderscoreToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DiscardPatternSyntax)this.Green).underscoreToken, this.Position, 0); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitDiscardPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitDiscardPattern(this);
+    }
+
+    public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+    {
+        if (underscoreToken != this.UnderscoreToken)
+        {
+            var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public DiscardPatternSyntax WithUnderscoreToken(SyntaxToken underscoreToken)
+    {
+        return this.Update(underscoreToken);
+    }
+  }
+
   public sealed partial class DeclarationPatternSyntax : PatternSyntax
   {
     private TypeSyntax type;
@@ -6788,6 +7090,470 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public DeclarationPatternSyntax WithDesignation(VariableDesignationSyntax designation)
     {
         return this.Update(this.Type, designation);
+    }
+  }
+
+  public sealed partial class VarPatternSyntax : PatternSyntax
+  {
+    private VariableDesignationSyntax designation;
+
+    internal VarPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken VarKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.VarPatternSyntax)this.Green).varKeyword, this.Position, 0); }
+    }
+
+    public VariableDesignationSyntax Designation 
+    {
+        get
+        {
+            return this.GetRed(ref this.designation, 1);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.designation, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.designation;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitVarPattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitVarPattern(this);
+    }
+
+    public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+    {
+        if (varKeyword != this.VarKeyword || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public VarPatternSyntax WithVarKeyword(SyntaxToken varKeyword)
+    {
+        return this.Update(varKeyword, this.Designation);
+    }
+
+    public VarPatternSyntax WithDesignation(VariableDesignationSyntax designation)
+    {
+        return this.Update(this.VarKeyword, designation);
+    }
+  }
+
+  public sealed partial class RecursivePatternSyntax : PatternSyntax
+  {
+    private TypeSyntax type;
+    private PositionalPatternClauseSyntax positionalPatternClause;
+    private PropertyPatternClauseSyntax propertyPatternClause;
+    private VariableDesignationSyntax designation;
+
+    internal RecursivePatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public TypeSyntax Type 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.type);
+        }
+    }
+
+    public PositionalPatternClauseSyntax PositionalPatternClause 
+    {
+        get
+        {
+            return this.GetRed(ref this.positionalPatternClause, 1);
+        }
+    }
+
+    public PropertyPatternClauseSyntax PropertyPatternClause 
+    {
+        get
+        {
+            return this.GetRed(ref this.propertyPatternClause, 2);
+        }
+    }
+
+    public VariableDesignationSyntax Designation 
+    {
+        get
+        {
+            return this.GetRed(ref this.designation, 3);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.type);
+            case 1: return this.GetRed(ref this.positionalPatternClause, 1);
+            case 2: return this.GetRed(ref this.propertyPatternClause, 2);
+            case 3: return this.GetRed(ref this.designation, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.type;
+            case 1: return this.positionalPatternClause;
+            case 2: return this.propertyPatternClause;
+            case 3: return this.designation;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitRecursivePattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitRecursivePattern(this);
+    }
+
+    public RecursivePatternSyntax Update(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+        if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
+        {
+            var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public RecursivePatternSyntax WithType(TypeSyntax type)
+    {
+        return this.Update(type, this.PositionalPatternClause, this.PropertyPatternClause, this.Designation);
+    }
+
+    public RecursivePatternSyntax WithPositionalPatternClause(PositionalPatternClauseSyntax positionalPatternClause)
+    {
+        return this.Update(this.Type, positionalPatternClause, this.PropertyPatternClause, this.Designation);
+    }
+
+    public RecursivePatternSyntax WithPropertyPatternClause(PropertyPatternClauseSyntax propertyPatternClause)
+    {
+        return this.Update(this.Type, this.PositionalPatternClause, propertyPatternClause, this.Designation);
+    }
+
+    public RecursivePatternSyntax WithDesignation(VariableDesignationSyntax designation)
+    {
+        return this.Update(this.Type, this.PositionalPatternClause, this.PropertyPatternClause, designation);
+    }
+
+    public RecursivePatternSyntax AddPositionalPatternClauseSubpatterns(params SubpatternSyntax[] items)
+    {
+        var positionalPatternClause = this.PositionalPatternClause ?? SyntaxFactory.PositionalPatternClause();
+        return this.WithPositionalPatternClause(positionalPatternClause.WithSubpatterns(positionalPatternClause.Subpatterns.AddRange(items)));
+    }
+
+    public RecursivePatternSyntax AddPropertyPatternClauseSubpatterns(params SubpatternSyntax[] items)
+    {
+        var propertyPatternClause = this.PropertyPatternClause ?? SyntaxFactory.PropertyPatternClause();
+        return this.WithPropertyPatternClause(propertyPatternClause.WithSubpatterns(propertyPatternClause.Subpatterns.AddRange(items)));
+    }
+  }
+
+  public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
+  {
+    private SyntaxNode subpatterns;
+
+    internal PositionalPatternClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken OpenParenToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).openParenToken, this.Position, 0); }
+    }
+
+    public SeparatedSyntaxList<SubpatternSyntax> Subpatterns 
+    {
+        get
+        {
+            var red = this.GetRed(ref this.subpatterns, 1);
+            if (red != null)
+                return new SeparatedSyntaxList<SubpatternSyntax>(red, this.GetChildIndex(1));
+
+            return default(SeparatedSyntaxList<SubpatternSyntax>);
+        }
+    }
+
+    public SyntaxToken CloseParenToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.subpatterns, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.subpatterns;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitPositionalPatternClause(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitPositionalPatternClause(this);
+    }
+
+    public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+        if (openParenToken != this.OpenParenToken || subpatterns != this.Subpatterns || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public PositionalPatternClauseSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    {
+        return this.Update(openParenToken, this.Subpatterns, this.CloseParenToken);
+    }
+
+    public PositionalPatternClauseSyntax WithSubpatterns(SeparatedSyntaxList<SubpatternSyntax> subpatterns)
+    {
+        return this.Update(this.OpenParenToken, subpatterns, this.CloseParenToken);
+    }
+
+    public PositionalPatternClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken)
+    {
+        return this.Update(this.OpenParenToken, this.Subpatterns, closeParenToken);
+    }
+
+    public PositionalPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items)
+    {
+        return this.WithSubpatterns(this.Subpatterns.AddRange(items));
+    }
+  }
+
+  public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
+  {
+    private SyntaxNode subpatterns;
+
+    internal PropertyPatternClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken OpenBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).openBraceToken, this.Position, 0); }
+    }
+
+    public SeparatedSyntaxList<SubpatternSyntax> Subpatterns 
+    {
+        get
+        {
+            var red = this.GetRed(ref this.subpatterns, 1);
+            if (red != null)
+                return new SeparatedSyntaxList<SubpatternSyntax>(red, this.GetChildIndex(1));
+
+            return default(SeparatedSyntaxList<SubpatternSyntax>);
+        }
+    }
+
+    public SyntaxToken CloseBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.subpatterns, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.subpatterns;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitPropertyPatternClause(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitPropertyPatternClause(this);
+    }
+
+    public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public PropertyPatternClauseSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    {
+        return this.Update(openBraceToken, this.Subpatterns, this.CloseBraceToken);
+    }
+
+    public PropertyPatternClauseSyntax WithSubpatterns(SeparatedSyntaxList<SubpatternSyntax> subpatterns)
+    {
+        return this.Update(this.OpenBraceToken, subpatterns, this.CloseBraceToken);
+    }
+
+    public PropertyPatternClauseSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    {
+        return this.Update(this.OpenBraceToken, this.Subpatterns, closeBraceToken);
+    }
+
+    public PropertyPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items)
+    {
+        return this.WithSubpatterns(this.Subpatterns.AddRange(items));
+    }
+  }
+
+  public sealed partial class SubpatternSyntax : CSharpSyntaxNode
+  {
+    private NameColonSyntax nameColon;
+    private PatternSyntax pattern;
+
+    internal SubpatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public NameColonSyntax NameColon 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.nameColon);
+        }
+    }
+
+    public PatternSyntax Pattern 
+    {
+        get
+        {
+            return this.GetRed(ref this.pattern, 1);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.nameColon);
+            case 1: return this.GetRed(ref this.pattern, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.nameColon;
+            case 1: return this.pattern;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitSubpattern(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitSubpattern(this);
+    }
+
+    public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+        if (nameColon != this.NameColon || pattern != this.Pattern)
+        {
+            var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public SubpatternSyntax WithNameColon(NameColonSyntax nameColon)
+    {
+        return this.Update(nameColon, this.Pattern);
+    }
+
+    public SubpatternSyntax WithPattern(PatternSyntax pattern)
+    {
+        return this.Update(this.NameColon, pattern);
     }
   }
 
@@ -7568,14 +8334,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
+    public SyntaxToken UsingKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).usingKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     /// <summary>Gets the modifier list.</summary>
     public SyntaxTokenList Modifiers 
     {
         get
         {
-            var slot = this.Green.GetSlot(0);
+            var slot = this.Green.GetSlot(2);
             if (slot != null)
-                return new SyntaxTokenList(this, slot, this.Position, 0);
+                return new SyntaxTokenList(this, slot, this.GetChildPosition(2), this.GetChildIndex(2));
 
             return default(SyntaxTokenList);
         }
@@ -7585,20 +8375,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.declaration, 1);
+            return this.GetRed(ref this.declaration, 3);
         }
     }
 
     public SyntaxToken SemicolonToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.declaration, 1);
+            case 3: return this.GetRed(ref this.declaration, 3);
             default: return null;
         }
     }
@@ -7606,7 +8396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.declaration;
+            case 3: return this.declaration;
             default: return null;
         }
     }
@@ -7621,11 +8411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitLocalDeclarationStatement(this);
     }
 
-    public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(modifiers, declaration, semicolonToken);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -7635,19 +8425,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    public LocalDeclarationStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
+    public LocalDeclarationStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword)
+    {
+        return this.Update(this.AwaitKeyword, usingKeyword, this.Modifiers, this.Declaration, this.SemicolonToken);
+    }
+
     public LocalDeclarationStatementSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(modifiers, this.Declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, modifiers, this.Declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
-        return this.Update(this.Modifiers, declaration, this.SemicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, declaration, this.SemicolonToken);
     }
 
     public LocalDeclarationStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
-        return this.Update(this.Modifiers, this.Declaration, semicolonToken);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, semicolonToken);
     }
 
     public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
@@ -8283,7 +9083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).identifier, this.Position, 0); }
     }
 
-    /// <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+    /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
     public SyntaxToken ColonToken 
     {
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LabeledStatementSyntax)this.Green).colonToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
@@ -9309,17 +10109,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public abstract SyntaxToken AwaitKeyword { get; }
+    public CommonForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => WithAwaitKeywordCore(awaitKeyword);
+    internal abstract CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword);
+
     public abstract SyntaxToken ForEachKeyword { get; }
+    public CommonForEachStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword) => WithForEachKeywordCore(forEachKeyword);
+    internal abstract CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword);
 
     public abstract SyntaxToken OpenParenToken { get; }
+    public CommonForEachStatementSyntax WithOpenParenToken(SyntaxToken openParenToken) => WithOpenParenTokenCore(openParenToken);
+    internal abstract CommonForEachStatementSyntax WithOpenParenTokenCore(SyntaxToken openParenToken);
 
     public abstract SyntaxToken InKeyword { get; }
+    public CommonForEachStatementSyntax WithInKeyword(SyntaxToken inKeyword) => WithInKeywordCore(inKeyword);
+    internal abstract CommonForEachStatementSyntax WithInKeywordCore(SyntaxToken inKeyword);
 
     public abstract ExpressionSyntax Expression { get; }
+    public CommonForEachStatementSyntax WithExpression(ExpressionSyntax expression) => WithExpressionCore(expression);
+    internal abstract CommonForEachStatementSyntax WithExpressionCore(ExpressionSyntax expression);
 
     public abstract SyntaxToken CloseParenToken { get; }
+    public CommonForEachStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken) => WithCloseParenTokenCore(closeParenToken);
+    internal abstract CommonForEachStatementSyntax WithCloseParenTokenCore(SyntaxToken closeParenToken);
 
     public abstract StatementSyntax Statement { get; }
+    public CommonForEachStatementSyntax WithStatement(StatementSyntax statement) => WithStatementCore(statement);
+    internal abstract CommonForEachStatementSyntax WithStatementCore(StatementSyntax statement);
   }
 
   public sealed partial class ForEachStatementSyntax : CommonForEachStatementSyntax
@@ -9333,53 +10149,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public override SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public override SyntaxToken ForEachKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).forEachKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public override SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     public TypeSyntax Type 
     {
         get
         {
-            return this.GetRed(ref this.type, 2);
+            return this.GetRed(ref this.type, 3);
         }
     }
 
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, this.GetChildPosition(3), this.GetChildIndex(3)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).identifier, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     public override SyntaxToken InKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, this.GetChildPosition(4), this.GetChildIndex(4)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).inKeyword, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
     public override ExpressionSyntax Expression 
     {
         get
         {
-            return this.GetRed(ref this.expression, 5);
+            return this.GetRed(ref this.expression, 6);
         }
     }
 
     public override SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(7), this.GetChildIndex(7)); }
     }
 
     public override StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 7);
+            return this.GetRed(ref this.statement, 8);
         }
     }
 
@@ -9387,9 +10215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.type, 2);
-            case 5: return this.GetRed(ref this.expression, 5);
-            case 7: return this.GetRed(ref this.statement, 7);
+            case 3: return this.GetRed(ref this.type, 3);
+            case 6: return this.GetRed(ref this.expression, 6);
+            case 8: return this.GetRed(ref this.statement, 8);
             default: return null;
         }
     }
@@ -9397,9 +10225,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.type;
-            case 5: return this.expression;
-            case 7: return this.statement;
+            case 3: return this.type;
+            case 6: return this.expression;
+            case 8: return this.statement;
             default: return null;
         }
     }
@@ -9414,11 +10242,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitForEachStatement(this);
     }
 
-    public ForEachStatementSyntax Update(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachStatement(forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9428,44 +10256,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ForEachStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
     {
-        return this.Update(forEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(awaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    internal override CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword) => WithForEachKeyword(forEachKeyword);
+    public new ForEachStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
     {
-        return this.Update(this.ForEachKeyword, openParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, forEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
+    internal override CommonForEachStatementSyntax WithOpenParenTokenCore(SyntaxToken openParenToken) => WithOpenParenToken(openParenToken);
+    public new ForEachStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    {
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, openParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachStatementSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachStatementSyntax WithIdentifier(SyntaxToken identifier)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithInKeyword(SyntaxToken inKeyword)
+    internal override CommonForEachStatementSyntax WithInKeywordCore(SyntaxToken inKeyword) => WithInKeyword(inKeyword);
+    public new ForEachStatementSyntax WithInKeyword(SyntaxToken inKeyword)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithExpression(ExpressionSyntax expression)
+    internal override CommonForEachStatementSyntax WithExpressionCore(ExpressionSyntax expression) => WithExpression(expression);
+    public new ForEachStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
+    internal override CommonForEachStatementSyntax WithCloseParenTokenCore(SyntaxToken closeParenToken) => WithCloseParenToken(closeParenToken);
+    public new ForEachStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, closeParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithStatement(StatementSyntax statement)
+    internal override CommonForEachStatementSyntax WithStatementCore(StatementSyntax statement) => WithStatement(statement);
+    public new ForEachStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -9480,53 +10320,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public override SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public override SyntaxToken ForEachKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).forEachKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public override SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     /// <summary>
     /// The variable(s) of the loop. In correct code this is a tuple
     /// literal, declaration expression with a tuple designator, or
-    /// a wildcard syntax in the form of a simple identifier. In broken
+    /// a discard syntax in the form of a simple identifier. In broken
     /// code it could be something else.
     /// </summary>
     public ExpressionSyntax Variable 
     {
         get
         {
-            return this.GetRed(ref this.variable, 2);
+            return this.GetRed(ref this.variable, 3);
         }
     }
 
     public override SyntaxToken InKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, this.GetChildPosition(3), this.GetChildIndex(3)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).inKeyword, this.GetChildPosition(4), this.GetChildIndex(4)); }
     }
 
     public override ExpressionSyntax Expression 
     {
         get
         {
-            return this.GetRed(ref this.expression, 4);
+            return this.GetRed(ref this.expression, 5);
         }
     }
 
     public override SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ForEachVariableStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
     public override StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 6);
+            return this.GetRed(ref this.statement, 7);
         }
     }
 
@@ -9534,9 +10386,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.variable, 2);
-            case 4: return this.GetRed(ref this.expression, 4);
-            case 6: return this.GetRed(ref this.statement, 6);
+            case 3: return this.GetRed(ref this.variable, 3);
+            case 5: return this.GetRed(ref this.expression, 5);
+            case 7: return this.GetRed(ref this.statement, 7);
             default: return null;
         }
     }
@@ -9544,9 +10396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.variable;
-            case 4: return this.expression;
-            case 6: return this.statement;
+            case 3: return this.variable;
+            case 5: return this.expression;
+            case 7: return this.statement;
             default: return null;
         }
     }
@@ -9561,11 +10413,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitForEachVariableStatement(this);
     }
 
-    public ForEachVariableStatementSyntax Update(SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachVariableStatement(forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9575,39 +10427,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ForEachVariableStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachVariableStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
     {
-        return this.Update(forEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(awaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    internal override CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword) => WithForEachKeyword(forEachKeyword);
+    public new ForEachVariableStatementSyntax WithForEachKeyword(SyntaxToken forEachKeyword)
     {
-        return this.Update(this.ForEachKeyword, openParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, forEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
+    internal override CommonForEachStatementSyntax WithOpenParenTokenCore(SyntaxToken openParenToken) => WithOpenParenToken(openParenToken);
+    public new ForEachVariableStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    {
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, openParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public ForEachVariableStatementSyntax WithVariable(ExpressionSyntax variable)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithInKeyword(SyntaxToken inKeyword)
+    internal override CommonForEachStatementSyntax WithInKeywordCore(SyntaxToken inKeyword) => WithInKeyword(inKeyword);
+    public new ForEachVariableStatementSyntax WithInKeyword(SyntaxToken inKeyword)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, inKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithExpression(ExpressionSyntax expression)
+    internal override CommonForEachStatementSyntax WithExpressionCore(ExpressionSyntax expression) => WithExpression(expression);
+    public new ForEachVariableStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
+    internal override CommonForEachStatementSyntax WithCloseParenTokenCore(SyntaxToken closeParenToken) => WithCloseParenToken(closeParenToken);
+    public new ForEachVariableStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, closeParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithStatement(StatementSyntax statement)
+    internal override CommonForEachStatementSyntax WithStatementCore(StatementSyntax statement) => WithStatement(statement);
+    public new ForEachVariableStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.ForEachKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -9622,21 +10486,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
     }
 
+    public SyntaxToken AwaitKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).awaitKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.Position, 0);
+
+            return default(SyntaxToken);
+        }
+    }
+
     public SyntaxToken UsingKeyword 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, this.Position, 0); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).usingKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
     }
 
     public SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).openParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     public VariableDeclarationSyntax Declaration 
     {
         get
         {
-            return this.GetRed(ref this.declaration, 2);
+            return this.GetRed(ref this.declaration, 3);
         }
     }
 
@@ -9644,20 +10520,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         get
         {
-            return this.GetRed(ref this.expression, 3);
+            return this.GetRed(ref this.expression, 4);
         }
     }
 
     public SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
     }
 
     public StatementSyntax Statement 
     {
         get
         {
-            return this.GetRed(ref this.statement, 5);
+            return this.GetRed(ref this.statement, 6);
         }
     }
 
@@ -9665,9 +10541,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.GetRed(ref this.declaration, 2);
-            case 3: return this.GetRed(ref this.expression, 3);
-            case 5: return this.GetRed(ref this.statement, 5);
+            case 3: return this.GetRed(ref this.declaration, 3);
+            case 4: return this.GetRed(ref this.expression, 4);
+            case 6: return this.GetRed(ref this.statement, 6);
             default: return null;
         }
     }
@@ -9675,9 +10551,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 2: return this.declaration;
-            case 3: return this.expression;
-            case 5: return this.statement;
+            case 3: return this.declaration;
+            case 4: return this.expression;
+            case 6: return this.statement;
             default: return null;
         }
     }
@@ -9692,11 +10568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitUsingStatement(this);
     }
 
-    public UsingStatementSyntax Update(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.UsingStatement(usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -9706,34 +10582,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
+    public UsingStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    {
+        return this.Update(awaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+    }
+
     public UsingStatementSyntax WithUsingKeyword(SyntaxToken usingKeyword)
     {
-        return this.Update(usingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, usingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithOpenParenToken(SyntaxToken openParenToken)
     {
-        return this.Update(this.UsingKeyword, openParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, openParenToken, this.Declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, declaration, this.Expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, declaration, this.Expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, expression, this.CloseParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, expression, this.CloseParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, closeParenToken, this.Statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, closeParenToken, this.Statement);
     }
 
     public UsingStatementSyntax WithStatement(StatementSyntax statement)
     {
-        return this.Update(this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, statement);
+        return this.Update(this.AwaitKeyword, this.UsingKeyword, this.OpenParenToken, this.Declaration, this.Expression, this.CloseParenToken, statement);
     }
   }
 
@@ -10365,11 +11246,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>
-    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
     /// </summary>
     public SyntaxToken OpenParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).openParenToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).openParenToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
     }
 
     /// <summary>
@@ -10384,11 +11272,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>
-    /// Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+    /// Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
     /// </summary>
     public SyntaxToken CloseParenToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeParenToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax)this.Green).closeParenToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(3), this.GetChildIndex(3));
+
+            return default(SyntaxToken);
+        }
     }
 
     /// <summary>
@@ -10411,7 +11306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     /// <summary>
-    /// Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+    /// Gets a SyntaxToken that represents the open braces following the switch sections.
     /// </summary>
     public SyntaxToken CloseBraceToken 
     {
@@ -10611,11 +11506,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// Gets a SyntaxToken that represents a case or default keyword that belongs to a switch label.
     /// </summary>
     public abstract SyntaxToken Keyword { get; }
+    public SwitchLabelSyntax WithKeyword(SyntaxToken keyword) => WithKeywordCore(keyword);
+    internal abstract SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword);
 
     /// <summary>
     /// Gets a SyntaxToken that represents the colon that terminates the switch label.
     /// </summary>
     public abstract SyntaxToken ColonToken { get; }
+    public SwitchLabelSyntax WithColonToken(SyntaxToken colonToken) => WithColonTokenCore(colonToken);
+    internal abstract SwitchLabelSyntax WithColonTokenCore(SyntaxToken colonToken);
   }
 
   /// <summary>Represents a case label within a switch statement.</summary>
@@ -10702,7 +11601,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public CasePatternSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
+    internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new CasePatternSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(keyword, this.Pattern, this.WhenClause, this.ColonToken);
     }
@@ -10717,7 +11617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Keyword, this.Pattern, whenClause, this.ColonToken);
     }
 
-    public CasePatternSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
+    internal override SwitchLabelSyntax WithColonTokenCore(SyntaxToken colonToken) => WithColonToken(colonToken);
+    public new CasePatternSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
     {
         return this.Update(this.Keyword, this.Pattern, this.WhenClause, colonToken);
     }
@@ -10796,7 +11697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public CaseSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
+    internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new CaseSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(keyword, this.Value, this.ColonToken);
     }
@@ -10806,7 +11708,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Keyword, value, this.ColonToken);
     }
 
-    public CaseSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
+    internal override SwitchLabelSyntax WithColonTokenCore(SyntaxToken colonToken) => WithColonToken(colonToken);
+    public new CaseSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
     {
         return this.Update(this.Keyword, this.Value, colonToken);
     }
@@ -10870,14 +11773,241 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public DefaultSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
+    internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new DefaultSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(keyword, this.ColonToken);
     }
 
-    public DefaultSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
+    internal override SwitchLabelSyntax WithColonTokenCore(SyntaxToken colonToken) => WithColonToken(colonToken);
+    public new DefaultSwitchLabelSyntax WithColonToken(SyntaxToken colonToken)
     {
         return this.Update(this.Keyword, colonToken);
+    }
+  }
+
+  public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
+  {
+    private ExpressionSyntax governingExpression;
+    private SyntaxNode arms;
+
+    internal SwitchExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public ExpressionSyntax GoverningExpression 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.governingExpression);
+        }
+    }
+
+    public SyntaxToken SwitchKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).switchKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    public SyntaxToken OpenBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).openBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public SeparatedSyntaxList<SwitchExpressionArmSyntax> Arms 
+    {
+        get
+        {
+            var red = this.GetRed(ref this.arms, 3);
+            if (red != null)
+                return new SeparatedSyntaxList<SwitchExpressionArmSyntax>(red, this.GetChildIndex(3));
+
+            return default(SeparatedSyntaxList<SwitchExpressionArmSyntax>);
+        }
+    }
+
+    public SyntaxToken CloseBraceToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionSyntax)this.Green).closeBraceToken, this.GetChildPosition(4), this.GetChildIndex(4)); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.governingExpression);
+            case 3: return this.GetRed(ref this.arms, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.governingExpression;
+            case 3: return this.arms;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitSwitchExpression(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitSwitchExpression(this);
+    }
+
+    public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+    {
+        if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public SwitchExpressionSyntax WithGoverningExpression(ExpressionSyntax governingExpression)
+    {
+        return this.Update(governingExpression, this.SwitchKeyword, this.OpenBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithSwitchKeyword(SyntaxToken switchKeyword)
+    {
+        return this.Update(this.GoverningExpression, switchKeyword, this.OpenBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, openBraceToken, this.Arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithArms(SeparatedSyntaxList<SwitchExpressionArmSyntax> arms)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, arms, this.CloseBraceToken);
+    }
+
+    public SwitchExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    {
+        return this.Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, this.Arms, closeBraceToken);
+    }
+
+    public SwitchExpressionSyntax AddArms(params SwitchExpressionArmSyntax[] items)
+    {
+        return this.WithArms(this.Arms.AddRange(items));
+    }
+  }
+
+  public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
+  {
+    private PatternSyntax pattern;
+    private WhenClauseSyntax whenClause;
+    private ExpressionSyntax expression;
+
+    internal SwitchExpressionArmSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public PatternSyntax Pattern 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.pattern);
+        }
+    }
+
+    public WhenClauseSyntax WhenClause 
+    {
+        get
+        {
+            return this.GetRed(ref this.whenClause, 1);
+        }
+    }
+
+    public SyntaxToken EqualsGreaterThanToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public ExpressionSyntax Expression 
+    {
+        get
+        {
+            return this.GetRed(ref this.expression, 3);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.pattern);
+            case 1: return this.GetRed(ref this.whenClause, 1);
+            case 3: return this.GetRed(ref this.expression, 3);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.pattern;
+            case 1: return this.whenClause;
+            case 3: return this.expression;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitSwitchExpressionArm(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitSwitchExpressionArm(this);
+    }
+
+    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    {
+        if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
+        {
+            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public SwitchExpressionArmSyntax WithPattern(PatternSyntax pattern)
+    {
+        return this.Update(pattern, this.WhenClause, this.EqualsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithWhenClause(WhenClauseSyntax whenClause)
+    {
+        return this.Update(this.Pattern, whenClause, this.EqualsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithEqualsGreaterThanToken(SyntaxToken equalsGreaterThanToken)
+    {
+        return this.Update(this.Pattern, this.WhenClause, equalsGreaterThanToken, this.Expression);
+    }
+
+    public SwitchExpressionArmSyntax WithExpression(ExpressionSyntax expression)
+    {
+        return this.Update(this.Pattern, this.WhenClause, this.EqualsGreaterThanToken, expression);
     }
   }
 
@@ -12669,24 +13799,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the attribute declaration list.</summary>
     public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+    public BaseTypeDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+    internal abstract BaseTypeDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+    public BaseTypeDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+    internal abstract BaseTypeDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
 
     /// <summary>Gets the modifier list.</summary>
     public abstract SyntaxTokenList Modifiers { get; }
+    public BaseTypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+    internal abstract BaseTypeDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+    public BaseTypeDeclarationSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+    internal abstract BaseTypeDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
 
     /// <summary>Gets the identifier.</summary>
     public abstract SyntaxToken Identifier { get; }
+    public BaseTypeDeclarationSyntax WithIdentifier(SyntaxToken identifier) => WithIdentifierCore(identifier);
+    internal abstract BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier);
 
     /// <summary>Gets the base type list.</summary>
     public abstract BaseListSyntax BaseList { get; }
+    public BaseTypeDeclarationSyntax WithBaseList(BaseListSyntax baseList) => WithBaseListCore(baseList);
+    internal abstract BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList);
+
+    public BaseTypeDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items) => AddBaseListTypesCore(items);
+    internal abstract BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items);
 
     /// <summary>Gets the open brace token.</summary>
     public abstract SyntaxToken OpenBraceToken { get; }
+    public BaseTypeDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => WithOpenBraceTokenCore(openBraceToken);
+    internal abstract BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken);
 
     /// <summary>Gets the close brace token.</summary>
     public abstract SyntaxToken CloseBraceToken { get; }
+    public BaseTypeDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => WithCloseBraceTokenCore(closeBraceToken);
+    internal abstract BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken);
 
     /// <summary>Gets the optional semicolon token.</summary>
     public abstract SyntaxToken SemicolonToken { get; }
+    public BaseTypeDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => WithSemicolonTokenCore(semicolonToken);
+    internal abstract BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken);
   }
 
   /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
@@ -12699,14 +13852,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
     public abstract SyntaxToken Keyword { get; }
+    public TypeDeclarationSyntax WithKeyword(SyntaxToken keyword) => WithKeywordCore(keyword);
+    internal abstract TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword);
 
     public abstract TypeParameterListSyntax TypeParameterList { get; }
+    public TypeDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList) => WithTypeParameterListCore(typeParameterList);
+    internal abstract TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax typeParameterList);
+
+    public TypeDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items) => AddTypeParameterListParametersCore(items);
+    internal abstract TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items);
 
     /// <summary>Gets the type constraint list.</summary>
     public abstract SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get; }
+    public TypeDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClausesCore(constraintClauses);
+    internal abstract TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses);
+
+    public TypeDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClausesCore(items);
+    internal abstract TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items);
 
     /// <summary>Gets the member declarations.</summary>
     public abstract SyntaxList<MemberDeclarationSyntax> Members { get; }
+    public TypeDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => WithMembersCore(members);
+    internal abstract TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members);
+
+    public TypeDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => AddMembersCore(items);
+    internal abstract TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items);
+
+    public new TypeDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => (TypeDeclarationSyntax)WithAttributeListsCore(attributeLists);
+    public new TypeDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => (TypeDeclarationSyntax)WithModifiersCore(modifiers);
+    public new TypeDeclarationSyntax WithIdentifier(SyntaxToken identifier) => (TypeDeclarationSyntax)WithIdentifierCore(identifier);
+    public new TypeDeclarationSyntax WithBaseList(BaseListSyntax baseList) => (TypeDeclarationSyntax)WithBaseListCore(baseList);
+    public new TypeDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => (TypeDeclarationSyntax)WithOpenBraceTokenCore(openBraceToken);
+    public new TypeDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => (TypeDeclarationSyntax)WithCloseBraceTokenCore(closeBraceToken);
+    public new TypeDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => (TypeDeclarationSyntax)WithSemicolonTokenCore(semicolonToken);
+
+    public new TypeDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => (TypeDeclarationSyntax)AddAttributeListsCore(items);
+
+    public new TypeDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (TypeDeclarationSyntax)AddModifiersCore(items);
+
+    public new BaseTypeDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items) => AddBaseListTypesCore(items);
   }
 
   /// <summary>Class type declaration syntax.</summary>
@@ -12857,89 +14041,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ClassDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseTypeDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new ClassDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseTypeDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new ClassDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithKeyword(SyntaxToken keyword)
+    internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new ClassDeclarationSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(this.AttributeLists, this.Modifiers, keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithIdentifier(SyntaxToken identifier)
+    internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new ClassDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
+    internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax typeParameterList) => WithTypeParameterList(typeParameterList);
+    public new ClassDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, typeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithBaseList(BaseListSyntax baseList)
+    internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList) => WithBaseList(baseList);
+    public new ClassDeclarationSyntax WithBaseList(BaseListSyntax baseList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
+    internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
+    public new ClassDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+    public new ClassDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
+    internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+    public new ClassDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+    public new ClassDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
     }
 
-    public ClassDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new ClassDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
     }
+    internal override BaseTypeDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public ClassDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new ClassDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseTypeDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public ClassDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new ClassDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
 
-    public ClassDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public new ClassDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
 
-    public ClassDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+    public new ClassDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
     {
         var baseList = this.BaseList ?? SyntaxFactory.BaseList();
         return this.WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
     }
+    internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
 
-    public ClassDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public new ClassDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
 
-    public ClassDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
+    public new ClassDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -13093,89 +14294,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public StructDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseTypeDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new StructDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseTypeDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new StructDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithKeyword(SyntaxToken keyword)
+    internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new StructDeclarationSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(this.AttributeLists, this.Modifiers, keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithIdentifier(SyntaxToken identifier)
+    internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new StructDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
+    internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax typeParameterList) => WithTypeParameterList(typeParameterList);
+    public new StructDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, typeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithBaseList(BaseListSyntax baseList)
+    internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList) => WithBaseList(baseList);
+    public new StructDeclarationSyntax WithBaseList(BaseListSyntax baseList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
+    internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
+    public new StructDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+    public new StructDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
+    internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+    public new StructDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+    public new StructDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
     }
 
-    public StructDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new StructDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
     }
+    internal override BaseTypeDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public StructDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new StructDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseTypeDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public StructDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new StructDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
 
-    public StructDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public new StructDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
 
-    public StructDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+    public new StructDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
     {
         var baseList = this.BaseList ?? SyntaxFactory.BaseList();
         return this.WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
     }
+    internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
 
-    public StructDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public new StructDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
 
-    public StructDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
+    public new StructDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -13329,89 +14547,106 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public InterfaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseTypeDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new InterfaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseTypeDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new InterfaceDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithKeyword(SyntaxToken keyword)
+    internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new InterfaceDeclarationSyntax WithKeyword(SyntaxToken keyword)
     {
         return this.Update(this.AttributeLists, this.Modifiers, keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithIdentifier(SyntaxToken identifier)
+    internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new InterfaceDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
+    internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax typeParameterList) => WithTypeParameterList(typeParameterList);
+    public new InterfaceDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax typeParameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, typeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithBaseList(BaseListSyntax baseList)
+    internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList) => WithBaseList(baseList);
+    public new InterfaceDeclarationSyntax WithBaseList(BaseListSyntax baseList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
+    internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
+    public new InterfaceDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+    public new InterfaceDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
+    internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+    public new InterfaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+    public new InterfaceDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
     }
 
-    public InterfaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new InterfaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
     }
+    internal override BaseTypeDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public InterfaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new InterfaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseTypeDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public InterfaceDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new InterfaceDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
 
-    public InterfaceDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public new InterfaceDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
 
-    public InterfaceDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+    public new InterfaceDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
     {
         var baseList = this.BaseList ?? SyntaxFactory.BaseList();
         return this.WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
     }
+    internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
 
-    public InterfaceDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public new InterfaceDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
+    internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
 
-    public InterfaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
+    public new InterfaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -13549,12 +14784,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public EnumDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseTypeDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new EnumDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseTypeDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new EnumDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
@@ -13564,17 +14801,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, enumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithIdentifier(SyntaxToken identifier)
+    internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new EnumDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithBaseList(BaseListSyntax baseList)
+    internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax baseList) => WithBaseList(baseList);
+    public new EnumDeclarationSyntax WithBaseList(BaseListSyntax baseList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, baseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
+    internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+    public new EnumDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     }
@@ -13584,27 +14824,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
+    internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+    public new EnumDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
     }
 
-    public EnumDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new EnumDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
     }
+    internal override BaseTypeDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public EnumDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new EnumDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseTypeDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public EnumDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new EnumDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
 
-    public EnumDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+    public new EnumDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
     {
         var baseList = this.BaseList ?? SyntaxFactory.BaseList();
         return this.WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
@@ -14018,6 +15263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     public abstract TypeSyntax Type { get; }
+    public BaseTypeSyntax WithType(TypeSyntax type) => WithTypeCore(type);
+    internal abstract BaseTypeSyntax WithTypeCore(TypeSyntax type);
   }
 
   public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
@@ -14078,7 +15325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public SimpleBaseTypeSyntax WithType(TypeSyntax type)
+    internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+    public new SimpleBaseTypeSyntax WithType(TypeSyntax type)
     {
         return this.Update(type);
     }
@@ -14301,6 +15549,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).classOrStructKeyword, this.Position, 0); }
     }
 
+    /// <summary>SyntaxToken representing the question mark.</summary>
+    public SyntaxToken QuestionToken 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ClassOrStructConstraintSyntax)this.Green).questionToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(1), this.GetChildIndex(1));
+
+            return default(SyntaxToken);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -14326,11 +15587,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitClassOrStructConstraint(this);
     }
 
-    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword)
+    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
-        if (classOrStructKeyword != this.ClassOrStructKeyword)
+        if (classOrStructKeyword != this.ClassOrStructKeyword || questionToken != this.QuestionToken)
         {
-            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword);
+            var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword, questionToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -14342,7 +15603,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public ClassOrStructConstraintSyntax WithClassOrStructKeyword(SyntaxToken classOrStructKeyword)
     {
-        return this.Update(classOrStructKeyword);
+        return this.Update(classOrStructKeyword, this.QuestionToken);
+    }
+
+    public ClassOrStructConstraintSyntax WithQuestionToken(SyntaxToken questionToken)
+    {
+        return this.Update(this.ClassOrStructKeyword, questionToken);
     }
   }
 
@@ -14421,13 +15687,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the attribute declaration list.</summary>
     public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+    public BaseFieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+    internal abstract BaseFieldDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+    public BaseFieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+    internal abstract BaseFieldDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
 
     /// <summary>Gets the modifier list.</summary>
     public abstract SyntaxTokenList Modifiers { get; }
+    public BaseFieldDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+    internal abstract BaseFieldDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+    public BaseFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+    internal abstract BaseFieldDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
 
     public abstract VariableDeclarationSyntax Declaration { get; }
+    public BaseFieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration) => WithDeclarationCore(declaration);
+    internal abstract BaseFieldDeclarationSyntax WithDeclarationCore(VariableDeclarationSyntax declaration);
+
+    public BaseFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => AddDeclarationVariablesCore(items);
+    internal abstract BaseFieldDeclarationSyntax AddDeclarationVariablesCore(params VariableDeclaratorSyntax[] items);
 
     public abstract SyntaxToken SemicolonToken { get; }
+    public BaseFieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => WithSemicolonTokenCore(semicolonToken);
+    internal abstract BaseFieldDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken);
   }
 
   public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
@@ -14518,37 +15801,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public FieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseFieldDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new FieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Declaration, this.SemicolonToken);
     }
 
-    public FieldDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseFieldDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new FieldDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Declaration, this.SemicolonToken);
     }
 
-    public FieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration)
+    internal override BaseFieldDeclarationSyntax WithDeclarationCore(VariableDeclarationSyntax declaration) => WithDeclaration(declaration);
+    public new FieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
         return this.Update(this.AttributeLists, this.Modifiers, declaration, this.SemicolonToken);
     }
 
-    public FieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseFieldDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new FieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Declaration, semicolonToken);
     }
+    internal override BaseFieldDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public FieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new FieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseFieldDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public FieldDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new FieldDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseFieldDeclarationSyntax AddDeclarationVariablesCore(params VariableDeclaratorSyntax[] items) => AddDeclarationVariables(items);
 
-    public FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+    public new FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
     {
         return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
@@ -14647,12 +15937,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public EventFieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseFieldDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new EventFieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.EventKeyword, this.Declaration, this.SemicolonToken);
     }
 
-    public EventFieldDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseFieldDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new EventFieldDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.EventKeyword, this.Declaration, this.SemicolonToken);
     }
@@ -14662,27 +15954,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, eventKeyword, this.Declaration, this.SemicolonToken);
     }
 
-    public EventFieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration)
+    internal override BaseFieldDeclarationSyntax WithDeclarationCore(VariableDeclarationSyntax declaration) => WithDeclaration(declaration);
+    public new EventFieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, declaration, this.SemicolonToken);
     }
 
-    public EventFieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseFieldDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new EventFieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Declaration, semicolonToken);
     }
+    internal override BaseFieldDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public EventFieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new EventFieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseFieldDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public EventFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new EventFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseFieldDeclarationSyntax AddDeclarationVariablesCore(params VariableDeclaratorSyntax[] items) => AddDeclarationVariables(items);
 
-    public EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+    public new EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
     {
         return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
@@ -14772,19 +16069,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the attribute declaration list.</summary>
     public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+    public BaseMethodDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+    internal abstract BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+    public BaseMethodDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+    internal abstract BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
 
     /// <summary>Gets the modifier list.</summary>
     public abstract SyntaxTokenList Modifiers { get; }
+    public BaseMethodDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+    internal abstract BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+    public BaseMethodDeclarationSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+    internal abstract BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
 
     /// <summary>Gets the parameter list.</summary>
     public abstract ParameterListSyntax ParameterList { get; }
+    public BaseMethodDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => WithParameterListCore(parameterList);
+    internal abstract BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList);
+
+    public BaseMethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => AddParameterListParametersCore(items);
+    internal abstract BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items);
 
     public abstract BlockSyntax Body { get; }
+    public BaseMethodDeclarationSyntax WithBody(BlockSyntax body) => WithBodyCore(body);
+    internal abstract BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body);
+
+    public BaseMethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items) => AddBodyStatementsCore(items);
+    internal abstract BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items);
 
     public abstract ArrowExpressionClauseSyntax ExpressionBody { get; }
+    public BaseMethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBodyCore(expressionBody);
+    internal abstract BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody);
 
     /// <summary>Gets the optional semicolon token.</summary>
     public abstract SyntaxToken SemicolonToken { get; }
+    public BaseMethodDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => WithSemicolonTokenCore(semicolonToken);
+    internal abstract BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken);
   }
 
   /// <summary>Method declaration syntax.</summary>
@@ -14956,12 +16277,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public MethodDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new MethodDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public MethodDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new MethodDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -14986,7 +16309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, typeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public MethodDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
+    internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
+    public new MethodDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, parameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -14996,27 +16320,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, constraintClauses, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public MethodDeclarationSyntax WithBody(BlockSyntax body)
+    internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body) => WithBody(body);
+    public new MethodDeclarationSyntax WithBody(BlockSyntax body)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public MethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
+    internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new MethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, expressionBody, this.SemicolonToken);
     }
 
-    public MethodDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new MethodDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, semicolonToken);
     }
+    internal override BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public MethodDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new MethodDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public MethodDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new MethodDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
@@ -15026,8 +16355,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
 
-    public MethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new MethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
@@ -15036,8 +16366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
 
-    public MethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public new MethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -15184,12 +16515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public OperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new OperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public OperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new OperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -15209,42 +16542,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, operatorToken, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public OperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
+    internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
+    public new OperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public OperatorDeclarationSyntax WithBody(BlockSyntax body)
+    internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body) => WithBody(body);
+    public new OperatorDeclarationSyntax WithBody(BlockSyntax body)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public OperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
+    internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new OperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
     }
 
-    public OperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new OperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
     }
+    internal override BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public OperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new OperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public OperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new OperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
 
-    public OperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new OperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
 
-    public OperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public new OperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -15392,12 +16733,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ConversionOperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new ConversionOperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConversionOperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new ConversionOperatorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -15417,42 +16760,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, type, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConversionOperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
+    internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
+    public new ConversionOperatorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConversionOperatorDeclarationSyntax WithBody(BlockSyntax body)
+    internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body) => WithBody(body);
+    public new ConversionOperatorDeclarationSyntax WithBody(BlockSyntax body)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConversionOperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
+    internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new ConversionOperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
     }
 
-    public ConversionOperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new ConversionOperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
     }
+    internal override BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public ConversionOperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new ConversionOperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public ConversionOperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new ConversionOperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
 
-    public ConversionOperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new ConversionOperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
 
-    public ConversionOperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public new ConversionOperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -15593,12 +16944,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ConstructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new ConstructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConstructorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new ConstructorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -15608,7 +16961,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, identifier, this.ParameterList, this.Initializer, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConstructorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
+    internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
+    public new ConstructorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Identifier, parameterList, this.Initializer, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -15618,37 +16972,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, initializer, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConstructorDeclarationSyntax WithBody(BlockSyntax body)
+    internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body) => WithBody(body);
+    public new ConstructorDeclarationSyntax WithBody(BlockSyntax body)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public ConstructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
+    internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new ConstructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, expressionBody, this.SemicolonToken);
     }
 
-    public ConstructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new ConstructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, this.ExpressionBody, semicolonToken);
     }
+    internal override BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public ConstructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new ConstructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public ConstructorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new ConstructorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
 
-    public ConstructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new ConstructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
 
-    public ConstructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public new ConstructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -15876,12 +17237,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public DestructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BaseMethodDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new DestructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public DestructorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BaseMethodDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new DestructorDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
@@ -15896,42 +17259,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.TildeToken, identifier, this.ParameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public DestructorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
+    internal override BaseMethodDeclarationSyntax WithParameterListCore(ParameterListSyntax parameterList) => WithParameterList(parameterList);
+    public new DestructorDeclarationSyntax WithParameterList(ParameterListSyntax parameterList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, parameterList, this.Body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public DestructorDeclarationSyntax WithBody(BlockSyntax body)
+    internal override BaseMethodDeclarationSyntax WithBodyCore(BlockSyntax body) => WithBody(body);
+    public new DestructorDeclarationSyntax WithBody(BlockSyntax body)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, body, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public DestructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
+    internal override BaseMethodDeclarationSyntax WithExpressionBodyCore(ArrowExpressionClauseSyntax expressionBody) => WithExpressionBody(expressionBody);
+    public new DestructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
     }
 
-    public DestructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new DestructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
     }
+    internal override BaseMethodDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public DestructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new DestructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public DestructorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new DestructorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
 
-    public DestructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new DestructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
+    internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
 
-    public DestructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public new DestructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -15948,17 +17319,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the attribute declaration list.</summary>
     public abstract SyntaxList<AttributeListSyntax> AttributeLists { get; }
+    public BasePropertyDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeListsCore(attributeLists);
+    internal abstract BasePropertyDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists);
+
+    public BasePropertyDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => AddAttributeListsCore(items);
+    internal abstract BasePropertyDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items);
 
     /// <summary>Gets the modifier list.</summary>
     public abstract SyntaxTokenList Modifiers { get; }
+    public BasePropertyDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => WithModifiersCore(modifiers);
+    internal abstract BasePropertyDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers);
+
+    public BasePropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items) => AddModifiersCore(items);
+    internal abstract BasePropertyDeclarationSyntax AddModifiersCore(params SyntaxToken[] items);
 
     /// <summary>Gets the type syntax.</summary>
     public abstract TypeSyntax Type { get; }
+    public BasePropertyDeclarationSyntax WithType(TypeSyntax type) => WithTypeCore(type);
+    internal abstract BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type);
 
     /// <summary>Gets the optional explicit interface specifier.</summary>
     public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get; }
+    public BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifierCore(explicitInterfaceSpecifier);
+    internal abstract BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier);
 
     public abstract AccessorListSyntax AccessorList { get; }
+    public BasePropertyDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList) => WithAccessorListCore(accessorList);
+    internal abstract BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList);
+
+    public BasePropertyDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessorsCore(items);
+    internal abstract BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items);
   }
 
   public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationSyntax
@@ -16104,22 +17494,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public PropertyDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BasePropertyDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new PropertyDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
 
-    public PropertyDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BasePropertyDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new PropertyDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
 
-    public PropertyDeclarationSyntax WithType(TypeSyntax type)
+    internal override BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+    public new PropertyDeclarationSyntax WithType(TypeSyntax type)
     {
         return this.Update(this.AttributeLists, this.Modifiers, type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
 
-    public PropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+    internal override BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
+    public new PropertyDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, explicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
@@ -16129,7 +17523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, identifier, this.AccessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
 
-    public PropertyDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
+    internal override BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList) => WithAccessorList(accessorList);
+    public new PropertyDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList, this.ExpressionBody, this.Initializer, this.SemicolonToken);
     }
@@ -16148,18 +17543,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, semicolonToken);
     }
+    internal override BasePropertyDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public PropertyDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new PropertyDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BasePropertyDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public PropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new PropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessors(items);
 
-    public PropertyDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
+    public new PropertyDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
     {
         var accessorList = this.AccessorList ?? SyntaxFactory.AccessorList();
         return this.WithAccessorList(accessorList.WithAccessors(accessorList.Accessors.AddRange(items)));
@@ -16308,6 +17706,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    public SyntaxToken SemicolonToken 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.EventDeclarationSyntax)this.Green).semicolonToken;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(7), this.GetChildIndex(7));
+
+            return default(SyntaxToken);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -16341,11 +17751,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitEventDeclaration(this);
     }
 
-    public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList)
+    public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList)
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList);
+            var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -16355,54 +17765,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public EventDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BasePropertyDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new EventDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
-        return this.Update(attributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(attributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
-    public EventDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BasePropertyDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new EventDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
-        return this.Update(this.AttributeLists, modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     public EventDeclarationSyntax WithEventKeyword(SyntaxToken eventKeyword)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, eventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, eventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
-    public EventDeclarationSyntax WithType(TypeSyntax type)
+    internal override BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+    public new EventDeclarationSyntax WithType(TypeSyntax type)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
-    public EventDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+    internal override BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
+    public new EventDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, explicitInterfaceSpecifier, this.Identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, explicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.SemicolonToken);
     }
 
     public EventDeclarationSyntax WithIdentifier(SyntaxToken identifier)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, identifier, this.AccessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, identifier, this.AccessorList, this.SemicolonToken);
     }
 
-    public EventDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
+    internal override BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList) => WithAccessorList(accessorList);
+    public new EventDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
     {
-        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList);
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList, this.SemicolonToken);
     }
 
-    public EventDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public EventDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken)
+    {
+        return this.Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, semicolonToken);
+    }
+    internal override BasePropertyDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+
+    public new EventDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BasePropertyDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public EventDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new EventDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
+    internal override BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessors(items);
 
-    public EventDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
+    public new EventDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
     {
-        return this.WithAccessorList(this.AccessorList.WithAccessors(this.AccessorList.Accessors.AddRange(items)));
+        var accessorList = this.AccessorList ?? SyntaxFactory.AccessorList();
+        return this.WithAccessorList(accessorList.WithAccessors(accessorList.Accessors.AddRange(items)));
     }
   }
 
@@ -16549,22 +17973,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public IndexerDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
+    internal override BasePropertyDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new IndexerDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
     {
         return this.Update(attributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public IndexerDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
+    internal override BasePropertyDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new IndexerDeclarationSyntax WithModifiers(SyntaxTokenList modifiers)
     {
         return this.Update(this.AttributeLists, modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public IndexerDeclarationSyntax WithType(TypeSyntax type)
+    internal override BasePropertyDeclarationSyntax WithTypeCore(TypeSyntax type) => WithType(type);
+    public new IndexerDeclarationSyntax WithType(TypeSyntax type)
     {
         return this.Update(this.AttributeLists, this.Modifiers, type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public IndexerDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+    internal override BasePropertyDeclarationSyntax WithExplicitInterfaceSpecifierCore(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier) => WithExplicitInterfaceSpecifier(explicitInterfaceSpecifier);
+    public new IndexerDeclarationSyntax WithExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, explicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, this.SemicolonToken);
     }
@@ -16579,7 +18007,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, parameterList, this.AccessorList, this.ExpressionBody, this.SemicolonToken);
     }
 
-    public IndexerDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
+    internal override BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList) => WithAccessorList(accessorList);
+    public new IndexerDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList)
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, accessorList, this.ExpressionBody, this.SemicolonToken);
     }
@@ -16593,13 +18022,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, semicolonToken);
     }
+    internal override BasePropertyDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
-    public IndexerDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public new IndexerDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
+    internal override BasePropertyDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
 
-    public IndexerDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public new IndexerDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
@@ -16608,8 +18039,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
+    internal override BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessors(items);
 
-    public IndexerDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
+    public new IndexerDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
     {
         var accessorList = this.AccessorList ?? SyntaxFactory.AccessorList();
         return this.WithAccessorList(accessorList.WithAccessors(accessorList.Accessors.AddRange(items)));
@@ -16877,6 +18309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the parameter list.</summary>
     public abstract SeparatedSyntaxList<ParameterSyntax> Parameters { get; }
+    public BaseParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters) => WithParametersCore(parameters);
+    internal abstract BaseParameterListSyntax WithParametersCore(SeparatedSyntaxList<ParameterSyntax> parameters);
+
+    public BaseParameterListSyntax AddParameters(params ParameterSyntax[] items) => AddParametersCore(items);
+    internal abstract BaseParameterListSyntax AddParametersCore(params ParameterSyntax[] items);
   }
 
   /// <summary>Parameter list syntax.</summary>
@@ -16959,7 +18396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openParenToken, this.Parameters, this.CloseParenToken);
     }
 
-    public ParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters)
+    internal override BaseParameterListSyntax WithParametersCore(SeparatedSyntaxList<ParameterSyntax> parameters) => WithParameters(parameters);
+    public new ParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters)
     {
         return this.Update(this.OpenParenToken, parameters, this.CloseParenToken);
     }
@@ -16968,8 +18406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenParenToken, this.Parameters, closeParenToken);
     }
+    internal override BaseParameterListSyntax AddParametersCore(params ParameterSyntax[] items) => AddParameters(items);
 
-    public ParameterListSyntax AddParameters(params ParameterSyntax[] items)
+    public new ParameterListSyntax AddParameters(params ParameterSyntax[] items)
     {
         return this.WithParameters(this.Parameters.AddRange(items));
     }
@@ -17055,7 +18494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openBracketToken, this.Parameters, this.CloseBracketToken);
     }
 
-    public BracketedParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters)
+    internal override BaseParameterListSyntax WithParametersCore(SeparatedSyntaxList<ParameterSyntax> parameters) => WithParameters(parameters);
+    public new BracketedParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters)
     {
         return this.Update(this.OpenBracketToken, parameters, this.CloseBracketToken);
     }
@@ -17064,8 +18504,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenBracketToken, this.Parameters, closeBracketToken);
     }
+    internal override BaseParameterListSyntax AddParametersCore(params ParameterSyntax[] items) => AddParameters(items);
 
-    public BracketedParameterListSyntax AddParameters(params ParameterSyntax[] items)
+    public new BracketedParameterListSyntax AddParameters(params ParameterSyntax[] items)
     {
         return this.WithParameters(this.Parameters.AddRange(items));
     }
@@ -18055,6 +19496,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>Gets the parameter list.</summary>
     public abstract SeparatedSyntaxList<CrefParameterSyntax> Parameters { get; }
+    public BaseCrefParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters) => WithParametersCore(parameters);
+    internal abstract BaseCrefParameterListSyntax WithParametersCore(SeparatedSyntaxList<CrefParameterSyntax> parameters);
+
+    public BaseCrefParameterListSyntax AddParameters(params CrefParameterSyntax[] items) => AddParametersCore(items);
+    internal abstract BaseCrefParameterListSyntax AddParametersCore(params CrefParameterSyntax[] items);
   }
 
   /// <summary>
@@ -18139,7 +19585,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openParenToken, this.Parameters, this.CloseParenToken);
     }
 
-    public CrefParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters)
+    internal override BaseCrefParameterListSyntax WithParametersCore(SeparatedSyntaxList<CrefParameterSyntax> parameters) => WithParameters(parameters);
+    public new CrefParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters)
     {
         return this.Update(this.OpenParenToken, parameters, this.CloseParenToken);
     }
@@ -18148,8 +19595,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenParenToken, this.Parameters, closeParenToken);
     }
+    internal override BaseCrefParameterListSyntax AddParametersCore(params CrefParameterSyntax[] items) => AddParameters(items);
 
-    public CrefParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
+    public new CrefParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
     {
         return this.WithParameters(this.Parameters.AddRange(items));
     }
@@ -18237,7 +19685,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(openBracketToken, this.Parameters, this.CloseBracketToken);
     }
 
-    public CrefBracketedParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters)
+    internal override BaseCrefParameterListSyntax WithParametersCore(SeparatedSyntaxList<CrefParameterSyntax> parameters) => WithParameters(parameters);
+    public new CrefBracketedParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters)
     {
         return this.Update(this.OpenBracketToken, parameters, this.CloseBracketToken);
     }
@@ -18246,8 +19695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         return this.Update(this.OpenBracketToken, this.Parameters, closeBracketToken);
     }
+    internal override BaseCrefParameterListSyntax AddParametersCore(params CrefParameterSyntax[] items) => AddParameters(items);
 
-    public CrefBracketedParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
+    public new CrefBracketedParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
     {
         return this.WithParameters(this.Parameters.AddRange(items));
     }
@@ -18896,12 +20346,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     public abstract XmlNameSyntax Name { get; }
+    public XmlAttributeSyntax WithName(XmlNameSyntax name) => WithNameCore(name);
+    internal abstract XmlAttributeSyntax WithNameCore(XmlNameSyntax name);
 
     public abstract SyntaxToken EqualsToken { get; }
+    public XmlAttributeSyntax WithEqualsToken(SyntaxToken equalsToken) => WithEqualsTokenCore(equalsToken);
+    internal abstract XmlAttributeSyntax WithEqualsTokenCore(SyntaxToken equalsToken);
 
     public abstract SyntaxToken StartQuoteToken { get; }
+    public XmlAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken) => WithStartQuoteTokenCore(startQuoteToken);
+    internal abstract XmlAttributeSyntax WithStartQuoteTokenCore(SyntaxToken startQuoteToken);
 
     public abstract SyntaxToken EndQuoteToken { get; }
+    public XmlAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => WithEndQuoteTokenCore(endQuoteToken);
+    internal abstract XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken);
   }
 
   public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
@@ -18989,17 +20447,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public XmlTextAttributeSyntax WithName(XmlNameSyntax name)
+    internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
+    public new XmlTextAttributeSyntax WithName(XmlNameSyntax name)
     {
         return this.Update(name, this.EqualsToken, this.StartQuoteToken, this.TextTokens, this.EndQuoteToken);
     }
 
-    public XmlTextAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
+    internal override XmlAttributeSyntax WithEqualsTokenCore(SyntaxToken equalsToken) => WithEqualsToken(equalsToken);
+    public new XmlTextAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
     {
         return this.Update(this.Name, equalsToken, this.StartQuoteToken, this.TextTokens, this.EndQuoteToken);
     }
 
-    public XmlTextAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
+    internal override XmlAttributeSyntax WithStartQuoteTokenCore(SyntaxToken startQuoteToken) => WithStartQuoteToken(startQuoteToken);
+    public new XmlTextAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, startQuoteToken, this.TextTokens, this.EndQuoteToken);
     }
@@ -19009,7 +20470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, textTokens, this.EndQuoteToken);
     }
 
-    public XmlTextAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
+    internal override XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken) => WithEndQuoteToken(endQuoteToken);
+    public new XmlTextAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.TextTokens, endQuoteToken);
     }
@@ -19104,17 +20566,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public XmlCrefAttributeSyntax WithName(XmlNameSyntax name)
+    internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
+    public new XmlCrefAttributeSyntax WithName(XmlNameSyntax name)
     {
         return this.Update(name, this.EqualsToken, this.StartQuoteToken, this.Cref, this.EndQuoteToken);
     }
 
-    public XmlCrefAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
+    internal override XmlAttributeSyntax WithEqualsTokenCore(SyntaxToken equalsToken) => WithEqualsToken(equalsToken);
+    public new XmlCrefAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
     {
         return this.Update(this.Name, equalsToken, this.StartQuoteToken, this.Cref, this.EndQuoteToken);
     }
 
-    public XmlCrefAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
+    internal override XmlAttributeSyntax WithStartQuoteTokenCore(SyntaxToken startQuoteToken) => WithStartQuoteToken(startQuoteToken);
+    public new XmlCrefAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, startQuoteToken, this.Cref, this.EndQuoteToken);
     }
@@ -19124,7 +20589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, cref, this.EndQuoteToken);
     }
 
-    public XmlCrefAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
+    internal override XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken) => WithEndQuoteToken(endQuoteToken);
+    public new XmlCrefAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Cref, endQuoteToken);
     }
@@ -19214,17 +20680,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public XmlNameAttributeSyntax WithName(XmlNameSyntax name)
+    internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
+    public new XmlNameAttributeSyntax WithName(XmlNameSyntax name)
     {
         return this.Update(name, this.EqualsToken, this.StartQuoteToken, this.Identifier, this.EndQuoteToken);
     }
 
-    public XmlNameAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
+    internal override XmlAttributeSyntax WithEqualsTokenCore(SyntaxToken equalsToken) => WithEqualsToken(equalsToken);
+    public new XmlNameAttributeSyntax WithEqualsToken(SyntaxToken equalsToken)
     {
         return this.Update(this.Name, equalsToken, this.StartQuoteToken, this.Identifier, this.EndQuoteToken);
     }
 
-    public XmlNameAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
+    internal override XmlAttributeSyntax WithStartQuoteTokenCore(SyntaxToken startQuoteToken) => WithStartQuoteToken(startQuoteToken);
+    public new XmlNameAttributeSyntax WithStartQuoteToken(SyntaxToken startQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, startQuoteToken, this.Identifier, this.EndQuoteToken);
     }
@@ -19234,7 +20703,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, identifier, this.EndQuoteToken);
     }
 
-    public XmlNameAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
+    internal override XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken) => WithEndQuoteToken(endQuoteToken);
+    public new XmlNameAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken)
     {
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.Identifier, endQuoteToken);
     }
@@ -19601,8 +21071,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     public abstract SyntaxToken HashToken { get; }
+    public DirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => WithHashTokenCore(hashToken);
+    internal abstract DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken);
 
     public abstract SyntaxToken EndOfDirectiveToken { get; }
+    public DirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveTokenCore(endOfDirectiveToken);
+    internal abstract DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken);
 
     public abstract bool IsActive { get; }
   }
@@ -19615,6 +21089,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     public abstract bool BranchTaken { get; }
+
+    public new BranchingDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => (BranchingDirectiveTriviaSyntax)WithHashTokenCore(hashToken);
+    public new BranchingDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => (BranchingDirectiveTriviaSyntax)WithEndOfDirectiveTokenCore(endOfDirectiveToken);
   }
 
   public abstract partial class ConditionalDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
@@ -19625,6 +21102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
 
     public abstract ExpressionSyntax Condition { get; }
+    public ConditionalDirectiveTriviaSyntax WithCondition(ExpressionSyntax condition) => WithConditionCore(condition);
+    internal abstract ConditionalDirectiveTriviaSyntax WithConditionCore(ExpressionSyntax condition);
 
     public abstract bool ConditionValue { get; }
   }
@@ -19708,7 +21187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public IfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new IfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.IfKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
@@ -19718,12 +21198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, ifKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
 
-    public IfDirectiveTriviaSyntax WithCondition(ExpressionSyntax condition)
+    internal override ConditionalDirectiveTriviaSyntax WithConditionCore(ExpressionSyntax condition) => WithCondition(condition);
+    public new IfDirectiveTriviaSyntax WithCondition(ExpressionSyntax condition)
     {
         return this.Update(this.HashToken, this.IfKeyword, condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
 
-    public IfDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new IfDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.IfKeyword, this.Condition, endOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
@@ -19823,7 +21305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ElifDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new ElifDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.ElifKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
@@ -19833,12 +21316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, elifKeyword, this.Condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
 
-    public ElifDirectiveTriviaSyntax WithCondition(ExpressionSyntax condition)
+    internal override ConditionalDirectiveTriviaSyntax WithConditionCore(ExpressionSyntax condition) => WithCondition(condition);
+    public new ElifDirectiveTriviaSyntax WithCondition(ExpressionSyntax condition)
     {
         return this.Update(this.HashToken, this.ElifKeyword, condition, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
 
-    public ElifDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new ElifDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.ElifKeyword, this.Condition, endOfDirectiveToken, this.IsActive, this.BranchTaken, this.ConditionValue);
     }
@@ -19924,7 +21409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ElseDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new ElseDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.ElseKeyword, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken);
     }
@@ -19934,7 +21420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, elseKeyword, this.EndOfDirectiveToken, this.IsActive, this.BranchTaken);
     }
 
-    public ElseDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new ElseDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.ElseKeyword, endOfDirectiveToken, this.IsActive, this.BranchTaken);
     }
@@ -20013,7 +21500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public EndIfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new EndIfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.EndIfKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20023,7 +21511,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, endIfKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public EndIfDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new EndIfDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.EndIfKeyword, endOfDirectiveToken, this.IsActive);
     }
@@ -20097,7 +21586,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public RegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new RegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.RegionKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20107,7 +21597,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, regionKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public RegionDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new RegionDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.RegionKeyword, endOfDirectiveToken, this.IsActive);
     }
@@ -20181,7 +21672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public EndRegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new EndRegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.EndRegionKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20191,7 +21683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, endRegionKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public EndRegionDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new EndRegionDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.EndRegionKeyword, endOfDirectiveToken, this.IsActive);
     }
@@ -20265,7 +21758,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ErrorDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new ErrorDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.ErrorKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20275,7 +21769,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, errorKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public ErrorDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new ErrorDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.ErrorKeyword, endOfDirectiveToken, this.IsActive);
     }
@@ -20349,7 +21844,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public WarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new WarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.WarningKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20359,7 +21855,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, warningKeyword, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public WarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new WarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.WarningKeyword, endOfDirectiveToken, this.IsActive);
     }
@@ -20433,7 +21930,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public BadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new BadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.Identifier, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20443,7 +21941,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, identifier, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public BadDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new BadDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.Identifier, endOfDirectiveToken, this.IsActive);
     }
@@ -20522,7 +22021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public DefineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new DefineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.DefineKeyword, this.Name, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20537,7 +22037,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.DefineKeyword, name, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public DefineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new DefineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.DefineKeyword, this.Name, endOfDirectiveToken, this.IsActive);
     }
@@ -20616,7 +22117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public UndefDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new UndefDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.UndefKeyword, this.Name, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20631,7 +22133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.UndefKeyword, name, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public UndefDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new UndefDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.UndefKeyword, this.Name, endOfDirectiveToken, this.IsActive);
     }
@@ -20722,7 +22225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public LineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new LineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20742,7 +22246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.LineKeyword, this.Line, file, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public LineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new LineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.LineKeyword, this.Line, this.File, endOfDirectiveToken, this.IsActive);
     }
@@ -20782,13 +22287,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).disableOrRestoreKeyword, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
+    public SyntaxToken NullableKeyword 
+    {
+        get
+        {
+            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).nullableKeyword;
+            if (slot != null)
+                return new SyntaxToken(this, slot, this.GetChildPosition(4), this.GetChildIndex(4));
+
+            return default(SyntaxToken);
+        }
+    }
+
     public SeparatedSyntaxList<ExpressionSyntax> ErrorCodes 
     {
         get
         {
-            var red = this.GetRed(ref this.errorCodes, 4);
+            var red = this.GetRed(ref this.errorCodes, 5);
             if (red != null)
-                return new SeparatedSyntaxList<ExpressionSyntax>(red, this.GetChildIndex(4));
+                return new SeparatedSyntaxList<ExpressionSyntax>(red, this.GetChildIndex(5));
 
             return default(SeparatedSyntaxList<ExpressionSyntax>);
         }
@@ -20796,7 +22313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public override SyntaxToken EndOfDirectiveToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(5), this.GetChildIndex(5)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(6), this.GetChildIndex(6)); }
     }
 
     public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive; } }
@@ -20805,7 +22322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.GetRed(ref this.errorCodes, 4);
+            case 5: return this.GetRed(ref this.errorCodes, 5);
             default: return null;
         }
     }
@@ -20813,7 +22330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 4: return this.errorCodes;
+            case 5: return this.errorCodes;
             default: return null;
         }
     }
@@ -20828,11 +22345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitPragmaWarningDirectiveTrivia(this);
     }
 
-    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+    public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken nullableKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || nullableKeyword != this.NullableKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, nullableKeyword, errorCodes, endOfDirectiveToken, isActive);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -20842,39 +22359,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public PragmaWarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new PragmaWarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
-        return this.Update(hashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(hashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithPragmaKeyword(SyntaxToken pragmaKeyword)
     {
-        return this.Update(this.HashToken, pragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, pragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithWarningKeyword(SyntaxToken warningKeyword)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, warningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, warningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithDisableOrRestoreKeyword(SyntaxToken disableOrRestoreKeyword)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, disableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, disableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public PragmaWarningDirectiveTriviaSyntax WithNullableKeyword(SyntaxToken nullableKeyword)
+    {
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, nullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithErrorCodes(SeparatedSyntaxList<ExpressionSyntax> errorCodes)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, errorCodes, this.EndOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, errorCodes, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public PragmaWarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new PragmaWarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, endOfDirectiveToken, this.IsActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, endOfDirectiveToken, this.IsActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax WithIsActive(bool isActive)
     {
-        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
+        return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.NullableKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
     }
 
     public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items)
@@ -20966,7 +22490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public PragmaChecksumDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new PragmaChecksumDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.PragmaKeyword, this.ChecksumKeyword, this.File, this.Guid, this.Bytes, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -20996,7 +22521,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.PragmaKeyword, this.ChecksumKeyword, this.File, this.Guid, bytes, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public PragmaChecksumDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new PragmaChecksumDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.PragmaKeyword, this.ChecksumKeyword, this.File, this.Guid, this.Bytes, endOfDirectiveToken, this.IsActive);
     }
@@ -21075,7 +22601,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ReferenceDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new ReferenceDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.ReferenceKeyword, this.File, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -21090,7 +22617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.ReferenceKeyword, file, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public ReferenceDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new ReferenceDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.ReferenceKeyword, this.File, endOfDirectiveToken, this.IsActive);
     }
@@ -21169,7 +22697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public LoadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new LoadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.LoadKeyword, this.File, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -21184,7 +22713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.LoadKeyword, file, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public LoadDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new LoadDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.LoadKeyword, this.File, endOfDirectiveToken, this.IsActive);
     }
@@ -21258,7 +22788,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this;
     }
 
-    public ShebangDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new ShebangDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
     {
         return this.Update(hashToken, this.ExclamationToken, this.EndOfDirectiveToken, this.IsActive);
     }
@@ -21268,7 +22799,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, exclamationToken, this.EndOfDirectiveToken, this.IsActive);
     }
 
-    public ShebangDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new ShebangDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
     {
         return this.Update(this.HashToken, this.ExclamationToken, endOfDirectiveToken, this.IsActive);
     }
@@ -21276,6 +22808,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive)
     {
         return this.Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
+    }
+  }
+
+  public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
+  {
+    internal NullableDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public override SyntaxToken HashToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, this.Position, 0); }
+    }
+
+    public SyntaxToken NullableKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    public SyntaxToken SettingToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public override SyntaxToken EndOfDirectiveToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
+    }
+
+    public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive; } }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new NullableDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    {
+        return this.Update(hashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithNullableKeyword(SyntaxToken nullableKeyword)
+    {
+        return this.Update(this.HashToken, nullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithSettingToken(SyntaxToken settingToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, settingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new NullableDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, endOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithIsActive(bool isActive)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, isActive);
     }
   }
 }

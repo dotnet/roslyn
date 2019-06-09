@@ -20,18 +20,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal sealed class SymbolAnalyzerAction : AnalyzerAction
     {
-        private readonly Action<SymbolAnalysisContext> _action;
-        private readonly ImmutableArray<SymbolKind> _kinds;
+        public Action<SymbolAnalysisContext> Action { get; }
+        public ImmutableArray<SymbolKind> Kinds { get; }
 
         public SymbolAnalyzerAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> kinds, DiagnosticAnalyzer analyzer)
             : base(analyzer)
         {
+            Action = action;
+            Kinds = kinds;
+        }
+    }
+
+    internal sealed class SymbolStartAnalyzerAction : AnalyzerAction
+    {
+        public Action<SymbolStartAnalysisContext> Action { get; }
+        public SymbolKind Kind { get; }
+
+        public SymbolStartAnalyzerAction(Action<SymbolStartAnalysisContext> action, SymbolKind kind, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+            Kind = kind;
+        }
+    }
+
+    internal sealed class SymbolEndAnalyzerAction : AnalyzerAction
+    {
+        private readonly Action<SymbolAnalysisContext> _action;
+
+        public SymbolEndAnalyzerAction(Action<SymbolAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
             _action = action;
-            _kinds = kinds;
         }
 
         public Action<SymbolAnalysisContext> Action { get { return _action; } }
-        public ImmutableArray<SymbolKind> Kinds { get { return _kinds; } }
     }
 
     internal sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct

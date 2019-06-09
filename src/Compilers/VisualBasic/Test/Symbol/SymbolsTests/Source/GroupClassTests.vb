@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GroupClassTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/34467")>
         Public Sub SimpleTest1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -34,7 +34,7 @@ Module Module1
         Dim methods = gr.GetMethods(bindingFlags).OrderBy(Function(f) f.Name)
 
         For Each method In methods
-            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, method.GetMethodImplementationFlags())
+            System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, CInt(method.GetMethodImplementationFlags()))
             For Each attribute In method.GetCustomAttributes(False)
                 System.Console.WriteLine("  {0}", attribute)
             Next
@@ -92,7 +92,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
                                                                                      TestOptions.DebugExe)
 
@@ -124,15 +124,15 @@ m_DefaultInstanceTest1 DefaultInstanceTest1 Public
 m_DefaultInstanceTest2 DefaultInstanceTest2 Public
   System.ComponentModel.EditorBrowsableAttribute
 ----------------------
-Create PrivateScope, Private, Static IL
-Dispose PrivateScope, Private, Static IL
-get_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+Create PrivateScope, Private, Static 0
+Dispose PrivateScope, Private, Static 0
+get_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-get_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+get_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest1 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest1 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
-set_DefaultInstanceTest2 PrivateScope, Public, SpecialName IL
+set_DefaultInstanceTest2 PrivateScope, Public, SpecialName 0
   System.Diagnostics.DebuggerHiddenAttribute
 ----------------------
 DefaultInstanceTest1 None
@@ -225,7 +225,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests15 = compilation.GetTypeByMetadataName("MyTests15")
 
@@ -292,7 +292,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests15 = compilation.GetTypeByMetadataName("MyTests15")
 
@@ -361,7 +361,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyGroupCollectionAttribute = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.MyGroupCollectionAttribute")
 
@@ -416,7 +416,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -488,7 +488,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -531,7 +531,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests`1")
 
@@ -574,7 +574,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -616,7 +616,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -673,7 +673,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -730,7 +730,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -783,7 +783,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -836,7 +836,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -886,7 +886,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -937,7 +937,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -980,7 +980,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1026,7 +1026,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1075,7 +1075,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1120,7 +1120,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1172,7 +1172,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1233,7 +1233,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1330,7 +1330,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1374,7 +1374,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1418,7 +1418,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1462,7 +1462,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1506,7 +1506,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1546,7 +1546,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1596,7 +1596,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1648,7 +1648,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("While.Do")
 
@@ -1702,7 +1702,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1746,7 +1746,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1800,7 +1800,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
@@ -1848,7 +1848,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("IX+MyTests")
 
@@ -2394,7 +2394,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemRef},
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                      TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
             compilation.MyTemplate = WindowsFormsMyTemplateTree
@@ -2454,10 +2454,11 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
                  ~~~~~
 </expected>)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemRef},
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, options:=TestOptions.Regular))
 
             compilation.MyTemplate = Nothing
 
@@ -2579,7 +2580,7 @@ BC30469: Reference to a non-shared member requires an object reference.
 
             compilationDef.Elements()(1).Remove()
             compilationDef.Elements()(1).Remove()
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemRef},
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
             compilation.MyTemplate = WindowsFormsMyTemplateTree
@@ -2854,7 +2855,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -2915,7 +2916,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -2996,7 +2997,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3092,7 +3093,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3154,7 +3155,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3220,7 +3221,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3305,7 +3306,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3383,7 +3384,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
             <![CDATA[
@@ -3451,13 +3452,13 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             ' Native compiler reports BC31139, but I do not believe it is appropriate in this scenario.
             CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Is_IsNot()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3527,7 +3528,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
                                                                                      TestOptions.ReleaseExe.WithRootNamespace("WindowsApplication1"))
 
@@ -3544,7 +3545,7 @@ True
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub BackingFieldToHaveEditorBrowsableNeverAttribute()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3586,7 +3587,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
                                                                                      TestOptions.ReleaseExe.WithRootNamespace("WindowsApplication1"))
 
@@ -3595,7 +3596,7 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="1 Never").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/27979")>
         Public Sub Using001()
             Dim compilationDef =
 <compilation name="SimpleTest1">
@@ -3633,7 +3634,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
                                                                                      {SystemCoreRef},
                                                                                      TestOptions.DebugExe.WithRootNamespace("WindowsApplication1"))
 
@@ -3676,7 +3677,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
             Dim MyTests15 = compilation.GetTypeByMetadataName("MyTests15")
 
@@ -3737,7 +3738,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef})
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef})
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 

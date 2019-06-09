@@ -8,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         ''' Implements scenarios outlined in /Services/CSharp/Impl/Refactoring/ExtractMethod/ExtractMethodMatrix.xlsx
         ''' </summary>
         ''' <remarks></remarks>
+        <[UseExportProvider]>
         Public Class DataFlowPass
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>

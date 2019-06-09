@@ -51,7 +51,7 @@ public static class R
         public fixed byte Buffer[16];
     }
 }";
-            var comp1 = CreateCompilation(text1, assemblyName: "assembly1", references: new[] { MscorlibRef_v20 },
+            var comp1 = CreateEmptyCompilation(text1, assemblyName: "assembly1", references: new[] { MscorlibRef_v20 },
                 options: TestOptions.UnsafeDebugDll);
 
             var ref1 = comp1.EmitToImageReference();
@@ -86,6 +86,91 @@ class C
         }
 
         [Fact]
+        public void FixedSizeBuffer_GenericStruct_01()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed char buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_02()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_03()
+        {
+            var code = @"
+unsafe struct MyStruct<T> where T : unmanaged
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_04()
+        {
+            var code = @"
+public unsafe struct MyStruct<T>
+{
+    public T field;
+}
+
+unsafe struct OuterStruct
+{
+    public fixed MyStruct<int> buf[16];
+    public static void M()
+    {
+        var os = new OuterStruct();
+        var ptr = &os;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed MyStruct<int> buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "MyStruct<int>").WithLocation(9, 18)
+            );
+        }
+
+        [Fact]
         public void CompilationNotUnsafe1()
         {
             var text = @"
@@ -94,11 +179,11 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
                 // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C"));
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -113,11 +198,11 @@ class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
                 // (4,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo"));
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -133,11 +218,11 @@ class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
                 // (6,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe"));
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -153,7 +238,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -169,7 +254,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Goo"));
         }
@@ -188,7 +273,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,9): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"));
         }
@@ -207,7 +292,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,9): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"));
         }
@@ -227,7 +312,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,9): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"));
         }
@@ -252,7 +337,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,32): warning CS0067: The event 'C.Event' is never used
                 //     unsafe event System.Action Event;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Event").WithArguments("C.Event"));
@@ -275,12 +360,14 @@ unsafe class C<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
-                // (8,7): error CS0306: The type 'int*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (9,7): error CS0306: The type 'int**' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int**").WithArguments("int**"),
+                // (8,13): error CS0306: The type 'int*' may not be used as a type argument
+                //     C<int*> f4;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f4").WithArguments("int*").WithLocation(8, 13),
+                // (9,14): error CS0306: The type 'int**' may not be used as a type argument
+                //     C<int**> f5;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "f5").WithArguments("int**").WithLocation(9, 14),
 
                 // (4,10): warning CS0169: The field 'C<T>.f0' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f0").WithArguments("C<T>.f0"),
@@ -301,17 +388,17 @@ unsafe class C<T>
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var fieldTypes = Enumerable.Range(0, 8).Select(i => type.GetMember<FieldSymbol>("f" + i).Type).ToArray();
+            var fieldTypes = Enumerable.Range(0, 8).Select(i => type.GetMember<FieldSymbol>("f" + i).TypeWithAnnotations).ToArray();
 
-            Assert.True(fieldTypes[0].IsUnsafe());
-            Assert.True(fieldTypes[1].IsUnsafe());
-            Assert.True(fieldTypes[2].IsUnsafe());
-            Assert.True(fieldTypes[3].IsUnsafe());
+            Assert.True(fieldTypes[0].Type.IsUnsafe());
+            Assert.True(fieldTypes[1].Type.IsUnsafe());
+            Assert.True(fieldTypes[2].Type.IsUnsafe());
+            Assert.True(fieldTypes[3].Type.IsUnsafe());
 
-            Assert.False(fieldTypes[4].IsUnsafe());
-            Assert.False(fieldTypes[5].IsUnsafe());
-            Assert.False(fieldTypes[6].IsUnsafe());
-            Assert.False(fieldTypes[7].IsUnsafe());
+            Assert.False(fieldTypes[4].Type.IsUnsafe());
+            Assert.False(fieldTypes[5].Type.IsUnsafe());
+            Assert.False(fieldTypes[6].Type.IsUnsafe());
+            Assert.False(fieldTypes[7].Type.IsUnsafe());
         }
 
         [Fact]
@@ -788,7 +875,7 @@ unsafe class C<T>
 ";
 
             var withoutUnsafe = string.Format(template, "", "");
-            CreateStandardCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // CONSIDER: We should probably suppress CS0214 (like Dev10 does) because it's
                 // confusing, but we don't have a good way to do so, because we don't know that
                 // the method is an iterator until we bind the body and we certainly don't want
@@ -800,19 +887,19 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
 
             var withUnsafeOnType = string.Format(template, "unsafe", "");
-            CreateStandardCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,64): error CS1637: Iterators cannot have unsafe parameters or yield types
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
 
             var withUnsafeOnMembers = string.Format(template, "", "unsafe");
-            CreateStandardCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,64): error CS1637: Iterators cannot have unsafe parameters or yield types
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"),
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Iterator")); //this is for putting "unsafe" on an iterator, not for the parameter type
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
-            CreateStandardCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,64): error CS1637: Iterators cannot have unsafe parameters or yield types
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"),
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
@@ -833,7 +920,7 @@ unsafe class Attr : System.Attribute
 ";
             // CONSIDER: Dev10 reports CS0214 (unsafe) and CS0182 (not a constant), but this makes
             // just as much sense.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,6): error CS0181: Attribute constructor parameter 'i' has type 'int*', which is not a valid attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr").WithArguments("i", "int*"));
         }
@@ -857,7 +944,7 @@ unsafe class Attr : System.Attribute
 ";
             // CONSIDER: Dev10 reports both CS0214 (unsafe) and CS0182 (not a constant), but this makes
             // just as much sense.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Unsafe() == null"));
         }
@@ -884,7 +971,7 @@ class C<T>
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,22): error CS0306: The type 'int*' may not be used as a type argument
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
                 // (14,22): error CS0306: The type 'int**' may not be used as a type argument
@@ -900,7 +987,7 @@ unsafe enum E
     A
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (2,13): error CS0106: The modifier 'unsafe' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe"));
         }
@@ -913,11 +1000,11 @@ unsafe enum E
 public unsafe delegate void TestDelegate();
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
                 // (2,29): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "TestDelegate"));
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543835")]
@@ -931,11 +1018,11 @@ public class Main
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,29): error CS0106: The modifier 'unsafe' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "number").WithArguments("unsafe"));
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,29): error CS0106: The modifier 'unsafe' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "number").WithArguments("unsafe"));
         }
@@ -959,7 +1046,7 @@ class C : I
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(544417, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544417")]
@@ -1433,17 +1520,17 @@ class C : I
         {
             // NOTE: ERR_UnsafeNeeded is not affected by the presence/absence of the /unsafe flag.
             var withoutUnsafe = string.Format(template, "", "");
-            CreateStandardCompilation(withoutUnsafe).VerifyDiagnostics(expectedWithoutUnsafe);
-            CreateStandardCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithoutUnsafe);
+            CreateCompilation(withoutUnsafe).VerifyDiagnostics(expectedWithoutUnsafe);
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithoutUnsafe);
 
             var withUnsafeOnType = string.Format(template, "unsafe", "");
-            CreateStandardCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
+            CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
 
             var withUnsafeOnMembers = string.Format(template, "", "unsafe");
-            CreateStandardCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
-            CreateStandardCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
         }
 
         [WorkItem(544097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544097")]
@@ -1620,10 +1707,10 @@ class C : I
 
         #endregion Unsafe regions
 
-        #region Non-moveable variables
+        #region Variables that need fixing
 
         [Fact]
-        public void NonMoveableVariables_Parameters()
+        public void FixingVariables_Parameters()
         {
             var text = @"
 class C
@@ -1635,19 +1722,19 @@ class C
 }
 ";
             var expected = @"
-No, Call 'M(x, ref y, out z, p)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Parameter 'y' is not a non-moveable variable
-No, Parameter 'z' is not a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
+Yes, Call 'M(x, ref y, out z, p)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Parameter 'y' requires fixing.
+Yes, Parameter 'z' requires fixing.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Locals()
+        public void FixingVariables_Locals()
         {
             var text = @"
 class C
@@ -1661,24 +1748,24 @@ class C
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, Conversion 'null' is not a non-moveable variable
-No, Literal 'null' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, Call 'M(c, x)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'x' is not a non-moveable variable
-Yes, Local 'x' is a non-moveable variable with underlying symbol 'x'
+Yes, TypeExpression 'C' requires fixing.
+Yes, Conversion 'null' requires fixing.
+Yes, Literal 'null' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, Call 'M(c, x)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'x' requires fixing.
+No, Local 'x' does not require fixing. It has an underlying symbol 'x'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields1()
+        public void FixingVariables_Fields1()
         {
             var text = @"
 class C
@@ -1709,74 +1796,74 @@ struct S2
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, ObjectCreationExpression 'new C()' is not a non-moveable variable
-No, TypeExpression 'S1' is not a non-moveable variable
-No, ObjectCreationExpression 'new S1()' is not a non-moveable variable
-No, Call 'M(this, this.s, this.s.s, this.s.c, this.c.s, this.c.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'this' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s.s' is not a non-moveable variable
-No, FieldAccess 'this.s.s' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.s.c' is not a non-moveable variable
-No, FieldAccess 'this.s.c' is not a non-moveable variable
-No, FieldAccess 'this.s' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.c.s' is not a non-moveable variable
-No, FieldAccess 'this.c.s' is not a non-moveable variable
-No, FieldAccess 'this.c' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Conversion 'this.c.c' is not a non-moveable variable
-No, FieldAccess 'this.c.c' is not a non-moveable variable
-No, FieldAccess 'this.c' is not a non-moveable variable
-No, ThisReference 'this' is not a non-moveable variable
-No, Call 'M(c, c.s, c.s.s, c.s.c, c.c.s, c.c.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s.s' is not a non-moveable variable
-No, FieldAccess 'c.s.s' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.s.c' is not a non-moveable variable
-No, FieldAccess 'c.s.c' is not a non-moveable variable
-No, FieldAccess 'c.s' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.c.s' is not a non-moveable variable
-No, FieldAccess 'c.c.s' is not a non-moveable variable
-No, FieldAccess 'c.c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.c.c' is not a non-moveable variable
-No, FieldAccess 'c.c.c' is not a non-moveable variable
-No, FieldAccess 'c.c' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Call 'M(s, s.s, s.s.i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 's' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.s' is not a non-moveable variable
-Yes, FieldAccess 's.s' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.s.i' is not a non-moveable variable
-Yes, FieldAccess 's.s.i' is a non-moveable variable with underlying symbol 's'
-Yes, FieldAccess 's.s' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
+Yes, TypeExpression 'C' requires fixing.
+Yes, ObjectCreationExpression 'new C()' requires fixing.
+Yes, TypeExpression 'S1' requires fixing.
+Yes, ObjectCreationExpression 'new S1()' requires fixing.
+Yes, Call 'M(this, this.s, this.s.s, this.s.c, this.c.s, this.c.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'this' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s.s' requires fixing.
+Yes, FieldAccess 'this.s.s' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.s.c' requires fixing.
+Yes, FieldAccess 'this.s.c' requires fixing.
+Yes, FieldAccess 'this.s' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.c.s' requires fixing.
+Yes, FieldAccess 'this.c.s' requires fixing.
+Yes, FieldAccess 'this.c' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Conversion 'this.c.c' requires fixing.
+Yes, FieldAccess 'this.c.c' requires fixing.
+Yes, FieldAccess 'this.c' requires fixing.
+Yes, ThisReference 'this' requires fixing.
+Yes, Call 'M(c, c.s, c.s.s, c.s.c, c.c.s, c.c.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s.s' requires fixing.
+Yes, FieldAccess 'c.s.s' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.s.c' requires fixing.
+Yes, FieldAccess 'c.s.c' requires fixing.
+Yes, FieldAccess 'c.s' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.c.s' requires fixing.
+Yes, FieldAccess 'c.c.s' requires fixing.
+Yes, FieldAccess 'c.c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.c.c' requires fixing.
+Yes, FieldAccess 'c.c.c' requires fixing.
+Yes, FieldAccess 'c.c' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Call 'M(s, s.s, s.s.i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 's' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.s' requires fixing.
+No, FieldAccess 's.s' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.s.i' requires fixing.
+No, FieldAccess 's.s.i' does not require fixing. It has an underlying symbol 's'
+No, FieldAccess 's.s' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields2()
+        public void FixingVariables_Fields2()
         {
             var text = @"
 class Base
@@ -1793,17 +1880,17 @@ class Derived : Base
 }
 ";
             var expected = @"
-No, AssignmentOperator 'base.i = 0' is not a non-moveable variable
-No, FieldAccess 'base.i' is not a non-moveable variable
-No, BaseReference 'base' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, AssignmentOperator 'base.i = 0' requires fixing.
+Yes, FieldAccess 'base.i' requires fixing.
+Yes, BaseReference 'base' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields3()
+        public void FixingVariables_Fields3()
         {
             var text = @"
 struct S
@@ -1817,17 +1904,17 @@ struct S
 }
 ";
             var expected = @"
-No, AssignmentOperator 'S.i = 0' is not a non-moveable variable
-No, FieldAccess 'S.i' is not a non-moveable variable
-No, TypeExpression 'S' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, AssignmentOperator 'S.i = 0' requires fixing.
+Yes, FieldAccess 'S.i' requires fixing.
+Yes, TypeExpression 'S' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Fields4()
+        public void FixingVariables_Fields4()
         {
             var text = @"
 struct S
@@ -1836,7 +1923,7 @@ struct S
 
     void M(params object[] p)
     {
-        // rvalues are never non-moveable.
+        // rvalues always require fixing.
         M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i);
     }
 
@@ -1847,31 +1934,31 @@ struct S
 }
 ";
             var expected = @"
-No, Call 'M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'new S().i' is not a non-moveable variable
-No, FieldAccess 'new S().i' is not a non-moveable variable
-No, ObjectCreationExpression 'new S()' is not a non-moveable variable
-No, Conversion 'default(S).i' is not a non-moveable variable
-No, FieldAccess 'default(S).i' is not a non-moveable variable
-No, DefaultExpression 'default(S)' is not a non-moveable variable
-No, Conversion 'MakeS().i' is not a non-moveable variable
-No, FieldAccess 'MakeS().i' is not a non-moveable variable
-No, Call 'MakeS()' is not a non-moveable variable
-No, ThisReference 'MakeS' is not a non-moveable variable
-No, Conversion '(new S[1])[0].i' is not a non-moveable variable
-No, FieldAccess '(new S[1])[0].i' is not a non-moveable variable
-No, ArrayAccess '(new S[1])[0]' is not a non-moveable variable
-No, ArrayCreation 'new S[1]' is not a non-moveable variable
-No, Literal '1' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
+Yes, Call 'M(new S().i, default(S).i, MakeS().i, (new S[1])[0].i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'new S().i' requires fixing.
+Yes, FieldAccess 'new S().i' requires fixing.
+Yes, ObjectCreationExpression 'new S()' requires fixing.
+Yes, Conversion 'default(S).i' requires fixing.
+Yes, FieldAccess 'default(S).i' requires fixing.
+Yes, DefaultExpression 'default(S)' requires fixing.
+Yes, Conversion 'MakeS().i' requires fixing.
+Yes, FieldAccess 'MakeS().i' requires fixing.
+Yes, Call 'MakeS()' requires fixing.
+Yes, ThisReference 'MakeS' requires fixing.
+Yes, Conversion '(new S[1])[0].i' requires fixing.
+Yes, FieldAccess '(new S[1])[0].i' requires fixing.
+Yes, ArrayAccess '(new S[1])[0]' requires fixing.
+Yes, ArrayCreation 'new S[1]' requires fixing.
+Yes, Literal '1' requires fixing.
+Yes, Literal '0' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Events()
+        public void FixingVariables_Events()
         {
             var text = @"
 struct S
@@ -1896,43 +1983,43 @@ class C
 }
 ";
             var expected = @"
-No, TypeExpression 'C' is not a non-moveable variable
-No, ObjectCreationExpression 'new C()' is not a non-moveable variable
-No, TypeExpression 'S' is not a non-moveable variable
-No, ObjectCreationExpression 'new S()' is not a non-moveable variable
-No, Call 'M(c.E, c.F)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 'c.E' is not a non-moveable variable
-No, BadExpression 'c.E' is not a non-moveable variable
-No, EventAccess 'c.E' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'c.F' is not a non-moveable variable
-No, BadExpression 'c.F' is not a non-moveable variable
-No, EventAccess 'c.F' is not a non-moveable variable
-Yes, Local 'c' is a non-moveable variable with underlying symbol 'c'
-No, Call 'M(s.E, s.F)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-No, Conversion 's.E' is not a non-moveable variable
-Yes, EventAccess 's.E' is a non-moveable variable with underlying symbol 's'
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-No, Conversion 's.F' is not a non-moveable variable
-No, BadExpression 's.F' is not a non-moveable variable
-No, EventAccess 's.F' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
+Yes, TypeExpression 'C' requires fixing.
+Yes, ObjectCreationExpression 'new C()' requires fixing.
+Yes, TypeExpression 'S' requires fixing.
+Yes, ObjectCreationExpression 'new S()' requires fixing.
+Yes, Call 'M(c.E, c.F)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 'c.E' requires fixing.
+Yes, BadExpression 'c.E' requires fixing.
+Yes, EventAccess 'c.E' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'c.F' requires fixing.
+Yes, BadExpression 'c.F' requires fixing.
+Yes, EventAccess 'c.F' requires fixing.
+No, Local 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Call 'M(s.E, s.F)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+Yes, Conversion 's.E' requires fixing.
+No, EventAccess 's.E' does not require fixing. It has an underlying symbol 's'
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+Yes, Conversion 's.F' requires fixing.
+Yes, BadExpression 's.F' requires fixing.
+Yes, EventAccess 's.F' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected, expectError: true);
+            CheckIfVariablesNeedFixing(text, expected, expectError: true);
         }
 
         [Fact]
-        public void NonMoveableVariables_Lambda1()
+        public void FixingVariables_Lambda1()
         {
             var text = @"
 class C
 {
     void M(params object[] p)
     {
-        int i = 0; // NOTE: considered non-moveable even though it will be hoisted - lambdas handled separately.
+        int i = 0; // NOTE: does not require fixing even though it will be hoisted - lambdas handled separately.
         i++;
         System.Action a = () =>
         {
@@ -1943,58 +2030,58 @@ class C
 }
 ";
             var expected = string.Format(@"
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, IncrementOperator 'i++' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, TypeExpression 'System.Action' is not a non-moveable variable
-No, Conversion '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
-No, Lambda '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, IncrementOperator 'j++' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, IncrementOperator 'i++' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, TypeExpression 'System.Action' requires fixing.
+Yes, Conversion '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' requires fixing.
+Yes, Lambda '() =>{0}        {{{0}            int j = i;{0}            j++;{0}        }}' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, IncrementOperator 'j++' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Lambda2()
+        public void FixingVariables_Lambda2()
         {
             var text = @"
 class C
 {
     void M()
     {
-        int i = 0; // NOTE: considered non-moveable even though it will be hoisted - lambdas handled separately.
+        int i = 0; // NOTE: does not require fixing even though it will be hoisted - lambdas handled separately.
         i++;
         System.Func<int, System.Func<int, int>> a = p => q => p + q + i;
     }
 }
 ";
             var expected = @"
-No, TypeExpression 'int' is not a non-moveable variable
-No, Literal '0' is not a non-moveable variable
-No, IncrementOperator 'i++' is not a non-moveable variable
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
-No, TypeExpression 'System.Func<int, System.Func<int, int>>' is not a non-moveable variable
-No, Conversion 'p => q => p + q + i' is not a non-moveable variable
-No, Lambda 'p => q => p + q + i' is not a non-moveable variable
-No, Conversion 'q => p + q + i' is not a non-moveable variable
-No, Lambda 'q => p + q + i' is not a non-moveable variable
-No, BinaryOperator 'p + q + i' is not a non-moveable variable
-No, BinaryOperator 'p + q' is not a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-Yes, Parameter 'q' is a non-moveable variable with underlying symbol 'q'
-Yes, Local 'i' is a non-moveable variable with underlying symbol 'i'
+Yes, TypeExpression 'int' requires fixing.
+Yes, Literal '0' requires fixing.
+Yes, IncrementOperator 'i++' requires fixing.
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
+Yes, TypeExpression 'System.Func<int, System.Func<int, int>>' requires fixing.
+Yes, Conversion 'p => q => p + q + i' requires fixing.
+Yes, Lambda 'p => q => p + q + i' requires fixing.
+Yes, Conversion 'q => p + q + i' requires fixing.
+Yes, Lambda 'q => p + q + i' requires fixing.
+Yes, BinaryOperator 'p + q + i' requires fixing.
+Yes, BinaryOperator 'p + q' requires fixing.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+No, Parameter 'q' does not require fixing. It has an underlying symbol 'q'
+No, Local 'i' does not require fixing. It has an underlying symbol 'i'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_Dereference()
+        public void FixingVariables_Dereference()
         {
             var text = @"
 struct S
@@ -2015,40 +2102,40 @@ struct S
 }
 ";
             var expected = @"
-No, TypeExpression 'S' is not a non-moveable variable
-No, AssignmentOperator 's = *p' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-Yes, PointerIndirectionOperator '*p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, AssignmentOperator 's = p[0]' is not a non-moveable variable
-Yes, Local 's' is a non-moveable variable with underlying symbol 's'
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, Literal '0' is not a non-moveable variable
-No, TypeExpression 'int' is not a non-moveable variable
-No, AssignmentOperator 'j = (*p).i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess '(*p).i' is a non-moveable variable
-Yes, PointerIndirectionOperator '*p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, AssignmentOperator 'j = p[0].i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess 'p[0].i' is a non-moveable variable
-Yes, PointerElementAccess 'p[0]' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
-No, Literal '0' is not a non-moveable variable
-No, AssignmentOperator 'j = p->i' is not a non-moveable variable
-Yes, Local 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, FieldAccess 'p->i' is a non-moveable variable
-Yes, PointerIndirectionOperator 'p' is a non-moveable variable
-Yes, Parameter 'p' is a non-moveable variable with underlying symbol 'p'
+Yes, TypeExpression 'S' requires fixing.
+Yes, AssignmentOperator 's = *p' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+No, PointerIndirectionOperator '*p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, AssignmentOperator 's = p[0]' requires fixing.
+No, Local 's' does not require fixing. It has an underlying symbol 's'
+No, PointerElementAccess 'p[0]' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, Literal '0' requires fixing.
+Yes, TypeExpression 'int' requires fixing.
+Yes, AssignmentOperator 'j = (*p).i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess '(*p).i' does not require fixing. It has no underlying symbol.
+No, PointerIndirectionOperator '*p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, AssignmentOperator 'j = p[0].i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess 'p[0].i' does not require fixing. It has no underlying symbol.
+No, PointerElementAccess 'p[0]' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
+Yes, Literal '0' requires fixing.
+Yes, AssignmentOperator 'j = p->i' requires fixing.
+No, Local 'j' does not require fixing. It has an underlying symbol 'j'
+No, FieldAccess 'p->i' does not require fixing. It has no underlying symbol.
+No, PointerIndirectionOperator 'p' does not require fixing. It has no underlying symbol.
+No, Parameter 'p' does not require fixing. It has an underlying symbol 'p'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_StackAlloc()
+        public void FixingVariables_StackAlloc()
         {
             var text = @"
 struct S
@@ -2060,16 +2147,16 @@ struct S
 }
 ";
             var expected = @"
-No, TypeExpression 'int*' is not a non-moveable variable
-Yes, ConvertedStackAllocExpression 'stackalloc int[1]' is a non-moveable variable
-No, Literal '1' is not a non-moveable variable
+Yes, TypeExpression 'int*' requires fixing.
+No, ConvertedStackAllocExpression 'stackalloc int[1]' does not require fixing. It has no underlying symbol.
+Yes, Literal '1' requires fixing.
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_TypeParameters1()
+        public void FixingVariables_TypeParameters1()
         {
             var text = @"
 class C
@@ -2083,18 +2170,18 @@ class C
 }
 ";
             var expected = @"
-No, Call 'M(t, t.c)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 't' is a non-moveable variable with underlying symbol 't'
-No, FieldAccess 't.c' is not a non-moveable variable
-Yes, Parameter 't' is a non-moveable variable with underlying symbol 't'
+Yes, Call 'M(t, t.c)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 't' does not require fixing. It has an underlying symbol 't'
+Yes, FieldAccess 't.c' requires fixing.
+No, Parameter 't' does not require fixing. It has an underlying symbol 't'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_TypeParameters2()
+        public void FixingVariables_TypeParameters2()
         {
             var text = @"
 class D : C<S>
@@ -2116,18 +2203,18 @@ struct S
 }
 ";
             var expected = @"
-No, Call 'M(u, u.i)' is not a non-moveable variable
-No, ThisReference 'M' is not a non-moveable variable
-Yes, Parameter 'u' is a non-moveable variable with underlying symbol 'u'
-No, BadExpression 'u.i' is not a non-moveable variable
-Yes, Parameter 'u' is a non-moveable variable with underlying symbol 'u'
+Yes, Call 'M(u, u.i)' requires fixing.
+Yes, ThisReference 'M' requires fixing.
+No, Parameter 'u' does not require fixing. It has an underlying symbol 'u'
+Yes, BadExpression 'u.i' requires fixing.
+No, Parameter 'u' does not require fixing. It has an underlying symbol 'u'
 ".Trim();
 
-            CheckNonMoveableVariables(text, expected, expectError: true);
+            CheckIfVariablesNeedFixing(text, expected, expectError: true);
         }
 
         [Fact]
-        public void NonMoveableVariables_RangeVariables1()
+        public void FixingVariables_RangeVariables1()
         {
             var text = @"
 using System.Linq;
@@ -2144,33 +2231,33 @@ class C
 }
 ";
             var expected = string.Format(@"
-No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from i in array {0}            from j in array {0}            select i + j' is not a non-moveable variable
-No, QueryClause 'select i + j' is not a non-moveable variable
-No, QueryClause 'from j in array' is not a non-moveable variable
-No, Call 'from j in array' is not a non-moveable variable
-No, Conversion 'from i in array' is not a non-moveable variable
-No, QueryClause 'from i in array' is not a non-moveable variable
-Yes, Parameter 'array' is a non-moveable variable with underlying symbol 'array'
-No, QueryClause 'from j in array' is not a non-moveable variable
-No, Conversion 'array' is not a non-moveable variable
-No, Lambda 'array' is not a non-moveable variable
-No, Conversion 'array' is not a non-moveable variable
-Yes, Parameter 'array' is a non-moveable variable with underlying symbol 'array'
-No, Conversion 'i + j' is not a non-moveable variable
-No, Lambda 'i + j' is not a non-moveable variable
-No, BinaryOperator 'i + j' is not a non-moveable variable
-Yes, RangeVariable 'i' is a non-moveable variable with underlying symbol 'i'
-Yes, Parameter 'i' is a non-moveable variable with underlying symbol 'i'
-Yes, RangeVariable 'j' is a non-moveable variable with underlying symbol 'j'
-Yes, Parameter 'j' is a non-moveable variable with underlying symbol 'j'
+Yes, TypeExpression 'var' requires fixing.
+Yes, QueryClause 'from i in array {0}            from j in array {0}            select i + j' requires fixing.
+Yes, QueryClause 'select i + j' requires fixing.
+Yes, QueryClause 'from j in array' requires fixing.
+Yes, Call 'from j in array' requires fixing.
+Yes, Conversion 'from i in array' requires fixing.
+Yes, QueryClause 'from i in array' requires fixing.
+No, Parameter 'array' does not require fixing. It has an underlying symbol 'array'
+Yes, QueryClause 'from j in array' requires fixing.
+Yes, Conversion 'array' requires fixing.
+Yes, Lambda 'array' requires fixing.
+Yes, Conversion 'array' requires fixing.
+No, Parameter 'array' does not require fixing. It has an underlying symbol 'array'
+Yes, Conversion 'i + j' requires fixing.
+Yes, Lambda 'i + j' requires fixing.
+Yes, BinaryOperator 'i + j' requires fixing.
+No, RangeVariable 'i' does not require fixing. It has an underlying symbol 'i'
+No, Parameter 'i' does not require fixing. It has an underlying symbol 'i'
+No, RangeVariable 'j' does not require fixing. It has an underlying symbol 'j'
+No, Parameter 'j' does not require fixing. It has an underlying symbol 'j'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
         [Fact]
-        public void NonMoveableVariables_RangeVariables2()
+        public void FixingVariables_RangeVariables2()
         {
             var text = @"
 using System;
@@ -2212,43 +2299,43 @@ static class Extensions
 ";
 
             var expected = string.Format(@"
-No, TypeExpression 'var' is not a non-moveable variable
-No, QueryClause 'from x in c{0}                     where x > 0 //int{0}                     where x.Length < 2 //string{0}                     select char.IsLetter(x)' is not a non-moveable variable
-No, QueryClause 'select char.IsLetter(x)' is not a non-moveable variable
-No, Call 'select char.IsLetter(x)' is not a non-moveable variable
-No, QueryClause 'where x.Length < 2' is not a non-moveable variable
-No, Call 'where x.Length < 2' is not a non-moveable variable
-No, QueryClause 'where x > 0' is not a non-moveable variable
-No, Call 'where x > 0' is not a non-moveable variable
-No, QueryClause 'from x in c' is not a non-moveable variable
-Yes, Parameter 'c' is a non-moveable variable with underlying symbol 'c'
-No, Conversion 'x > 0' is not a non-moveable variable
-No, Lambda 'x > 0' is not a non-moveable variable
-No, BinaryOperator 'x > 0' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Literal '0' is not a non-moveable variable
-No, Conversion 'x.Length < 2' is not a non-moveable variable
-No, Lambda 'x.Length < 2' is not a non-moveable variable
-No, BinaryOperator 'x.Length < 2' is not a non-moveable variable
-No, PropertyAccess 'x.Length' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
-No, Literal '2' is not a non-moveable variable
-No, Conversion 'char.IsLetter(x)' is not a non-moveable variable
-No, Lambda 'char.IsLetter(x)' is not a non-moveable variable
-No, Call 'char.IsLetter(x)' is not a non-moveable variable
-No, TypeExpression 'char' is not a non-moveable variable
-Yes, RangeVariable 'x' is a non-moveable variable with underlying symbol 'x'
-Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
+Yes, TypeExpression 'var' requires fixing.
+Yes, QueryClause 'from x in c{0}                     where x > 0 //int{0}                     where x.Length < 2 //string{0}                     select char.IsLetter(x)' requires fixing.
+Yes, QueryClause 'select char.IsLetter(x)' requires fixing.
+Yes, Call 'select char.IsLetter(x)' requires fixing.
+Yes, QueryClause 'where x.Length < 2' requires fixing.
+Yes, Call 'where x.Length < 2' requires fixing.
+Yes, QueryClause 'where x > 0' requires fixing.
+Yes, Call 'where x > 0' requires fixing.
+Yes, QueryClause 'from x in c' requires fixing.
+No, Parameter 'c' does not require fixing. It has an underlying symbol 'c'
+Yes, Conversion 'x > 0' requires fixing.
+Yes, Lambda 'x > 0' requires fixing.
+Yes, BinaryOperator 'x > 0' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Literal '0' requires fixing.
+Yes, Conversion 'x.Length < 2' requires fixing.
+Yes, Lambda 'x.Length < 2' requires fixing.
+Yes, BinaryOperator 'x.Length < 2' requires fixing.
+Yes, PropertyAccess 'x.Length' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
+Yes, Literal '2' requires fixing.
+Yes, Conversion 'char.IsLetter(x)' requires fixing.
+Yes, Lambda 'char.IsLetter(x)' requires fixing.
+Yes, Call 'char.IsLetter(x)' requires fixing.
+Yes, TypeExpression 'char' requires fixing.
+No, RangeVariable 'x' does not require fixing. It has an underlying symbol 'x'
+No, Parameter 'x' does not require fixing. It has an underlying symbol 'x'
 ", GetEscapedNewLine()).Trim();
 
-            CheckNonMoveableVariables(text, expected);
+            CheckIfVariablesNeedFixing(text, expected);
         }
 
-        private static void CheckNonMoveableVariables(string text, string expected, bool expectError = false)
+        private static void CheckIfVariablesNeedFixing(string text, string expected, bool expectError = false)
         {
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             var compilationDiagnostics = compilation.GetDiagnostics();
             if (expectError != compilationDiagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
             {
@@ -2271,7 +2358,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
             var builder = ArrayBuilder<string>.GetInstance();
 
-            NonMoveableVariableVisitor.Process(block, binder, builder);
+            CheckFixingVariablesVisitor.Process(block, binder, builder);
 
 
             var actual = string.Join(Environment.NewLine, builder);
@@ -2281,12 +2368,12 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
+        private class CheckFixingVariablesVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
 
-            private NonMoveableVariableVisitor(Binder binder, ArrayBuilder<string> builder)
+            private CheckFixingVariablesVisitor(Binder binder, ArrayBuilder<string> builder)
             {
                 _binder = binder;
                 _builder = builder;
@@ -2294,7 +2381,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
 
             public static void Process(BoundBlock block, Binder binder, ArrayBuilder<string> builder)
             {
-                var visitor = new NonMoveableVariableVisitor(binder, builder);
+                var visitor = new CheckFixingVariablesVisitor(binder, builder);
                 visitor.Visit(block);
             }
 
@@ -2306,20 +2393,17 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                     var text = node.Syntax.ToString();
                     if (!string.IsNullOrEmpty(text))
                     {
-                        text = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(text, quote: false);
-                        Symbol accessedLocalOrParameterOpt;
-                        bool isNonMoveableVariable = _binder.IsNonMoveableVariable(expr, out accessedLocalOrParameterOpt);
+                        text = SymbolDisplay.FormatLiteral(text, quote: false);
 
-                        if (isNonMoveableVariable)
+                        if (_binder.IsMoveableVariable(expr, out Symbol accessedLocalOrParameterOpt))
                         {
-                            _builder.Add(string.Format("Yes, {0} '{1}' is a non-moveable variable{2}",
-                                expr.Kind,
-                                text,
-                                accessedLocalOrParameterOpt == null ? "" : string.Format(" with underlying symbol '{0}'", accessedLocalOrParameterOpt.Name)));
+                            _builder.Add($"Yes, {expr.Kind} '{text}' requires fixing.");
                         }
                         else
                         {
-                            _builder.Add(string.Format("No, {0} '{1}' is not a non-moveable variable", expr.Kind, text));
+                            _builder.Add(string.Concat($"No, {expr.Kind} '{text}' does not require fixing.", accessedLocalOrParameterOpt is null
+                                ? " It has no underlying symbol."
+                                : $" It has an underlying symbol '{accessedLocalOrParameterOpt.Name}'"));
                         }
                     }
                 }
@@ -2333,7 +2417,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             }
         }
 
-        #endregion Non-moveable variables
+        #endregion Variables that need fixing
 
         #region IsManagedType
 
@@ -2348,7 +2432,7 @@ class C
     int[][] f3;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2365,7 +2449,7 @@ unsafe class C
     void* f3;
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
@@ -2380,7 +2464,7 @@ class C
     dynamic f1;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2397,7 +2481,7 @@ class C<T>
     Garbage f3;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2413,7 +2497,7 @@ class C<T, U> where U : struct
     U f2;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2432,7 +2516,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -2453,7 +2537,7 @@ class Outer
     class Inner { }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2473,7 +2557,7 @@ class Outer<T>
     class Inner { }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
@@ -2488,13 +2572,15 @@ class C
     object f1;
     string f2;
     System.Collections.IEnumerable f3;
-    int? f4;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            foreach (var field in type.GetMembers().OfType<FieldSymbol>())
+            {
+                Assert.True(field.Type.IsManagedType, field.ToString());
+            }
         }
 
         [Fact]
@@ -2517,13 +2603,15 @@ class C
     float f12;
     double f13;
     System.IntPtr f14;
-    System.UIntPtr f14;
+    System.UIntPtr f15;
+    int? f16;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.ManagedKind);
         }
 
         [Fact]
@@ -2535,7 +2623,7 @@ class C
     void M() { }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("M");
 
@@ -2568,7 +2656,7 @@ struct R<T>
     enum E { A }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("E").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").IsManagedType);
@@ -2605,14 +2693,16 @@ struct R<T>
     struct S { }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKind);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKind);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
         }
 
         [Fact]
@@ -2632,10 +2722,60 @@ struct S<T>
     struct R { }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            // these are managed due to S`1.R being ErrorType due to protection level (CS0169)
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKind);
+            Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKind);
+        }
+
+        [Fact]
+        public void IsManagedType_GenericStruct()
+        {
+            var text = @"
+class C<U>
+{
+    S<object> f1;
+    S<int> f2;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
+        }
+
+        [Fact]
+        public void IsManagedType_GenericStruct_ErrorTypeArg()
+        {
+            var text = @"
+class C<U>
+{
+    S<Widget> f1;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
         }
 
         [Fact]
@@ -2668,7 +2808,7 @@ struct S5
     S2 s2;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
@@ -2712,7 +2852,7 @@ struct S5
     S2 s2;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
@@ -2751,7 +2891,7 @@ struct S5
     S2 s2 { get; set; }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
@@ -2795,7 +2935,7 @@ struct S5
     S2 s2 { get; set; }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
@@ -2818,7 +2958,7 @@ struct S2
     event System.Action E { add { } remove { } } // no field
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
@@ -2831,10 +2971,11 @@ struct S2
 struct X<T> { public T t; }
 struct W<T> { X<W<W<T>>> x; }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKind);
         }
 
         [Fact]
@@ -2852,7 +2993,7 @@ struct R
     S s;
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
@@ -2872,7 +3013,7 @@ struct B { C c; }
 struct C { D d; }
 struct D { A a; }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("Q").IsManagedType);
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
@@ -2885,7 +3026,7 @@ struct D { A a; }
             var text = @"
 class C { }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedType);
             Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedType);
             Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedType);
@@ -2907,7 +3048,7 @@ public unsafe struct S2
     public int i;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
                 //     public S1* s; //CS0523
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S1*").WithArguments("S1"));
@@ -2933,7 +3074,7 @@ public unsafe struct A
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A')
                 //             public A*[,][] aa; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "A*").WithArguments("A"),
@@ -2957,7 +3098,7 @@ public unsafe struct S
     public object o;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     public Alias* s; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "Alias*").WithArguments("S"));
@@ -2981,7 +3122,7 @@ public unsafe struct S
     public object o;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     S* M() { return M(); }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
@@ -3012,7 +3153,135 @@ public unsafe struct S
     partial void M(S *p) { }
     partial void M(S *p);
 }";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IsUnmanagedTypeSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+struct S1 { }
+struct S2 { public S1 F1; }
+struct S3 { public object F1; }
+struct S4<T> { public T F1; }
+struct S5<T> where T : unmanaged { public T F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        var s1 = new S1();
+        var s2 = new S2();
+        var s3 = new S3();
+        var s4_0 = new S4<int>();
+        var s4_1 = new S4<object>();
+        var s4_2 = new S4<U>();
+        var s5 = new S5<int>();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>;
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}");
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+            // The spec states the following are unmanaged types:
+            // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
+            // Any enum_type.
+            // Any pointer_type.
+            // Any user-defined struct_type that contains fields of unmanaged_types only.
+            // A type parameter with an unmanaged constraint
+            Assert.True(getLocalType("s1").IsUnmanagedType);
+            Assert.True(getLocalType("s2").IsUnmanagedType);
+            Assert.False(getLocalType("s3").IsUnmanagedType);
+            Assert.True(getLocalType("s4_0").IsUnmanagedType);
+            Assert.False(getLocalType("s4_1").IsUnmanagedType);
+            Assert.True(getLocalType("s4_2").IsUnmanagedType);
+            Assert.True(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("i0").IsUnmanagedType);
+            Assert.True(getLocalType("e1").IsUnmanagedType);
+            Assert.False(getLocalType("o1").IsUnmanagedType);
+            Assert.False(getLocalType("c1").IsUnmanagedType);
+            Assert.False(getLocalType("t1").IsUnmanagedType);
+            Assert.True(getLocalType("u1").IsUnmanagedType);
+            Assert.True(getLocalType("p1").IsUnmanagedType);
+            Assert.False(getLocalType("a1").IsUnmanagedType);
+            Assert.False(getLocalType("a2").IsUnmanagedType);
+            Assert.True(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
+        public void GenericStructPrivateFieldInMetadata()
+        {
+            var externalCode = @"
+public struct External<T>
+{
+    private T field;
+}
+";
+            var metadata = CreateCompilation(externalCode).EmitToImageReference();
+
+            var code = @"
+public class C
+{
+    public unsafe void M<T, U>() where T : unmanaged
+    {
+        var good = new External<int>();
+        var goodPtr = &good;
+
+        var good2 = new External<T>();
+        var goodPtr2 = &good2;
+
+        var bad = new External<object>();
+        var badPtr = &bad;
+
+        var bad2 = new External<U>();
+        var badPtr2 = &bad2;
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(code, TestOptions.Regular);
+            var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics(
+                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                //         var badPtr = &bad;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                //         var badPtr2 = &bad2;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+            );
+
+            var model = compilation.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("good").IsUnmanagedType);
+            Assert.True(getLocalType("good2").IsUnmanagedType);
+            Assert.False(getLocalType("bad").IsUnmanagedType);
+            Assert.False(getLocalType("bad2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
         }
 
         #endregion IsManagedType
@@ -3034,7 +3303,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3052,7 +3321,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3094,7 +3363,7 @@ struct S3
     public int x;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(529267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529267")]
@@ -3117,7 +3386,7 @@ unsafe class C
 }
 ";
             // NOTE: this is a breaking change - dev10 allows this.
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,50): error CS0211: Cannot take the address of the given expression
                 //         var z = from x in new int[2] select Goo(&x);
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
@@ -3163,7 +3432,7 @@ struct S : System.IDisposable
     public void Dispose() { }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0211: Cannot take the address of the given expression
                 //         p = &x; //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(13, 14),
@@ -3260,7 +3529,7 @@ enum Color
     Red,
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (76,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         var aa = &this; //CS0212 (need fixed)
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&this").WithLocation(76, 18),
@@ -3408,7 +3677,7 @@ public struct S
     public string s;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
                 //         var p0 = &t; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&t").WithArguments("T"),
@@ -3442,7 +3711,7 @@ public struct S
     public object o;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0523: Struct member 'S.s' of type 'S' causes a cycle in the struct layout
                 //     public S s; //CS0523
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S"),
@@ -3452,7 +3721,7 @@ public struct S
         }
 
         [Fact]
-        public void AddressOfMoveableVariable()
+        public void AddressOfVariablesThatRequireFixing()
         {
             var text = @"
 class Base
@@ -3487,7 +3756,7 @@ unsafe class Derived : Base
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (17,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         p = &instanceField; //CS0212
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&instanceField"),
@@ -3544,7 +3813,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (15,17): error CS0170: Use of possibly unassigned field 'y'
                 //         int y = s.y; //cs0170 (uninitialized)
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.y").WithArguments("y"));
@@ -3564,7 +3833,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,11): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         M(&x, () => { x++; });
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x"));
@@ -3584,7 +3853,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,18): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         int* p = &x;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x"));
@@ -3603,7 +3872,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,28): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         M(() => { int* p = &x; }); // in lambda
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x"));
@@ -3624,7 +3893,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,28): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         M(() => { int* p = &x; }); // in lambda
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x"));
@@ -3646,7 +3915,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,18): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         int* p = &s.x; //before capture
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.x").WithArguments("s"));
@@ -3669,7 +3938,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,18): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         int* p = &s.x; //after capture
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.x").WithArguments("s"));
@@ -3690,7 +3959,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,28): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         M(() => { int* p = &s.x; }); // in lambda
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.x").WithArguments("s"));
@@ -3713,7 +3982,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,18): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //         int* p = &s.x; //only report the first
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.x").WithArguments("s"));
@@ -3737,7 +4006,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,23): error CS1686: Local 'x' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
                 //             int* p1 = &x;
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&x").WithArguments("x"),
@@ -3764,13 +4033,13 @@ unsafe public struct Test
         return d();
     }
 }";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "t.i").WithArguments("t")
                 );
         }
 
         [Fact]
-        public void AddressOfCapturedMoveable1()
+        public void AddressOfCapturedFixed1()
         {
             var text = @"
 unsafe class C
@@ -3779,32 +4048,32 @@ unsafe class C
 
     void M(System.Action a)
     {
-        fixed(int* p = &x) //fine - error only applies to non-moveable variables
+        fixed(int* p = &x) //fine - error only applies to variables that require fixing
         {
             M(() => x++);
         }
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
-        public void AddressOfCapturedMoveable2()
+        public void AddressOfCapturedFixed2()
         {
             var text = @"
 unsafe class C
 {
     void M(ref int x, System.Action a)
     {
-        fixed (int* p = &x) //fine - error only applies to non-moveable variables
+        fixed (int* p = &x) //fine - error only applies to variables that require fixing
         {
             M(ref x, () => x++);
         }
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,28): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
                 //             M(ref x, () => x++);
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x"));
@@ -3827,7 +4096,7 @@ public class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 //(9,27): error CS0828: Cannot assign int* to anonymous type property
                 //             p1 = &x
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "p1 = &x").WithArguments("int*"));
@@ -3850,7 +4119,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion AddressOf diagnostics
@@ -3870,7 +4139,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3907,7 +4176,7 @@ unsafe struct S
     public object o;
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3936,7 +4205,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -3974,7 +4243,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4012,7 +4281,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4053,7 +4322,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4068,7 +4337,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0193: The * or -> operator must be applied to a pointer
                 //         int x = *null;
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*null"));
@@ -4087,7 +4356,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,17): error CS0193: The * or -> operator must be applied to a pointer
                 //         int x = *p;
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*p"));
@@ -4105,7 +4374,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0242: The operation in question is undefined on void pointers
                 //         var x = *p;
                 Diagnostic(ErrorCode.ERR_VoidError, "*p"));
@@ -4124,7 +4393,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,18): error CS0165: Use of unassigned local variable 'p'
                 //         int x = *p;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "p").WithArguments("p"));
@@ -4148,7 +4417,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4185,7 +4454,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4202,7 +4471,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4217,7 +4486,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,20): error CS0193: The * or -> operator must be applied to a pointer
                 //         string x = null->ToString(); //Roslyn: CS0193 / Dev10: CS0023
                 Diagnostic(ErrorCode.ERR_PtrExpected, "null->ToString"));
@@ -4235,7 +4504,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,20): error CS0193: The * or -> operator must be applied to a pointer
                 //         string x = M->ToString(); //Roslyn: CS0193 / Dev10: CS0023
                 Diagnostic(ErrorCode.ERR_PtrExpected, "M->ToString"));
@@ -4253,7 +4522,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,20): error CS0193: The * or -> operator must be applied to a pointer
                 //         string x = (z => z)->ToString(); //Roslyn: CS0193 / Dev10: CS0023
                 Diagnostic(ErrorCode.ERR_PtrExpected, "(z => z)->ToString"));
@@ -4272,7 +4541,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,17): error CS0193: The * or -> operator must be applied to a pointer
                 //         int x = p->GetHashCode();
                 Diagnostic(ErrorCode.ERR_PtrExpected, "p->GetHashCode"));
@@ -4290,7 +4559,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0242: The operation in question is undefined on void pointers
                 //         var x = p->GetHashCode();
                 Diagnostic(ErrorCode.ERR_VoidError, "p->GetHashCode"));
@@ -4309,7 +4578,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,18): error CS0165: Use of unassigned local variable 'p'
                 //         int x = *p;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "p").WithArguments("p"));
@@ -4367,22 +4636,22 @@ static class Extensions
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (26,9): error CS0176: Member 'S.StaticField' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticField = 1; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticField").WithArguments("S.StaticField"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticField").WithArguments("S.StaticField").WithLocation(26, 9),
                 // (29,9): error CS0176: Member 'S.StaticProperty' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticProperty = 2; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticProperty").WithArguments("S.StaticProperty"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticProperty").WithArguments("S.StaticProperty").WithLocation(29, 9),
                 // (32,9): error CS0176: Member 'S.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticMethod(); //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()").WithLocation(32, 9),
                 // (38,13): error CS0176: Member 'S.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         a = p->StaticMethod; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()").WithLocation(38, 13),
                 // (39,13): error CS1113: Extension method 'Extensions.ExtensionMethod(S)' defined on value type 'S' cannot be used to create delegates
                 //         a = p->ExtensionMethod; //CS1113
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "p->ExtensionMethod").WithArguments("Extensions.ExtensionMethod(S)", "S")
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "p->ExtensionMethod").WithArguments("Extensions.ExtensionMethod(S)", "S").WithLocation(39, 13)
                 );
         }
 
@@ -4412,7 +4681,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
@@ -4458,7 +4727,7 @@ struct S
     public void M(int x) { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4470,7 +4739,7 @@ struct S
             var callSyntax = syntax.Parent;
 
             var structType = compilation.GlobalNamespace.GetMember<TypeSymbol>("S");
-            var structPointerType = new PointerTypeSymbol(structType);
+            var structPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(structType));
             var structMethod1 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 0);
             var structMethod2 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 1);
 
@@ -4525,7 +4794,7 @@ struct S
     public void M(int x) { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4584,7 +4853,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0443: Syntax error; value expected
                 //         S s = p[];
                 Diagnostic(ErrorCode.ERR_ValueExpected, "]"));
@@ -4602,7 +4871,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,15): error CS0196: A pointer must be indexed by only one value
                 //         S s = p[1, 2];
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "p[1, 2]"));
@@ -4622,7 +4891,7 @@ unsafe struct S
 }
 ";
             // Dev10 gives an unhelpful syntax error.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,21): error CS1615: Argument 1 should not be passed with the 'ref' keyword
                 //         S s = p[ref x];
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref"));
@@ -4642,7 +4911,7 @@ unsafe struct S
 }
 ";
             // Dev10 gives an unhelpful syntax error.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,21): error CS1615: Argument 1 should not be passed with the 'out' keyword
                 //         S s = p[out x];
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out"));
@@ -4661,7 +4930,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,15): error CS1742: An array access may not have a named argument specifier
                 //         S s = p[index: x];
                 Diagnostic(ErrorCode.ERR_NamedArgumentForArray, "p[index: x]"));
@@ -4679,10 +4948,73 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,9): error CS0242: The operation in question is undefined on void pointers
                 //         p[0] = null;
                 Diagnostic(ErrorCode.ERR_VoidError, "p"));
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Static()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static int* x;
+
+    static void Main()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Instance()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    int* x;
+
+    void Calculate()
+    {
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(27945, "https://github.com/dotnet/roslyn/issues/27945")]
+        public void TakingAddressOfPointerFieldsIsLegal_Local()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    static void Main()
+    {
+        int* x;
+
+        fixed (int* y = new int[1])
+        {
+            x = y;
+        }
+
+        int* element = &x[0];
+        *element = 5;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion PointerElementAccess diagnostics
@@ -4708,7 +5040,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4720,7 +5052,7 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(intType);
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
@@ -4756,6 +5088,123 @@ unsafe class C
             Assert.Equal(0, accessSummary.MethodGroup.Length);
         }
 
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Unmovable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    void M()
+    {
+        S1 p = default;
+
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
+        [Fact]
+        public void PointerElementAccessSemanticModelAPIs_Fixed_Movable()
+        {
+            var text = @"
+unsafe class C
+{
+    struct S1
+    {
+        public fixed int f[10];
+    }
+
+    S1 p = default;
+    void M()
+    {
+        p.f[i] = 123;
+    }
+}
+";
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            Assert.Equal(SyntaxKind.ElementAccessExpression, syntax.Kind());
+
+            var receiverSyntax = syntax.Expression;
+            var indexSyntax = syntax.ArgumentList.Arguments.Single().Expression;
+            var accessSyntax = syntax;
+
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
+
+            var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
+            var receiverSymbol = receiverSummary.Symbol;
+            Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
+            Assert.Equal("f", receiverSymbol.Name);
+            Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
+            Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
+            Assert.Equal(intPointerType, receiverSummary.Type);
+            Assert.Equal(intPointerType, receiverSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, receiverSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, receiverSummary.MethodGroup.Length);
+
+            var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
+            var indexSymbol = indexSummary.Symbol;
+            Assert.Null(indexSymbol);
+
+            var accessSummary = model.GetSemanticInfoSummary(accessSyntax);
+            Assert.Null(accessSummary.Symbol);
+            Assert.Equal(CandidateReason.None, accessSummary.CandidateReason);
+            Assert.Equal(0, accessSummary.CandidateSymbols.Length);
+            Assert.Equal(intType, accessSummary.Type);
+            Assert.Equal(intType, accessSummary.ConvertedType);
+            Assert.Equal(ConversionKind.Identity, accessSummary.ImplicitConversion.Kind);
+            Assert.Equal(0, accessSummary.MethodGroup.Length);
+        }
+
         #endregion PointerElementAccess SemanticModel tests
 
         #region Pointer conversion tests
@@ -4776,7 +5225,7 @@ unsafe struct S
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4812,7 +5261,7 @@ unsafe struct S
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4853,7 +5302,7 @@ unsafe struct S
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,22): error CS0266: Cannot implicitly convert type 'void*' to 'void**'. An explicit conversion exists (are you missing a cast?)
                 //         void** vv4 = vv3;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "vv3").WithArguments("void*", "void**"));
@@ -4906,7 +5355,7 @@ unsafe struct S
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4956,7 +5405,7 @@ unsafe struct S
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4994,7 +5443,7 @@ unsafe struct S
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,13): error CS0030: Cannot convert type 'int*' to 'bool'
                 //         b = (bool)pi;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(bool)pi").WithArguments("int*", "bool"),
@@ -5104,7 +5553,7 @@ unsafe struct S
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (24,14): error CS0030: Cannot convert type 'sbyte?' to 'int*'
                 //         pi = (int*)sb;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int*)sb").WithArguments("sbyte?", "int*"),
@@ -5181,7 +5630,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,15): error CS0266: Cannot implicitly convert type 'System.Array' to 'int*[]'. An explicit conversion exists (are you missing a cast?)
                 //         api = a; //CS0266
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("System.Array", "int*[]"),
@@ -5222,7 +5671,7 @@ unsafe class C
 ";
 
             // NOTE: dev10 also reports some rather silly cascading CS0266s.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,9): error CS0306: The type 'int*' may not be used as a type argument
                 //         To(api);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "To").WithArguments("int*"),
@@ -5254,7 +5703,7 @@ unsafe class C
 ";
 
             // NOTE: as in Dev10, there's a runtime error if you try to access an element.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion Pointer conversion tests
@@ -5288,7 +5737,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -5337,7 +5786,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -5375,7 +5824,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,13): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'byte*'
                 //         p = i - p;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i - p").WithArguments("-", "int", "byte*"),
@@ -5419,7 +5868,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,13): error CS0019: Operator '-' cannot be applied to operands of type 'byte*' and 'int*'
                 //         l = b - i;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "b - i").WithArguments("-", "byte*", "int*"),
@@ -5486,7 +5935,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,19): error CS0019: Operator '*' cannot be applied to operands of type 'byte*' and 'int'
                 //         var r01 = p * i;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p * i").WithArguments("*", "byte*", "int"),
@@ -5553,7 +6002,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5574,7 +6023,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5590,7 +6039,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,13): error CS0019: Operator '+' cannot be applied to operands of type 'int*' and 'int?'
                 //         p = p + i;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p + i").WithArguments("+", "int*", "int?"));
@@ -5614,7 +6063,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5634,7 +6083,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,20): error CS0242: The operation in question is undefined on void pointers
                 //         var diff = p - p;
                 Diagnostic(ErrorCode.ERR_VoidError, "p - p"),
@@ -5672,7 +6121,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (10,13): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'void**'
                 //         p = 1 - p;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - p").WithArguments("-", "int", "void**"));
@@ -5697,7 +6146,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5740,7 +6189,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -5792,7 +6241,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5836,7 +6285,7 @@ unsafe class C
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,18): error CS0019: Operator '==' cannot be applied to operands of type 'char*' and 'int'
                 //         result = p == i;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p == i").WithArguments("==", "char*", "int"),
@@ -5931,7 +6380,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (int p = &x) //not a pointer
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "p = &x"));
@@ -5951,7 +6400,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,21): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 //         fixed (int* p) //missing initializer
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "p"));
@@ -5973,7 +6422,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,20): error CS0821: Implicitly-typed local variables cannot be fixed
                 //         fixed (var p = &x) //implicitly typed
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, "p = &x"));
@@ -5999,7 +6448,7 @@ class var
 {
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,20): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (var p = &x) //not implicitly typed
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "p = &x"));
@@ -6021,7 +6470,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,29): error CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement
                 //         fixed (int* p = &x, var q = p) //multiple declarations (vs declarators)
                 Diagnostic(ErrorCode.ERR_MultiTypeInDeclaration, "var"),
@@ -6071,7 +6520,7 @@ class NotString
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,22): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
                 //     public NotString n;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null"));
@@ -6105,7 +6554,7 @@ class NotArray
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
                 //     public NotArray n;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null"));
@@ -6144,16 +6593,16 @@ class NotPointer
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,26): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (byte* p = (byte*)&x)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(byte*)&x").WithLocation(9, 26),
-                // (13,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(byte*)&x").WithLocation(9, 26),
+                // (13,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n").WithLocation(13, 25),
-                // (17,25): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "n").WithLocation(13, 25),
+                // (17,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (int*)n)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)n").WithLocation(17, 25),
                 // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
                 //     public NotPointer n;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null").WithLocation(5, 23)
@@ -6184,7 +6633,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (15,42): error CS1764: Cannot use fixed local 'p' inside an anonymous method, lambda expression, or query expression
                 //             a = () => Console.WriteLine(*p);
                 Diagnostic(ErrorCode.ERR_FixedLocalInLambda, "p").WithArguments("p"),
@@ -6219,7 +6668,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (15,34): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         fixed (int* px = &(p.a[*(&p.x)])) //CS0212
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&p.x"),
@@ -6242,10 +6691,14 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
-                //         fixed (int* p = stackalloc int[2])
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "stackalloc int[2]"));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
         }
 
         [Fact]
@@ -6269,7 +6722,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,33): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* q = &f, r = &q[1]) //CS0213
                 Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&q[1]"),
@@ -6314,10 +6767,10 @@ class Program
 }
 ";
             // Confusing, but matches Dev10.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = null)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "null").WithLocation(6, 25),
                 // (10,26): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &null)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "null").WithLocation(10, 26),
@@ -6327,9 +6780,9 @@ class Program
                 // (18,26): error CS0103: The name '_' does not exist in the current context
                 //         fixed (int* p = &_)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
-                // (22,25): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                // (22,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = ()=>throw null)
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>throw null").WithArguments("lambda expression", "int*").WithLocation(22, 25),
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "()=>throw null").WithLocation(22, 25),
                 // (26,27): error CS0211: Cannot take the address of the given expression
                 //         fixed (int* p = &(()=>throw null))
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "()=>throw null").WithLocation(26, 27)
@@ -6350,10 +6803,10 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,26): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,26): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = (x => x))
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "x => x").WithLocation(6, 26));
         }
 
         [Fact]
@@ -6370,10 +6823,10 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0428: Cannot convert method group 'Main' to non-delegate type 'int*'. Did you intend to invoke the method?
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = Main)
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "int*"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "Main").WithLocation(6, 25));
         }
 
         [Fact]
@@ -6400,7 +6853,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (16,25): error CS0266: Cannot implicitly convert type 'char*' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         fixed (int* p = s) //can't convert char* to int*
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "s").WithArguments("char*", "int*"));
@@ -6422,10 +6875,63 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         fixed (void* p = a)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("string"));
+        }
+
+        [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+        a[0].field = 42;
+
+        fixed (MyStruct<int>* p = a)
+        {
+            System.Console.Write(p->field);
+        }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct_RequiresCSharp8()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+
+        fixed (void* p = a)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         fixed (void* p = a)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
         }
 
         [Fact]
@@ -6452,7 +6958,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (16,25): error CS0266: Cannot implicitly convert type 'char*' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         fixed (int* p = a) //can't convert char* to int*
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("char*", "int*"));
@@ -6482,7 +6988,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (16,25): error CS0266: Cannot implicitly convert type 'char*' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         fixed (int* p = a) //can't convert char* to int*
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("char*", "int*"));
@@ -6504,7 +7010,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('char[]')
                 //         fixed (void* p = a) //char[]* is not a valid type
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("char[]"));
@@ -6534,7 +7040,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -6545,6 +7051,7 @@ unsafe class C
             {
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
+                Assert.True(((ILocalSymbol)symbol).IsFixed);
                 TypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
@@ -6574,13 +7081,13 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(charSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6646,15 +7153,15 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(charSymbol);
+            var charPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(charSymbol));
             var voidSymbol = compilation.GetSpecialType(SpecialType.System_Void);
-            var voidPointerSymbol = new PointerTypeSymbol(voidSymbol);
+            var voidPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(voidSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6713,7 +7220,7 @@ public struct S
     public string s;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
                 //         x = sizeof(T); //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(T)").WithArguments("T"),
@@ -6807,7 +7314,7 @@ struct S
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,22): error CS1629: Unsafe code may not appear in iterators
                 //         yield return sizeof(S);
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(S)"));
@@ -6831,7 +7338,7 @@ unsafe struct S
 }
 ";
             // Not identical to Dev10, but same meaning.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,20): error CS0118: 's' is a variable but is used like a type
                 //         i = sizeof(s);
                 Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type"),
@@ -6862,7 +7369,7 @@ unsafe struct S
 }
 ";
             // Not identical to Dev10, but same meaning.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,20): error CS1547: Keyword 'void' cannot be used in this context
                 //         i = sizeof(void);
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
@@ -6913,7 +7420,7 @@ class Program
     int F1 = sizeof(null);
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (4,21): error CS1031: Type expected
             //     int F1 = sizeof(null);
             Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
@@ -6975,7 +7482,7 @@ class Program
 }
 ";
             // NB: not unsafe
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7038,7 +7545,7 @@ enum E2 : long
 }
 ";
             // NB: not unsafe
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7099,7 +7606,7 @@ struct Outer
 }
 ";
             // NB: not unsafe
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7176,7 +7683,7 @@ struct S
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (6,17): error CS1629: Unsafe code may not appear in iterators
                 //         var p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "stackalloc int[1]"));
@@ -7194,7 +7701,7 @@ unsafe struct S
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,33): error CS0247: Cannot use a negative size with stackalloc
                 //         int* p = stackalloc int[-1];
                 Diagnostic(ErrorCode.ERR_NegativeStackAllocSize, "-1"));
@@ -7276,7 +7783,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (17,30): error CS0255: stackalloc may not be used in a catch or finally block
                 //                     int* q = stackalloc int[1]; //CS0255
                 Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[1]"),
@@ -7373,7 +7880,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (17,30): error CS0255: stackalloc may not be used in a catch or finally block
                 //                     int* q = stackalloc int[1]; //CS0255
                 Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[1]"),
@@ -7406,7 +7913,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,29): error CS1575: A stackalloc expression requires [] after type
                 //         int* p = stackalloc int;
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"));
@@ -7429,7 +7936,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,35): error CS0266: Cannot implicitly convert type 'long' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         { int* p = stackalloc int[1L]; } //CS0266 (could cast), even though constant value is fine
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "int"),
@@ -7462,34 +7969,38 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,31): error CS1575: A stackalloc expression requires [] after type
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[]"),
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]"),
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]"),
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]"),
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]"),
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]"),
-
-                // CONSIDER: these are plausible, but not ideal.
-
-                // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"));
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
+                );
         }
 
         [Fact]
@@ -7511,7 +8022,17 @@ unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //         { var p = (int*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
+                //         { var p = (void*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
+                //         { var p = (C)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
@@ -7532,10 +8053,16 @@ unsafe class C
     int* p = stackalloc int[1];
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc").WithArguments("stackalloc in nested expressions").WithLocation(4, 14)
+                );
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
+            );
         }
 
         [Fact]
@@ -7549,10 +8076,10 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,21): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,21): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stackalloc int[1]").WithArguments("p").WithLocation(4, 21)
             );
         }
 
@@ -7570,19 +8097,47 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
-        public void StackAllocNotExpression_GlobalDeclaration()
+        public void StackAllocNotExpression_GlobalDeclaration_01()
         {
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                // unsafe int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(2, 17)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_02()
+        {
+            var text = @"
+using System;
+Span<int> p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // Span<int> p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(3, 1)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_03()
+        {
+            var text = @"
+var p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // var p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "var").WithArguments("System.Span<int>").WithLocation(2, 1)
+            );
         }
 
         #endregion stackalloc diagnostic tests
@@ -7602,7 +8157,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7669,10 +8224,7 @@ class C
   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Goo3.Struct1<int>')
-                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Goo3.Struct1<int>*").WithArguments("C.Goo3.Struct1<int>").WithLocation(8, 67));
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
 
@@ -7686,7 +8238,7 @@ unsafe class Test
 	static volatile int *px;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,23): warning CS0169: The field 'Test.px' is never used
                 // 	static volatile int *px;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "px").WithArguments("Test.px"));
@@ -7718,8 +8270,8 @@ class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b")
             };
 
-            CreateStandardCompilation(text).VerifyDiagnostics(expected);
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
+            CreateCompilation(text).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
         }
 
         [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
@@ -7769,8 +8321,8 @@ class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
             };
 
-            CreateStandardCompilation(text).VerifyDiagnostics(expected);
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
+            CreateCompilation(text).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
         }
 
         [WorkItem(544003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544003")]
@@ -7810,8 +8362,8 @@ class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
             };
 
-            CreateStandardCompilation(text).VerifyDiagnostics(expected);
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
+            CreateCompilation(text).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
         }
 
         #endregion PointerTypes tests
@@ -7828,7 +8380,7 @@ public struct Test
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(tree, options: TestOptions.UnsafeReleaseDll);
             var model = comp.GetSemanticModel(tree);
 
             model.GetDiagnostics().Verify();
@@ -7850,7 +8402,7 @@ struct C
     }
 }
 ";
-            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
                 // (4,44): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     unsafe static public implicit operator long*(C* i)
@@ -7876,7 +8428,7 @@ unsafe class C
     volatile int* p; //Spec section 18.2 specifically allows this.
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,19): warning CS0169: The field 'C.p' is never used
                 //     volatile int* p; //Spec section 18.2 specifically allows this.
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "p").WithArguments("C.p"));
@@ -7898,7 +8450,7 @@ unsafe class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7925,7 +8477,7 @@ class C
 }
 ";
             var tree = Parse(sourceCode);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(tree, options: TestOptions.UnsafeReleaseDll);
             var model = comp.GetSemanticModel(tree);
 
             model.GetDiagnostics().Verify();
@@ -7944,7 +8496,7 @@ unsafe class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '.' cannot be applied to operand of type 'int*'
                 //        i1.ToString();
@@ -7961,7 +8513,7 @@ class C<T>
     unsafe E* ptr;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,15): warning CS0169: The field 'C<T>.ptr' is never used
                 //     unsafe E* ptr;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "ptr").WithArguments("C<T>.ptr"));
@@ -7984,7 +8536,7 @@ public class Test
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,27): error CS0244: Neither 'is' nor 'as' is valid on pointer types
                 //         Console.WriteLine(t as int*); // pointer
                 Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "t as int*"),
@@ -8036,7 +8588,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0030: Cannot convert type 'object' to 'int*'
                 //         var x = (int*)obj;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int*)obj").WithArguments("object", "int*"));
@@ -8053,7 +8605,7 @@ class C
         public fixed int FixedbuffInt[1024];
     }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -8076,7 +8628,7 @@ class C
     public fixed double _Type11[10];  
     }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -8135,7 +8687,7 @@ class Program
 {
   // Code size       34 (0x22)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8164,7 +8716,7 @@ class Program
 {
   // Code size       46 (0x2e)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8251,7 +8803,7 @@ class Program
 {
   // Code size       47 (0x2f)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8280,7 +8832,7 @@ class Program
 {
   // Code size       35 (0x23)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8338,7 +8890,7 @@ unsafe struct S
     fixed[
 }
 ";
-            var s = CreateStandardCompilation(text).GlobalNamespace.GetMember<TypeSymbol>("S");
+            var s = CreateCompilation(text).GlobalNamespace.GetMember<TypeSymbol>("S");
             foreach (var member in s.GetMembers())
             {
                 var field = member as FieldSymbol;
@@ -8409,8 +8961,8 @@ namespace ConsoleApplication30
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
-                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails,
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
 
@@ -8462,7 +9014,7 @@ namespace ConsoleApplication30
             // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
-                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 
         [Fact]
@@ -8556,7 +9108,7 @@ class Program
         [Fact]
         public void CannotTakeAddressOfRefReadOnlyParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     unsafe void M(in int p)
@@ -8571,5 +9123,144 @@ public class Test
         }
 
         #endregion
+
+        [Fact]
+        public void AddressOfFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf) {}
+        fixed (int* b = &s_f.Buf) {}
+        int* c = &s.Buf;
+        int* d = &s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf").WithLocation(12, 25),
+                // (13,26): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         fixed (int* b = &s_f.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 26),
+                // (14,18): error CS0266: Cannot implicitly convert type 'int**' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         int* c = &s.Buf;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "&s.Buf").WithArguments("int**", "int*").WithLocation(14, 18),
+                // (15,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = &s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 19));
+        }
+
+        [Fact]
+        public void FixedFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = s.Buf) {}
+        fixed (int* b = s_f.Buf) {}
+        int* c = s.Buf;
+        int* d = s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = s.Buf) {}
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "s.Buf").WithLocation(12, 25),
+                // (15,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int* d = s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void NoPointerDerefMoveableFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        int x = *s.Buf;
+        int y = *s_f.Buf;
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (13,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //         int y = *s_f.Buf;
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "s_f.Buf").WithLocation(13, 18));
+        }
+
+        [Fact]
+        public void AddressOfElementAccessFixedSizeBuffer()
+        {
+            CreateCompilation(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+
+unsafe class C
+{
+    static S s_f;
+    void M(S s)
+    {
+        fixed (int* a = &s.Buf[0]) { }
+        fixed (int* b = &s_f.Buf[0]) { }
+        int* c = &s.Buf[0];
+        int* d = &s_f.Buf[0];
+        int* e = &(s.Buf[0]);
+        int* f = &(s_f.Buf[0]);
+    }
+}", options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (12,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                //         fixed (int* a = &s.Buf[0]) { }
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&s.Buf[0]").WithLocation(12, 25),
+                // (15,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* d = &s_f.Buf[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s_f.Buf[0]").WithLocation(15, 18),
+                // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* f = &(s_f.Buf[0]);
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
+
+        [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
+        public void Repro_34693()
+        {
+            var csharp = @"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public PROPVARIANT* pElems;
+    }
+}";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
     }
 }

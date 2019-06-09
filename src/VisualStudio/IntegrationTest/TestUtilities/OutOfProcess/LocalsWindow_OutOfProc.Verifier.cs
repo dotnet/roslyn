@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void CheckEntry(string entryName, string expectedType, string expectedValue)
             {
-                var entry =_localsWindow._localsWindowInProc.GetEntry(entryName);
+                var entry = _localsWindow._localsWindowInProc.GetEntry(entryName);
                 Assert.Equal(expectedType, entry.Type);
                 Assert.Equal(expectedValue, entry.Value);
             }

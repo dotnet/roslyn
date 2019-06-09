@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -19,35 +20,45 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
         private IGlobalOptionService _optionService;
-        private IRemoteHostClientService _remoteHostClientService;
+        private IThreadingContext _threadingContext;
+        private IRemoteHostClientService _remoteService;
 
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             if (_optionService == null)
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
+
                 _optionService = componentModel.GetService<IGlobalOptionService>();
+                _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _remoteHostClientService = workspace.Services.GetService<IRemoteHostClientService>();
+                _remoteService = workspace.Services.GetService<IRemoteHostClientService>();
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             base.OnApply(e);
 
-            var loggerTypes = GetLoggerTypes().ToList();
+            SetLoggers(_optionService, _threadingContext, _remoteService);
+        }
+
+        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientService remoteService)
+        {
+            var loggerTypes = GetLoggerTypes(optionService).ToList();
 
             // first set VS options
-            var options = Logger.GetLoggingChecker(_optionService);
+            var options = Logger.GetLoggingChecker(optionService);
+
             SetRoslynLogger(loggerTypes, () => new EtwLogger(options));
             SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
+            SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
 
             // second set RemoteHost options
-            var client = _remoteHostClientService.TryGetRemoteHostClientAsync(CancellationToken.None).Result;
+            var client = threadingContext.JoinableTaskFactory.Run(() => remoteService.TryGetRemoteHostClientAsync(CancellationToken.None));
             if (client == null)
             {
                 // Remote host is disabled
@@ -55,11 +66,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
 
             var functionIds = GetFunctionIds(options).ToList();
-            var unused = client.TryRunRemoteAsync(
+
+            _ = threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
                 new object[] { loggerTypes, functionIds },
-                CancellationToken.None).Result;
+                CancellationToken.None));
         }
 
         private static IEnumerable<string> GetFunctionIds(Func<FunctionId, bool> options)
@@ -73,16 +85,21 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
         }
 
-        private IEnumerable<string> GetLoggerTypes()
+        private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService optionService)
         {
-            if (_optionService.GetOption(LoggerOptions.EtwLoggerKey))
+            if (optionService.GetOption(LoggerOptions.EtwLoggerKey))
             {
                 yield return nameof(EtwLogger);
             }
 
-            if (_optionService.GetOption(LoggerOptions.TraceLoggerKey))
+            if (optionService.GetOption(LoggerOptions.TraceLoggerKey))
             {
                 yield return nameof(TraceLogger);
+            }
+
+            if (optionService.GetOption(LoggerOptions.OutputWindowLoggerKey))
+            {
+                yield return nameof(OutputWindowLogger);
             }
         }
 

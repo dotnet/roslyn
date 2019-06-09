@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.Operations
     internal interface IFixedOperation : IOperation
     {
         /// <summary>
+        /// Locals declared.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
+        /// <summary>
         /// Variables to be fixed.
         /// </summary>
         IVariableDeclarationGroupOperation Variables { get; }

@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ContainingClosureOpt = containingClosure;
                 }
 
+                /// <summary>
+                /// Is it safe to move any of the variables declared in this scope to the parent scope, 
+                /// or would doing so change the meaning of the program?
+                /// </summary>
+                public bool CanMergeWithParent { get; internal set; } = true;
+
                 public void Free()
                 {
                     foreach (var scope in NestedScopes)
@@ -160,11 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class ClosureEnvironment
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
-                
+
                 /// <summary>
                 /// True if this environment captures a reference to a class environment
                 /// declared in a higher scope. Assigned by
-                /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
+                /// <see cref="ComputeLambdaScopesAndFrameCaptures()"/>
                 /// </summary>
                 public bool CapturesParent;
 
@@ -242,10 +248,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// visits the bound tree and translates information from the bound tree about
             /// variable scope, declared variables, and variable captures into the resulting
             /// <see cref="Scope"/> tree.
+            /// 
+            /// At the same time it sets <see cref="Scope.CanMergeWithParent"/>
+            /// for each Scope. This is done by looking for <see cref="BoundGotoStatement"/>s 
+            /// and <see cref="BoundConditionalGoto"/>s that jump from a point 
+            /// after the beginning of a <see cref="Scope"/>, to a <see cref="BoundLabelStatement"/>
+            /// before the start of the scope, but after the start of <see cref="Scope.Parent"/>.
+            /// 
+            /// All loops have been converted to gotos and labels by this stage,
+            /// so we do not have to visit them to do so. Similarly all <see cref="BoundLabeledStatement"/>s
+            /// have been converted to <see cref="BoundLabelStatement"/>s, so we do not have to 
+            /// visit them.
             /// </summary>
             private class ScopeTreeBuilder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
+                /// <summary>
+                /// Do not set this directly, except when setting the root scope. 
+                /// Instead use <see cref="PopScope"/> or <see cref="CreateAndPushScope"/>.
+                /// </summary>
                 private Scope _currentScope;
+
                 /// <summary>
                 /// Null if we're not inside a closure scope, otherwise the nearest closure scope
                 /// </summary>
@@ -284,6 +306,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
                 private readonly DiagnosticBag _diagnostics;
 
+                /// <summary>
+                /// For every label visited so far, this dictionary maps to a list of all scopes either visited so far, or currently being visited,
+                /// that are both after the label, and are on the same level of the scope tree as the label.
+                /// </summary>
+                private readonly PooledDictionary<LabelSymbol, ArrayBuilder<Scope>> _scopesAfterLabel = PooledDictionary<LabelSymbol, ArrayBuilder<Scope>>.GetInstance();
+
+                /// <summary>
+                /// Contains a list of the labels visited so far for each scope. 
+                /// The outer ArrayBuilder is a stack representing the chain of scopes from the root scope to the current scope,
+                /// and for each item on the stack, the ArrayBuilder is the list of the labels visited so far for the scope.
+                /// 
+                /// Used by <see cref="CreateAndPushScope"/> to determine which labels a new child scope appears after.
+                /// </summary>
+                private readonly ArrayBuilder<ArrayBuilder<LabelSymbol>> _labelsInScope = ArrayBuilder<ArrayBuilder<LabelSymbol>>.GetInstance();
+
                 private ScopeTreeBuilder(
                     Scope rootScope,
                     MethodSymbol topLevelMethod,
@@ -296,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(diagnostics != null);
 
                     _currentScope = rootScope;
+                    _labelsInScope.Push(ArrayBuilder<LabelSymbol>.GetInstance());
                     _topLevelMethod = topLevelMethod;
                     _methodsConvertedToDelegates = methodsConvertedToDelegates;
                     _diagnostics = diagnostics;
@@ -326,12 +364,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set up the current method locals
                     DeclareLocals(_currentScope, _topLevelMethod.Parameters);
                     // Treat 'this' as a formal parameter of the top-level method
-                    if (_topLevelMethod.TryGetThisParameter(out var thisParam))
+                    if (_topLevelMethod.TryGetThisParameter(out var thisParam) && (object)thisParam != null)
                     {
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
 
                     Visit(_currentScope.BoundNode);
+
+                    // Clean Up Resources
+
+                    foreach (var scopes in _scopesAfterLabel.Values)
+                    {
+                        scopes.Free();
+                    }
+                    _scopesAfterLabel.Free();
+
+                    Debug.Assert(_labelsInScope.Count == 1);
+                    var labels = _labelsInScope.Pop();
+                    labels.Free();
+                    _labelsInScope.Free();
                 }
 
                 public override BoundNode VisitMethodGroup(BoundMethodGroup node)
@@ -340,36 +391,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitBlock(BoundBlock node)
                 {
                     var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.Locals);
+                    PushOrReuseScope(node, node.Locals);
                     var result = base.VisitBlock(node);
-                    _currentScope = oldScope;
-                    return result; 
+                    PopScope(oldScope);
+                    return result;
                 }
 
                 public override BoundNode VisitCatchBlock(BoundCatchBlock node)
                 {
                     var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.Locals);
+                    PushOrReuseScope(node, node.Locals);
                     var result = base.VisitCatchBlock(node);
-                    _currentScope = oldScope;
+                    PopScope(oldScope);
                     return result;
                 }
 
                 public override BoundNode VisitSequence(BoundSequence node)
                 {
                     var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.Locals);
+                    PushOrReuseScope(node, node.Locals);
                     var result = base.VisitSequence(node);
-                    _currentScope = oldScope;
-                    return result;
-                }
-
-                public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-                {
-                    var oldScope = _currentScope;
-                    _currentScope = CreateOrReuseScope(node, node.InnerLocals);
-                    var result = base.VisitSwitchStatement(node);
-                    _currentScope = oldScope;
+                    PopScope(oldScope);
                     return result;
                 }
 
@@ -451,6 +493,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return base.VisitThisReference(node);
                 }
 
+                public override BoundNode VisitLabelStatement(BoundLabelStatement node)
+                {
+                    _labelsInScope.Peek().Add(node.Label);
+                    _scopesAfterLabel.Add(node.Label, ArrayBuilder<Scope>.GetInstance());
+                    return base.VisitLabelStatement(node);
+                }
+
+                public override BoundNode VisitGotoStatement(BoundGotoStatement node)
+                {
+                    CheckCanMergeWithParent(node.Label);
+
+                    return base.VisitGotoStatement(node);
+                }
+
+                public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
+                {
+                    CheckCanMergeWithParent(node.Label);
+
+                    return base.VisitConditionalGoto(node);
+                }
+
+                /// <summary>
+                /// This is where we calculate <see cref="Scope.CanMergeWithParent"/>.
+                /// <see cref="Scope.CanMergeWithParent"/> is always true unless we jump from after 
+                /// the beginning of a scope, to a point in between the beginning of the parent scope, and the beginning of the scope
+                /// </summary>
+                /// <param name="jumpTarget"></param>
+                private void CheckCanMergeWithParent(LabelSymbol jumpTarget)
+                {
+                    // since forward jumps can never effect Scope.SemanticallySafeToMergeIntoParent
+                    // if we have not yet seen the jumpTarget, this is a forward jump, and can be ignored
+                    if (_scopesAfterLabel.TryGetValue(jumpTarget, out var scopesAfterLabel))
+                    {
+                        foreach (var scope in scopesAfterLabel)
+                        {
+                            // this jump goes from a point after the beginning of the scope (as we have already visited or started visiting the scope), 
+                            // to a point in between the beginning of the parent scope, and the beginning of the scope, so it is not safe to move
+                            // variables in the scope to the parent scope.
+                            scope.CanMergeWithParent = false;
+                        }
+
+                        // Prevent us repeating this process for all scopes if another jumps goes to the same label
+                        scopesAfterLabel.Clear();
+                    }
+                }
+
                 private BoundNode VisitClosure(MethodSymbol closureSymbol, BoundBlock body)
                 {
                     Debug.Assert((object)closureSymbol != null);
@@ -464,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentClosure = closure;
 
                     var oldScope = _currentScope;
-                    _currentScope = CreateNestedScope(body, _currentScope, _currentClosure);
+                    CreateAndPushScope(body);
 
                     // For the purposes of scoping, parameters live in the same scope as the
                     // closure block. Expression tree variables are free variables for the
@@ -475,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? base.VisitBlock(body)
                         : VisitBlock(body);
 
-                    _currentScope = oldScope;
+                    PopScope(oldScope);
                     _currentClosure = oldClosure;
                     return result;
                 }
@@ -506,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                    Debug.Assert(symbol.ContainingSymbol != null);
                     if (symbol.ContainingSymbol != _currentClosure.OriginalMethodSymbol)
                     {
                         // Restricted types can't be hoisted, so they are not permitted to be captured
@@ -578,38 +667,85 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 /// <summary>
-                /// Create a new nested scope under the current scope, or reuse the current
-                /// scope if there's no change in the bound node for the nested scope.
+                /// Create a new nested scope under the current scope, and replace <see cref="_currentScope"/> with the new scope,
+                /// or reuse the current scope if there's no change in the bound node for the nested scope.
                 /// Records the given locals as declared in the aforementioned scope.
                 /// </summary>
-                private Scope CreateOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
+                private void PushOrReuseScope<TSymbol>(BoundNode node, ImmutableArray<TSymbol> locals)
                     where TSymbol : Symbol
                 {
-                    Scope scope;
-                    if (locals.IsEmpty || _currentScope.BoundNode == node)
+                    // We should never create a new scope with the same bound
+                    // node. We can get into this situation for methods and
+                    // closures where a new scope is created to add parameters
+                    // and a new scope would be created for the method block,
+                    // despite the fact that they should be the same scope.
+                    if (!locals.IsEmpty && _currentScope.BoundNode != node)
                     {
-                        // We should never create a new scope with the same bound
-                        // node. We can get into this situation for methods and
-                        // closures where a new scope is created to add parameters
-                        // and a new scope would be created for the method block,
-                        // despite the fact that they should be the same scope.
-                        scope = _currentScope;
+                        CreateAndPushScope(node);
                     }
-                    else
-                    {
-                        scope = CreateNestedScope(node, _currentScope, _currentClosure);
-                    }
-                    DeclareLocals(scope, locals);
-                    return scope;
+
+                    DeclareLocals(_currentScope, locals);
                 }
 
-                private static Scope CreateNestedScope(BoundNode node, Scope parentScope, Closure currentClosure)
+                /// <summary>
+                /// Creates a new nested scope which is a child of <see cref="_currentScope"/>,
+                /// and replaces <see cref="_currentScope"/> with the new scope
+                /// </summary>
+                /// <param name="node"></param>
+                private void CreateAndPushScope(BoundNode node)
                 {
-                    Debug.Assert(parentScope.BoundNode != node);
+                    var scope = CreateNestedScope(_currentScope, _currentClosure);
 
-                    var newScope = new Scope(parentScope, node, currentClosure);
-                    parentScope.NestedScopes.Add(newScope);
-                    return newScope;
+                    foreach (var label in _labelsInScope.Peek())
+                    {
+                        _scopesAfterLabel[label].Add(scope);
+                    }
+
+                    _labelsInScope.Push(ArrayBuilder<LabelSymbol>.GetInstance());
+
+                    _currentScope = scope;
+
+                    Scope CreateNestedScope(Scope parentScope, Closure currentClosure)
+                    {
+                        Debug.Assert(parentScope.BoundNode != node);
+
+                        var newScope = new Scope(parentScope, node, currentClosure);
+                        parentScope.NestedScopes.Add(newScope);
+                        return newScope;
+                    }
+                }
+
+                /// <summary>
+                /// Requires that scope is either the same as <see cref="_currentScope"/>,
+                /// or is the <see cref="Scope.Parent"/> of <see cref="_currentScope"/>.
+                /// Returns imediately in the first case,
+                /// Replaces <see cref="_currentScope"/> with scope in the second.
+                /// </summary>
+                /// <param name="scope"></param>
+                private void PopScope(Scope scope)
+                {
+                    if (scope == _currentScope)
+                    {
+                        return;
+                    }
+
+                    Debug.Assert(scope == _currentScope.Parent, $"{nameof(scope)} must be {nameof(_currentScope)} or {nameof(_currentScope)}.{nameof(_currentScope.Parent)}");
+
+                    // Since it is forbidden to jump into a scope, 
+                    // we can forget all information we have about labels in the child scope
+
+                    var labels = _labelsInScope.Pop();
+
+                    foreach (var label in labels)
+                    {
+                        var scopes = _scopesAfterLabel[label];
+                        scopes.Free();
+                        _scopesAfterLabel.Remove(label);
+                    }
+
+                    labels.Free();
+
+                    _currentScope = _currentScope.Parent;
                 }
 
                 private void DeclareLocals<TSymbol>(Scope scope, ImmutableArray<TSymbol> locals, bool declareAsFree = false)

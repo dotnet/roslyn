@@ -39,6 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override ConstructorDeclarationSyntax WithBody(ConstructorDeclarationSyntax declaration, BlockSyntax body)
             => declaration.WithBody(body);
 
-        protected override bool CreateReturnStatementForExpression(ConstructorDeclarationSyntax declaration) => false;
+        protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, ConstructorDeclarationSyntax declaration) => false;
     }
 }

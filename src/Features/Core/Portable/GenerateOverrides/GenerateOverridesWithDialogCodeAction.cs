@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             }
 
             private Task<ISymbol> GenerateOverrideAsync(
-                SyntaxGenerator generator, ISymbol symbol, 
+                SyntaxGenerator generator, ISymbol symbol,
                 CancellationToken cancellationToken)
             {
                 return generator.OverrideAsync(

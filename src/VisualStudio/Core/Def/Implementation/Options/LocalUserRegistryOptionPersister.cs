@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Serializes options marked with <see cref="LocalUserProfileStorageLocation"/> to the local hive-specific registry.
     /// </summary>
     [Export(typeof(IOptionPersister))]
-    internal sealed class LocalUserRegistryOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class LocalUserRegistryOptionPersister : IOptionPersister
     {
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
@@ -27,9 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly RegistryKey _registryKey;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LocalUserRegistryOptionPersister([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : base(assertIsForeground: true) // The VSRegistry.RegistryRoot call requires being on the UI thread or else it will marshal and risk deadlock
         {
+            // Starting in Dev16, the ILocalRegistry service behind this call is free-threaded, and since the service is offered by msenv.dll can be requested
+            // without any marshalling (explicit or otherwise) to the UI thread.
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
         }
 

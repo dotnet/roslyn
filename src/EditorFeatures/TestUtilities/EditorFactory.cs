@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 
 namespace Roslyn.Test.EditorUtilities
 {
@@ -46,8 +43,7 @@ namespace Roslyn.Test.EditorUtilities
             ExportProvider exportProvider,
             params string[] lines)
         {
-            TestWorkspace.ResetThreadAffinity();
-            WpfTestCase.RequireWpfFact($"Creates an IWpfTextView through {nameof(EditorFactory)}.{nameof(CreateView)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
 
             var buffer = CreateBuffer(contentType, exportProvider, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer);

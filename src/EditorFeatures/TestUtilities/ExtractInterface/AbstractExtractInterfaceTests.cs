@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
+    [UseExportProvider]
     public abstract class AbstractExtractInterfaceTests
     {
         public static async Task TestExtractInterfaceCommandCSharpAsync(
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             using (var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions))
             {
-                var result = testState.ExtractViaCommand();
+                var result = await testState.ExtractViaCommandAsync();
 
                 if (expectedSuccess)
                 {

@@ -62,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             map[SessionId] = sessionId;
             map[SessionCount] = session.EditSessions.Count;
             map[EmptySessionCount] = session.EmptyEditSessions;
-            map[ReadOnlyEditAttemptedProjectNotBuiltOrLoaded] = session.ReadOnlyEditAttemptedProjectNotBuiltOrLoaded;
         }
 
         private static void CreateSessionEditKeyValue(Dictionary<string, object> map, int sessionId, int editSessionId, EncEditSessionInfo editSession)

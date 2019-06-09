@@ -19,14 +19,14 @@ namespace Microsoft.Cci
         Version AssemblyVersionPattern { get; }
     }
 
-
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal struct DefinitionWithLocation
     {
         public readonly IDefinition Definition;
-        public readonly uint StartLine;
-        public readonly uint StartColumn;
-        public readonly uint EndLine;
-        public readonly uint EndColumn;
+        public readonly int StartLine;
+        public readonly int StartColumn;
+        public readonly int EndLine;
+        public readonly int EndColumn;
 
         public DefinitionWithLocation(IDefinition definition,
             int startLine, int startColumn, int endLine, int endColumn)
@@ -36,21 +36,15 @@ namespace Microsoft.Cci
             Debug.Assert(endLine >= 0);
             Debug.Assert(endColumn >= 0);
 
-            this.Definition = definition;
-            this.StartLine = (uint)startLine;
-            this.StartColumn = (uint)startColumn;
-            this.EndLine = (uint)endLine;
-            this.EndColumn = (uint)endColumn;
+            Definition = definition;
+            StartLine = startLine;
+            StartColumn = startColumn;
+            EndLine = endLine;
+            EndColumn = endColumn;
         }
 
-        public override string ToString()
-        {
-            return string.Format(
-                "{0} => start:{1}/{2}, end:{3}/{4}",
-                this.Definition.ToString(),
-                this.StartLine.ToString(), this.StartColumn.ToString(),
-                this.EndLine.ToString(), this.EndColumn.ToString());
-        }
+        private string GetDebuggerDisplay()
+            => $"{Definition} => ({StartLine},{StartColumn}) - ({EndLine}, {EndColumn})";
     }
 
     /// <summary>

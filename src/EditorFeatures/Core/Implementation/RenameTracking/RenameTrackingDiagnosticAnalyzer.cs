@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer, IInProcessAnalyzer
     {
         public const string DiagnosticId = "RenameTracking";
         public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
@@ -19,24 +19,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal const string RenameToPropertyKey = "RenameTo";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor);
-        public bool OpenFileOnly(Workspace workspace) => true;
 
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+        public bool OpenFileOnly(Workspace workspace)
+            => true;
+
+#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1026 // Enable concurrent execution
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
         }
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var diagnostics = RenameTrackingTaggerProvider.GetDiagnosticsAsync(context.Tree, DiagnosticDescriptor, context.CancellationToken).WaitAndGetResult(context.CancellationToken);
+            var diagnostics = RenameTrackingTaggerProvider.GetDiagnosticsAsync(context.Tree, DiagnosticDescriptor, context.CancellationToken).WaitAndGetResult_CanCallOnBackground(context.CancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
     }
 }

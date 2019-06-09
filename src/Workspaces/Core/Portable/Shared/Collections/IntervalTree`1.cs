@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                builder, introspector, 
+                builder, introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
                 else
                 {
-                    Contract.Requires(rightBalance == 1);
+                    Debug.Assert(rightBalance == 1);
                     return node.InnerRightOuterLeftRotation(introspector);
                 }
             }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
                 else
                 {
-                    Contract.Requires(leftBalance == -1);
+                    Debug.Assert(leftBalance == -1);
                     return node.InnerLeftOuterRightRotation(introspector);
                 }
             }

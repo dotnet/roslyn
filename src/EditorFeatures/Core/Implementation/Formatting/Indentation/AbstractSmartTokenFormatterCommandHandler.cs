@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -12,19 +12,26 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal abstract class AbstractSmartTokenFormatterCommandHandler :
-        ICommandHandler<ReturnKeyCommandArgs>
+        IChainedCommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+
+        public string DisplayName => EditorFeaturesResources.Smart_Token_Formatter;
 
         public AbstractSmartTokenFormatterCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -34,15 +41,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxNode root);
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
 
-        protected abstract bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken);
+        protected abstract bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken);
         protected abstract bool IsInvalidToken(SyntaxToken token);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position);
 
         /// <returns>True if any change is made.</returns>
-        protected bool FormatToken(ITextView view, Document document, SyntaxToken token, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
+        protected bool FormatToken(ITextView view, Document document, SyntaxToken token, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -64,12 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             return true;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             var textView = args.TextView;
             var oldCaretPoint = textView.GetCaretPoint(args.SubjectBuffer);
@@ -134,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentationService = document.GetLanguageService<IIndentationService>();
             var indentation = indentationService.GetDesiredIndentation(document,
                 currentPosition.GetContainingLine().LineNumber, cancellationToken);
 
@@ -194,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             }
 
             // okay, it is an empty line with some whitespaces 
-            Contract.Requires(indentation <= lineInSubjectBuffer.Length);
+            Debug.Assert(indentation <= lineInSubjectBuffer.Length);
 
             var offset = GetOffsetFromIndentation(indentation, view.Options);
             view.TryMoveCaretToAndEnsureVisible(lineInSubjectBuffer.Start.Add(offset));
@@ -295,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         /// <summary>
         /// check whether we can do automatic formatting using token formatter instead of smart indenter for the "enter" key
         /// </summary>
-        private bool TryFormatUsingTokenFormatter(ITextView view, ITextBuffer subjectBuffer, Document document, IEnumerable<IFormattingRule> formattingRules, CancellationToken cancellationToken)
+        private bool TryFormatUsingTokenFormatter(ITextView view, ITextBuffer subjectBuffer, Document document, IEnumerable<AbstractFormattingRule> formattingRules, CancellationToken cancellationToken)
         {
             var position = view.GetCaretPoint(subjectBuffer).Value;
             var line = position.GetContainingLine().AsTextLine();

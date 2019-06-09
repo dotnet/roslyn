@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities.VBInstrumentationChecker
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
 
@@ -2336,7 +2337,7 @@ Class D
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
             c.VerifyDiagnostics()
 
             Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2373,7 +2374,7 @@ Class D
     End Sub
 End Class
 "
-            Dim c = CreateCompilationWithMscorlib(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source & InstrumentationHelperSourceStr, options:=TestOptions.ReleaseDll)
             c.VerifyDiagnostics()
 
             Dim verifier = CompileAndVerify(c, emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
@@ -2805,7 +2806,7 @@ True
         End Sub
 
         Private Function CreateCompilation(source As XElement) As Compilation
-            Return CreateCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
+            Return CreateEmptyCompilationWithReferences(source, references:=New MetadataReference() {}, options:=TestOptions.ReleaseExe.WithDeterministic(True))
         End Function
 
         Private Overloads Function CompileAndVerify(source As XElement, Optional expectedOutput As XCData = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
@@ -2825,11 +2826,12 @@ True
         End Function
 
         Private Overloads Function CompileAndVerify(source As String, Optional expectedOutput As String = Nothing, Optional options As VisualBasicCompilationOptions = Nothing) As CompilationVerifier
-            Return CompileAndVerify(source,
+            Return CompileAndVerifyEx(source,
                                     LatestVbReferences,
                                     expectedOutput,
                                     options:=If(options, TestOptions.ReleaseExe).WithDeterministic(True),
-                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)))
+                                    emitOptions:=EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                                    targetFramework:=TargetFramework.Empty)
         End Function
     End Class
 End Namespace

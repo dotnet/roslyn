@@ -1,360 +1,416 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-#if false
-namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
     {
-        [WpfFact]
+        [Fact]
         public void TestAddMultiplyPrecedence1()
         {
-            TestExpression(
-                f => f.CreateMultiplyExpression(
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "(1 + 2) * 3",
-                vb: "(1 + 2) * 3");
+            Test(
+                f => f.MultiplyExpression(
+                    f.AddExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) + (2)) * (3)",
+                csSimple: "(1 + 2) * 3",
+                vb: "((1) + (2)) * (3)",
+                vbSimple: "(1 + 2) * 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestAddMultiplyPrecedence2()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                    f.CreateMultiplyExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "1 * 2 + 3",
-                vb: "1 * 2 + 3");
+            Test(
+                f => f.AddExpression(
+                    f.MultiplyExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) * (2)) + (3)",
+                csSimple: "1 * 2 + 3",
+                vb: "((1) * (2)) + (3)",
+                vbSimple: "1 * 2 + 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestAddMultiplyPrecedence3()
         {
-            TestExpression(
-                f => f.CreateMultiplyExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 * (2 + 3)",
-                vb: "1 * (2 + 3)");
+            Test(
+                f => f.MultiplyExpression(
+                    f.LiteralExpression(1),
+                    f.AddExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) * ((2) + (3))",
+                csSimple: "1 * (2 + 3)",
+                vb: "(1) * ((2) + (3))",
+                vbSimple: "1 * (2 + 3)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestAddMultiplyPrecedence4()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateMultiplyExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 + 2 * 3",
-                vb: "1 + 2 * 3");
+            Test(
+                f => f.AddExpression(
+                    f.LiteralExpression(1),
+                    f.MultiplyExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) + ((2) * (3))",
+                csSimple: "1 + 2 * 3",
+                vb: "(1) + ((2) * (3))",
+                vbSimple: "1 + 2 * 3");
         }
 
-        [WpfFact]
-        public void TestBinaryAndOrPrecedence1()
+        [Fact]
+        public void TestBitwiseAndOrPrecedence1()
         {
-            TestExpression(
-                f => f.CreateBinaryAndExpression(
-                    f.CreateBinaryOrExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "(1 | 2) & 3",
-                vb: "(1 Or 2) And 3");
+            Test(
+                f => f.BitwiseAndExpression(
+                    f.BitwiseOrExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) | (2)) & (3)",
+                csSimple: "(1 | 2) & 3",
+                vb: "((1) Or (2)) And (3)",
+                vbSimple: "(1 Or 2) And 3");
         }
 
-        [WpfFact]
-        public void TestBinaryAndOrPrecedence2()
+        [Fact]
+        public void TestBitwiseAndOrPrecedence2()
         {
-            TestExpression(
-                f => f.CreateBinaryOrExpression(
-                    f.CreateBinaryAndExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "1 & 2 | 3",
-                vb: "1 And 2 Or 3");
+            Test(
+                f => f.BitwiseOrExpression(
+                    f.BitwiseAndExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) & (2)) | (3)",
+                csSimple: "1 & 2 | 3",
+                vb: "((1) And (2)) Or (3)",
+                vbSimple: "1 And 2 Or 3");
         }
 
-        [WpfFact]
-        public void TestBinaryAndOrPrecedence3()
+        [Fact]
+        public void TestBitwiseAndOrPrecedence3()
         {
-            TestExpression(
-                f => f.CreateBinaryAndExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateBinaryOrExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 & (2 | 3)",
-                vb: "1 And (2 Or 3)");
+            Test(
+                f => f.BitwiseAndExpression(
+                    f.LiteralExpression(1),
+                    f.BitwiseOrExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) & ((2) | (3))",
+                csSimple: "1 & (2 | 3)",
+                vb: "(1) And ((2) Or (3))",
+                vbSimple: "1 And (2 Or 3)");
         }
 
-        [WpfFact]
-        public void TestBinaryAndOrPrecedence4()
+        [Fact]
+        public void TestBitwiseAndOrPrecedence4()
         {
-            TestExpression(
-                f => f.CreateBinaryOrExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateBinaryAndExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 | 2 & 3",
-                vb: "1 Or 2 And 3");
+            Test(
+                f => f.BitwiseOrExpression(
+                    f.LiteralExpression(1),
+                    f.BitwiseAndExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) | ((2) & (3))",
+                csSimple: "1 | 2 & 3",
+                vb: "(1) Or ((2) And (3))",
+                vbSimple: "1 Or 2 And 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestLogicalAndOrPrecedence1()
         {
-            TestExpression(
-                f => f.CreateLogicalAndExpression(
-                    f.CreateLogicalOrExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "(1 || 2) && 3",
-                vb: "(1 OrElse 2) AndAlso 3");
+            Test(
+                f => f.LogicalAndExpression(
+                    f.LogicalOrExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) || (2)) && (3)",
+                csSimple: "(1 || 2) && 3",
+                vb: "((1) OrElse (2)) AndAlso (3)",
+                vbSimple: "(1 OrElse 2) AndAlso 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestLogicalAndOrPrecedence2()
         {
-            TestExpression(
-                f => f.CreateLogicalOrExpression(
-                    f.CreateLogicalAndExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateConstantExpression(3)),
-                cs: "1 && 2 || 3",
-                vb: "1 AndAlso 2 OrElse 3");
+            Test(
+                f => f.LogicalOrExpression(
+                    f.LogicalAndExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.LiteralExpression(3)),
+                cs: "((1) && (2)) || (3)",
+                csSimple: "1 && 2 || 3",
+                vb: "((1) AndAlso (2)) OrElse (3)",
+                vbSimple: "1 AndAlso 2 OrElse 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestLogicalAndOrPrecedence3()
         {
-            TestExpression(
-                f => f.CreateLogicalAndExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateLogicalOrExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 && (2 || 3)",
-                vb: "1 AndAlso (2 OrElse 3)");
+            Test(
+                f => f.LogicalAndExpression(
+                    f.LiteralExpression(1),
+                    f.LogicalOrExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) && ((2) || (3))",
+                csSimple: "1 && (2 || 3)",
+                vb: "(1) AndAlso ((2) OrElse (3))",
+                vbSimple: "1 AndAlso (2 OrElse 3)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestLogicalAndOrPrecedence4()
         {
-            TestExpression(
-                f => f.CreateLogicalOrExpression(
-                    f.CreateConstantExpression(1),
-                    f.CreateLogicalAndExpression(
-                        f.CreateConstantExpression(2),
-                        f.CreateConstantExpression(3))),
-                cs: "1 || 2 && 3",
-                vb: "1 OrElse 2 AndAlso 3");
+            Test(
+                f => f.LogicalOrExpression(
+                    f.LiteralExpression(1),
+                    f.LogicalAndExpression(
+                        f.LiteralExpression(2),
+                        f.LiteralExpression(3))),
+                cs: "(1) || ((2) && (3))",
+                csSimple: "1 || 2 && 3",
+                vb: "(1) OrElse ((2) AndAlso (3))",
+                vbSimple: "1 OrElse 2 AndAlso 3");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfAdd1()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateIdentifierName("M")),
-                cs: "(1 + 2).M",
-                vb: "(1 + 2).M");
+            Test(
+                f => f.MemberAccessExpression(
+                    f.AddExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.IdentifierName("M")),
+                cs: "((1) + (2)).M",
+                csSimple: "(1 + 2).M",
+                vb: "((1) + (2)).M",
+                vbSimple: "(1 + 2).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestConditionalExpression1()
         {
-            TestExpression(
-                f => f.CreateConditionalExpression(
-                    f.CreateAssignExpression(
-                        f.CreateIdentifierName("E1"),
-                        f.CreateIdentifierName("E2")),
-                    f.CreateIdentifierName("T"),
-                    f.CreateIdentifierName("F")),
-                cs: "(E1 = E2) ? T : F");
+            Test(
+                f => f.ConditionalExpression(
+                    f.AssignmentStatement(
+                        f.IdentifierName("E1"),
+                        f.IdentifierName("E2")),
+                    f.IdentifierName("T"),
+                    f.IdentifierName("F")),
+                cs: "(E1 = (E2)) ? (T) : (F)",
+                csSimple: "(E1 = E2) ? T : F",
+                vb: null,
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestConditionalExpression2()
         {
-            TestExpression(
-                f => f.CreateAddExpression(
-                        f.CreateConditionalExpression(
-                            f.CreateIdentifierName("E1"),
-                            f.CreateIdentifierName("T1"),
-                            f.CreateIdentifierName("F1")),
-                        f.CreateConditionalExpression(
-                            f.CreateIdentifierName("E2"),
-                            f.CreateIdentifierName("T2"),
-                            f.CreateIdentifierName("F2"))),
-                cs: "(E1 ? T1 : F1) + (E2 ? T2 : F2)");
+            Test(
+                f => f.AddExpression(
+                        f.ConditionalExpression(
+                            f.IdentifierName("E1"),
+                            f.IdentifierName("T1"),
+                            f.IdentifierName("F1")),
+                        f.ConditionalExpression(
+                            f.IdentifierName("E2"),
+                            f.IdentifierName("T2"),
+                            f.IdentifierName("F2"))),
+                cs: "((E1) ? (T1) : (F1)) + ((E2) ? (T2) : (F2))",
+                csSimple: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
+                vb: null,
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfElementAccess()
         {
-            TestExpression(
-                f => f.CreateElementAccessExpression(
-                    f.CreateAddExpression(
-                        f.CreateConstantExpression(1),
-                        f.CreateConstantExpression(2)),
-                    f.CreateArgument(f.CreateIdentifierName("M"))),
-                cs: "(1 + 2)[M]",
-                vb: "(1 + 2)(M)");
+            Test(
+                f => f.ElementAccessExpression(
+                    f.AddExpression(
+                        f.LiteralExpression(1),
+                        f.LiteralExpression(2)),
+                    f.Argument(f.IdentifierName("M"))),
+                cs: "((1) + (2))[M]",
+                csSimple: "(1 + 2)[M]",
+                vb: "((1) + (2))(M)",
+                vbSimple: "(1 + 2)(M)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfIsExpression()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateIsExpression(
-                        f.CreateIdentifierName("a"),
+            Test(
+                f => f.MemberAccessExpression(
+                    f.IsTypeExpression(
+                        f.IdentifierName("a"),
                         CreateClass("SomeType")),
-                    f.CreateIdentifierName("M")),
-                cs: "(a is SomeType).M",
-                vb: "(TypeOf a Is SomeType).M");
+                    f.IdentifierName("M")),
+                cs: "((a) is SomeType).M",
+                csSimple: "(a is SomeType).M",
+                vb: "(TypeOf (a) Is SomeType).M",
+                vbSimple: "(TypeOf a Is SomeType).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestIsOfMemberAccessExpression()
         {
-            TestExpression(
-                f => f.CreateIsExpression(
-                    f.CreateMemberAccessExpression(
-                        f.CreateIdentifierName("a"),
-                        f.CreateIdentifierName("M")),
+            Test(
+                f => f.IsTypeExpression(
+                    f.MemberAccessExpression(
+                        f.IdentifierName("a"),
+                        f.IdentifierName("M")),
                     CreateClass("SomeType")),
-                cs: "a.M is SomeType",
-                vb: "TypeOf a.M Is SomeType");
+                cs: "(a.M) is SomeType",
+                csSimple: "a.M is SomeType",
+                vb: "TypeOf (a.M) Is SomeType",
+                vbSimple: "TypeOf a.M Is SomeType");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfAsExpression()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateAsExpression(
-                        f.CreateIdentifierName("a"),
+            Test(
+                f => f.MemberAccessExpression(
+                    f.TryCastExpression(
+                        f.IdentifierName("a"),
                         CreateClass("SomeType")),
-                    f.CreateIdentifierName("M")),
-                cs: "(a as SomeType).M",
-                vb: "TryCast(a, SomeType).M");
+                    f.IdentifierName("M")),
+                cs: "((a) as SomeType).M",
+                csSimple: "(a as SomeType).M",
+                vb: "(TryCast(a, SomeType)).M",
+                vbSimple: "TryCast(a, SomeType).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestAsOfMemberAccessExpression()
         {
-            TestExpression(
-                f => f.CreateAsExpression(
-                         f.CreateMemberAccessExpression(
-                            f.CreateIdentifierName("a"),
-                            f.CreateIdentifierName("M")),
+            Test(
+                f => f.TryCastExpression(
+                         f.MemberAccessExpression(
+                            f.IdentifierName("a"),
+                            f.IdentifierName("M")),
                         CreateClass("SomeType")),
-                cs: "a.M as SomeType",
-                vb: "TryCast(a.M, SomeType)");
+                cs: "(a.M) as SomeType",
+                csSimple: "a.M as SomeType",
+                vb: "TryCast(a.M, SomeType)",
+                vbSimple: "TryCast(a.M, SomeType)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfNotExpression()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateLogicalNotExpression(
-                        f.CreateIdentifierName("a")),
-                    f.CreateIdentifierName("M")),
-                cs: "(!a).M",
-                vb: "(Not a).M");
+            Test(
+                f => f.MemberAccessExpression(
+                    f.LogicalNotExpression(
+                        f.IdentifierName("a")),
+                    f.IdentifierName("M")),
+                cs: "(!(a)).M",
+                csSimple: "(!a).M",
+                vb: "(Not (a)).M",
+                vbSimple: "(Not a).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestNotOfMemberAccessExpression()
         {
-            TestExpression(
-                f => f.CreateLogicalNotExpression(
-                    f.CreateMemberAccessExpression(
-                        f.CreateIdentifierName("a"),
-                        f.CreateIdentifierName("M"))),
-                cs: "!a.M",
-                vb: "Not a.M");
+            Test(
+                f => f.LogicalNotExpression(
+                    f.MemberAccessExpression(
+                        f.IdentifierName("a"),
+                        f.IdentifierName("M"))),
+                cs: "!(a.M)",
+                csSimple: "!a.M",
+                vb: "Not (a.M)",
+                vbSimple: "Not a.M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfCastExpression()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateCastExpression(
+            Test(
+                f => f.MemberAccessExpression(
+                    f.CastExpression(
                         CreateClass("SomeType"),
-                        f.CreateIdentifierName("a")),
-                    f.CreateIdentifierName("M")),
-                cs: "((SomeType)a).M",
-                vb: "DirectCast(a, SomeType).M");
+                        f.IdentifierName("a")),
+                    f.IdentifierName("M")),
+                cs: "((SomeType)(a)).M",
+                csSimple: "((SomeType)a).M",
+                vb: "(DirectCast(a, SomeType)).M",
+                vbSimple: "DirectCast(a, SomeType).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestCastOfAddExpression()
         {
-            TestExpression(
-                f => f.CreateCastExpression(
+            Test(
+                f => f.CastExpression(
                     CreateClass("SomeType"),
-                    f.CreateAddExpression(
-                        f.CreateIdentifierName("a"),
-                        f.CreateIdentifierName("b"))),
-                cs: "(SomeType)(a + b)",
-                vb: "DirectCast(a + b, SomeType)");
+                    f.AddExpression(
+                        f.IdentifierName("a"),
+                        f.IdentifierName("b"))),
+                cs: "(SomeType)((a) + (b))",
+                csSimple: "(SomeType)(a + b)",
+                vb: "DirectCast((a) + (b), SomeType)",
+                vbSimple: "DirectCast(a + b, SomeType)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestNegateOfAddExpression()
         {
-            TestExpression(
-                f => f.CreateNegateExpression(
-                    f.CreateAddExpression(
-                        f.CreateIdentifierName("a"),
-                        f.CreateIdentifierName("b"))),
-                cs: "-(a + b)",
-                vb: "-(a + b)");
+            Test(
+                f => f.NegateExpression(
+                    f.AddExpression(
+                        f.IdentifierName("a"),
+                        f.IdentifierName("b"))),
+                cs: "-((a) + (b))",
+                csSimple: "-(a + b)",
+                vb: "-((a) + (b))",
+                vbSimple: "-(a + b)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestMemberAccessOffOfNegate()
         {
-            TestExpression(
-                f => f.CreateMemberAccessExpression(
-                    f.CreateNegateExpression(
-                        f.CreateIdentifierName("a")),
-                    f.CreateIdentifierName("M")),
-                cs: "(-a).M",
-                vb: "(-a).M");
+            Test(
+                f => f.MemberAccessExpression(
+                    f.NegateExpression(
+                        f.IdentifierName("a")),
+                    f.IdentifierName("M")),
+                cs: "(-(a)).M",
+                csSimple: "(-a).M",
+                vb: "(-(a)).M",
+                vbSimple: "(-a).M");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestNegateOfMemberAccess()
         {
-            TestExpression(f =>
-                f.CreateNegateExpression(
-                    f.CreateMemberAccessExpression(
-                        f.CreateIdentifierName("a"),
-                        f.CreateIdentifierName("M"))),
-                cs: "-a.M",
-                vb: "-a.M");
+            Test(f =>
+                f.NegateExpression(
+                    f.MemberAccessExpression(
+                        f.IdentifierName("a"),
+                        f.IdentifierName("M"))),
+                cs: "-(a.M)",
+                csSimple: "-a.M",
+                vb: "-(a.M)",
+                vbSimple: "-a.M");
         }
     }
 }
-#endif

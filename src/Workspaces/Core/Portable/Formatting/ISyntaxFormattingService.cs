@@ -2,17 +2,22 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Text;
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal interface ISyntaxFormattingService : ILanguageService
+    internal interface ISyntaxFormattingService
+#if !CODE_STYLE
+        : ILanguageService
+#endif
     {
-        IEnumerable<IFormattingRule> GetDefaultFormattingRules();
-        Task<IFormattingResult> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken);
+        IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
+        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken);
     }
 }

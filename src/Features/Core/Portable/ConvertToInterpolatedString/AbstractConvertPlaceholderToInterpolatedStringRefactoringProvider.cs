@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
             var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
-            var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
             var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
             var interpolatedString = GetInterpolatedString(text);
             var newInterpolatedString = VisitArguments(expandedArguments, interpolatedString, syntaxFactsService);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return arguments.FirstOrDefault(
-                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase)) 
+                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
                 ?? arguments[index];
         }
 

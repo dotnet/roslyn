@@ -102,8 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Not compilation.Options.CryptoPublicKey.IsEmpty Then
                 ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                Dim privateKey As RSAParameters? = Nothing
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance)
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, hasCounterSignature:=False, MessageProvider.Instance)
             End If
         End Sub
 
@@ -235,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 ' Duplicate attributes with same attribute type are not allowed.
                 ' Check if there is an existing assembly attribute with same attribute type.
-                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) a.AttributeClass = attributeClass) Then
+                If uniqueAttributes Is Nothing OrElse Not uniqueAttributes.Contains(Function(a) TypeSymbol.Equals(a.AttributeClass, attributeClass, TypeCompareKind.ConsiderEverything)) Then
                     ' Attribute with unique attribute type, not a duplicate.
                     Dim success As Boolean = AddUniqueAssemblyAttribute(attribute, uniqueAttributes)
                     Debug.Assert(success)
@@ -451,8 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me._lazyNetModuleAttributesBag.IsSealed)
             Debug.Assert(index >= 0)
             Debug.Assert(index < Me.GetAttributes().Length)
-            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse
-                         Not Me.DeclaringCompilation.Options.OutputKind.IsNetModule())
+            Debug.Assert(Me._lazyDuplicateAttributeIndices Is Nothing OrElse Not IsNetModule)
 
             Return Me._lazyDuplicateAttributeIndices IsNot Nothing AndAlso Me._lazyDuplicateAttributeIndices.Contains(index)
         End Function
@@ -1186,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
-                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                If StrongNameKeys.DiagnosticOpt IsNot Nothing AndAlso Not IsNetModule Then
                     diagnostics.Add(StrongNameKeys.DiagnosticOpt)
                 End If
 
@@ -1200,7 +1198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 If DeclaringCompilation.Options.PublicSign Then
-                    If DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                    If IsNetModule Then
                         diagnostics.Add(ERRID.ERR_PublicSignNetModule, NoLocation.Singleton)
                     ElseIf Not Identity.HasPublicKey Then
                         diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
@@ -1605,8 +1603,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-
-            Return MakeFinalIVTDetermination(potentialGiverOfAccess) = IVTConclusion.Match
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Return conclusion = IVTConclusion.Match
+            ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function
 
         Friend ReadOnly Property StrongNameKeys As StrongNameKeys
@@ -1679,7 +1678,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Dim hasCounterSignature = Not String.IsNullOrEmpty(SignatureKey)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 

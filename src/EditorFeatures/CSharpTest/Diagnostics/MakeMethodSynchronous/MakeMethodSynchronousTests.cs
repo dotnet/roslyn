@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MakeMethodSynchronous;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -337,7 +337,7 @@ public class Class1
     {
         Goo();
     }
-}", fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -645,5 +645,207 @@ class C
     }}
 }}");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithUsingNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        using (var x = new object())
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithAwaitForEach()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var n in new int[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableAwait()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        await foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task MethodWithForEachVariableNoAwait()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async System.Threading.Tasks.Task [|MAsync|]()
+    {
+        foreach (var (a, b) in new(int, int)[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void [|M|]()
+    {
+        foreach (var (a, b) in new (int, int)[] { })
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumerableReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    async IAsyncEnumerable<int> [|MAsync|]()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}" + IAsyncEnumerable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        async IAsyncEnumerator<int> [|MAsync|]()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable,
+@"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+class C
+{
+    void Method()
+    {
+        IEnumerator<int> M()
+        {
+            yield return 1;
+        }
+    }
+}" + IAsyncEnumerable);
+        }
+
+        private const string IAsyncEnumerable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+
+    public interface IAsyncEnumerator<out T> : IAsyncDisposable
+    {
+        ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}";
     }
 }

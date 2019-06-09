@@ -19,10 +19,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node IsNot Nothing)
 
             ' Bind select expression
-            Dim exprPlaceHolderOpt As BoundRValuePlaceholder = Nothing
-
             Dim selectExprStatementSyntax = node.SelectStatement
-            Dim expression = BindSelectExpression(selectExprStatementSyntax.Expression, diagnostics, exprPlaceHolderOpt)
+            Dim expression = BindSelectExpression(selectExprStatementSyntax.Expression, diagnostics)
+
+            If expression.HasErrors Then
+                diagnostics = New DiagnosticBag()
+            End If
+
+            Dim exprPlaceHolder = New BoundRValuePlaceholder(selectExprStatementSyntax.Expression, expression.Type)
+            exprPlaceHolder.SetWasCompilerGenerated()
+
             Dim expressionStmt = New BoundExpressionStatement(selectExprStatementSyntax, expression)
 
             ' Get the binder for the select block. This defines the exit label.
@@ -35,17 +41,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Bind case blocks.
             Dim caseBlocks As ImmutableArray(Of BoundCaseBlock) = selectBinder.BindCaseBlocks(
                                                                     node.CaseBlocks,
-                                                                    If(exprPlaceHolderOpt, expression),
+                                                                    exprPlaceHolder,
                                                                     convertCaseElements:=expression.Type.IsIntrinsicOrEnumType(),
                                                                     recommendSwitchTable:=recommendSwitchTable,
                                                                     diagnostics:=diagnostics)
 
             ' Create the bound node.
-            Return New BoundSelectStatement(node, expressionStmt, exprPlaceHolderOpt, caseBlocks, recommendSwitchTable,
+            Return New BoundSelectStatement(node, expressionStmt, exprPlaceHolder, caseBlocks, recommendSwitchTable,
                                             exitLabel:=selectBinder.GetExitLabel(SyntaxKind.ExitSelectStatement))
         End Function
 
-        Private Function BindSelectExpression(node As ExpressionSyntax, diagnostics As DiagnosticBag, ByRef exprPlaceHolderOpt As BoundRValuePlaceholder) As BoundExpression
+        Private Function BindSelectExpression(node As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             ' SPEC: A Select Case statement executes statements based on the value of an expression.
             ' SPEC: The expression must be classified as a value.
 
@@ -63,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind
                 Case SyntaxKind.ParenthesizedExpression
                     Dim parenthesizedExpr = DirectCast(node, ParenthesizedExpressionSyntax)
-                    Dim boundExpression = BindSelectExpression(parenthesizedExpr.Expression, diagnostics, exprPlaceHolderOpt)
+                    Dim boundExpression = BindSelectExpression(parenthesizedExpr.Expression, diagnostics)
                     Return New BoundParenthesized(node, boundExpression, boundExpression.Type)
 
                 Case SyntaxKind.AddressOfExpression
@@ -85,8 +91,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 boundExpr = MakeRValue(boundExpr, diagnostics)
-                exprPlaceHolderOpt = New BoundRValuePlaceholder(node, boundExpr.Type)
-                exprPlaceHolderOpt.SetWasCompilerGenerated()
             End If
 
             Return boundExpr
@@ -94,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseBlocks(
             caseBlocks As SyntaxList(Of CaseBlockSyntax),
-            selectExpression As BoundExpression,
+            selectExpression As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             ByRef recommendSwitchTable As Boolean,
             diagnostics As DiagnosticBag
@@ -116,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseBlock(
             node As CaseBlockSyntax,
-            selectExpression As BoundExpression,
+            selectExpression As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseBlock
@@ -132,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseStatement(
             node As CaseStatementSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseStatement
@@ -158,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCaseClause(
             node As CaseClauseSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -182,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindRelationalCaseClause(
             node As RelationalCaseClauseSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -229,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindSimpleCaseClause(
             node As SimpleCaseClauseSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -261,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindRangeCaseClause(
             node As RangeCaseClauseSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             convertCaseElements As Boolean,
             diagnostics As DiagnosticBag
         ) As BoundCaseClause
@@ -306,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindCaseClauseExpression(
             expressionSyntax As ExpressionSyntax,
             caseClauseSyntax As CaseClauseSyntax,
-            selectExpressionOpt As BoundExpression,
+            selectExpressionOpt As BoundRValuePlaceholder,
             operatorTokenKind As SyntaxKind,
             operatorKind As BinaryOperatorKind,
             convertCaseElements As Boolean,
@@ -343,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     preliminaryOperatorKind:=operatorKind,
                     isOperandOfConditionalBranch:=False,
                     diagnostics:=diagnostics,
-                    isSelectCase:=True)
+                    isSelectCase:=True).MakeCompilerGenerated()
 
                 Return Nothing
             End If
@@ -365,88 +369,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '    is computed as "clause1 OrElse clause2 OrElse ... OrElse clauseN" expression.
 
         Private Function OptimizeSelectStatement(
-            selectExpression As BoundExpression,
+            selectExpression As BoundRValuePlaceholder,
             caseBlockBuilder As ArrayBuilder(Of BoundCaseBlock),
             ByRef generateSwitchTable As Boolean,
             diagnostics As DiagnosticBag
         ) As ImmutableArray(Of BoundCaseBlock)
+            Debug.Assert(Not selectExpression.HasErrors)
 
-            If Not selectExpression.HasErrors Then
-                generateSwitchTable = RecommendSwitchTable(selectExpression, caseBlockBuilder, diagnostics)
+            generateSwitchTable = RecommendSwitchTable(selectExpression, caseBlockBuilder, diagnostics)
 
-                ' CONSIDER: Do we need to compute the case statement conditional expression
-                ' CONSIDER: even for generateSwitchTable case? We might want to do so to
-                ' CONSIDER: maintain consistency of bound nodes coming out of the binder.
-                ' CONSIDER: With the current design, value of BoundCaseStatement.ConditionOpt field 
-                ' CONSIDER: is dependent on the value of generateSwitchTable.
+            ' CONSIDER: Do we need to compute the case statement conditional expression
+            ' CONSIDER: even for generateSwitchTable case? We might want to do so to
+            ' CONSIDER: maintain consistency of bound nodes coming out of the binder.
+            ' CONSIDER: With the current design, value of BoundCaseStatement.ConditionOpt field 
+            ' CONSIDER: is dependent on the value of generateSwitchTable.
 
-                If Not generateSwitchTable AndAlso caseBlockBuilder.Any() Then
-                    Dim booleanType = GetSpecialType(SpecialType.System_Boolean, selectExpression.Syntax, diagnostics)
-                    Dim caseClauseBuilder = ArrayBuilder(Of BoundCaseClause).GetInstance()
+            If Not generateSwitchTable AndAlso caseBlockBuilder.Any() Then
+                Dim booleanType = GetSpecialType(SpecialType.System_Boolean, selectExpression.Syntax, diagnostics)
+                Dim caseClauseBuilder = ArrayBuilder(Of BoundCaseClause).GetInstance()
 
-                    For index = 0 To caseBlockBuilder.Count - 1
-                        Dim caseBlock = caseBlockBuilder(index)
-                        If caseBlock.Syntax.Kind <> SyntaxKind.CaseElseBlock AndAlso
-                            Not caseBlock.CaseStatement.Syntax.IsMissing Then
+                For index = 0 To caseBlockBuilder.Count - 1
+                    Dim caseBlock = caseBlockBuilder(index)
+                    If caseBlock.Syntax.Kind <> SyntaxKind.CaseElseBlock AndAlso
+                        Not caseBlock.CaseStatement.Syntax.IsMissing Then
 
-                            Dim caseStatement = caseBlock.CaseStatement
-                            Dim caseStatementSyntax = caseStatement.Syntax
-                            Dim caseStatementCondition As BoundExpression = Nothing
+                        Dim caseStatement = caseBlock.CaseStatement
+                        Dim caseStatementSyntax = caseStatement.Syntax
+                        Dim caseStatementCondition As BoundExpression = Nothing
 
-                            Debug.Assert(caseStatement.CaseClauses.Any())
-                            Dim clausesChanged = False
+                        Debug.Assert(caseStatement.CaseClauses.Any())
+                        Dim clausesChanged = False
 
-                            ' Compute conditional expression for case statement
-                            For Each caseClause In caseStatement.CaseClauses
-                                Dim clauseCondition As BoundExpression = Nothing
+                        ' Compute conditional expression for case statement
+                        For Each caseClause In caseStatement.CaseClauses
+                            Dim clauseCondition As BoundExpression = Nothing
 
-                                ' Compute conditional expression for case clause, if not already computed.
-                                Dim newCaseClause = ComputeCaseClauseCondition(caseClause, clauseCondition, selectExpression, diagnostics)
-                                caseClauseBuilder.Add(newCaseClause)
+                            ' Compute conditional expression for case clause, if not already computed.
+                            Dim newCaseClause = ComputeCaseClauseCondition(caseClause, clauseCondition, selectExpression, diagnostics)
+                            caseClauseBuilder.Add(newCaseClause)
 
-                                clausesChanged = clausesChanged OrElse Not newCaseClause.Equals(caseClause)
+                            clausesChanged = clausesChanged OrElse Not newCaseClause.Equals(caseClause)
 
-                                Debug.Assert(clauseCondition IsNot Nothing)
+                            Debug.Assert(clauseCondition IsNot Nothing)
 
-                                If caseStatementCondition Is Nothing Then
-                                    caseStatementCondition = clauseCondition
-                                Else
-                                    ' caseStatementCondition = caseStatementCondition OrElse clauseCondition
-                                    caseStatementCondition = BindBinaryOperator(
-                                        node:=caseStatementSyntax,
-                                        left:=caseStatementCondition,
-                                        right:=clauseCondition,
-                                        operatorTokenKind:=SyntaxKind.OrElseKeyword,
-                                        preliminaryOperatorKind:=BinaryOperatorKind.OrElse,
-                                        isOperandOfConditionalBranch:=False,
-                                        diagnostics:=diagnostics,
-                                        isSelectCase:=True)
-                                End If
-                            Next
-
-                            Dim newCaseClauses As ImmutableArray(Of BoundCaseClause)
-                            If clausesChanged Then
-                                newCaseClauses = caseClauseBuilder.ToImmutable()
+                            If caseStatementCondition Is Nothing Then
+                                caseStatementCondition = clauseCondition
                             Else
-                                newCaseClauses = caseStatement.CaseClauses
+                                ' caseStatementCondition = caseStatementCondition OrElse clauseCondition
+                                caseStatementCondition = BindBinaryOperator(
+                                    node:=caseStatementSyntax,
+                                    left:=caseStatementCondition,
+                                    right:=clauseCondition,
+                                    operatorTokenKind:=SyntaxKind.OrElseKeyword,
+                                    preliminaryOperatorKind:=BinaryOperatorKind.OrElse,
+                                    isOperandOfConditionalBranch:=False,
+                                    diagnostics:=diagnostics,
+                                    isSelectCase:=True).MakeCompilerGenerated()
                             End If
-                            caseClauseBuilder.Clear()
+                        Next
 
-                            caseStatementCondition = ApplyImplicitConversion(caseStatementCondition.Syntax, booleanType, caseStatementCondition, diagnostics:=diagnostics, isOperandOfConditionalBranch:=True)
-
-                            caseStatement = caseStatement.Update(newCaseClauses, caseStatementCondition)
-                            caseBlockBuilder(index) = caseBlock.Update(caseStatement, caseBlock.Body)
+                        Dim newCaseClauses As ImmutableArray(Of BoundCaseClause)
+                        If clausesChanged Then
+                            newCaseClauses = caseClauseBuilder.ToImmutable()
+                        Else
+                            newCaseClauses = caseStatement.CaseClauses
                         End If
-                    Next
+                        caseClauseBuilder.Clear()
 
-                    caseClauseBuilder.Free()
-                End If
+                        caseStatementCondition = ApplyImplicitConversion(caseStatementCondition.Syntax, booleanType, caseStatementCondition, diagnostics:=diagnostics, isOperandOfConditionalBranch:=True)
+
+                        caseStatement = caseStatement.Update(newCaseClauses, caseStatementCondition)
+                        caseBlockBuilder(index) = caseBlock.Update(caseStatement, caseBlock.Body)
+                    End If
+                Next
+
+                caseClauseBuilder.Free()
             End If
 
             Return caseBlockBuilder.ToImmutableAndFree()
         End Function
 
-        Private Function ComputeCaseClauseCondition(caseClause As BoundCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeCaseClauseCondition(caseClause As BoundCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundRValuePlaceholder, diagnostics As DiagnosticBag) As BoundCaseClause
             Select Case caseClause.Kind
                 Case BoundKind.RelationalCaseClause
                     Return ComputeRelationalCaseClauseCondition(DirectCast(caseClause, BoundRelationalCaseClause), conditionOpt, selectExpression, diagnostics)
@@ -462,25 +465,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function ComputeRelationalCaseClauseCondition(boundClause As BoundRelationalCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeRelationalCaseClauseCondition(boundClause As BoundRelationalCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundRValuePlaceholder, diagnostics As DiagnosticBag) As BoundCaseClause
             Dim syntax = DirectCast(boundClause.Syntax, RelationalCaseClauseSyntax)
 
             ' Exactly one of the operand or condition must be non-null
-            Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.OperandOpt IsNot Nothing)
+            Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.ValueOpt IsNot Nothing)
 
             conditionOpt = If(boundClause.ConditionOpt, BindBinaryOperator(node:=syntax,
                                                                            left:=selectExpression,
-                                                                           right:=boundClause.OperandOpt,
+                                                                           right:=boundClause.ValueOpt,
                                                                            operatorTokenKind:=syntax.OperatorToken.Kind,
                                                                            preliminaryOperatorKind:=boundClause.OperatorKind,
                                                                            isOperandOfConditionalBranch:=False,
                                                                            diagnostics:=diagnostics,
-                                                                           isSelectCase:=True))
+                                                                           isSelectCase:=True).MakeCompilerGenerated())
 
-            Return boundClause.Update(boundClause.OperatorKind, operandOpt:=Nothing, conditionOpt:=conditionOpt)
+            Return boundClause.Update(boundClause.OperatorKind, valueOpt:=Nothing, conditionOpt:=conditionOpt)
         End Function
 
-        Private Function ComputeSimpleCaseClauseCondition(boundClause As BoundSimpleCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeSimpleCaseClauseCondition(boundClause As BoundSimpleCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundRValuePlaceholder, diagnostics As DiagnosticBag) As BoundCaseClause
             ' Exactly one of the value or condition must be non-null
             Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.ValueOpt IsNot Nothing)
 
@@ -491,12 +494,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                            preliminaryOperatorKind:=BinaryOperatorKind.Equals,
                                                                            isOperandOfConditionalBranch:=False,
                                                                            diagnostics:=diagnostics,
-                                                                           isSelectCase:=True))
+                                                                           isSelectCase:=True).MakeCompilerGenerated())
 
             Return boundClause.Update(valueOpt:=Nothing, conditionOpt:=conditionOpt)
         End Function
 
-        Private Function ComputeRangeCaseClauseCondition(boundClause As BoundRangeCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundExpression, diagnostics As DiagnosticBag) As BoundCaseClause
+        Private Function ComputeRangeCaseClauseCondition(boundClause As BoundRangeCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundRValuePlaceholder, diagnostics As DiagnosticBag) As BoundCaseClause
             Dim syntax = boundClause.Syntax
 
             ' Exactly one of the LowerBoundOpt or LowerBoundConditionOpt must be non-null
@@ -512,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     preliminaryOperatorKind:=BinaryOperatorKind.GreaterThanOrEqual,
                     isOperandOfConditionalBranch:=False,
                     diagnostics:=diagnostics,
-                    isSelectCase:=True)
+                    isSelectCase:=True).MakeCompilerGenerated()
             End If
 
             ' Exactly one of the UpperBoundOpt or UpperBoundConditionOpt must be non-null
@@ -528,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     preliminaryOperatorKind:=BinaryOperatorKind.LessThanOrEqual,
                     isOperandOfConditionalBranch:=False,
                     diagnostics:=diagnostics,
-                    isSelectCase:=True)
+                    isSelectCase:=True).MakeCompilerGenerated()
             End If
 
             conditionOpt = BindBinaryOperator(
@@ -539,13 +542,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 preliminaryOperatorKind:=BinaryOperatorKind.AndAlso,
                 isOperandOfConditionalBranch:=False,
                 diagnostics:=diagnostics,
-                isSelectCase:=True)
+                isSelectCase:=True).MakeCompilerGenerated()
 
             Return boundClause.Update(lowerBoundOpt:=Nothing, upperBoundOpt:=Nothing, lowerBoundConditionOpt:=lowerBoundConditionOpt, upperBoundConditionOpt:=upperBoundConditionOpt)
         End Function
 
         ' Helper method to determine if we must rewrite the select case statement as an IF list or a SWITCH table
-        Private Function RecommendSwitchTable(selectExpr As BoundExpression, caseBlocks As ArrayBuilder(Of BoundCaseBlock), diagnostics As DiagnosticBag) As Boolean
+        Private Function RecommendSwitchTable(selectExpr As BoundRValuePlaceholder, caseBlocks As ArrayBuilder(Of BoundCaseBlock), diagnostics As DiagnosticBag) As Boolean
             ' We can rewrite select case statement as an IF list or a SWITCH table
             ' This function determines which method to use.
             ' The conditions for choosing the SWITCH table are:
@@ -582,9 +585,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim relationalClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                             ' Exactly one of the operand or condition must be non-null
-                            Debug.Assert(relationalClause.OperandOpt IsNot Nothing Xor relationalClause.ConditionOpt IsNot Nothing)
+                            Debug.Assert(relationalClause.ValueOpt IsNot Nothing Xor relationalClause.ConditionOpt IsNot Nothing)
 
-                            Dim operand = relationalClause.OperandOpt
+                            Dim operand = relationalClause.ValueOpt
 
                             If operand Is Nothing OrElse
                                 relationalClause.OperatorKind <> BinaryOperatorKind.Equals OrElse

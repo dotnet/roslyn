@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Threading;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName);
+                var serverData = ServerUtil.CreateServer(pipeName).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return true;
             }
@@ -144,6 +146,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.True(ranLocal);
                 }
             }
+
+#if NET472
+            [Fact]
+            public void TestMutexConstructorException()
+            {
+                using (var outer = new Mutex(initiallyOwned: true, name: BuildServerConnection.GetClientMutexName(_pipeName), out bool createdNew))
+                {
+                    Assert.True(createdNew);
+                    var mutexSecurity = outer.GetAccessControl();
+                    mutexSecurity.AddAccessRule(new MutexAccessRule(WindowsIdentity.GetCurrent().Owner, MutexRights.FullControl, AccessControlType.Deny));
+                    outer.SetAccessControl(mutexSecurity);
+
+                    var ranLocal = false;
+                    var client = CreateClient(
+                        compileFunc: delegate
+                        {
+                            ranLocal = true;
+                            return 0;
+                        });
+                    var exitCode = client.RunCompilation(new[] { "/shared" }, _buildPaths).ExitCode;
+                    Assert.Equal(0, exitCode);
+                    Assert.True(ranLocal);
+                }
+            }
+#endif
 
             [Fact]
             public async Task ConnectToPipe()
@@ -260,99 +287,115 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     out _errorMessage);
             }
 
-            [Fact]
-            public void Shared()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Shared(char optionPrefix)
             {
-                Assert.True(Parse("/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithSessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithSessionKey(char optionPrefix)
             {
-                Assert.True(Parse("/shared:pipe", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:pipe", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("pipe", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared:1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared:1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/shared=1:2", "test.cs"));
+                Assert.True(Parse(optionPrefix + "shared=1:2", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Equal("1:2", _sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void SharedWithEmptySessionKey()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedWithEmptySessionKey(char optionPrefix)
             {
-                Assert.False(Parse("/shared:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "shared:", "test.cs"));
                 Assert.False(_hasShared);
                 Assert.Equal(CodeAnalysisResources.SharedArgumentMissing, _errorMessage);
             }
 
-            [Fact]
-            public void SharedPrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void SharedPrefix(char optionPrefix)
             {
-                Assert.True(Parse("/sharedstart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "sharedstart", "test.cs"));
                 Assert.False(_hasShared);
-                Assert.Equal(new[] { "/sharedstart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "sharedstart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void Basic()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void Basic(char optionPrefix)
             {
                 Assert.True(Parse("test.cs"));
                 Assert.False(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
 
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", "/shared", "test.cs"));
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAliveBad()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAliveBad(char optionPrefix)
             {
-                Assert.False(Parse("/keepalive", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.MissingKeepAlive, _errorMessage);
 
-                Assert.False(Parse("/keepalive:-100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:-100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveIsTooSmall, _errorMessage);
 
-                Assert.False(Parse("/keepalive:100", "test.cs"));
+                Assert.False(Parse(optionPrefix + "keepalive:100", "test.cs"));
                 Assert.Equal(CodeAnalysisResources.KeepAliveWithoutShared, _errorMessage);
             }
 
-            [Fact]
-            public void KeepAlivePrefix()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlivePrefix(char optionPrefix)
             {
-                Assert.True(Parse("/keepalivestart", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalivestart", "test.cs"));
                 Assert.Null(_keepAlive);
-                Assert.Equal(new[] { "/keepalivestart", "test.cs" }, _parsedArgs);
+                Assert.Equal(new[] { optionPrefix + "keepalivestart", "test.cs" }, _parsedArgs);
             }
 
-            [Fact]
-            public void KeepAlive()
+            [Theory]
+            [InlineData('-')]
+            [InlineData('/')]
+            public void KeepAlive(char optionPrefix)
             {
-                Assert.True(Parse("/keepalive:100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive:100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
                 Assert.Null(_sessionKey);
 
-                Assert.True(Parse("/keepalive=100", "/shared", "test.cs"));
+                Assert.True(Parse(optionPrefix + "keepalive=100", optionPrefix + "shared", "test.cs"));
                 Assert.Equal("100", _keepAlive);
                 Assert.Equal(new[] { "test.cs" }, _parsedArgs);
                 Assert.True(_hasShared);
@@ -363,22 +406,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class MiscTest
         {
             [Fact]
-            public void GetBasePipeNameSlashes()
+            public void GetPipeNameForPathOptSlashes()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetBasePipeName(path);
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
 
             [Fact]
-            public void GetBasePipeNameLength()
+            public void GetPipeNameForPathOptLength()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetBasePipeName(path);
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
                 // We only have ~50 total bytes to work with on mac, so the base path must be small
-                Assert.InRange(name.Length, 10, 30);
+                Assert.Equal(43, name.Length);
             }
         }
     }

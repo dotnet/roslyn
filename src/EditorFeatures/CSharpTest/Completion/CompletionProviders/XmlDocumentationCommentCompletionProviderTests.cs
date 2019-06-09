@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -36,21 +38,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             }
         }
 
-        protected override async Task VerifyWorkerAsync(
+        private protected override async Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
         {
             // We don't need to try writing comments in from of items in doc comments.
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+            await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
+
+            await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
+
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters);
             }
         }
 
@@ -462,6 +479,16 @@ static void Goo(string str)
 {
 }
 ", "str");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task DelegateParams()
+        {
+            await VerifyItemExistsAsync(@"
+/// $$
+delegate void D(object o);
+", "param name=\"o\"");
         }
 
         [WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")]

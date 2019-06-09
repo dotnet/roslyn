@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
 
-        public string DialogTitle => "Manage Naming Styles";
+        public string DialogTitle => ServicesVSResources.Manage_naming_styles;
 
         public ManageNamingStylesDialogViewModel(
-            ObservableCollection<MutableNamingStyle> namingStyles, 
-            List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules, 
+            ObservableCollection<MutableNamingStyle> namingStyles,
+            List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules,
             INotificationService notificationService)
         {
             _notificationService = notificationService;

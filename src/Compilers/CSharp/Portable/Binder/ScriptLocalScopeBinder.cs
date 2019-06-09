@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _labels.GetLabels();
         }
-        
+
         internal override bool IsLabelsScopeBinder
         {
             get

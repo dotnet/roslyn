@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static string DiffReport<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, Func<T, string> toString = null, string separator = ",\r\n")
+        public static string DiffReport<T>(IEnumerable<T> expected, IEnumerable<T> actual, string separator, IEqualityComparer<T> comparer = null, Func<T, string> toString = null)
         {
             var lcs = (comparer != null) ? new LCS<T>(comparer) : LCS<T>.Default;
             toString = toString ?? new Func<T, string>(obj => obj.ToString());
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var exlines = Lines(expected);
             var aclines = Lines(actual);
-            return DiffReport(exlines, aclines, separator: "\r\n");
+            return DiffReport(exlines, aclines, separator: Environment.NewLine);
         }
 
         /// <summary>

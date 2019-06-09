@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -76,10 +76,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var others = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
 
-                var analysisResult = new DiagnosticAnalysisResult(
-                    project.Id, version,
-                    syntaxLocalMap, semanticLocalMap, nonLocalMap, GetOrDefault(others),
-                    documentIds: null, fromBuild: false);
+                var analysisResult = DiagnosticAnalysisResult.CreateFromSerialization(
+                    project,
+                    version,
+                    syntaxLocalMap,
+                    semanticLocalMap,
+                    nonLocalMap,
+                    GetOrDefault(others));
 
                 analysisMap.Add(analyzer, analysisResult);
             }
@@ -140,7 +143,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             for (var i = 0; i < count; i++)
             {
                 var documentId = DocumentId.ReadFrom(reader);
-                var diagnostics = serializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
+                var document = project.GetDocument(documentId);
+
+                var diagnostics = serializer.ReadFrom(reader, document, cancellationToken);
+
+                if (document?.SupportsDiagnostics() == false)
+                {
+                    // drop diagnostics for non-null document that doesn't support
+                    // diagnostics
+                    continue;
+                }
 
                 map.Add(documentId, GetOrDefault(diagnostics));
             }
@@ -158,6 +170,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.SyntaxTreeActionsCount);
             writer.WriteInt32(telemetryInfo.SemanticModelActionsCount);
             writer.WriteInt32(telemetryInfo.SymbolActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolStartActionsCount);
+            writer.WriteInt32(telemetryInfo.SymbolEndActionsCount);
             writer.WriteInt32(telemetryInfo.SyntaxNodeActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.CodeBlockEndActionsCount);
@@ -167,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             writer.WriteInt32(telemetryInfo.OperationBlockStartActionsCount);
             writer.WriteInt32(telemetryInfo.OperationBlockEndActionsCount);
             writer.WriteInt64(telemetryInfo.ExecutionTime.Ticks);
+            writer.WriteBoolean(telemetryInfo.Concurrent);
         }
 
         private static AnalyzerTelemetryInfo Deserialize(ObjectReader reader, CancellationToken cancellationToken)
@@ -179,6 +194,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var syntaxTreeActionsCount = reader.ReadInt32();
             var semanticModelActionsCount = reader.ReadInt32();
             var symbolActionsCount = reader.ReadInt32();
+            var symbolStartActionsCount = reader.ReadInt32();
+            var symbolEndActionsCount = reader.ReadInt32();
             var syntaxNodeActionsCount = reader.ReadInt32();
             var codeBlockStartActionsCount = reader.ReadInt32();
             var codeBlockEndActionsCount = reader.ReadInt32();
@@ -188,6 +205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var operationBlockStartActionsCount = reader.ReadInt32();
             var operationBlockEndActionsCount = reader.ReadInt32();
             var executionTime = new TimeSpan(reader.ReadInt64());
+            var concurrent = reader.ReadBoolean();
 
             return new AnalyzerTelemetryInfo()
             {
@@ -198,6 +216,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SyntaxTreeActionsCount = syntaxTreeActionsCount,
                 SemanticModelActionsCount = semanticModelActionsCount,
                 SymbolActionsCount = symbolActionsCount,
+                SymbolStartActionsCount = symbolStartActionsCount,
+                SymbolEndActionsCount = symbolEndActionsCount,
                 SyntaxNodeActionsCount = syntaxNodeActionsCount,
 
                 CodeBlockStartActionsCount = codeBlockStartActionsCount,
@@ -209,7 +229,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 OperationBlockEndActionsCount = operationBlockEndActionsCount,
                 OperationBlockActionsCount = operationBlockActionsCount,
 
-                ExecutionTime = executionTime
+                ExecutionTime = executionTime,
+
+                Concurrent = concurrent
             };
         }
 

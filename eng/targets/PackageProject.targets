@@ -1,0 +1,18 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <!-- 
+    Include this targets file in project that build packages but no binaries.
+  -->
+  
+  <!-- 
+    Projects in this directory do not produce useful binaries, they are only used to generate packages. 
+    Build target only needs to build their project dependencies (via ResolveProjectReferences).
+  -->
+  <Target Name="CoreBuild" DependsOnTargets="ResolveProjectReferences">
+    <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True"/>
+  </Target>
+
+  <PropertyGroup>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+</Project>

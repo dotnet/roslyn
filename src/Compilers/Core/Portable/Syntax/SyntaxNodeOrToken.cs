@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
+    public readonly struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
     {
         // In a case if we are wrapping a SyntaxNode this is the SyntaxNode itself.
         // In a case where we are wrapping a token, this is the token's parent.
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis
             return directives ?? SpecializedCollections.EmptyList<TDirective>();
         }
 
-        private static void GetDirectives<TDirective>(SyntaxNodeOrToken node, Func<TDirective, bool> filter, ref List<TDirective> directives)
+        private static void GetDirectives<TDirective>(in SyntaxNodeOrToken node, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
             if (node._token != null)
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void GetDirectives<TDirective>(SyntaxTriviaList trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
+        private static void GetDirectives<TDirective>(in SyntaxTriviaList trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
             foreach (var tr in trivia)

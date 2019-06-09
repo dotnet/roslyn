@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener,
                 IForegroundNotificationService notificationService)
+                : base(dataSource.ThreadingContext)
             {
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                 {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
-                _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
+                _workQueue = new AsynchronousSerialWorkQueue(ThreadingContext, asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
                 _eventSource = CreateEventSource();
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
 
             private void Connect()
             {
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public void Disconnect()
             {
                 _workQueue.AssertIsForeground();
-                _workQueue.CancelCurrentWork();
+                _workQueue.CancelCurrentWork(remainCancelled: true);
 
                 // Tell the interaction object to stop issuing events.
                 _eventSource.Disconnect();

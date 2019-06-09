@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                        Debug.Assert(parentBinder.ContainingMemberOrLambda == fieldSymbol.ContainingType || //should be the binder for the type
+                        Debug.Assert((parentBinder.ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
                                 fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
                         if (firstDebugImports == null)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.FieldInitializer, fieldSymbol);
 
-                        BoundFieldInitializer boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
+                        BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
                         boundInitializers.Add(boundInitializer);
                     }
                 }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // insert an implicit conversion for the submission return type (if needed):
                     var expression = InitializerRewriter.GetTrailingScriptExpression(statement);
                     if (expression != null &&
-                        ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
+                        ((object)expression.Type == null || !expression.Type.IsVoidType()))
                     {
                         var submissionResultType = scriptInitializer.ResultType;
                         expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundGlobalStatementInitializer(statementNode, statement);
         }
 
-        private static BoundFieldInitializer BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
+        private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
@@ -269,17 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
-            var boundInitValue = binder.BindVariableOrAutoPropInitializer(equalsValueClauseNode, RefKind.None, fieldSymbol.GetFieldType(fieldsBeingBound), initializerDiagnostics);
+            BoundFieldEqualsValue boundInitValue = binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics);
 
             if (isImplicitlyTypedField)
             {
                 initializerDiagnostics.Free();
             }
 
-            return new BoundFieldInitializer(
-                equalsValueClauseNode.Value, //we want the attached sequence point to indicate the value node
-                fieldSymbol,
-                boundInitValue);
+            return boundInitValue;
         }
     }
 }

@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -27,14 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PENamedTypeSymbol _containingType;
         private bool _lazyIsVolatile;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
         private Tuple<CultureInfo, string> _lazyDocComment;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbol _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
             Debug.Assert((object)eventSymbol != null);
-            Debug.Assert(eventSymbol.ContainingType == _containingType);
+            Debug.Assert(TypeSymbol.Equals(eventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.
@@ -204,16 +202,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if ((object)_lazyType == null)
+            if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
+                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
-                type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
 
+                typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
+
+                // We start without annotations
+                var type = TypeWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
+
+                // Decode nullable before tuple types to avoid converting between
+                // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
+                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
+
                 _lazyIsVolatile = isVolatile;
 
                 TypeSymbol fixedElementType;
@@ -221,12 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
                     _lazyFixedSize = fixedSize;
-                    _lazyFixedImplementationType = type as NamedTypeSymbol;
-                    type = new PointerTypeSymbol(fixedElementType);
+                    _lazyFixedImplementationType = type.Type as NamedTypeSymbol;
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, customModifiersArray, default(ImmutableArray<CustomModifier>));
-                Interlocked.CompareExchange(ref _lazyType, type, null);
+                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
         }
 
@@ -261,13 +266,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return _lazyType;
+            return _lazyType.Value;
         }
 
-        public override bool IsFixed
+        public override bool IsFixedSizeBuffer
         {
             get
             {
@@ -289,15 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureSignatureIsLoaded();
             return _lazyFixedImplementationType;
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                EnsureSignatureIsLoaded();
-                return _lazyCustomModifiers;
-            }
         }
 
         public override Symbol AssociatedSymbol
@@ -440,14 +436,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (FilterOutDecimalConstantAttribute())
                 {
                     // filter out DecimalConstantAttribute
-                    CustomAttributeHandle ignore1;
-                    CustomAttributeHandle ignore2;
                     var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
                         _handle,
-                        out ignore1,
-                        AttributeDescription.DecimalConstantAttribute,
-                        out ignore2,
-                        default(AttributeDescription));
+                        out _,
+                        AttributeDescription.DecimalConstantAttribute);
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
                 }

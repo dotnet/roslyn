@@ -84,12 +84,7 @@
       </trans-unit>
       <trans-unit id="Visual_Basic_Pretty_List">
         <source>Visual Basic Pretty List</source>
-        <target state="translated">Lista Pretty języka Visual Basic</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Wiele typów&gt;</target>
+        <target state="translated">Formatowanie kodu języka Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="not_supported">
@@ -105,6 +100,11 @@
       <trans-unit id="Line_commit">
         <source>Line commit</source>
         <target state="translated">Zatwierdzenie wiersza</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Implementuj klasę abstrakcyjną lub interfejs</target>
         <note />
       </trans-unit>
     </body>

@@ -35,20 +35,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 
             var service = new TextBufferAssociatedViewService();
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(1, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(0, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock2.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock2.Object, dummyReason, bufferCollection);
             Assert.Equal(2, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(1, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock2.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock2.Object, dummyReason, bufferCollection);
             Assert.Equal(0, service.GetAssociatedTextViews(bufferMock.Object).Count());
         }
     }

@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="Roslyn.Hosting.Diagnostics.RemoteHost.RemoteHostPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Roslyn.Hosting.Diagnostics.RemoteHost"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Label Content="Solution Checksum" />
+            <Label x:Name="SaveChecksum" MinWidth="150"/>
+            <Button Content="Save" x:Name="SolutionSaveButton" Click="OnSolutionSave"/>
+            <Label x:Name="FileToSave" MinWidth="100"/>
+            <Button Content="Choose File" x:Name="FileToSaveButton" Click="OnFileToSave"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Label Content="Solution Checksum" />
+            <Label x:Name="OpenChecksum" MinWidth="150"/>
+            <Button Content="Open" x:Name="SolutionOpenButton" Click="OnSolutionOpen"/>
+            <Label x:Name="FileToOpen" MinWidth="100"/>
+            <Button Content="Choose File" x:Name="FileToOpenButton" Click="OnFileToOpen"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

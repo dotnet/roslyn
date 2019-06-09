@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -297,6 +297,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", options: UseBlockBodyIncludingPropertiesAndIndexers);
+        }
+
+        [WorkItem(31308, "https://github.com/dotnet/roslyn/issues/31308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBody5()
+        {
+            var whenOnSingleLineWithNoneEnforcement = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            var options = OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, whenOnSingleLineWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, whenOnSingleLineWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, whenOnSingleLineWithNoneEnforcement));
+
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    C this[int index]
+    {
+        get [|=>|] default;
+    }
+}", new TestParameters(options: options));
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]

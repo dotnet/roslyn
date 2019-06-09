@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
@@ -16,9 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
+    [UseExportProvider]
     public class SymbolEditorTests
     {
-        private readonly SyntaxGenerator _g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+        private SyntaxGenerator _g;
+
+        private SyntaxGenerator Generator
+            => _g ?? (_g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp));
 
         private Solution GetSolution(params string[] sources)
         {
@@ -103,11 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             var symbol = (await GetSymbolsAsync(solution, "C")).First();
             var editor = SymbolEditor.Create(solution);
 
-            var newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, _g.MethodDeclaration("m")));
+            var newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, Generator.MethodDeclaration("m")));
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
             Assert.Equal(0, newSymbol.GetMembers("m2").Length);
 
-            newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, _g.MethodDeclaration("m2")));
+            newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMember(d, Generator.MethodDeclaration("m2")));
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
             Assert.Equal(1, newSymbol.GetMembers("m2").Length);
 

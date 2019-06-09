@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("Tick:{0}, Id:{1}, Replaced:{2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _logAggregator = new LogAggregator();
                 }
 
-                private static async Task ProcessDocumentAnalyzersAsync(
+                private async Task ProcessDocumentAnalyzersAsync(
                     Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process all analyzers for each categories in this order - syntax, body, document
@@ -164,9 +165,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static async Task RunAnalyzersAsync<T>(ImmutableArray<IIncrementalAnalyzer> analyzers, T value,
-                    Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync, CancellationToken cancellationToken)
+                private async Task RunAnalyzersAsync<T>(
+                    ImmutableArray<IIncrementalAnalyzer> analyzers,
+                    T value,
+                    Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
+                    CancellationToken cancellationToken)
                 {
+                    // this is a best effort progress report. since we don't clear up
+                    // reported progress when work is done or cancelled. it is possible
+                    // that last reported work is left in report even if it is already processed.
+                    // but when everything is finished, report should get cleared
+                    _ = _registration.ProgressReporter.Update(GetFilePath(value));
+
                     foreach (var analyzer in analyzers)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -188,12 +198,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private static async Task RunBodyAnalyzersAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
+                private async Task RunBodyAnalyzersAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
                 {
                     try
                     {
                         var root = await GetOrDefaultAsync(document, (d, c) => d.GetSyntaxRootAsync(c), cancellationToken).ConfigureAwait(false);
-                        var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var reasons = workItem.InvocationReasons;
                         if (root == null || syntaxFactsService == null)
                         {
@@ -220,6 +230,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
+                }
+
+                private static string GetFilePath(object value)
+                {
+                    if (value is Document document)
+                    {
+                        return document.FilePath;
+                    }
+
+                    if (value is Project project)
+                    {
+                        return project.FilePath;
+                    }
+
+                    if (value is Solution solution)
+                    {
+                        return solution.FilePath;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(value);
                 }
 
                 private static async Task<TResult> GetOrDefaultAsync<TData, TResult>(TData value, Func<TData, CancellationToken, Task<TResult>> funcAsync, CancellationToken cancellationToken)
@@ -263,7 +293,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ProjectId activeProjectId = null;
                     if (_documentTracker != null)
                     {
-                        var activeDocument = _documentTracker.GetActiveDocument();
+                        var activeDocument = _documentTracker.TryGetActiveDocument();
                         if (activeDocument != null)
                         {
                             activeProjectId = activeDocument.ProjectId;
@@ -271,6 +301,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return null;
+                }
+
+                private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
+                {
+                    if (documentOrProjectId is DocumentId documentId)
+                    {
+                        return $"Tick:{tick}, {documentId}, {documentId.ProjectId}, Replaced:{replaced}";
+                    }
+
+                    return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
                 }
 
                 private static bool CrashUnlessCanceled(AggregateException aggregate)

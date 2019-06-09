@@ -87,6 +87,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static HashAlgorithmName GetAlgorithmName(SourceHashAlgorithm algorithmId)
+        {
+            switch (algorithmId)
+            {
+                case SourceHashAlgorithm.Sha1:
+                    return HashAlgorithmName.SHA1;
+
+                case SourceHashAlgorithm.Sha256:
+                    return HashAlgorithmName.SHA256;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(algorithmId);
+            }
+        }
+
         internal static HashAlgorithm TryGetAlgorithm(AssemblyHashAlgorithm algorithmId)
         {
             switch (algorithmId)
@@ -168,18 +183,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<Blob> bytes)
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<Blob> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<ArraySegment<byte>> bytes)
+        internal static ImmutableArray<byte> ComputeHash(HashAlgorithmName algorithmName, IEnumerable<ArraySegment<byte>> bytes)
         {
-            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());

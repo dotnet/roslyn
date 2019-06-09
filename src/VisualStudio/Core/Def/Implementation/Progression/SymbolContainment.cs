@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         public static async Task<IEnumerable<SyntaxNode>> GetContainedSyntaxNodesAsync(Document document, CancellationToken cancellationToken)
         {
-            var progressionLanguageService = document.Project.LanguageServices.GetService<IProgressionLanguageService>();
+            var progressionLanguageService = document.GetLanguageService<IProgressionLanguageService>();
             if (progressionLanguageService == null)
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();

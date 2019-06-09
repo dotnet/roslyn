@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.Versioning;
+
+[assembly: TargetFramework(".NETFramework,Version=v2.0")]
 
 namespace Microsoft.CodeAnalysis
 {
@@ -79,5 +81,18 @@ namespace System.Text
         {
             builder.Length = 0; // Matches the real definition.
         }
+    }
+}
+
+namespace System.Runtime.Versioning
+{
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
+    internal sealed class TargetFrameworkAttribute : Attribute
+    {
+        public string FrameworkName { get; }
+        public string FrameworkDisplayName { get; set; }
+
+        public TargetFrameworkAttribute(string frameworkName)
+            => FrameworkName = frameworkName;
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(D d) => d(0);
@@ -81,7 +81,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M(D d) => d(0);
@@ -115,7 +115,7 @@ class Test
     }
 }");
 
-            var c = CreateStandardCompilation(@"
+            var c = CreateCompilation(@"
 class Test
 {
     ref readonly int M(D d) => ref d();
@@ -149,7 +149,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     ref readonly int M(D d) => ref d();
@@ -191,7 +191,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public ref readonly int M(RefTest obj) => ref obj.X;
@@ -233,7 +233,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public ref readonly int M(RefTest obj) => ref obj.X;
@@ -268,7 +268,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
@@ -303,7 +303,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
@@ -313,7 +313,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -375,7 +375,7 @@ class Test
 }";
 
             // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
                 symbolValidator: module =>
@@ -440,7 +440,7 @@ Parent",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System;
 class Test
 {
@@ -463,10 +463,10 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -528,7 +528,7 @@ class Test
 }";
 
             // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
                 symbolValidator: module =>
@@ -593,7 +593,7 @@ Parent",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System;
 class Test
 {
@@ -616,7 +616,7 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -641,7 +641,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
@@ -673,7 +673,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
@@ -719,7 +719,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -764,7 +764,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -806,7 +806,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -855,7 +855,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -900,7 +900,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -942,7 +942,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -999,7 +999,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1048,7 +1048,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1094,7 +1094,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1151,7 +1151,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1200,7 +1200,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1246,7 +1246,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1259,7 +1259,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -1386,7 +1386,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Set
 Parent Get
@@ -1515,7 +1515,7 @@ Parent Set",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1541,12 +1541,12 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Child Get
 Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
         {
             var reference = CompileIL(@"
@@ -1644,7 +1644,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Get",
                 symbolValidator: module =>
@@ -1742,7 +1742,7 @@ Parent Get",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1765,10 +1765,10 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Get");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
         {
             var reference = CompileIL(@"
@@ -1856,7 +1856,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Set
 Parent Set",
                 symbolValidator: module =>
@@ -1944,7 +1944,7 @@ Parent Set",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1967,10 +1967,10 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Set");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -2097,7 +2097,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Set
 Parent Get
@@ -2226,7 +2226,7 @@ Parent Set",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2252,12 +2252,12 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Child Get
 Child Set");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
         {
             var reference = CompileIL(@"
@@ -2355,7 +2355,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Get",
                 symbolValidator: module =>
@@ -2453,7 +2453,7 @@ Parent Get",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2476,10 +2476,10 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Get");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
+        [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
         {
             var reference = CompileIL(@"
@@ -2567,7 +2567,7 @@ class Test
 }";
 
             // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Set
 Parent Set",
                 symbolValidator: module =>
@@ -2655,7 +2655,7 @@ Parent Set",
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2678,7 +2678,7 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Set");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
         }
 
         [Fact]
@@ -2715,7 +2715,7 @@ class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2762,7 +2762,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2801,7 +2801,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2840,7 +2840,7 @@ public class Test
     }
 }");
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)

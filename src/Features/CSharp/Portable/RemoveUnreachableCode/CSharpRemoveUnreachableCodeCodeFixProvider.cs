@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnreachableCode), Shared]
     internal class CSharpRemoveUnreachableCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpRemoveUnreachableCodeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId);
 
@@ -39,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 c => FixAsync(context.Document, diagnostic, c),
                 priority), diagnostic);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 }
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

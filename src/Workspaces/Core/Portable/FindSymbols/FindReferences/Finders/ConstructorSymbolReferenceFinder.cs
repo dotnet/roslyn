@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var typeName = symbol.ContainingType.Name;
@@ -54,26 +55,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 predefinedType == actualType;
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindAllReferencesInDocumentAsync(methodSymbol, document, cancellationToken);
+            return FindAllReferencesInDocumentAsync(methodSymbol, document, semanticModel, cancellationToken);
         }
 
-        internal async Task<ImmutableArray<ReferenceLocation>> FindAllReferencesInDocumentAsync(
+        internal async Task<ImmutableArray<FinderLocation>> FindAllReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var findParentNode = GetFindParentNodeFunction(syntaxFacts);
 
-            var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, findParentNode, cancellationToken).ConfigureAwait(false);
-            var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, cancellationToken).ConfigureAwait(false);
+            var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
+            var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var aliasReferences = await FindAliasReferencesAsync(
-                nonAliasTypeReferences, methodSymbol, document, 
+                nonAliasTypeReferences, methodSymbol, document, semanticModel,
                 findParentNode, cancellationToken).ConfigureAwait(false);
             return normalReferences.Concat(aliasReferences);
         }
@@ -83,56 +87,61 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return t => syntaxFacts.GetBindableParent(t);
         }
 
-        private async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentWorkerAsync(
+        private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorkerAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             Func<SyntaxToken, SyntaxNode> findParentNode,
             CancellationToken cancellationToken)
         {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, findParentNode, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
+            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
 
-        private Task<ImmutableArray<ReferenceLocation>> FindOrdinaryReferencesAsync(
+        private Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             Func<SyntaxToken, SyntaxNode> findParentNode,
             CancellationToken cancellationToken)
         {
             var name = symbol.ContainingType.Name;
             return FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, name, document, findParentNode, cancellationToken);
+                symbol, name, document, semanticModel, findParentNode, cancellationToken);
         }
 
-        private Task<ImmutableArray<ReferenceLocation>> FindPredefinedTypeReferencesAsync(
+        private Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
             if (predefinedType == PredefinedType.None)
             {
-                return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(symbol, document,
+                semanticModel,
                 t => IsPotentialReference(predefinedType, syntaxFacts, t),
                 cancellationToken);
         }
 
-        private Task<ImmutableArray<ReferenceLocation>> FindAttributeReferencesAsync(
+        private Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(symbol.ContainingType.Name, syntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
+                ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, semanticModel, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }
 }

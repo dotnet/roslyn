@@ -2,10 +2,13 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class CSharpSnippetCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfWord_NoActiveSession_ExpansionInserted()
@@ -228,23 +231,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.CSharp)
             Using testState
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
-
                 Dim handler = testState.SnippetCommandHandler
-                Dim state = handler.GetCommandState(New Commands.InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer))
+                Assert.True(state.IsUnspecified)
 
                 testState.SnippetExpansionClient.TryInsertExpansionReturnValue = True
 
-                delegatedToNext = False
-                testState.SendInsertSnippetCommand(AddressOf handler.ExecuteCommand, nextHandler)
-                Assert.True(delegatedToNext)
+                Assert.False(testState.SendInsertSnippetCommand(AddressOf handler.ExecuteCommand))
 
                 Assert.False(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal("for", testState.SubjectBuffer.CurrentSnapshot.GetText())
@@ -257,23 +250,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.CSharp)
             Using testState
-                Dim delegatedToNext = False
-                Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
-
                 Dim handler = CType(testState.SnippetCommandHandler, CSharp.Snippets.SnippetCommandHandler)
-                Dim state = handler.GetCommandState(New Commands.SurroundWithCommandArgs(testState.TextView, testState.SubjectBuffer), nextHandler)
-                Assert.True(delegatedToNext)
-                Assert.False(state.IsAvailable)
+                Dim state = handler.GetCommandState(New SurroundWithCommandArgs(testState.TextView, testState.SubjectBuffer))
+                Assert.True(state.IsUnspecified)
 
                 testState.SnippetExpansionClient.TryInsertExpansionReturnValue = True
 
-                delegatedToNext = False
-                testState.SendSurroundWithCommand(AddressOf handler.ExecuteCommand, nextHandler)
-                Assert.True(delegatedToNext)
+                Assert.False(testState.SendSurroundWithCommand(AddressOf handler.ExecuteCommand))
 
                 Assert.False(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal("for", testState.SubjectBuffer.CurrentSnapshot.GetText())

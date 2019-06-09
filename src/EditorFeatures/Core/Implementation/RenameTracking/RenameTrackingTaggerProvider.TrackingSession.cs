@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public bool ForceRenameOverloads => _forceRenameOverloads;
 
             public TrackingSession(StateMachine stateMachine, SnapshotSpan snapshotSpan, IAsynchronousOperationListener asyncListener)
+                : base(stateMachine.ThreadingContext)
             {
                 AssertIsForeground();
 
@@ -72,11 +73,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                     var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateTrackingSessionAfterIsRenamableIdentifierTask");
 
-                    _isRenamableIdentifierTask.SafeContinueWith(
-                        t => stateMachine.UpdateTrackingSessionIfRenamable(),
+                    _isRenamableIdentifierTask.SafeContinueWithFromAsync(
+                        async t =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                            _cancellationToken.ThrowIfCancellationRequested();
+
+                            stateMachine.UpdateTrackingSessionIfRenamable();
+                        },
                         _cancellationToken,
-                       TaskContinuationOptions.OnlyOnRanToCompletion,
-                       ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
 
                     QueueUpdateToStateMachine(stateMachine, _isRenamableIdentifierTask);
                 }
@@ -95,17 +102,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 var asyncToken = _asyncListener.BeginAsyncOperation($"{GetType().Name}.{nameof(QueueUpdateToStateMachine)}");
 
-                task.SafeContinueWith(t =>
+                task.SafeContinueWithFromAsync(async t =>
                    {
-                       AssertIsForeground();
+                       await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                       _cancellationToken.ThrowIfCancellationRequested();
+
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {
                            stateMachine.OnTrackingSessionUpdated(this);
                        }
                    },
                    _cancellationToken,
-                   TaskContinuationOptions.OnlyOnRanToCompletion,
-                   ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                   TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                   TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
             }
 
             internal void CheckNewIdentifier(StateMachine stateMachine, ITextSnapshot snapshot)
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var document = snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                     var syntaxTree = await document.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
                     var token = await syntaxTree.GetTouchingWordAsync(snapshotSpan.Start.Position, syntaxFactsService, _cancellationToken).ConfigureAwait(false);
 
@@ -158,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         return TriggerIdentifierKind.NotRenamable;
                     }
 
-                    var languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                    var languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();
                     if (syntaxFactsService.IsIdentifier(token) && languageHeuristicsService.IsIdentifierValidForRenameTracking(token.Text))
                     {
                         var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, _cancellationToken).ConfigureAwait(false);
@@ -215,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get the source symbol if possible
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, _cancellationToken).ConfigureAwait(false) ?? symbol;
 
-                if (sourceSymbol.Kind == SymbolKind.Field && 
+                if (sourceSymbol.Kind == SymbolKind.Field &&
                     ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
                     sourceSymbol.IsImplicitlyDeclared)
                 {

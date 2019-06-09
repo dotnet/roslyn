@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override void Format(
                 FormattingContext context,
                 ChainedFormattingRules formattingRules,
-                Action<int, TriviaData> formattingResultApplier,
+                Action<int, TokenStream, TriviaData> formattingResultApplier,
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
-                formattingResultApplier(tokenPairIndex, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
+                formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
             }
         }
     }

@@ -38,19 +38,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return default;
         }
-
-        public static BaseArgumentListSyntax WithArguments(
-            this BaseArgumentListSyntax node, SeparatedSyntaxList<ArgumentSyntax> arguments)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                    return ((ArgumentListSyntax)node).WithArguments(arguments);
-                case SyntaxKind.BracketedArgumentList:
-                    return ((BracketedArgumentListSyntax)node).WithArguments(arguments);
-                default:
-                    throw new InvalidOperationException();
-            }
-        }
     }
 }

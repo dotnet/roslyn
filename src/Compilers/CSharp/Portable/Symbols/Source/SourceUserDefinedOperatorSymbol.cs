@@ -37,14 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 containingType,
                 location,
-                syntax.GetReference(),
-                syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
-                syntax.Modifiers,
-                diagnostics,
-                isExpressionBodied)
+                syntax,
+                diagnostics)
         {
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            if (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName)
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+            }
         }
 
         internal new OperatorDeclarationSyntax GetSyntax()

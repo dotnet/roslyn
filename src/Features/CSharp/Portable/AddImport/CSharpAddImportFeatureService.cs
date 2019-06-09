@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
     internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportFeatureService()
+        {
+        }
+
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -132,6 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
             => diagnosticId == CS8129;
 
+        protected override bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+            => diagnosticId == CS1061 &&
+            AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
+
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -164,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS1580:
                 case CS1581:
                 case CS1955:
+                case CS0281:
                     break;
 
                 case CS1574:
@@ -293,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
 
             var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
-            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) :null;
+            var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
 
             if (externAlias == null && usingDirective == null)
             {
@@ -594,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression = 
+            var leftExpression =
                 syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ??
                 syntaxFacts.GetTargetOfMemberBinding(expression);
             if (leftExpression == null)

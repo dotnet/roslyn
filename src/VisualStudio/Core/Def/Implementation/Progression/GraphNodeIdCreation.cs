@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static async Task<GraphNodeId> GetPartialForNamedTypeAsync(INamedTypeSymbol namedType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
         {
             // If this is a simple type, then we don't have much to do
-            if (namedType.ContainingType == null && namedType.ConstructedFrom == namedType && namedType.Arity == 0)
+            if (namedType.ContainingType == null && Equals(namedType.ConstructedFrom, namedType) && namedType.Arity == 0)
             {
                 return GraphNodeId.GetPartial(nodeName, namedType.Name);
             }
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
                 // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
 
-                bool hasGenericArguments = (namedType.ConstructedFrom != namedType || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
+                bool hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
 
                 if (hasGenericArguments)
                 {
@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             var underlyingType = ChaseToUnderlyingType(typeSymbol);
-            if (typeSymbol == underlyingType)
+            if (Equals(typeSymbol, underlyingType))
             {
                 // when symbol is for dynamic type
                 return null;
@@ -400,17 +400,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                if (solution.Workspace is VisualStudioWorkspaceImpl workspace)
+                if (solution.Workspace is VisualStudioWorkspace workspace)
                 {
-                    // We have found a project in the solution, so clearly the deferred state has been loaded
-                    var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
-                    if (vsProject != null)
+                    // TODO: audit the OutputFilePath and whether this is bin or obj
+                    if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
                     {
-                        var output = vsProject.BinOutputPath;
-                        if (!string.IsNullOrWhiteSpace(output))
-                        {
-                            return new Uri(output, UriKind.RelativeOrAbsolute);
-                        }
+                        return new Uri(foundProject.OutputFilePath, UriKind.RelativeOrAbsolute);
                     }
 
                     return null;
@@ -520,7 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
             {
-                var currentNode = reference.GetSyntax(cancellationToken);
+                var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
                 // For VB, we have to ask its parent to get local variables within this method body
                 // since DeclaringSyntaxReferences return statement rather than enclosing block.

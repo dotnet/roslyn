@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.
-    /// It works against an <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
+    /// It works against a <see cref="Microsoft.CodeAnalysis.Elfie"/> database to find results.
     /// 
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSourceName, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -316,8 +317,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void Commit()
         {
-            _model.Session.Commit();
-            _textView.VisualElement.Focus();
+            try
+            {
+                _model.Session.Commit();
+                _textView.VisualElement.Focus();
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
         }
 
         public void Dispose()

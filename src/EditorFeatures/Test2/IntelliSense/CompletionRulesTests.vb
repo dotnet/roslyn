@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ' These tests adapted from David Kean's table at
     ' https://github.com/dotnet/roslyn/issues/5524
+    <[UseExportProvider]>
     Public Class CompletionRulesTests
         <Fact>
         Public Sub TestMatchLowerCaseEnglishI()

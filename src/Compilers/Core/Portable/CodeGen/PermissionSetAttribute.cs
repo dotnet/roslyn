@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        public Cci.IMethodReference Constructor(EmitContext context)
-            => _sourceAttribute.Constructor(context);
+        public Cci.IMethodReference Constructor(EmitContext context, bool reportDiagnostics)
+            => _sourceAttribute.Constructor(context, reportDiagnostics);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.

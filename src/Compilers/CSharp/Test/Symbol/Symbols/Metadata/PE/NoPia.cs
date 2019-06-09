@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly);
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate);
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate);
+            Assert.False(((INamedTypeSymbol)ambiguous).IsSerializable);
 
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
             Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
@@ -526,6 +527,7 @@ public class LocalTypes2
             Assert.Equal(varI1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Null(missing.Scope);
             Assert.Null(missing.Identifier);
+            Assert.False(((INamedTypeSymbol)missing).IsSerializable);
 
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
             Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
@@ -1245,7 +1247,7 @@ public interface I7
 
             Assert.NotEqual(SymbolKind.ErrorType, varI7_Bar.ReturnType.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, ((NamedTypeSymbol)varI7_Bar.ReturnType).TypeArguments()[0].Kind);
-            Assert.Equal("System.Collections.Generic.List<I1>", varI7_Bar.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.List<I1>", varI7_Bar.ReturnTypeWithAnnotations.ToTestDisplayString());
 
             var varI1 = varC_Pia1.SourceModule.GlobalNamespace.GetTypeMembers("I1").Single();
 

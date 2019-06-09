@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -20,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDeconstructionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
 
@@ -29,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
@@ -149,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
                     SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
-                        e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name))))));
+                        e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name.EscapeIdentifier()))))));
 
         private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
             => SyntaxFactory.TupleExpression(
@@ -176,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Deconstruct_variable_declaration, createChangedDocument, FeaturesResources.Deconstruct_variable_declaration)
             {
             }

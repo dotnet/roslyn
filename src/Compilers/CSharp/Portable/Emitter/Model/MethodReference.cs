@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

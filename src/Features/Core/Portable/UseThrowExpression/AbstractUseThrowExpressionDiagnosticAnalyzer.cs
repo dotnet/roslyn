@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseThrowExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract bool IsSupported(ParseOptions options);
 
@@ -146,10 +144,8 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.Exception.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
-
             context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, throwStatementSyntax.GetLocation(), additionalLocations: allLocations));
+                DiagnosticHelper.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
 
             // Fade out the rest of the if that surrounds the 'throw' exception.
 

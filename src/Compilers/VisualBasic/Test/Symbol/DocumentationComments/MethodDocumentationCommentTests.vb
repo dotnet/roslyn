@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private ReadOnly _widgetClass As NamedTypeSymbol
 
         Public Sub New()
-            _compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            _compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation name="MethodDocumentationCommentTests">
                     <file name="a.vb">
                     Namespace Acme
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestMethodWithMissingType()
             Dim csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp
             Dim ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb">
 Class C
@@ -233,7 +233,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
             Dim main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
 
             Assert.Equal(
@@ -244,7 +244,7 @@ End Class
  </summary
 </member>", main.GetDocumentationCommentXml().Trim())
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse))
             main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
 
             Assert.Equal(
@@ -255,7 +255,7 @@ End Class
  </summary
 </member>", main.GetDocumentationCommentXml().Trim())
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.None))
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(source, parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.None))
             main = compilation.GetTypeByMetadataName("Test").GetMember(Of MethodSymbol)("Main")
 
             Assert.Equal("", main.GetDocumentationCommentXml().Trim())

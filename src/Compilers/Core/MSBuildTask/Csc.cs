@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public bool ErrorEndLocation
         {
             set { _store[nameof(ErrorEndLocation)] = value; }
@@ -143,11 +149,37 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(WarningsNotAsErrors)]; }
         }
 
+        public string Nullable
+        {
+            set
+            {
+                // We merge values into Nullable, prioritizing Nullable value over NullableContextOptions value
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _store[nameof(Nullable)] = value;
+                }
+            }
+            get { return (string)_store[nameof(Nullable)]; }
+        }
+
+        public string NullableContextOptions
+        {
+            set
+            {
+                // We merge values into Nullable, prioritizing Nullable value over NullableContextOptions value
+                if (string.IsNullOrEmpty(Nullable))
+                {
+                    Nullable = value;
+                }
+            }
+            get { return Nullable; }
+        }
+
         #endregion
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { "\r\n" };
+        private static readonly string[] s_separators = { Environment.NewLine };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -198,6 +230,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/errorendlocation", _store, nameof(ErrorEndLocation));
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
+            commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
@@ -519,6 +553,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
                     CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
+                }
+
+                // For host objects which support it, set the analyzer config files and potential config files.
+                if (cscHostObject is IAnalyzerConfigFilesHostObject analyzerConfigFilesHostObject)
+                {
+                    CheckHostObjectSupport(param = nameof(AnalyzerConfigFiles), analyzerConfigFilesHostObject.SetAnalyzerConfigFiles(AnalyzerConfigFiles));
+                    CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
                 }
 
                 ICscHostObject5 cscHostObject5 = cscHostObject as ICscHostObject5;

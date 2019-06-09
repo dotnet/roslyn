@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel) As IAnalyzer
             Return New VisualBasicAnalyzer(syntaxFacts, semanticModel)
         End Function
@@ -26,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.Convert_If_to_Select_Case
+                    Return VBFeaturesResources.Convert_to_Select_Case
                 End Get
             End Property
 
@@ -152,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides Iterator Function GetIfElseStatementChain(node As ExecutableStatementSyntax) _
                 As IEnumerable(Of (ExpressionSyntax, SyntaxList(Of StatementSyntax)))
-                Dim elseBlockStatements As SyntaxList(Of StatementSyntax) ?
+                Dim elseBlockStatements As SyntaxList(Of StatementSyntax)?
 
                 Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
                 If singleLineIf IsNot Nothing Then

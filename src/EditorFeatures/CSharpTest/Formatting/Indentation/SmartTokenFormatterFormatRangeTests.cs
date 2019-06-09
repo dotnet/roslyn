@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -16,16 +17,18 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
+    [UseExportProvider]
     public class SmartTokenFormatterFormatRangeTests
     {
         [Fact]
@@ -446,12 +449,38 @@ class Class
 class Class
 {
     int Prop {
+        get { return 1;
+        }";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList5b()
+        {
+            var code = @"using System;
+class Class
+{
+    int Prop {
+        get { return 1;   
+}$$
+}
+}";
+
+            var expected = @"using System;
+class Class
+{
+    int Prop {
         get
         {
             return 1;
-        }";
+        }
+}
+}";
 
-            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.GetKeyword);
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
         [WpfFact]
@@ -507,6 +536,138 @@ class Class
     }";
 
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList8()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+get
+        {
+            return 0;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList9()
+        {
+            var code = @"class C
+{
+    int Prop
+    {
+set
+        {
+            ;
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    int Prop
+    {
+        set
+        {
+            ;
+        }
+    }
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList10()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+add
+        {
+        }$$
+        remove
+        {
+        }
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList11()
+        {
+            var code = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+remove
+        {
+        }$$
+    }
+
+}";
+
+            var expected = @"class C
+{
+    event EventHandler E
+    {
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.CloseBraceToken);
         }
 
         [WpfFact]
@@ -3282,14 +3443,9 @@ class Program{
             {
                 var subjectDocument = workspace.Documents.Single();
 
-                var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                var editorOperations = new Mock<IEditorOperations>();
-                editorOperationsFactory.Setup(x => x.GetEditorOperations(subjectDocument.GetTextView())).Returns(editorOperations.Object);
-
-                var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, textUndoHistory.Object, editorOperationsFactory.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
                 var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-                commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { });
+                commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
                 var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
 
@@ -3297,7 +3453,7 @@ class Program{
             }
         }
 
-        private static Tuple<OptionSet, IEnumerable<IFormattingRule>> GetService(
+        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
             TestWorkspace workspace)
         {
             var options = workspace.Options;
@@ -3338,7 +3494,7 @@ class Program{
                 }
 
                 Assert.Equal(tokenKind, endToken.Kind());
-                var formatter = new SmartTokenFormatter(tuple.Item1, tuple.Item2, root);
+                var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
 
                 var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
                 if (tokenRange == null)

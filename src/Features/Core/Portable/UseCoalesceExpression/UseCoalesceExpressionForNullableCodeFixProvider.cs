@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class UseCoalesceExpressionForNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseCoalesceExpressionForNullableCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId);
 
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
@@ -54,7 +59,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
+                    (c, g) =>
+                    {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 

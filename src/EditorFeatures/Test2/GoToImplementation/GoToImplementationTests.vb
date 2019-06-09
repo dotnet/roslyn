@@ -1,49 +1,19 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
+    <[UseExportProvider]>
     Public Class GoToImplementationTests
-        Private Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
-                Dim documentWithCursor = workspace.DocumentWithCursor
-                Dim position = documentWithCursor.CursorPosition.Value
 
-                Dim document = workspace.CurrentSolution.GetDocument(documentWithCursor.Id)
+        Private Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Task
+            Await GoToHelpers.TestAsync(
+            workspaceDefinition,
+            Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                 Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-
-                Dim context = New SimpleFindUsagesContext(CancellationToken.None)
-                Await findUsagesService.FindImplementationsAsync(document, position, context)
-
-                If Not shouldSucceed Then
-                    Assert.NotNull(context.Message)
-                Else
-                    Dim actualDefinitions = context.GetDefinitions().
-                                                    SelectMany(Function(d) d.SourceSpans).
-                                                    Select(Function(ss) New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan)).
-                                                    ToList()
-                    actualDefinitions.Sort()
-
-                    Dim expectedDefinitions = workspace.Documents.SelectMany(
-                        Function(d) d.SelectedSpans.Select(Function(ss) New FilePathAndSpan(d.FilePath, ss))).ToList()
-
-                    expectedDefinitions.Sort()
-
-                    Assert.Equal(actualDefinitions.Count, expectedDefinitions.Count)
-
-                    For i = 0 To actualDefinitions.Count - 1
-                        Dim actual = actualDefinitions(i)
-                        Dim expected = expectedDefinitions(i)
-
-                        Assert.True(actual.CompareTo(expected) = 0,
-                                    $"Expected: ({expected}) but got: ({actual})")
-                    Next
-                End If
-            End Using
+                Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
+            End Function,
+            shouldSucceed)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
@@ -210,13 +180,81 @@ interface $$I { }
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation() As Task
+        Public Async Function TestWithOneMethodImplementation_01() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { public void [|M|]() { } }
 interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public void [|M|]() { } }
+interface I { void [|$$M|]() {} }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { void I.[|M|]() { } }
+interface I { void [|$$M|]() {} }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_04() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface C : I 
+{
+    void I.[|M|]() { }
+    void M();
+}
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_05() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface C : I
+{
+    void I.[|M|]() { }
+    void M();
+}
+interface I { void [|$$M|]() {} }
         </Document>
     </Project>
 </Workspace>

@@ -3,11 +3,13 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
+    <[UseExportProvider]>
     Public Class SymbolDescriptionServiceTests
 
         Private Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As TestWorkspace, expectedDescription As String) As Task
@@ -18,21 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim cursorBuffer = cursorDocument.TextBuffer
 
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
-
-            ' using GetTouchingWord instead of FindToken allows us to test scenarios where cursor is at the end of token (E.g: Goo$$)
-            Dim tree = Await document.GetSyntaxTreeAsync()
-            Dim commonSyntaxToken = Await tree.GetTouchingWordAsync(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
-
-            ' For String Literals GetTouchingWord returns Nothing, we still need this for Quick Info. Quick Info code does exactly the following.
-            ' caveat: The comment above the previous line of code. Do not put the cursor at the end of the token.
-            If commonSyntaxToken = Nothing Then
-                commonSyntaxToken = (Await document.GetSyntaxRootAsync()).FindToken(cursorPosition)
-            End If
-
             Dim semanticModel = Await document.GetSemanticModelAsync()
-            Dim symbol = semanticModel.GetSemanticInfo(commonSyntaxToken, document.Project.Solution.Workspace, CancellationToken.None).
-                                       GetSymbols(includeType:=True).
-                                       AsImmutable()
+            Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
 
             Dim symbolDescriptionService = languageServiceProvider.GetService(Of ISymbolDisplayService)()
 
@@ -105,6 +94,107 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
             Await TestCSharpAsync(workspace, $"({FeaturesResources.local_constant}) int x = 2")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpStaticField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private readonly int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) readonly int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpVolatileField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private volatile int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) volatile int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpStaticReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static readonly int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static readonly int Foo.x")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpStaticVolatileField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Foo
+            {
+                private static volatile int $$x;
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Foo.x")
+        End Function
+
+        <Fact>
+        <WorkItem(33049, "https://github.com/dotnet/roslyn/issues/33049")>
+        Public Async Function TestCSharpDefaultParameter() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            using System.Threading;
+            class Goo
+            {
+                void Method(CancellationToken cancellationToken = default(CancellationToken))
+                {
+                    $$Method(CancellationToken.None);
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"void Goo.Method([CancellationToken cancellationToken = default])")
         End Function
 
 #End Region
@@ -438,6 +528,60 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         <Fact>
+        Public Async Function TestSharedField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private Shared field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Shared Goo.field As Integer")
+        End Function
+
+        <Fact>
+        Public Async Function TestReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private ReadOnly field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) ReadOnly Goo.field As Integer")
+        End Function
+
+        <Fact>
+        Public Async Function TestSharedReadOnlyField() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                private Shared ReadOnly field as Integer
+                sub Method()
+                    fie$$ld = 5
+                End sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Shared ReadOnly Goo.field As Integer")
+        End Function
+
+        <Fact>
         Public Async Function TestLocal() As Task
             Dim workspace =
 <Workspace>
@@ -453,93 +597,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     </Project>
 </Workspace>
             Await TestBasicAsync(workspace, $"({FeaturesResources.local_variable}) x As String")
-        End Function
-
-        <Fact>
-        Public Async Function TestStringLiteral() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Goo
-                Sub Method()
-                    Dim x As String = "Hel$$lo"
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-            Await TestBasicAsync(workspace, "Class System.String")
-        End Function
-
-        <Fact>
-        Public Async Function TestIntegerLiteral() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Goo
-                Sub Method()
-                    Dim x = 4$$2
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-            Await TestBasicAsync(workspace, "Structure System.Int32")
-        End Function
-
-        <Fact>
-        Public Async Function TestDateLiteral() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Goo
-                Sub Method()
-                       Dim d As Date
-                       d = #8/23/1970 $$3:45:39 AM#
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-            Await TestBasicAsync(workspace, "Structure System.DateTime")
-        End Function
-
-        ''' Design change from Dev10
-        <Fact>
-        Public Async Function TestNothingLiteral() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Goo
-                Sub Method()
-                    Dim x = Nothin$$g
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-            Await TestBasicAsync(workspace, "")
-        End Function
-
-        <Fact>
-        Public Async Function TestTrueKeyword() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Goo
-                Sub Method()
-                    Dim x = Tr$$ue
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-            Await TestBasicAsync(workspace, "Structure System.Boolean")
         End Function
 
         <WorkItem(538732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538732")>

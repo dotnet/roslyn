@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Collections.Immutable;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,26 +28,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var elementType = stackAllocNode.ElementType;
 
+            var initializerOpt = stackAllocNode.InitializerOpt;
+            if (initializerOpt != null)
+            {
+                initializerOpt = initializerOpt.Update(VisitList(initializerOpt.Initializers));
+            }
+
             if (type.IsPointerType())
             {
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
             }
-            else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            else if (TypeSymbol.Equals(type.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything2))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
-                var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(
+                    stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
-                var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
-                var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
+                BoundExpression constructorCall;
+                if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
+                {
+                    constructorCall = _factory.New((MethodSymbol)spanConstructor.SymbolAsMember(spanType), stackAllocNode, countTemp);
+                }
+                else
+                {
+                    constructorCall = new BoundBadExpression(
+                        syntax: stackAllocNode.Syntax,
+                        resultKind: LookupResultKind.NotInvocable,
+                        symbols: ImmutableArray<Symbol>.Empty,
+                        childBoundNodes: ImmutableArray<BoundExpression>.Empty,
+                        type: ErrorTypeSymbol.UnknownResultType);
+                }
 
-                return new BoundSequence(
+                _needsSpilling = true;
+                return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
-                    locals: ImmutableArray.Create(countTemp.LocalSymbol),
-                    sideEffects: ImmutableArray.Create<BoundExpression>(countTempAssignment),
-                    value: ctorCall,
+                    locals: locals.ToImmutableAndFree(),
+                    sideEffects: sideEffects.ToImmutableAndFree(),
+                    value: constructorCall,
                     type: spanType);
             }
             else
@@ -96,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            
+
             BoundExpression convertedCount = _factory.Convert(uintType, countExpression, Conversion.ExplicitNumeric);
             convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
         protected abstract T Recover(CancellationToken cancellationToken);
 
         // enforce saving in a queue so save's don't overload the thread pool.
-        private static Task s_latestTask = SpecializedTasks.EmptyTask;
+        private static Task s_latestTask = Task.CompletedTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
             // it has 2 fields that can hold onto the value. if we only check weakInstance, we will
             // return false for the initial case where weakInstance is set to s_noReference even if
             // value can be retrieved from _recoverySource. so we check both here.
-            return _weakInstance.TryGetTarget(out value) || 
+            return _weakInstance.TryGetTarget(out value) ||
                    _recoverySource.TryGetValue(out value);
         }
 

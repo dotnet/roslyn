@@ -4,10 +4,10 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
+<[UseExportProvider]>
 Public Class DiagnosticAnalyzerDriverTests
     <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
@@ -65,7 +65,7 @@ End Class
         Using Workspace = TestWorkspace.CreateVisualBasic(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
-                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))
+                Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length)))
         End Using
     End Function
 
@@ -79,7 +79,7 @@ End Class
 
     Private Sub AccessSupportedDiagnostics(analyzer As DiagnosticAnalyzer)
         Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, analyzer)
-        diagnosticService.GetDiagnosticDescriptors(projectOpt:=Nothing)
+        diagnosticService.CreateDiagnosticDescriptorsPerReference(projectOpt:=Nothing)
     End Sub
 
     <Fact>
@@ -92,7 +92,7 @@ End Class
             currentProject = newSln.Projects.Single()
             Dim additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)
 
-            Dim additionalStream As AdditionalText = New AdditionalTextDocument(additionalDocument.State)
+            Dim additionalStream As AdditionalText = New AdditionalTextWithState(additionalDocument.State)
             Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalStream))
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(expectedOptions:=options)
 

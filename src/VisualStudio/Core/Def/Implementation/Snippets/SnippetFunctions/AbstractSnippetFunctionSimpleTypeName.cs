@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             updatedTextSpan = new TextSpan(subjectBufferFieldSpan.Start, _fullyQualifiedName.Length);
 
             var textChange = new TextChange(originalTextSpan, _fullyQualifiedName);
-            var newText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).WithChanges(textChange);
+            var newText = document.GetTextSynchronously(CancellationToken.None).WithChanges(textChange);
 
             documentWithFullyQualifiedTypeName = document.WithText(newText);
             return true;

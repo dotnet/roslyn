@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -91,6 +92,8 @@ namespace Microsoft.Cci
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(metadata != debugMetadataOpt);
+
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
@@ -430,12 +433,10 @@ namespace Microsoft.Cci
 
         protected readonly MetadataBuilder metadata;
 
-        // A builder distinct from type-system metadata builder if we are emitting debug information into a separate Portable PDB stream.
-        // Shared builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
-        // Null otherwise.
+        // A builder for Portable or Embedded PDB metadata, or null if we are not emitting Portable/Embedded PDB.
         protected readonly MetadataBuilder _debugMetadataOpt;
 
-        internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
+        internal bool EmitPortableDebugMetadata => _debugMetadataOpt != null;
 
         private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
@@ -1174,7 +1175,7 @@ namespace Microsoft.Cci
 
             signatureBlob = builder.ToImmutableArray();
             result = metadata.GetOrAddBlob(signatureBlob);
-            _signatureIndex.Add(methodReference, KeyValuePair.Create(result, signatureBlob));
+            _signatureIndex.Add(methodReference, KeyValuePairUtil.Create(result, signatureBlob));
             builder.Free();
             return result;
         }
@@ -1303,7 +1304,7 @@ namespace Microsoft.Cci
             var blob = builder.ToImmutableArray();
             var result = metadata.GetOrAddBlob(blob);
 
-            _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
+            _signatureIndex.Add(propertyDef, KeyValuePairUtil.Create(result, blob));
             builder.Free();
             return result;
         }
@@ -1626,24 +1627,24 @@ namespace Microsoft.Cci
             return this.GetOrAddTypeSpecificationHandle(typeReference);
         }
 
-        internal ITypeDefinition GetTypeDefinition(uint token)
+        internal ITypeDefinition GetTypeDefinition(int token)
         {
             // The token must refer to a TypeDef row since we are
             // only handling indexes into the full metadata (in EnC)
             // for def tables. Other tables contain deltas only.
-            return GetTypeDef(MetadataTokens.TypeDefinitionHandle((int)token));
+            return GetTypeDef(MetadataTokens.TypeDefinitionHandle(token));
         }
 
-        internal IMethodDefinition GetMethodDefinition(uint token)
+        internal IMethodDefinition GetMethodDefinition(int token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
-            return GetMethodDef(MetadataTokens.MethodDefinitionHandle((int)token));
+            return GetMethodDef(MetadataTokens.MethodDefinitionHandle(token));
         }
 
-        internal INestedTypeReference GetNestedTypeReference(uint token)
+        internal INestedTypeReference GetNestedTypeReference(int token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
-            return GetTypeDef(MetadataTokens.TypeDefinitionHandle((int)token)).AsNestedTypeReference;
+            return GetTypeDef(MetadataTokens.TypeDefinitionHandle(token)).AsNestedTypeReference;
         }
 
         internal BlobHandle GetTypeSpecSignatureIndex(ITypeReference typeReference)
@@ -1784,7 +1785,7 @@ namespace Microsoft.Cci
                 }
                 catch (Exception e) when (!(e is OperationCanceledException))
                 {
-                    throw new PdbWritingException(e);
+                    throw new SymUnmanagedWriterException(e.Message, e);
                 }
             }
         }
@@ -2141,10 +2142,15 @@ namespace Microsoft.Cci
 
         private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
-            metadata.AddCustomAttribute(
-                parent: parentHandle,
-                constructor: GetCustomAttributeTypeCodedIndex(customAttribute.Constructor(Context)),
-                value: GetCustomAttributeSignatureIndex(customAttribute));
+            IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
+
+            if (constructor != null)
+            {
+                metadata.AddCustomAttribute(
+                    parent: parentHandle,
+                    constructor: GetCustomAttributeTypeCodedIndex(constructor),
+                    value: GetCustomAttributeSignatureIndex(customAttribute));
+            }
         }
 
         private void PopulateDeclSecurityTableRows()
@@ -3352,7 +3358,7 @@ namespace Microsoft.Cci
 
         private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
         {
-            var parameters = customAttribute.Constructor(Context).GetParameters(Context);
+            var parameters = customAttribute.Constructor(Context, reportDiagnostics: false).GetParameters(Context);
             var arguments = customAttribute.GetArguments(Context);
             Debug.Assert(parameters.Length == arguments.Length);
 

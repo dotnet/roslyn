@@ -3,8 +3,8 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Text.Editor
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Module CodeModelTestHelpers
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -49,17 +49,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 ' If tests are written that require multiple projects, additional support will need to be added.
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+
                 Dim state = New CodeModelState(
-                                mockServiceProvider,
-                                project.LanguageServices,
-                                mockVisualStudioWorkspace)
+                    threadingContext,
+                    mockServiceProvider,
+                    project.LanguageServices,
+                    mockVisualStudioWorkspace,
+                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
 
-                Dim mockTextManagerAdapter = New MockTextManagerAdapter()
+                Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
-                For Each documentId In project.DocumentIds
+                For Each document In project.Documents
                     ' Note that a parent is not specified below. In Visual Studio, this would normally be an EnvDTE.Project instance.
-                    Dim fcm = FileCodeModel.Create(state, parent:=Nothing, documentId:=documentId, textManagerAdapter:=mockTextManagerAdapter)
-                    mockVisualStudioWorkspace.SetFileCodeModel(documentId, fcm)
+                    Dim fcm = projectCodeModel.GetOrCreateFileCodeModel(document.FilePath, parent:=Nothing)
+                    fcm.Object.TextManagerAdapter = New MockTextManagerAdapter()
+                    mockVisualStudioWorkspace.SetFileCodeModel(document.Id, fcm)
                 Next
 
                 Dim root = New ComHandle(Of EnvDTE.CodeModel, RootCodeModel)(RootCodeModel.Create(state, Nothing, project.Id))
@@ -89,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Return Me._componentModel
                 End If
 
-                Throw New NotImplementedException()
+                Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
             End Function
         End Class
 
@@ -145,7 +150,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Dim result As EnvDTE.CodeElement = Nothing
 
             For Each candidateScope In candidateScopes
-                Roslyn.Test.Utilities.WpfTestCase.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates CodeElements and thus uses the affinited CleanableWeakComHandleTable")
+                WpfTestRunner.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates {NameOf(EnvDTE.CodeElement)}s and thus uses the affinited {NameOf(CleanableWeakComHandleTable(Of SyntaxNodeKey, EnvDTE.CodeElement))}")
 
                 Try
                     result = state.FileCodeModelObject.CodeElementFromPosition(cursorPosition, candidateScope)

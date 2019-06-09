@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbol>> GetReferencedAssemblies()
         {
-            return ReferencedAssembliesMap.Select(ra => KeyValuePair.Create(ra.Key, (IAssemblySymbol)ReferencedAssemblies[ra.Value]));
+            return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbol)ReferencedAssemblies[ra.Value]));
         }
 
         internal TAssemblySymbol GetReferencedAssemblySymbol(MetadataReference reference)
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (PortableExecutableReference reference in ImplicitReferences)
             {
-                yield return KeyValuePair.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
+                yield return KeyValuePairUtil.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
             }
         }
 

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis
     [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
+        [ImportingConstructor]
+        public TrivialTemporaryStorageService()
+        {
+        }
+
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
         {
             return new StreamStorage();
@@ -102,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
             {
                 WriteText(text, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

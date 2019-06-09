@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Individual variable declarations declared by this multiple declaration.
         /// </summary>
         /// <remarks>
-        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <code>IVariableDeclarationOpertion</code>,
+        /// All <see cref="IVariableDeclarationGroupOperation"/> will have at least 1 <see cref="IVariableDeclarationOperation"/>,
         /// even if the declaration group only declares 1 variable.
         /// </remarks>
         ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
@@ -42,5 +42,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// In C#, this will always be null.
         /// </remarks>
         IVariableInitializerOperation Initializer { get; }
+
+        /// <summary>
+        /// Array dimensions supplied to an array declaration in error cases, ignored by the compiler. This is only used for the C# case of
+        /// RankSpecifierSyntax nodes on an ArrayTypeSyntax.
+        /// </summary>
+        ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
 }

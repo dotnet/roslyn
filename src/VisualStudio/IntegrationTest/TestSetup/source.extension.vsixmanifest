@@ -3,7 +3,7 @@
 
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="d0122878-51f1-4b36-95ec-dec2079a2a84" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="d0122878-51f1-4b36-95ec-dec2079a2a84" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Visual Studio Integration Test Support</DisplayName>
     <Description xml:space="preserve">Support for running Visual Studio integration tests.</Description>
   </Metadata>
@@ -11,7 +11,7 @@
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
   </Installation>
   <Dependencies>
-    <Dependency Id="|VisualStudioSetup;VSIXIdentifierProjectOutputGroup|" DisplayName="|VisualStudioSetup;VSIXNameProjectOutputGroup|" d:Source="Project" Version="[|VisualStudioSetup;GetBuildVersion|,]" d:ProjectName="VisualStudioSetup" />
+    <Dependency Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" DisplayName="Roslyn Language Services" d:Source="Project" Version="[|VisualStudioSetup;GetVsixVersion|,]" d:ProjectName="VisualStudioSetup" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
@@ -19,6 +19,6 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Diagnostics" Path="|Diagnostics|" AssemblyName="|Diagnostics;AssemblyName|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio Core Editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,17.0)" DisplayName="Visual Studio Core Editor" />
   </Prerequisites>
 </PackageManifest>

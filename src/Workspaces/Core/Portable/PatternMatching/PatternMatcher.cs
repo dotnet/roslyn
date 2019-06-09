@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
@@ -383,7 +384,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             return _compareInfo.Compare(
-                candidate, candidatePart.Start, patternPart.Length, 
+                candidate, candidatePart.Start, patternPart.Length,
                 pattern, patternPart.Start, patternPart.Length, compareOptions) == 0;
         }
 
@@ -482,8 +483,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // Let's consider our termination cases
                 if (currentPatternHump == patternHumpCount)
                 {
-                    Contract.Requires(firstMatch.HasValue);
-                    Contract.Requires(contiguous.HasValue);
+                    Debug.Assert(firstMatch.HasValue);
+                    Debug.Assert(contiguous.HasValue);
 
                     var matchCount = matchSpans.Count;
                     matchedSpans = _includeMatchedSpans

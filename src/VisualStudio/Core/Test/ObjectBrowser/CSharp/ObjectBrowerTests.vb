@@ -1,11 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
-Imports System.Threading.Tasks
-Imports System.Globalization
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -17,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
         End Function
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
@@ -70,6 +71,79 @@ namespace N
                 list = list.GetNamespaceList(0)
 
                 list.VerifyEmpty()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    class C
+    {
+        private enum PrivateEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PrivateStructTest", "C.PrivateClassTest", "C.PrivateEnumTest")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudePrivateDoubleNestedTypeMembersInSourceCode()
+            Dim code =
+<Code>
+namespace N
+{
+    internal class C
+    {
+        private class NestedClass
+        {
+            private class NestedNestedClass { }
+        }
+    }
+}
+</Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList()
+                list = list.GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.NestedClass", "C.NestedClass.NestedNestedClass")
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestSimpleContent_InlcudeNoPrivateNestedTypeOfMetaData()
+            Dim metaDatacode =
+<Code>
+namespace N
+{
+    public class C
+    {
+        public enum PublicEnumTest { }
+        private class PrivateClassTest { }
+        private struct PrivateStructTest { }
+    }
+}
+</Code>
+            Dim code = <Code></Code>
+
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
+                Dim library = state.GetLibrary()
+                Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
+                list.VerifyNames("C", "C.PublicEnumTest")
             End Using
         End Sub
 
@@ -1279,7 +1353,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "C")}")
 using System.Runtime.InteropServices;
 class C
 {
-    [DllImport("User32.dll", CharSet=CharSet.Unicode)] 
+    [DllImport("User32.dll", CharSet=CharSet.Unicode)]
     public static extern int MessageBox(System.IntPtr h, string m, string c, int type);
 }
 </Code>

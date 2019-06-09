@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveDocCommentNode), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpRemoveDocCommentNodeCodeFixProvider : 
+    internal class CSharpRemoveDocCommentNodeCodeFixProvider :
         AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax, XmlTextSyntax>
     {
         /// <summary>
@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         /// Duplicate typeparam tag
         /// </summary>
         private const string CS1710 = nameof(CS1710);
+
+        [ImportingConstructor]
+        public CSharpRemoveDocCommentNodeCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1571, CS1572, CS1710);
 

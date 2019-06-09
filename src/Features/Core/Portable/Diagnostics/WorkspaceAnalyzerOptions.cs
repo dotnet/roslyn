@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly OptionSet _optionSet;
 
         public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Solution solution)
-            : base(options.AdditionalFiles)
+            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
             _optionSet = optionSet;
@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
 
-        public async Task<OptionSet> GetDocumentOptionSetAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<OptionSet> GetDocumentOptionSetAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var documentId = _solution.GetDocumentId(syntaxTree);
             if (documentId == null)

@@ -112,6 +112,13 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
             }
 
+            public SolutionAttributes WithVersion(VersionStamp versionStamp)
+            {
+                return new SolutionAttributes(Id, versionStamp, FilePath);
+            }
+
+            bool IObjectWritable.ShouldReuseInSerialization => true;
+
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);

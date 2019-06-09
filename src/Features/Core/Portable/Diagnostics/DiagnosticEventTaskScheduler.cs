@@ -13,16 +13,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class DiagnosticEventTaskScheduler : TaskScheduler
     {
-        private readonly Task _mainTask;
+        private readonly Thread _thread;
         private readonly BlockingCollection<Task> _tasks;
 
         public DiagnosticEventTaskScheduler(int blockingUpperBound)
         {
             _tasks = new BlockingCollection<Task>(blockingUpperBound);
 
-            // portable layer doesnt support explicit thread creation. use long running task to create and hold onto a thread
-            _mainTask = Task.Factory.SafeStartNew(Start, CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            _thread = new Thread(Start)
+            {
+                Name = "Roslyn Diagnostics",
+                IsBackground = true
+            };
+
+            _thread.Start();
         }
 
         private void Start()

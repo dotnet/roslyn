@@ -93,7 +93,7 @@ class H
     private class op_Implicit {}
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0111: Type 'C' already defines a member called 'op_Addition' with the same parameter types
                 //     public static C op_Addition(C c1, C c2) { return c1; } 
@@ -150,7 +150,7 @@ class C
     public static explicit operator int (C c) { }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (5,54): error CS0029: Cannot implicitly convert type 'C' to 'C.D'
 //     public static D operator + (C c1, C c2) { return c1; }
@@ -188,7 +188,7 @@ partial class C
             // UNDONE: Native compiler squiggles "operator +". Roslyn squiggles "operator". But perhaps
             // UNDONE: the better thing to actually squiggle is the offending token.
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 //     partial public static int operator + (C c1, C c2) { return 0; }
@@ -259,7 +259,7 @@ public class C
             // UNDONE: Consider matching the native compiler behavior, or, even better, squiggle the
             // UNDONE: offending type.
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (6,30): error CS0056: Inconsistent accessibility: return type 'C.D' is less accessible than operator 'C.operator +(C, C)'
 //     public static D operator + (C c1, C c2) { return null; }
@@ -293,7 +293,7 @@ public class C
             // UNDONE: token if the return type is bad and the parameter name if the parameter type is 
             // UNDONE: bad. This seems no better; surely the right thing to squiggle is the offending type.
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (5,35): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.D<T>'
 //     public static D<int> operator + (C c1, C c2) { return null; }

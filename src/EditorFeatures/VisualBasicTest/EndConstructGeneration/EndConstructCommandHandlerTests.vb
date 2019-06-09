@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class EndConstructCommandHandlerTests
         Private _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)
         Private _featureOptions As New Mock(Of IOptionService)(MockBehavior.Strict)

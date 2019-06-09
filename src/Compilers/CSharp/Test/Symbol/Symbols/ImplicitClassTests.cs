@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateCompilation(@"
+            var c = CreateEmptyCompilation(@"
 namespace N
 {
     void Goo()
@@ -46,14 +46,14 @@ namespace N
         [Fact]
         public void ScriptClassSymbol()
         {
-            var c = CreateStandardCompilation(@"
+            var c = CreateCompilation(@"
 base.ToString();
 void Goo()
 {
 }
 ", parseOptions: TestOptions.Script);
 
-            var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
+            var scriptClass = (NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMember("Script");
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces().Length);
             Assert.Null(scriptClass.BaseType());
@@ -82,14 +82,14 @@ event System.Action e;
             c.VerifyDiagnostics();
 
             var evnt = c.ScriptClass.GetMember<EventSymbol>("e");
-            Assert.NotNull(evnt.Type);
+            Assert.NotNull(evnt.TypeWithAnnotations);
         }
 
         [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]
         [Fact]
         public void AliasQualifiedNamespaceName()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 namespace N::A
 {
     void Goo()

@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
-                Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(TypeSymbol.Equals(propertySymbol.Type, propertySymbol.AssociatedField.Type, TypeCompareKind.ConsiderEverything))
                 Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,

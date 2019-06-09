@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Class X
     Class Y
     Class Z
-}</expected>.Value.Replace(vbLf, vbCrLf).
+}</expected>.Value.Replace(vbLf, Environment.NewLine).
                    Replace("Assembly: Merged", "Assembly: Merged, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").
                    Replace("Assembly: Assem1", "Assembly: Assem1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").
                    Replace("Assembly: Assem3", "Assembly: Assem3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")

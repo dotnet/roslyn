@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Sub
 
         Protected Shared Function GetAssembly(source As String) As Assembly
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseDll)
             Return ReflectionUtilities.Load(comp.EmitToArray())
         End Function
 

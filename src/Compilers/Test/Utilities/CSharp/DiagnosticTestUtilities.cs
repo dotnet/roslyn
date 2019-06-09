@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateStandardCompilation(source);
+            var comp = CSharpTestBase.CreateCompilation(source);
             var diagnostics = comp.GetDiagnostics();
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnosticsExact(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateStandardCompilation(source);
+            var comp = CSharpTestBase.CreateCompilation(source);
             var diagnostics = comp.GetDiagnostics();
             Assert.Equal(diagStrings.Length, diagnostics.Length);
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateStandardCompilation(srcs);
+            var comp = CSharpTestBase.CreateCompilation(srcs);
             var actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;

@@ -23,13 +23,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification,
         IDkmModuleInstanceUnloadNotification,
-        IDkmLanguageFrameDecoder, 
+        IDkmLanguageFrameDecoder,
         IDkmLanguageInstructionDecoder
     {
         // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
         // See https://github.com/dotnet/roslyn/issues/22620
         private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
         private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
+        private readonly bool _useReferencedAssembliesOnly;
 
         static ExpressionCompiler()
         {
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             _languageFrameDecoder = languageFrameDecoder;
             _languageInstructionDecoder = languageInstructionDecoder;
+            _useReferencedAssembliesOnly = GetUseReferencedAssembliesOnlySetting();
         }
 
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
@@ -220,6 +222,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        internal static bool GetUseReferencedAssembliesOnlySetting()
+        {
+            return RegistryHelpers.GetBoolRegistryValue("UseReferencedAssembliesOnly");
+        }
+
+        internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind(bool useReferencedModulesOnly)
+        {
+            if (useReferencedModulesOnly)
+            {
+                return MakeAssemblyReferencesKind.DirectReferencesOnly;
+            }
+            return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
+        }
+
         /// <remarks>
         /// Internal for testing.
         /// </remarks>
@@ -397,6 +413,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // If that doesn't work, we'll fall back to System.Core for subsequent retries.
                     linqLibrary = EvaluationContextBase.SystemCoreIdentity;
 
+                    // Can we remove the `useReferencedModulesOnly` attempt if we're only using
+                    // modules reachable from the current module? In short, can we avoid retrying?
                     if (useReferencedModulesOnly)
                     {
                         Debug.Assert(missingAssemblyIdentities.IsEmpty);

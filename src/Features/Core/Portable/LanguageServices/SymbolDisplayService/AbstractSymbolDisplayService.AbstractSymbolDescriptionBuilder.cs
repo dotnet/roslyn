@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +58,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     miscellaneousOptions:
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(
@@ -105,6 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
+            protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
             protected void AddPrefixTextForAwaitKeyword()
             {
@@ -144,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 // the tree, a source symbol is defined in, doesn't exist in universe
                 // how this can happen?
-                Contract.Requires(false, "How?");
+                Debug.Assert(false, "How?");
                 return null;
             }
 
@@ -155,6 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 AddOverloadCountPart(symbols);
                 FixAllAnonymousTypes(symbols[0]);
                 AddExceptions(symbols[0]);
+                AddCaptures(symbols[0]);
             }
 
             private void AddExceptions(ISymbol symbol)
@@ -163,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
-                    parts.Add(new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Exceptions_colon}"));
+                    parts.AddLineBreak();
+                    parts.AddText(WorkspacesResources.Exceptions_colon);
                     foreach (var exceptionString in exceptionTypes)
                     {
                         parts.AddRange(LineBreak());
@@ -174,6 +180,60 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
                 }
             }
+
+            /// <summary>
+            /// If the symbol is a local or anonymous function (lambda or delegate), adds the variables captured
+            /// by that local or anonymous function to the "Captures" group.
+            /// </summary>
+            /// <param name="symbol"></param>
+            protected abstract void AddCaptures(ISymbol symbol);
+
+            /// <summary>
+            /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
+            /// by that local or anonymous function to the "Captures" group.
+            /// </summary>
+            protected void AddCaptures(SyntaxNode syntax)
+            {
+                var semanticModel = GetSemanticModel(syntax.SyntaxTree);
+                if (semanticModel.IsSpeculativeSemanticModel)
+                {
+                    // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
+                    // to ask questions about an expression if it were in a certain *scope* of code, not if it were inserted at a certain *position*).
+                    //
+                    // But in the context of symbol completion, we do prepare a description for the symbol while speculating. Only the "main description"
+                    // section of that description will be displayed. We still add a "captures" section, just in case.
+                    AddToGroup(SymbolDescriptionGroups.Captures, LineBreak());
+                    AddToGroup(SymbolDescriptionGroups.Captures, PlainText($"{WorkspacesResources.Variables_captured_colon} ?"));
+                    return;
+                }
+
+                var analysis = semanticModel.AnalyzeDataFlow(syntax);
+                var captures = analysis.CapturedInside.Except(analysis.VariablesDeclared).ToImmutableArray();
+                if (!captures.IsEmpty)
+                {
+                    var parts = new List<SymbolDisplayPart>();
+                    parts.AddLineBreak();
+                    parts.AddText(WorkspacesResources.Variables_captured_colon);
+                    bool first = true;
+                    foreach (var captured in captures)
+                    {
+                        if (!first)
+                        {
+                            parts.AddRange(Punctuation(","));
+                        }
+
+                        parts.AddRange(Space(count: 1));
+                        parts.AddRange(ToMinimalDisplayParts(captured, s_formatForCaptures));
+                        first = false;
+                    }
+
+                    AddToGroup(SymbolDescriptionGroups.Captures, parts);
+                }
+            }
+
+            private static readonly SymbolDisplayFormat s_formatForCaptures = SymbolDisplayFormat.MinimallyQualifiedFormat
+                .RemoveLocalOptions(SymbolDisplayLocalOptions.IncludeType)
+                .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
             public async Task<ImmutableArray<SymbolDisplayPart>> BuildDescriptionAsync(
                 ImmutableArray<ISymbol> symbolGroup, SymbolDescriptionGroups groups)
@@ -296,6 +356,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     case SymbolDescriptionGroups.Exceptions:
                     case SymbolDescriptionGroups.TypeParameterMap:
+                    case SymbolDescriptionGroups.Captures:
                         // Everything else is in a group on its own
                         return 2;
 
@@ -432,7 +493,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants);
+                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstantsAndModifiers);
             }
 
             private async Task AddDescriptionForLocalAsync(ILocalSymbol symbol)

@@ -55,7 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // In the Visual Studio case, there might be projection buffers involved for Venus,
                         // where we associate undo history with the surface buffer and not the subject buffer.
-                        textBuffer = visualStudioWorkspace.GetHostDocument(documentId).GetTextUndoHistoryBuffer();
+                        var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+
+                        if (containedDocument != null)
+                        {
+                            textBuffer = containedDocument.DataBuffer;
+                        }
 
                         break;
 

@@ -16,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IServiceProvider _serviceProvider;
         private readonly Workspace _workspace;
 
-        public WorkspaceFailureOutputPane(IServiceProvider serviceProvider, Workspace workspace)
+        public WorkspaceFailureOutputPane(IThreadingContext threadingContext, IServiceProvider serviceProvider, Workspace workspace)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _workspace = workspace;
@@ -25,21 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private void OnWorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
         {
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
-                var outputPane = this.OutputPane;
-                if (outputPane == null)
-                {
-                    return;
-                }
-
-                outputPane.OutputString(e.Diagnostic.ToString() + Environment.NewLine);
+                this.OutputPaneOpt?.OutputString(e.Diagnostic.ToString() + Environment.NewLine);
             });
         }
 
         private IVsOutputWindowPane _doNotAccessDirectlyOutputPane;
 
-        private IVsOutputWindowPane OutputPane
+        private IVsOutputWindowPane OutputPaneOpt
         {
             get
             {
@@ -49,25 +44,70 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                    // Try to get the workspace pane if it has already been registered
-                    var workspacePaneGuid = s_workspacePaneGuid;
-                    var hr = outputWindow.GetPane(ref workspacePaneGuid, out _doNotAccessDirectlyOutputPane);
-
-                    // If the workspace pane has not been registered before, create it
-                    if (_doNotAccessDirectlyOutputPane == null || hr != VSConstants.S_OK)
+                    // This may run during the shutdown of Visual Studio and so we must be ready for the service
+                    // not being available.
+                    if (outputWindow == null)
                     {
-                        if (ErrorHandler.Failed(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.IntelliSense, fInitVisible: 1, fClearWithSolution: 1)) ||
-                            ErrorHandler.Failed(outputWindow.GetPane(ref workspacePaneGuid, out _doNotAccessDirectlyOutputPane)))
-                        {
-                            return null;
-                        }
+                        return null;
+                    }
 
-                        // Must activate the workspace pane for it to show up in the output window
-                        _doNotAccessDirectlyOutputPane.Activate();
+                    // Output Window panes have two states; initialized and active. The former is used to indicate that the pane
+                    // can be made active ("selected") by the user, the latter indicates that the pane is currently active.
+                    // There's no way to only initialize a pane without also making it active so we remember the last active pane
+                    // and reactivate it after we've created ourselves to avoid stealing focus away from it.
+                    var lastActivePane = GetActivePane(outputWindow);
+
+                    _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
+
+                    if (lastActivePane != Guid.Empty)
+                    {
+                        ActivatePane(outputWindow, lastActivePane);
                     }
                 }
 
                 return _doNotAccessDirectlyOutputPane;
+            }
+        }
+
+        private IVsOutputWindowPane CreateOutputPane(IVsOutputWindow outputWindow)
+        {
+            AssertIsForeground();
+
+            // Try to get the workspace pane if it has already been registered
+            var workspacePaneGuid = s_workspacePaneGuid;
+
+            // If the pane has already been created, CreatePane returns it
+            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.IntelliSense, fInitVisible: 1, fClearWithSolution: 1)) &&
+                ErrorHandler.Succeeded(outputWindow.GetPane(ref workspacePaneGuid, out var pane)))
+            {
+                return pane;
+            }
+
+            return null;
+        }
+
+        private Guid GetActivePane(IVsOutputWindow outputWindow)
+        {
+            AssertIsForeground();
+
+            if (outputWindow is IVsOutputWindow2 outputWindow2)
+            {
+                if (ErrorHandler.Succeeded(outputWindow2.GetActivePaneGUID(out var activePaneGuid)))
+                {
+                    return activePaneGuid;
+                }
+            }
+
+            return Guid.Empty;
+        }
+
+        private void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
+        {
+            AssertIsForeground();
+
+            if (ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out var pane)))
+            {
+                pane.Activate();
             }
         }
     }

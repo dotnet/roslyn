@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NETCOREAPP2_0
+#if NETCOREAPP2_1
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
+using System.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -80,7 +81,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                             throw;
                         }
                         assembly = null;
-                    }               
+                    }
 
                     return assembly;
                 }
@@ -138,7 +139,7 @@ namespace Roslyn.Test.Utilities.CoreClr
             var platformAssemblies = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator);
             foreach (var assemblyPath in platformAssemblies)
             {
-                if (TryGetAssemblyName(assemblyPath, out string assemblyName))
+                if (!String.IsNullOrEmpty(assemblyPath) && TryGetAssemblyName(assemblyPath, out string assemblyName))
                 {
                     assemblyNames.Add(assemblyName, assemblyPath);
                 }
@@ -171,6 +172,28 @@ namespace Roslyn.Test.Utilities.CoreClr
 
             name = null;
             return false;
+        }
+
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
+        {
+            try
+            {
+                var signatures = new SortedSet<string>();
+                foreach (var id in searchModules)
+                {
+                    var name = new AssemblyName(id.FullName);
+                    var assembly = LoadFromAssemblyName(name);
+                    foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))
+                    {
+                        signatures.Add(signature);
+                    }
+                }
+                return signatures;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting signatures {fullyQualifiedTypeName}.{memberName}", ex);
+            }
         }
     }
 }

@@ -5,13 +5,14 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class LocationInfoGetterTests
 
         Private Async Function TestAsync(text As String, expectedName As String, expectedLineOffset As Integer, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional rootNamespace As String = Nothing) As Tasks.Task

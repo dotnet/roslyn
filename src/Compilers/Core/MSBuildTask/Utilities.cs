@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private const string MSBuildRoslynFolderName = "Roslyn";
 
         /// <summary>
+        /// Copied from msbuild. ItemSpecs are normalized using this method.
+        /// </summary>
+        public static string FixFilePath(string path)
+            => string.IsNullOrEmpty(path) || Path.DirectorySeparatorChar == '\\' ? path : path.Replace('\\', '/');
+
+        /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.
         /// 
@@ -185,49 +191,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC or DLL location can not be retrieved.
+        /// Generate the full path to the tool that is deployed with our build tasks.
         /// </summary>
-        public static string GenerateFullPathToTool(string toolName)
+        internal static string GenerateFullPathToTool(string toolName)
         {
-            string toolLocation = null;
-
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
-            var assemblyPath = TryGetAssemblyPath(buildTask);
+            var assemblyPath = buildTask.Location;
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
-            if (assemblyPath != null)
-            {
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                var desktopToolLocalLocation = Path.Combine(assemblyDirectory, toolName);
-                var cliToolLocalLocation = Path.Combine(assemblyDirectory, "bincore", toolName);
-
-                if (File.Exists(desktopToolLocalLocation))
-                {
-                    toolLocation = desktopToolLocalLocation;
-                }
-                else if (File.Exists(cliToolLocalLocation))
-                {
-                    toolLocation = cliToolLocalLocation;
-                }
-            }
-
-            if (toolLocation == null)
-            {
-                // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
-                var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
-
-                if (pathToBuildTools != null)
-                {
-                    var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
-
-                    if (File.Exists(toolMSBuildLocation))
-                    {
-                        toolLocation = toolMSBuildLocation;
-                    }
-                }
-            }
-
-            return toolLocation;
+            return RuntimeHostInfo.IsDesktopRuntime
+                ? Path.Combine(assemblyDirectory, toolName)
+                : Path.Combine(assemblyDirectory, "bincore", toolName);
         }
     }
 }

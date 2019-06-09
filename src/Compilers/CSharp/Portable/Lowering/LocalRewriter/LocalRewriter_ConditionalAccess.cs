@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private enum ConditionalAccessLoweringKind
         {
             LoweredConditionalAccess,
-            Ternary,
-            TernaryCaptureReceiverByVal
+            Conditional,
+            ConditionalCaptureReceiverByVal
         }
 
         // IL gen can generate more compact code for certain conditional accesses 
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConditionalAccessLoweringKind loweringKind;
-            // dynamic receivers are not directly supported in codegen and need to be lowered to a ternary
-            var lowerToTernary = node.AccessExpression.Type.IsDynamic();
+            // dynamic receivers are not directly supported in codegen and need to be lowered to a conditional
+            var lowerToConditional = node.AccessExpression.Type.IsDynamic();
 
-            if (!lowerToTernary)
+            if (!lowerToConditional)
             {
                 // trivial cases are directly supported in IL gen
                 loweringKind = ConditionalAccessLoweringKind.LoweredConditionalAccess;
@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so we can capture receiver by value in dynamic case regardless of 
                 // the type of receiver
                 // Nullable receivers are immutable so should be captured by value as well.
-                loweringKind = ConditionalAccessLoweringKind.TernaryCaptureReceiverByVal;
+                loweringKind = ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal;
             }
             else
             {
-                loweringKind = ConditionalAccessLoweringKind.Ternary;
+                loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
 
 
@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentConditionalAccessID = ++_currentConditionalAccessID;
 
             LocalSymbol temp = null;
-            BoundExpression unconditionalAccess = null;
 
             switch (loweringKind)
             {
@@ -85,11 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
-                case ConditionalAccessLoweringKind.Ternary:
+                case ConditionalAccessLoweringKind.Conditional:
                     _currentConditionalAccessTarget = loweredReceiver;
                     break;
 
-                case ConditionalAccessLoweringKind.TernaryCaptureReceiverByVal:
+                case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
                     temp = _factory.SynthesizedLocal(receiverType);
                     _currentConditionalAccessTarget = _factory.Local(temp);
                     break;
@@ -121,25 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol nodeType = node.Type;
             TypeSymbol accessExpressionType = loweredAccessExpression.Type;
 
-            if (accessExpressionType.SpecialType == SpecialType.System_Void)
+            if (accessExpressionType.IsVoidType())
             {
                 type = nodeType = accessExpressionType;
             }
 
-            if (accessExpressionType != nodeType && nodeType.IsNullableType())
+            if (!TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) && nodeType.IsNullableType())
             {
-                Debug.Assert(accessExpressionType == nodeType.GetNullableUnderlyingType());
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType.GetNullableUnderlyingType(), TypeCompareKind.ConsiderEverything2));
                 loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
-
-                if (unconditionalAccess != null)
-                {
-                    unconditionalAccess = _factory.New((NamedTypeSymbol)nodeType, unconditionalAccess);
-                }
             }
             else
             {
-                Debug.Assert(accessExpressionType == nodeType ||
-                    (nodeType.SpecialType == SpecialType.System_Void && !used));
+                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
+                    (nodeType.IsVoidType() && !used));
             }
 
             BoundExpression result;
@@ -161,15 +155,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
 
-                case ConditionalAccessLoweringKind.TernaryCaptureReceiverByVal:
+                case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
                     // capture the receiver into a temp
                     loweredReceiver = _factory.MakeSequence(
                                             _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
                                             _factory.Local(temp));
 
-                    goto case ConditionalAccessLoweringKind.Ternary;
+                    goto case ConditionalAccessLoweringKind.Conditional;
 
-                case ConditionalAccessLoweringKind.Ternary:
+                case ConditionalAccessLoweringKind.Conditional:
                     {
                         // (object)r != null ? access : default(T)
                         var condition = _factory.ObjectNotEqual(

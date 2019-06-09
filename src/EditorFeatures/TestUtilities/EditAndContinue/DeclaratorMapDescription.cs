@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 for (int j = 0; j < OldSpans[i].Length; j++)
                 {
-                    yield return KeyValuePair.Create(OldSpans[i][j], NewSpans[i][j]);
+                    yield return KeyValuePairUtil.Create(OldSpans[i][j], NewSpans[i][j]);
                 }
             }
         }

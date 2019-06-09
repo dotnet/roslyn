@@ -41,12 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public Solution FinalSolution { get; private set; }
         public bool ShowCheckBoxes { get; private set; }
 
-        public PreviewEngine(string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
-            this(title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+        public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true) :
+            this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
         {
         }
 
         public PreviewEngine(
+            IThreadingContext threadingContext,
             string title,
             string helpString,
             string description,
@@ -57,12 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             IComponentModel componentModel,
             IVsImageService2 imageService,
             bool showCheckBoxes = true)
+            : base(threadingContext)
         {
             _topLevelName = topLevelItemName;
             _topLevelGlyph = topLevelGlyph;
-            _title = title;
-            _helpString = helpString;
-            _description = description;
+            _title = title ?? throw new ArgumentNullException(nameof(title));
+            _helpString = helpString ?? throw new ArgumentNullException(nameof(helpString));
+            _description = description ?? throw new ArgumentNullException(nameof(description));
             _newSolution = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: CancellationToken.None).Result;
             _oldSolution = oldSolution;
             _diffSelector = componentModel.GetService<ITextDifferencingSelectorService>();
@@ -131,6 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             allDocumentsWithChanges.AddRange(changedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(addedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(removedAdditionalDocuments);
+
+            // AnalyzerConfig Documents
+            var changedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetChangedAnalyzerConfigDocuments());
+            var addedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetAddedAnalyzerConfigDocuments());
+            var removedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetRemovedAnalyzerConfigDocuments());
+
+            allDocumentsWithChanges.AddRange(changedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(addedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(removedAnalyzerConfigDocuments);
 
             AppendFileChanges(allDocumentsWithChanges, builder);
 
@@ -221,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (_updater == null)
             {
-                _updater = new PreviewUpdater(EnsureTextViewIsInitialized(textView));
+                _updater = new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
             }
         }
 

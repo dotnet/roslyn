@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -18,10 +22,27 @@ namespace Microsoft.CodeAnalysis.Remote
         // guard to make sure host API doesn't run concurrently
         private readonly object _gate = new object();
 
+        // this is used to make sure we never move remote workspace backward.
+        // this version is the WorkspaceVersion of primary solution in client (VS) we are
+        // currently caching
+        private int _currentRemoteWorkspaceVersion = -1;
+
         public RemoteWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
-            PrimaryWorkspace.Register(this);
+            var exportProvider = (IMefHostExportProvider)Services.HostServices;
+            var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
+            primaryWorkspace.Register(this);
+
+            foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
+            {
+                var optionsProvider = providerFactory.Value.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
+            }
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
@@ -51,20 +72,9 @@ namespace Microsoft.CodeAnalysis.Remote
         public override bool CanOpenDocuments => true;
 
         /// <summary>
-        /// Clears all projects and documents from the workspace.
-        /// </summary>
-        public new void ClearSolution()
-        {
-            lock (_gate)
-            {
-                base.ClearSolution();
-            }
-        }
-
-        /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public Solution AddSolution(SolutionInfo solutionInfo)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, out Solution solution)
         {
             if (solutionInfo == null)
             {
@@ -73,16 +83,31 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                {
+                    // we never move workspace backward
+                    solution = null;
+                    return false;
+                }
+
+                // set initial solution version
+                _currentRemoteWorkspaceVersion = workspaceVersion;
+
+                // clear previous solution data if there is one
+                // it is required by OnSolutionAdded
+                this.ClearSolutionData();
+
                 this.OnSolutionAdded(solutionInfo);
 
-                return this.CurrentSolution;
+                solution = this.CurrentSolution;
+                return true;
             }
         }
 
         /// <summary>
         /// update primary solution
         /// </summary>
-        public Solution UpdateSolution(Solution solution)
+        public Solution UpdateSolutionIfPossible(Solution solution, int workspaceVersion)
         {
             if (solution == null)
             {
@@ -91,6 +116,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             lock (_gate)
             {
+                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
+                {
+                    // we never move workspace backward
+                    return solution;
+                }
+
+                // move version forward
+                _currentRemoteWorkspaceVersion = workspaceVersion;
+
                 var oldSolution = this.CurrentSolution;
                 Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 
@@ -111,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var doc = this.CurrentSolution.GetDocument(documentId);
                 if (doc != null)
                 {
-                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var text = doc.GetTextSynchronously(CancellationToken.None);
                     this.OnDocumentOpened(documentId, text.Container, activate);
                 }
             }
@@ -127,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var doc = this.CurrentSolution.GetDocument(documentId);
                 if (doc != null)
                 {
-                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var text = doc.GetTextSynchronously(CancellationToken.None);
+                    var version = doc.GetTextVersionSynchronously(CancellationToken.None);
                     var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                     this.OnDocumentClosed(documentId, loader);
                 }
@@ -162,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (doc != null)
                 {
                     var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var version = doc.GetTextVersionSynchronously(CancellationToken.None);
                     var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                     this.OnAdditionalDocumentClosed(documentId, loader);
                 }

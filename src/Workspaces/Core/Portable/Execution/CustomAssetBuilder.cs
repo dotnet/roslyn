@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal class CustomAssetBuilder
     {
-        private readonly Serializer _serializer;
+        private readonly ISerializerService _serializer;
+        private readonly IReferenceSerializationService _hostSerializationService;
 
         public CustomAssetBuilder(Solution solution) : this(solution.Workspace)
         {
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public CustomAssetBuilder(HostWorkspaceServices services)
         {
-            _serializer = new Serializer(services);
+            _serializer = services.GetService<ISerializerService>();
+            _hostSerializationService = services.GetService<IReferenceSerializationService>();
         }
 
         public CustomAsset Build(OptionSet options, string language, CancellationToken cancellationToken)
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public CustomAsset Build(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            return new WorkspaceAnalyzerReferenceAsset(reference, _serializer);
+            return WorkspaceAnalyzerReferenceAsset.Create(reference, _serializer, _hostSerializationService, cancellationToken);
         }
     }
 }

@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return _underlyingEvent.Type;
+                return _underlyingEvent.TypeWithAnnotations;
             }
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            return (object)other != null && _containingType == other._containingType && _underlyingEvent == other._underlyingEvent;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && _underlyingEvent == other._underlyingEvent;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

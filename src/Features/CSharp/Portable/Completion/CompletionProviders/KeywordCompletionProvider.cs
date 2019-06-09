@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new DynamicKeywordRecommender(),
                 new ElifKeywordRecommender(),
                 new ElseKeywordRecommender(),
+                new EnableKeywordRecommender(),
                 new EndIfKeywordRecommender(),
                 new EndRegionKeywordRecommender(),
                 new EnumKeywordRecommender(),
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new NameOfKeywordRecommender(),
                 new NamespaceKeywordRecommender(),
                 new NewKeywordRecommender(),
+                new NullableKeywordRecommender(),
                 new NullKeywordRecommender(),
                 new ObjectKeywordRecommender(),
                 new OnKeywordRecommender(),
@@ -140,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ULongKeywordRecommender(),
                 new UncheckedKeywordRecommender(),
                 new UndefKeywordRecommender(),
+                new UnmanagedKeywordRecommender(),
                 new UnsafeKeywordRecommender(),
                 new UShortKeywordRecommender(),
                 new UsingKeywordRecommender(),
@@ -176,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
+                displayTextSuffix: "",
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 rules: rules.WithMatchPriority(keyword.MatchPriority)

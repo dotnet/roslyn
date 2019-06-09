@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 CurrentThread.CurrentCulture = New CultureInfo(1031) ' de-DE
 
                 Dim dateValue As New Date(2001, 1, 31)
-                Assert.Equal("31.01.2001 00:00:00", dateValue.ToString())
+                Assert.Equal("31.01.2001 00:00:00", dateValue.ToString("dd.MM.yyyy HH:mm:ss"))
                 Assert.Equal("#1/31/2001 12:00:00 AM#", FormatPrimitive(dateValue))
 
                 Dim decimalValue As New Decimal(12.5)

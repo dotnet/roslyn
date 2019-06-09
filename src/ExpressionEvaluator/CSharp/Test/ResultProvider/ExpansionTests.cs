@@ -630,6 +630,40 @@ class C
         }
 
         [Fact]
+        public void NullableProperty()
+        {
+            var source =
+@"
+class R
+{
+    public int? A { get; set; }
+    public int? B { get; set; }
+}
+class C
+{
+    R r = new R();
+    public C()
+    {
+        r.A = 1;
+        r.B = null;
+    }
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("C");
+            var value = CreateDkmClrValue(Activator.CreateInstance(type));
+            var rootExpr = "new C()";
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("r", "{R}", "R", "(new C()).r", flags: DkmEvaluationResultFlags.Expandable));
+            Verify(GetChildren(children[0]),
+                EvalResult("A", "1", "int?", "(new C()).r.A", category: DkmEvaluationResultCategory.Property),
+                EvalResult("B", "null", "int?", "(new C()).r.B", category: DkmEvaluationResultCategory.Property));
+        }
+
+        [Fact]
         public void Pointers()
         {
             var source =
@@ -2206,11 +2240,11 @@ class D : C
     internal A _3 = new A();
     public A _4 = new A();
 }";
-            var compilationA = CSharpTestBase.CreateStandardCompilation(sourceA, options: TestOptions.ReleaseDll);
+            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.ReleaseDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateStandardCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);

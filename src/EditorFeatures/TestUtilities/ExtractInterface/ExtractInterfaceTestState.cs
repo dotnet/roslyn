@@ -6,16 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.ExtractInterface;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -31,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
+            var exportProvider = ExportProviderFactory.CreateExportProvider();
             var workspace = languageName == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : TestWorkspace.CreateVisualBasic(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+                ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
+                : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 
@@ -53,11 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             ExtractInterfaceService = ExtractFromDocument.GetLanguageService<AbstractExtractInterfaceService>();
         }
 
-        public static readonly ExportProvider ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(TestExtractInterfaceOptionsService))
-                .WithPart(typeof(CSharpExtractInterfaceService))
-                .WithPart(typeof(VisualBasicExtractInterfaceService)));
+        public static readonly IExportProviderFactory ExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
+                    .WithPart(typeof(TestExtractInterfaceOptionsService))
+                    .WithPart(typeof(CSharpExtractInterfaceService))
+                    .WithPart(typeof(VisualBasicExtractInterfaceService)));
 
         public TestExtractInterfaceOptionsService TestExtractInterfaceOptionsService
         {
@@ -76,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 CancellationToken.None);
         }
 
-        public ExtractInterfaceResult ExtractViaCommand()
+        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
         {
-            return ExtractInterfaceService.ExtractInterface(
+            return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>

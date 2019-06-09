@@ -9,64 +9,64 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService
+    internal partial class CodeAnalysisService : IRemoteCodeLensReferencesService
     {
         public Task<ReferenceCount> GetReferenceCountAsync(DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, token))
+                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId,
-                        syntaxNode, maxResultCount, token).ConfigureAwait(false);
+                        syntaxNode, maxResultCount, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, token))
+                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(solution, documentId,
-                        syntaxNode, token).ConfigureAwait(false);
+                        syntaxNode, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, token))
+                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId,
-                        syntaxNode, token).ConfigureAwait(false);
+                        syntaxNode, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
         public Task<string> GetFullyQualifiedName(DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
-                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, token))
+                using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                     var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId,
-                        syntaxNode, token).ConfigureAwait(false);
+                        syntaxNode, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Syntax
             _count += length;
         }
 
-        public void Add(SyntaxTriviaList list)
+        public void Add(in SyntaxTriviaList list)
         {
             this.Add(list, 0, list.Count);
         }
 
-        public void Add(SyntaxTriviaList list, int offset, int length)
+        public void Add(in SyntaxTriviaList list, int offset, int length)
         {
             if (_nodes == null || _count + length > _nodes.Length)
             {

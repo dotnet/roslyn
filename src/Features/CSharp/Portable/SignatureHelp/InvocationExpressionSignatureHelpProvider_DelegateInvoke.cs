@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     {
         private IList<SignatureHelpItem> GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
         {
+            selectedItem = null;
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
             {
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 separatorParts: GetSeparatorParts(),
                 suffixParts: GetDelegateInvokePostambleParts(),
                 parameters: GetDelegateInvokeParameters(invokeMethod, semanticModel, position, documentationCommentFormattingService, cancellationToken));
+
+            // Since we're returning a single item, we can selected it as the "best one".
+            selectedItem = 0;
 
             return SpecializedCollections.SingletonList(item);
         }

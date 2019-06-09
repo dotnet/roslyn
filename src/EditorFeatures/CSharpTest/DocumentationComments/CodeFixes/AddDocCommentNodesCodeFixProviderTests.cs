@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.CodeFixes
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
         public async Task AddsParamTag_NoNodesBefore()
         {
-            var initial = 
+            var initial =
 @"class Program
 {
     /// <summary>
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// 
     /// </summary>
-    /// <param name=""i"">Parameter `i` does something</param>
-    /// <param name=""k"">Parameter `k` does something else</param>
+    /// <param name=""i"">Parameter <paramref name=""i""/> does something</param>
+    /// <param name=""k"">Parameter <paramref name=""k""/> does something else</param>
     public void Fizz(int i, int [|j|], int k) {}
 }
 ";
@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// <summary>
     /// 
     /// </summary>
-    /// <param name=""i"">Parameter `i` does something</param>
+    /// <param name=""i"">Parameter <paramref name=""i""/> does something</param>
     /// <param name=""j""></param>
-    /// <param name=""k"">Parameter `k` does something else</param>
+    /// <param name=""k"">Parameter <paramref name=""k""/> does something else</param>
     public void Fizz(int i, int j, int k) {}
 }
 ";

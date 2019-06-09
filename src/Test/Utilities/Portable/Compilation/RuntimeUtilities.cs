@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -13,31 +15,44 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
-        internal static BuildPaths CreateBuildPaths(string workingDirectory)
+        internal static bool IsDesktopRuntime =>
+#if NET472
+            true;
+#elif NETCOREAPP2_1
+            false;
+#elif NETSTANDARD2_0
+            throw new PlatformNotSupportedException();
+#else
+#error Unsupported configuration
+#endif
+        internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
+
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
-#if NET461 || NET46
+            tempDirectory = tempDirectory ?? Path.GetTempPath();
+#if NET472
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: Path.GetTempPath());
+                sdkDir: sdkDirectory ?? RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: tempDirectory);
 #else
             return new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory,
-                sdkDir: null,
-                tempDir: Path.GetTempPath());
+                sdkDir: sdkDirectory,
+                tempDir: tempDirectory);
 #endif
         }
 
         internal static IRuntimeEnvironmentFactory GetRuntimeEnvironmentFactory()
         {
-#if NET461 || NET46
+#if NET472
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_0
+#elif NETCOREAPP2_1
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#elif NETSTANDARD1_3
-            throw new NotSupportedException();
+#elif NETSTANDARD2_0
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif
@@ -45,10 +60,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static AnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
         {
-#if NET461 || NET46
+#if NET472
             return new DesktopAnalyzerAssemblyLoader();
-#else 
+#elif NETCOREAPP2_1
+            return new CoreClrAnalyzerAssemblyLoader();
+#elif NETSTANDARD2_0
             return new ThrowingAnalyzerAssemblyLoader();
+#else
+#error Unsupported configuration
 #endif
         }
 
@@ -57,13 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal static string GetAssemblyLocation(Type type)
         {
-#if NET461 || NET46 || NETCOREAPP2_0
             return type.GetTypeInfo().Assembly.Location;
-#elif NETSTANDARD1_3
-            throw new NotSupportedException();
-#else
-#error Unsupported configuration
-#endif
         }
     }
 }

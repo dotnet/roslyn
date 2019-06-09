@@ -80,13 +80,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
-        internal static ServerData CreateServer(
+        internal static async Task<ServerData> CreateServer(
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
-            bool failingServer = false)
+            bool failingServer = false,
+            string tempPath = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
+            // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
+            pipeName = pipeName ?? Guid.NewGuid().ToString().Substring(0, 10);
             compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
+            tempPath = tempPath ?? Path.GetTempPath();
             var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
 
             if (failingServer)
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var thread = new Thread(_ =>
+            var task = Task.Run(() =>
             {
                 var listener = new TestableDiagnosticListener();
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
@@ -106,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     DesktopBuildServerController.RunServer(
                         pipeName,
+                        tempPath,
                         clientConnectionHost,
                         listener,
                         keepAlive: TimeSpan.FromMilliseconds(-1),
@@ -118,13 +122,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             });
 
-            thread.Start();
-
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
-            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !task.IsCompleted)
             {
-                Thread.Yield();
+                await Task.Yield();
+            }
+
+            if (task.IsFaulted)
+            {
+                throw task.Exception;
             }
 
             return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <summary>
         /// Create a compiler server that fails all connections.
         /// </summary>
-        internal static ServerData CreateServerFailsConnection(string pipeName = null)
+        internal static Task<ServerData> CreateServerFailsConnection(string pipeName = null)
         {
             return CreateServer(pipeName, failingServer: true);
         }

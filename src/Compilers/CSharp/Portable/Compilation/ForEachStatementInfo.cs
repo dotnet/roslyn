@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IMethodSymbol GetEnumeratorMethod { get; }
 
         /// <summary>
-        /// Gets the &quot;MoveNext&quot; method.
+        /// Gets the &quot;MoveNext&quot; method (or &quot;MoveNextAsync&quot; in an asynchronous foreach).
         /// </summary>
         public IMethodSymbol MoveNextMethod { get; }
 
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IPropertySymbol CurrentProperty { get; }
 
         /// <summary>
-        /// Gets the &quot;Dispose&quot; method.
+        /// Gets the &quot;Dispose&quot; method (or &quot;DisposeAsync&quot; in an asynchronous foreach).
         /// </summary>
         public IMethodSymbol DisposeMethod { get; }
 

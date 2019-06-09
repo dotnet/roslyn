@@ -2,18 +2,20 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
             nextHandler();
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             return position - 2 >= 0 && subjectBuffer.CurrentSnapshot.GetText(position - 2, 2) == "+=";
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
             return nextHandler();

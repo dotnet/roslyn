@@ -3,10 +3,10 @@
 Option Strict On
 
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PreferFrameworkTypeTests

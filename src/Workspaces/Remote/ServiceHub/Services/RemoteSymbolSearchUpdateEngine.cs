@@ -15,75 +15,76 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
-        public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider)
+        public RemoteSymbolSearchUpdateEngine(
+            Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
                 logService: this, progressService: this);
 
-            Rpc.StartListening();
+            StartService();
         }
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
         {
-            return RunServiceAsync(_ =>
+            return RunServiceAsync(() =>
             {
                 return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
             }, CancellationToken.None);
         }
 
-        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
+        public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithTypeAsync(
-                    source, name, arity, token).ConfigureAwait(false);
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
 
-                return results;
-            }, cancellationToken).ConfigureAwait(false);
+                return (IList<PackageWithTypeResult>)results;
+            }, cancellationToken);
         }
 
-        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
+        public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                    source, assemblyName, token).ConfigureAwait(false);
+                    source, assemblyName, cancellationToken).ConfigureAwait(false);
 
-                return results;
-            }, cancellationToken).ConfigureAwait(false);
+                return (IList<PackageWithAssemblyResult>)results;
+            }, cancellationToken);
         }
 
-        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
+        public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
-            return await RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, token).ConfigureAwait(false);
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
-                return results;
-            }, cancellationToken).ConfigureAwait(false);
+                return (IList<ReferenceAssemblyWithTypeResult>)results;
+            }, cancellationToken);
         }
 
         #region Messages to forward from here to VS
 
-        public Task LogExceptionAsync(string exception, string text)
-            => this.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+        public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, cancellationToken);
 
-        public Task LogInfoAsync(string text)
-            => this.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
+        public Task LogInfoAsync(string text, CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, cancellationToken);
 
-        public Task OnDownloadFullDatabaseStartedAsync(string title)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), title);
+        public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, cancellationToken);
 
-        public Task OnDownloadFullDatabaseSucceededAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync));
+        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), cancellationToken);
 
-        public Task OnDownloadFullDatabaseCanceledAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync));
+        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), cancellationToken);
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), message);
+        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, cancellationToken);
 
         #endregion
     }

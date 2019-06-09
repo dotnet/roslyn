@@ -2,6 +2,7 @@
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
+    <[UseExportProvider]>
     Public Class AsKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -406,6 +407,15 @@ Dim Goo : |
             Await VerifyRecommendationsContainAsync(
 <MethodBody>
 Dim Goo _
+| </MethodBody>,
+                "As")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AsAfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>
+Dim Goo _ ' Test
 | </MethodBody>,
                 "As")
         End Function

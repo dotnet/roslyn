@@ -250,7 +250,7 @@ Base.Property.set(6)
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType()
         {
             var source = @"
@@ -814,7 +814,7 @@ class C1 : IInterface
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateCompilation(source)
                 .VerifyDiagnostics(
                     // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseGoo()' and 'IBase2.BaseGoo()'
                     //         ((IInterface)c).BaseGoo();
@@ -1553,7 +1553,7 @@ Base.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType2()
         {
             // Tests:
@@ -1621,7 +1621,7 @@ Derived`2.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType3()
         {
             // Tests:
@@ -1686,7 +1686,7 @@ Derived.Method()");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType4()
         {
             // Tests:
@@ -1754,7 +1754,7 @@ Derived.Method()");
                 Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
         public void TestImplicitImplementationInBaseGenericType5()
         {
             // Tests:
@@ -2288,10 +2288,10 @@ D.M").VerifyDiagnostics(); // No errors
         /// </summary>
         private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
         {
-            var libComp = CreateStandardCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
+            var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateStandardCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
+            var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
             exeComp.VerifyDiagnostics();
 
             return exeComp;

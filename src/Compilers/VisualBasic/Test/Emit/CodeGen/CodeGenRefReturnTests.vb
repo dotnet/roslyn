@@ -892,7 +892,7 @@ BC37263: An expression tree may not contain a call to a method or property that 
 ]]></error>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MidAssignment()
             Dim comp1 = CreateCSharpCompilation(
 "public class C
@@ -1080,7 +1080,7 @@ End Module",
         ''' <summary>
         ''' Late-bound calls with ByRef return values not supported.
         ''' </summary>
-        <Fact()>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub RefReturnLateBoundCall()
             Dim comp1 = CreateCSharpCompilation(
 "public class A
@@ -1111,10 +1111,14 @@ public class B
 "Module M
     Sub Main()
         Dim a = New A()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             F(New B(), a)
         Catch e As System.Exception
             System.Console.Write(e.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
         End Try
     End Sub
     Sub F(b As B, a As Object)
@@ -1123,6 +1127,7 @@ public class B
 End Module",
                 referencedCompilations:={comp1},
                 compilationOptions:=TestOptions.DebugExe)
+
             Dim verifier = CompileAndVerify(comp2, expectedOutput:="Public member 'G' on type 'A' not found.")
             verifier.VerifyIL("M.F",
             <![CDATA[

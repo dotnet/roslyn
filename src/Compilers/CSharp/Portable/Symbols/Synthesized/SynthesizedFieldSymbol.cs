@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
 
         public SynthesizedFieldSymbol(
             NamedTypeSymbol containingType,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, isPublic, isReadOnly, isStatic)
         {
             Debug.Assert((object)type != null);
-            _type = type;
+            _type = TypeWithAnnotations.Create(type);
         }
 
         internal override bool SuppressDynamicAttribute
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

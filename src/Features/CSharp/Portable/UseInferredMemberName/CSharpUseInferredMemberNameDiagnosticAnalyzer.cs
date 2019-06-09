@@ -48,9 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             // Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Value),
-                    nameColon.GetLocation()));
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    nameColon.GetLocation(),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations: null,
+                    properties: null));
 
             // Also fade out the part of the name-colon syntax
             var fadeSpan = TextSpan.FromBounds(nameColon.Name.SpanStart, nameColon.ColonToken.Span.End);
@@ -76,9 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             // Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Value),
-                    nameEquals.GetLocation()));
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    nameEquals.GetLocation(),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations: null,
+                    properties: null));
 
             // Also fade out the part of the name-equals syntax
             var fadeSpan = TextSpan.FromBounds(nameEquals.Name.SpanStart, nameEquals.EqualsToken.Span.End);

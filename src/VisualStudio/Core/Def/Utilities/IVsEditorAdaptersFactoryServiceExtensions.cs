@@ -15,9 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     internal static class IVsEditorAdaptersFactoryServiceExtensions
     {
         public static IOleUndoManager TryGetUndoManager(
-            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService, 
+            this IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             Microsoft.CodeAnalysis.Workspace workspace,
-            DocumentId contextDocumentId, 
+            DocumentId contextDocumentId,
             CancellationToken cancellationToken)
         {
             // https://github.com/dotnet/roslyn/issues/17898
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 return null;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);

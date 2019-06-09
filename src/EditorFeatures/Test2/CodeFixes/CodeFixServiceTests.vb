@@ -4,12 +4,12 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Reflection
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
@@ -17,6 +17,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
+    <[UseExportProvider]>
     Public Class CodeFixServiceTests
 
         Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
@@ -44,12 +45,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                                        diagnosticService,
-                                        logger,
-                                        {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
-                                            Function() workspaceCodeFixProvider,
-                                            New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
-                                        SpecializedCollections.EmptyEnumerable(Of Lazy(Of ISuppressionFixProvider, Mef.CodeChangeProviderMetadata)))
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    diagnosticService,
+                    logger,
+                    {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
+                        Function() workspaceCodeFixProvider,
+                        New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
+                    SpecializedCollections.EmptyEnumerable(Of Lazy(Of ISuppressionFixProvider, Mef.CodeChangeProviderMetadata)))
 
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
@@ -107,12 +109,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                                        diagnosticService,
-                                        logger,
-                                        {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
-                                            Function() workspaceCodeFixProvider,
-                                            New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
-                                        SpecializedCollections.EmptyEnumerable(Of Lazy(Of ISuppressionFixProvider, Mef.CodeChangeProviderMetadata)))
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    diagnosticService,
+                    logger,
+                    {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
+                        Function() workspaceCodeFixProvider,
+                        New Mef.CodeChangeProviderMetadata(New Dictionary(Of String, Object)() From {{"Name", "C#"}, {"Languages", {LanguageNames.CSharp}}}))},
+                    SpecializedCollections.EmptyEnumerable(Of Lazy(Of ISuppressionFixProvider, Mef.CodeChangeProviderMetadata)))
 
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
@@ -184,6 +187,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         Private Class WorkspaceCodeFixProvider
             Inherits CodeFixProvider
 
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
+
             Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
                 Get
                     Return ImmutableArray.Create("TEST0000")
@@ -203,6 +210,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         <ExportCodeFixProvider(LanguageNames.CSharp, Name:="ProjectCodeFixProvider"), [Shared]>
         Public Class ProjectCodeFixProvider
             Inherits CodeFixProvider
+
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
 
             Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
                 Get

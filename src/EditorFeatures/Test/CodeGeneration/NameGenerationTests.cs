@@ -1,127 +1,151 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-#if false
-namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class NameGenerationTests : AbstractCodeGenerationTests
     {
-        [WpfFact]
+        [Fact]
         public void TestIdentifierName()
         {
-            TestName(
-                f => f.CreateIdentifierName("a"),
+            Test(
+                f => f.IdentifierName("a"),
                 cs: "a",
-                vb: "a");
+                csSimple: "a",
+                vb: "a",
+                vbSimple: "a");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestIdentifierNameCSharpKeyword()
         {
-            TestName(
-                f => f.CreateIdentifierName("int"),
+            Test(
+                f => f.IdentifierName("int"),
                 cs: "@int",
-                vb: "int");
+                csSimple: "@int",
+                vb: "int",
+                vbSimple: "int");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestIdentifierNameVisualBasicKeyword()
         {
-            TestName(
-                f => f.CreateIdentifierName("Integer"),
+            Test(
+                f => f.IdentifierName("Integer"),
                 cs: "Integer",
-                vb: "[Integer]");
+                csSimple: "Integer",
+                vb: "[Integer]",
+                vbSimple: "[Integer]");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestGenericName1()
         {
-            TestName(
-                f => f.CreateGenericName("Outer", CreateClass("Inner1")),
+            Test(
+                f => f.GenericName("Outer", CreateClass("Inner1")),
                 cs: "Outer<Inner1>",
-                vb: "Outer(Of Inner1)");
+                csSimple: null,
+                vb: "Outer(Of Inner1)",
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestGenericName2()
         {
-            TestName(
-                f => f.CreateGenericName("Outer", CreateClass("Inner1"), CreateClass("Inner2")),
+            Test(
+                f => f.GenericName("Outer", CreateClass("Inner1"), CreateClass("Inner2")),
                 cs: "Outer<Inner1, Inner2>",
-                vb: "Outer(Of Inner1, Inner2)");
+                csSimple: null,
+                vb: "Outer(Of Inner1, Inner2)",
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestGenericNameCSharpKeyword()
         {
-            TestName(
-                f => f.CreateGenericName("int", CreateClass("string"), CreateClass("bool")),
+            Test(
+                f => f.GenericName("int", CreateClass("string"), CreateClass("bool")),
                 cs: "@int<@string, @bool>",
-                vb: "int(Of [string], bool)");
+                csSimple: null,
+                vb: "int(Of [string], bool)",
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestGenericNameVisualBasicKeyword()
         {
-            TestName(
-                f => f.CreateGenericName("Integer", CreateClass("String"), CreateClass("Boolean")),
+            Test(
+                f => f.GenericName("Integer", CreateClass("String"), CreateClass("Boolean")),
                 cs: "Integer<String, Boolean>",
-                vb: "[Integer](Of [String], [Boolean])");
+                csSimple: null,
+                vb: "[Integer](Of [String], [Boolean])",
+                vbSimple: null);
         }
 
-        [WpfFact]
+        [Fact]
         public void TestQualifiedName1()
         {
-            TestName(
-                f => f.CreateQualifiedName(f.CreateIdentifierName("Outer"), f.CreateIdentifierName("Inner1")),
+            Test(
+                f => f.QualifiedName(f.IdentifierName("Outer"), f.IdentifierName("Inner1")),
                 cs: "Outer.Inner1",
-                vb: "Outer.Inner1");
+                csSimple: "Outer.Inner1",
+                vb: "Outer.Inner1",
+                vbSimple: "Outer.Inner1");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestQualifiedNameCSharpKeywords1()
         {
-            TestName(
-                f => f.CreateQualifiedName(f.CreateIdentifierName("int"), f.CreateIdentifierName("string")),
+            Test(
+                f => f.QualifiedName(f.IdentifierName("int"), f.IdentifierName("string")),
                 cs: "@int.@string",
-                vb: "int.string");
+                csSimple: "@int.@string",
+                vb: "int.[string]",
+                vbSimple: "int.string");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestQualifiedNameVBKeywords1()
         {
-            TestName(
-                f => f.CreateQualifiedName(f.CreateIdentifierName("Integer"), f.CreateIdentifierName("String")),
+            Test(
+                f => f.QualifiedName(f.IdentifierName("Integer"), f.IdentifierName("String")),
                 cs: "Integer.String",
-                vb: "[Integer].String");
+                csSimple: "Integer.String",
+                vb: "[Integer].[String]",
+                vbSimple: "Integer.String");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestQualifiedGenericName1()
         {
-            TestName(
-                f => f.CreateQualifiedName(
-                    f.CreateIdentifierName("One"),
-                    f.CreateGenericName("Outer",
+            Test(
+                f => f.QualifiedName(
+                    f.IdentifierName("One"),
+                    f.GenericName("Outer",
                         CreateClass("Inner1"),
                         CreateClass("Inner2"))),
                 cs: "One.Outer<Inner1, Inner2>",
-                vb: "One.Outer(Of Inner1, Inner2)");
+                csSimple: "One.Outer<Inner1, Inner2>",
+                vb: "One.Outer(Of Inner1, Inner2)",
+                vbSimple: "One.Outer(Of Inner1, Inner2)");
         }
 
-        [WpfFact]
+        [Fact]
         public void TestQualifiedGenericName2()
         {
-            TestName(
-                f => f.CreateQualifiedName(
-                    f.CreateGenericName("Outer",
+            Test(
+                f => f.QualifiedName(
+                    f.GenericName("Outer",
                         CreateClass("Inner1"),
                         CreateClass("Inner2")),
-                    f.CreateIdentifierName("One")),
+                    f.IdentifierName("One")),
                 cs: "Outer<Inner1, Inner2>.One",
-                vb: "Outer(Of Inner1, Inner2).One");
+                csSimple: "Outer<Inner1, Inner2>.One",
+                vb: "Outer(Of Inner1, Inner2).One",
+                vbSimple: "Outer(Of Inner1, Inner2).One");
         }
     }
 }
-#endif

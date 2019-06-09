@@ -17,6 +17,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 {
+    internal enum InterfaceDestination
+    {
+        CurrentFile,
+        NewFile
+    };
+
     internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
     {
         private readonly ISyntaxFactsService _syntaxFactsService;
@@ -152,6 +158,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             set { SetProperty(ref _fileName, value); }
         }
 
+        private InterfaceDestination _destination = InterfaceDestination.NewFile;
+        public InterfaceDestination Destination
+        {
+            get { return _destination; }
+            set
+            {
+                if (SetProperty(ref _destination, value))
+                {
+                    NotifyPropertyChanged(nameof(FileNameEnabled));
+                }
+            }
+        }
+
+        public bool FileNameEnabled => Destination == InterfaceDestination.NewFile;
+
         internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
         {
             private readonly IGlyphService _glyphService;
@@ -166,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
             {
-                this.MemberSymbol = symbol;
+                MemberSymbol = symbol;
                 _glyphService = glyphService;
                 _isChecked = true;
             }

@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 IEnumerable<string> metadataSources = null,
                 bool includeXmlDocComments = false,
                 string sourceWithSymbolReference = null,
-                string languageVersion = null)
+                string languageVersion = null,
+                string metadataLanguageVersion = null)
             {
                 projectLanguage = projectLanguage ?? LanguageNames.CSharp;
                 metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     : metadataSources;
 
                 var workspace = CreateWorkspace(
-                    projectLanguage, metadataSources, includeXmlDocComments, 
-                    sourceWithSymbolReference, languageVersion);
+                    projectLanguage, metadataSources, includeXmlDocComments,
+                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion);
                 return new TestContext(workspace);
             }
 
@@ -212,18 +213,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             private static TestWorkspace CreateWorkspace(
-                string projectLanguage, IEnumerable<string> metadataSources, 
+                string projectLanguage, IEnumerable<string> metadataSources,
                 bool includeXmlDocComments, string sourceWithSymbolReference,
-                string languageVersion)
+                string languageVersion, string metadataLanguageVersion)
             {
+                string languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true""");
-
-                if (languageVersion != null)
-                {
-                    xmlString += $@" LanguageVersion=""{languageVersion}""";
-                }
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true""", languageVersionAttribute);
 
                 xmlString += ">";
 
@@ -232,16 +230,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 foreach (var source in metadataSources)
                 {
                     var metadataLanguage = DeduceLanguageString(source);
-
-                    xmlString = string.Concat(xmlString, string.Format(@"
-        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}"">
+                    var metadataLanguageVersionAttribute = metadataLanguageVersion is null ? "" : $@" LanguageVersion=""{metadataLanguageVersion}""";
+                    xmlString = string.Concat(xmlString, $@"
+        <MetadataReferenceFromSource Language=""{metadataLanguage}"" CommonReferences=""true"" {metadataLanguageVersionAttribute} IncludeXmlDocComments=""{includeXmlDocComments}"">
             <Document FilePath=""MetadataDocument"">
-{1}
+{SecurityElement.Escape(source)}
             </Document>
-        </MetadataReferenceFromSource>",
-                        metadataLanguage,
-                        SecurityElement.Escape(source),
-                        includeXmlDocComments.ToString()));
+        </MetadataReferenceFromSource>");
                 }
 
                 if (sourceWithSymbolReference != null)
