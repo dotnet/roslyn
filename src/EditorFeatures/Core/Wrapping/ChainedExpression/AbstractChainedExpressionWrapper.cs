@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         private readonly int _questionToken;
 
         protected AbstractChainedExpressionWrapper(
-            IBlankLineIndentationService indentationService,
+            Indentation.IIndentationService indentationService,
             ISyntaxFactsService syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
