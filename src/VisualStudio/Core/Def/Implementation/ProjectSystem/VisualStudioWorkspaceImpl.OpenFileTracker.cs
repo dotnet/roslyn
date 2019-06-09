@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds.Select(d => d.ProjectId));
+                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds);
                     }
 
                     if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer bufferAdapter)
@@ -185,10 +185,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     {
                                         w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
                                     }
+                                    else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                    {
+                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                    }
                                     else
                                     {
-                                        Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                        Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                        w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
                                     }
                                 }
                             }
@@ -197,8 +201,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(uint cookie, IEnumerable<ProjectId> projectIds)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies(uint cookie, ImmutableArray<DocumentId> documentIds)
             {
+                Debug.Assert(!documentIds.IsEmpty);
+
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
@@ -211,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
-                    return projectIds.First();
+                    return documentIds.First().ProjectId;
                 }
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
@@ -220,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
-                var projectToHierarchyMap = _workspace._projectToHierarchyMap;
+                var projectGuids = _workspace._projectToGuidMap;
                 var solution = _workspace.CurrentSolution;
 
                 // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
@@ -241,6 +247,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     hierarchy = contextHierarchy;
                 }
 
+                if (!hierarchy.TryGetProjectGuid(out var projectGuid))
+                {
+                    return documentIds.First().ProjectId;
+                }
+
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
                 {
@@ -248,9 +259,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (contextProjectNameObject is string contextProjectName)
                     {
-                        var project = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName);
+                        var project = _workspace.GetProjectWithGuidAndName(projectGuid, contextProjectName);
 
-                        if (project != null && projectIds.Contains(project.Id))
+                        if (project != null && documentIds.Any(d => d.ProjectId == project.Id))
                         {
                             return project.Id;
                         }
@@ -259,15 +270,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
                 // out better.
-                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
-
-                if (matchingProjectId != null)
+                var matchingDocumentId = documentIds.FirstOrDefault(d => projectGuids.GetValueOrDefault(d.ProjectId, Guid.Empty) == projectGuid);
+                if (matchingDocumentId != null)
                 {
-                    return matchingProjectId;
+                    return matchingDocumentId.ProjectId;
                 }
 
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
-                return projectIds.First();
+                return documentIds.First().ProjectId;
             }
 
             private void UnsubscribeFromWatchedHierarchies(uint cookie)
@@ -300,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds.Select(d => d.ProjectId));
+                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(cookie, documentIds);
                     w.OnDocumentContextUpdated(documentIds.FirstOrDefault(d => d.ProjectId == activeProjectId));
                 });
             }
@@ -354,10 +364,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                         }
                     }

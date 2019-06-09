@@ -32,8 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
         {
+            bool hasBlockBody = syntax.Body != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            bool hasBody = hasBlockBody || _isExpressionBodied;
+
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
             if (syntax.Identifier.ValueText != containingType.Name)
@@ -42,9 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
             }
 
-            bool hasBlockBody = syntax.Body != null;
-            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-
             if (IsExtern)
             {
                 if (methodKind == MethodKind.Constructor && syntax.Initializer != null)
@@ -52,13 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
                 }
 
-                if (hasBlockBody || _isExpressionBodied)
+                if (hasBody)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            if (methodKind == MethodKind.StaticConstructor)
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+            }
+
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -66,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(methodKind, hasBlockBody || _isExpressionBodied, location, diagnostics);
+                this.CheckModifiers(methodKind, hasBody, location, diagnostics);
             }
 
             CheckForBlockAndExpressionBody(
@@ -179,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public override RefKind RefKind
@@ -196,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
@@ -221,6 +227,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 mods |= DeclarationModifiers.Private; // we mark static constructors private in the symbol table
+
+                if (this.ContainingType.IsInterface)
+                {
+                    ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
+                                                                                DeclarationModifiers.Extern,
+                                                                                location, diagnostics);
+                }
             }
 
             return mods;

@@ -4709,5 +4709,23 @@ foreach (var (x, y) in new[] { (1, 2) });
                 Punctuation.CloseParen,
                 Punctuation.Semicolon);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task CatchDeclarationStatement()
+        {
+            await TestInMethodAsync(@"
+try { } catch (Exception ex) { }
+",
+                ControlKeyword("try"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                ControlKeyword("catch"),
+                Punctuation.OpenParen,
+                Identifier("Exception"),
+                Local("ex"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

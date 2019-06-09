@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
@@ -45,7 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void SetOutputFileName(string filename)
         {
-            VisualStudioProject.IntermediateOutputFilePath = filename;
+            // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
+            if (PathUtilities.IsAbsolute(filename))
+            {
+                VisualStudioProject.IntermediateOutputFilePath = filename;
+            }
 
             if (filename != null)
             {

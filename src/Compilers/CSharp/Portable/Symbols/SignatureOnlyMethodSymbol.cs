@@ -59,11 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get { return _typeParameters; } }
 
-        public override bool ReturnsVoid { get { return _returnType.SpecialType == SpecialType.System_Void; } }
+        public override bool ReturnsVoid { get { return _returnType.IsVoidType(); } }
 
         public override RefKind RefKind { get { return _refKind; } }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations { get { return _returnType; } }
+
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -142,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 

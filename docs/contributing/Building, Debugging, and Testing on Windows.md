@@ -19,7 +19,7 @@ The minimal required version of .NET Framework is 4.7.2.
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "RC1" or greater
     - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
-1. [.NET Core SDK 3.0 Preview 3](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-3.0.100-preview3-windows-x64-installer)
+1. [.NET Core SDK 3.0 Preview 6](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100-preview6-012105/dotnet-sdk-3.0.100-preview6-012105-win-x64.exe )
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -77,7 +77,7 @@ binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
-the default but in same cases will need to be set explicitly.
+the default but in some cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
 you're working on a particular area, you probably want to set the appropriate

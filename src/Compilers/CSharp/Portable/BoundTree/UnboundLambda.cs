@@ -107,16 +107,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
+                Debug.Assert(conversions != null);
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
                 // https://github.com/dotnet/roslyn/issues/31752: Can we avoid generating extra
                 // diagnostics? And is this exponential when there are nested lambdas?
+                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
-                NullableWalker.Analyze(compilation, lambda: this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
+                NullableWalker.Analyze(compilation,
+                                       lambda: this,
+                                       (Conversions)conversions,
+                                       diagnostics,
+                                       delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
+                                       initialState: nullableState,
+                                       analyzedNullabilityMapOpt: null,
+                                       snapshotBuilderOpt: null,
+                                       returnTypes);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
                 returnTypes.Free();
@@ -185,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
                     if (conversions.IncludeNullability)
                     {
-                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node);
+                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, compilation, node, (Conversions)conversions);
                     }
                     else
                     {
@@ -211,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise the return type is Task or Task<T>.
             NamedTypeSymbol taskType = null;
             var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
-            if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
+            if ((object)delegateReturnType != null && !delegateReturnType.IsVoidType())
             {
                 object builderType;
                 if (delegateReturnType.IsCustomTaskType(out builderType))
@@ -230,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeWithAnnotations.Create(resultType);
             }
 
-            if (!bestResultType.HasType || bestResultType.SpecialType == SpecialType.System_Void)
+            if (!bestResultType.HasType || bestResultType.IsVoidType())
             {
                 // If the best type was 'void', ERR_CantReturnVoid is reported while binding the "return void"
                 // statement(s).
@@ -305,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> names,
             bool isAsync,
             bool hasErrors = false)
-            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(SymbolKind.ErrorType))
+            : base(BoundKind.UnboundLambda, syntax, null, hasErrors || !types.IsDefault && types.Any(t => t.Type?.Kind == SymbolKind.ErrorType))
         {
             Debug.Assert(binder != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -357,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class UnboundLambdaState
     {
         private UnboundLambda _unboundLambda; // we would prefer this readonly, but we have an initialization cycle.
-        protected readonly Binder binder;
+        internal readonly Binder Binder;
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -377,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // might be initialized later (for query lambdas)
             _unboundLambda = unboundLambdaOpt;
-            this.binder = binder;
+            this.Binder = binder;
         }
 
         public void SetUnboundLambda(UnboundLambda unbound)
@@ -403,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
         {
-            this.binder.GenerateAnonymousFunctionConversionError(diagnostics, _unboundLambda.Syntax, _unboundLambda, targetType);
+            this.Binder.GenerateAnonymousFunctionConversionError(diagnostics, _unboundLambda.Syntax, _unboundLambda, targetType);
         }
 
         // Returns the inferred return type, or null if none can be inferred.
@@ -465,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.binder.Compilation))
+            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.Binder.Compilation))
             {
                 return false;
             }
@@ -488,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when binding for real (not for return inference), there is still
             // a good chance that we could reuse a body of a lambda previously bound for 
             // return type inference.
-            var cacheKey = ReturnInferenceCacheKey.Create(binder, delegateType, IsAsync);
+            var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
             BoundLambda returnInferenceLambda;
             if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredReturnType.FromSingleType)
@@ -507,19 +516,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             lambdaSymbol = new LambdaSymbol(
-                binder.Compilation,
-                binder.ContainingMemberOrLambda,
+                Binder.Compilation,
+                Binder.ContainingMemberOrLambda,
                 _unboundLambda,
                 cacheKey.ParameterTypes,
                 cacheKey.ParameterRefKinds,
                 refKind,
                 returnType,
                 diagnostics);
-            lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+            lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
             {
-                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                Binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
             }
 
             var lambdaParameters = lambdaSymbol.Parameters;
@@ -529,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.NeedsNullableAttribute())
                 {
-                    binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
+                    Binder.Compilation.EnsureNullableAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilation: false);
                     // Note: we don't need to warn on annotations used without NonNullTypes context for lambdas, as this is handled in binding already
                 }
             }
@@ -544,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 haveLambdaBodyAndBinders:
 
-            bool reachableEndpoint = ControlFlowPass.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
+            bool reachableEndpoint = ControlFlowPass.Analyze(Binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)
             {
                 if (DelegateNeedsReturn(invokeMethod))
@@ -561,9 +570,9 @@ haveLambdaBodyAndBinders:
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics))
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
-                    returnType.SpecialType != SpecialType.System_Void &&
-                    !returnType.Type.IsNonGenericTaskType(binder.Compilation) &&
-                    !returnType.Type.IsGenericTaskType(binder.Compilation))
+                    !returnType.IsVoidType() &&
+                    !returnType.Type.IsNonGenericTaskType(Binder.Compilation) &&
+                    !returnType.Type.IsGenericTaskType(Binder.Compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);
@@ -601,7 +610,7 @@ haveLambdaBodyAndBinders:
                 {
                     if (targetParameterTypes[i].Type.IsUnsafe())
                     {
-                        this.binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
+                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }
                 }
             }
@@ -611,15 +620,15 @@ haveLambdaBodyAndBinders:
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var lambdaSymbol = new LambdaSymbol(
-                binder.Compilation,
-                binder.ContainingMemberOrLambda,
+                Binder.Compilation,
+                Binder.ContainingMemberOrLambda,
                 _unboundLambda,
                 parameterTypes,
                 parameterRefKinds,
                 refKind: CodeAnalysis.RefKind.None,
                 returnType: default,
                 diagnostics: diagnostics);
-            Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+            Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
             BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
@@ -641,7 +650,7 @@ haveLambdaBodyAndBinders:
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            var cacheKey = ReturnInferenceCacheKey.Create(binder, delegateType, IsAsync);
+            var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
             BoundLambda result;
             if (!_returnInferenceCache.TryGetValue(cacheKey, out result))
@@ -740,7 +749,7 @@ haveLambdaBodyAndBinders:
                     if (isAsync)
                     {
                         var delegateReturnType = invoke.ReturnType as NamedTypeSymbol;
-                        if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
+                        if ((object)delegateReturnType != null && !delegateReturnType.IsVoidType())
                         {
                             if (delegateReturnType.IsCustomTaskType(out var builderType))
                             {

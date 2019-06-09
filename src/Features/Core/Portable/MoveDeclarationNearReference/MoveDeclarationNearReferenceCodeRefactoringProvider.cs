@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
     internal sealed class MoveDeclarationNearReferenceCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public MoveDeclarationNearReferenceCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

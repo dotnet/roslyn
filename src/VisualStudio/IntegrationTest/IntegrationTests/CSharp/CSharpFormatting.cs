@@ -270,7 +270,7 @@ class Program
 }");
         }
 
-        [CriticalWpfFact]
+        [ConditionalWpfFact(typeof(LegacyEditorConfigCondition))]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
@@ -318,7 +318,8 @@ class C
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();
 
             Assert.Equal(expectedTextFourSpaceIndent, VisualStudio.Editor.GetText());
@@ -334,7 +335,15 @@ class C
 indent_size = 2
 ";
 
-            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
@@ -342,7 +351,8 @@ indent_size = 2
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();
 
             Assert.Equal(expectedTextTwoSpaceIndent, VisualStudio.Editor.GetText());
@@ -352,7 +362,15 @@ indent_size = 2
              * and verifies that the next Format Document operation adheres to the updated formatting.
              */
 
-            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("2", "4"));
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("2", "4"));
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
@@ -360,7 +378,8 @@ indent_size = 2
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.FormatDocumentViaCommand();
 
             Assert.Equal(expectedTextFourSpaceIndent, VisualStudio.Editor.GetText());

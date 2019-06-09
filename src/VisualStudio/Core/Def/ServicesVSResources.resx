@@ -1043,7 +1043,7 @@ I agree to all of the foregoing:</value>
     <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
-    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+    <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
   <data name="Modifier_preferences_colon" xml:space="preserve">
     <value>Modifier preferences:</value>
@@ -1054,8 +1054,8 @@ I agree to all of the foregoing:</value>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
   </data>
-  <data name="Live_code_analysis" xml:space="preserve">
-    <value>Live code analysis</value>
+  <data name="Live_analysis" xml:space="preserve">
+    <value>Live analysis</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1145,7 +1145,7 @@ I agree to all of the foregoing:</value>
     <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
   </data>
   <data name="Select_Dependents" xml:space="preserve">
-    <value>_Select Dependents</value>
+    <value>Select _Dependents</value>
   </data>
   <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
     <value>Select destination and members to pull up.</value>
@@ -1154,7 +1154,7 @@ I agree to all of the foregoing:</value>
     <value>Select members:</value>
   </data>
   <data name="Select_Public" xml:space="preserve">
-    <value>_Select Public</value>
+    <value>Select _Public</value>
   </data>
   <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>'{0}' will be changed to abstract.</value>
@@ -1200,5 +1200,26 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
+    <value>Enable nullable reference analysis IDE features</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to Namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="Target_Namespace_colon" xml:space="preserve">
+    <value>Target Namespace:</value>
+  </data>
+  <data name="This_is_an_invalid_namespace" xml:space="preserve">
+    <value>This is an invalid namespace</value>
+  </data>
+  <data name="A_new_namespace_will_be_created" xml:space="preserve">
+    <value>A new namespace will be created</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
   </data>
 </root>

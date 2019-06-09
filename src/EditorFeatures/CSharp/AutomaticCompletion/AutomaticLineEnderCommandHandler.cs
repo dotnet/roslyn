@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         [ImportingConstructor]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations,
-            IAsyncCompletionBroker asyncCompletionBroker)
-            : base(undoRegistry, editorOperations, asyncCompletionBroker)
+            IEditorOperationsFactoryService editorOperations)
+            : base(undoRegistry, editorOperations)
         {
         }
 

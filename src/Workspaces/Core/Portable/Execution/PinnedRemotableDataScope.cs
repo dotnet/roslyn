@@ -28,12 +28,20 @@ namespace Microsoft.CodeAnalysis.Execution
         /// can benefit other requests or not
         /// </summary>
         public readonly bool FromPrimaryBranch;
+
+        /// <summary>
+        /// This indicates a Solution.WorkspaceVersion of this solution. remote host engine uses this version
+        /// to decide whether caching this solution will benefit other requests or not
+        /// </summary>
+        public readonly int WorkspaceVersion;
+
         public readonly Checksum SolutionChecksum;
 
-        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, Checksum solutionChecksum)
+        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, int workspaceVersion, Checksum solutionChecksum)
         {
             ScopeId = scopeId;
             FromPrimaryBranch = fromPrimaryBranch;
+            WorkspaceVersion = workspaceVersion;
             SolutionChecksum = solutionChecksum;
         }
     }
@@ -64,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Execution
             SolutionInfo = new PinnedSolutionInfo(
                 Interlocked.Increment(ref s_scopeId),
                 _storage.SolutionState.BranchId == Workspace.PrimaryBranchId,
+                _storage.SolutionState.WorkspaceVersion,
                 solutionChecksum);
 
             _storages.RegisterSnapshot(this, storage);

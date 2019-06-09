@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return -1;
         }
 
+        public bool Remove(T element)
+        {
+            return _builder.Remove(element);
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);
@@ -517,6 +522,28 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             Clip(j);
             set.Free();
+        }
+
+        public void SortAndRemoveDuplicates(IComparer<T> comparer)
+        {
+            if (Count <= 1)
+            {
+                return;
+            }
+
+            Sort(comparer);
+
+            int j = 0;
+            for (int i = 1; i < Count; i++)
+            {
+                if (comparer.Compare(this[j], this[i]) < 0)
+                {
+                    j++;
+                    this[j] = this[i];
+                }
+            }
+
+            Clip(j + 1);
         }
 
         public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)

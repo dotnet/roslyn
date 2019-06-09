@@ -219,6 +219,9 @@
   <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
     <value>unmanaged constructed types</value>
   </data>
+  <data name="IDS_FeatureReadOnlyMembers" xml:space="preserve">
+    <value>readonly members</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
@@ -531,6 +534,9 @@
   <data name="ERR_EventNeedsBothAccessors" xml:space="preserve">
     <value>'{0}': event property must have both add and remove accessors</value>
   </data>
+  <data name="ERR_AbstractEventHasAccessors" xml:space="preserve">
+    <value>'{0}': abstract event cannot use event accessor syntax</value>
+  </data>
   <data name="ERR_EventNotDelegate" xml:space="preserve">
     <value>'{0}': event must be of a delegate type</value>
   </data>
@@ -541,10 +547,7 @@
     <value>Event is never used</value>
   </data>
   <data name="ERR_InterfaceEventInitializer" xml:space="preserve">
-    <value>'{0}': event in interface cannot have initializer</value>
-  </data>
-  <data name="ERR_EventPropertyInInterface" xml:space="preserve">
-    <value>An event in an interface cannot have add or remove accessors</value>
+    <value>'{0}': instance event in interface cannot have initializer</value>
   </data>
   <data name="ERR_BadEventUsage" xml:space="preserve">
     <value>The event '{0}' can only appear on the left hand side of += or -= (except when used from within the type '{1}')</value>
@@ -1107,9 +1110,6 @@
   <data name="ERR_DuplicatePropertyAccessMods" xml:space="preserve">
     <value>Cannot specify accessibility modifiers for both accessors of the property or indexer '{0}'</value>
   </data>
-  <data name="ERR_PropertyAccessModInInterface" xml:space="preserve">
-    <value>'{0}': accessibility modifiers may not be used on accessors in an interface</value>
-  </data>
   <data name="ERR_AccessModMissingAccessor" xml:space="preserve">
     <value>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</value>
   </data>
@@ -1384,7 +1384,7 @@
     <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
-    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
+    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
   </data>
   <data name="ERR_AmbigOverride" xml:space="preserve">
     <value>The inherited members '{0}' and '{1}' have the same signature in type '{2}', so they cannot be overridden</value>
@@ -1505,14 +1505,11 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_StructLayoutCycle" xml:space="preserve">
     <value>Struct member '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
-  <data name="ERR_InterfacesCannotContainTypes" xml:space="preserve">
-    <value>'{0}': interfaces cannot declare types</value>
-  </data>
   <data name="ERR_InterfacesCantContainFields" xml:space="preserve">
-    <value>Interfaces cannot contain fields</value>
+    <value>Interfaces cannot contain instance fields</value>
   </data>
   <data name="ERR_InterfacesCantContainConstructors" xml:space="preserve">
-    <value>Interfaces cannot contain constructors</value>
+    <value>Interfaces cannot contain instance constructors</value>
   </data>
   <data name="ERR_NonInterfaceInInterfaceList" xml:space="preserve">
     <value>Type '{0}' in interface list is not an interface</value>
@@ -1525,9 +1522,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
-  </data>
-  <data name="ERR_InterfaceMemberHasBody" xml:space="preserve">
-    <value>'{0}': interface members cannot have a definition</value>
   </data>
   <data name="ERR_HidingAbstractMethod" xml:space="preserve">
     <value>'{0}' hides inherited abstract member '{1}'</value>
@@ -1545,13 +1539,13 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}' in explicit interface declaration is not an interface</value>
   </data>
   <data name="ERR_InterfaceMemberNotFound" xml:space="preserve">
-    <value>'{0}' in explicit interface declaration is not a member of interface</value>
+    <value>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</value>
   </data>
   <data name="ERR_ClassDoesntImplementInterface" xml:space="preserve">
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class or struct</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
@@ -1619,8 +1613,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_BadShiftOperatorSignature" xml:space="preserve">
     <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
   </data>
-  <data name="ERR_InterfacesCantContainOperators" xml:space="preserve">
-    <value>Interfaces cannot contain operators</value>
+  <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
+    <value>Interfaces cannot contain conversion, equality, or inequality operators</value>
   </data>
   <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>
@@ -2106,7 +2100,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class or partial struct</value>
+    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
   </data>
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
@@ -2133,7 +2127,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
-    <value>Partial method declarations of '{0}' have inconsistent type parameter constraints</value>
+    <value>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</value>
   </data>
   <data name="ERR_PartialMethodToDelegate" xml:space="preserve">
     <value>Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration</value>
@@ -2561,7 +2555,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a valid non-generic class or struct</value>
+    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
@@ -2828,16 +2822,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Unrecognized #pragma directive</value>
   </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
-    <value>Expected disable, restore, enable or safeonly</value>
+    <value>Expected disable, restore or enable</value>
   </data>
   <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
-    <value>Expected disable, restore, enable or safeonly after #pragma warning</value>
-  </data>
-  <data name="WRN_IllegalPPWarningSafeOnly" xml:space="preserve">
-    <value>Expected nullable</value>
-  </data>
-  <data name="WRN_IllegalPPWarningSafeOnly_Title" xml:space="preserve">
-    <value>Expected nullable after #pragma warning safeonly</value>
+    <value>Expected disable, restore or enable after #pragma warning</value>
   </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
@@ -3953,6 +3941,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_BadDynamicTypeof" xml:space="preserve">
     <value>The typeof operator cannot be used on the dynamic type</value>
   </data>
+  <data name="ERR_BadNullableTypeof" xml:space="preserve">
+    <value>The typeof operator cannot be used on a nullable reference type</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsDynamicOperation" xml:space="preserve">
     <value>An expression tree may not contain a dynamic operation</value>
   </data>
@@ -4627,8 +4618,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Specify nullable context option enable|disable|warnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -4744,9 +4735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AutoPropertyMustOverrideSet" xml:space="preserve">
     <value>Auto-implemented properties must override all accessors of the overridden property.</value>
-  </data>
-  <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
-    <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
     <value>Structs without explicit constructors cannot contain members with initializers.</value>
@@ -5088,6 +5076,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternWrongType" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
   </data>
+  <data name="ERR_ConstantPatternVsOpenType" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</value>
+  </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
   </data>
@@ -5269,7 +5260,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
   <data name="ERR_AltInterpolatedVerbatimStringsNotAvailable" xml:space="preserve">
-    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</value>
+    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</value>
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
@@ -5286,8 +5277,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
     <value>nullable reference types</value>
   </data>
-  <data name="IDS_FeaturePragmaWarningEnableOrSafeOnly" xml:space="preserve">
-    <value>warning action enable or safeonly</value>
+  <data name="IDS_FeaturePragmaWarningEnable" xml:space="preserve">
+    <value>warning action enable</value>
   </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>
@@ -5302,10 +5293,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Possible null reference assignment.</value>
   </data>
   <data name="WRN_NullReferenceReceiver" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReceiver_Title" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReturn" xml:space="preserve">
     <value>Possible null reference return.</value>
@@ -5319,17 +5310,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
     <value>Possible null reference argument.</value>
   </data>
-  <data name="WRN_PossibleNull" xml:space="preserve">
-    <value>Possible null value.</value>
+  <data name="WRN_ThrowPossibleNull" xml:space="preserve">
+    <value>Thrown value may be null.</value>
   </data>
-  <data name="WRN_PossibleNull_Title" xml:space="preserve">
-    <value>Possible null value.</value>
+  <data name="WRN_ThrowPossibleNull_Title" xml:space="preserve">
+    <value>Thrown value may be null.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  <data name="WRN_UnboxPossibleNull" xml:space="preserve">
+    <value>Unboxing a possibly null value.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInTypeOnOverride_Title" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  <data name="WRN_UnboxPossibleNull_Title" xml:space="preserve">
+    <value>Unboxing a possibly null value.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
@@ -5421,6 +5412,36 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
     <value>A null literal introduces a null value for a type parameter.</value>
   </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember" xml:space="preserve">
+    <value>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</value>
+  </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember_Title" xml:space="preserve">
+    <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
+  </data>
+  <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
+    <value>Static member '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoPropertyWithSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</value>
+  </data>
+  <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
+  <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
+    <value>Field-like event '{0}' cannot be 'readonly'.</value>
+  </data>
+  <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
+    <value>Both partial method declarations must be readonly or neither may be readonly</value>
+  </data>
+  <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
+    <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>
@@ -5479,7 +5500,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
-    <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
+    <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
@@ -5658,6 +5679,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
+  <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
+    <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
+  </data>
   <data name="IDS_FeatureCoalesceAssignmentExpression" xml:space="preserve">
     <value>coalescing assignment</value>
   </data>
@@ -5710,7 +5734,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
   <data name="ERR_NullableDirectiveQualifierExpected" xml:space="preserve">
-    <value>Expected 'enable', 'safeonly', 'disable', or 'restore'</value>
+    <value>Expected 'enable', 'disable', or 'restore'</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5722,7 +5746,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a null coalescing assignment</value>
   </data>
   <data name="ERR_BadNullableContextOption" xml:space="preserve">
-    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</value>
+    <value>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</value>
   </data>
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
@@ -5795,5 +5819,101 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureInPreview" xml:space="preserve">
     <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
+  </data>
+  <data name="IDS_DefaultInterfaceImplementation" xml:space="preserve">
+    <value>default interface implementation</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
+    <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
+  </data>
+  <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
+  </data>
+  <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
+    <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
+  </data>
+  <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNull" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs (it is not exhaustive).</value>
+  </data>
+  <data name="WRN_SwitchExpressionNotExhaustiveForNull_Title" xml:space="preserve">
+    <value>The switch expression does not handle some null inputs.</value>
+  </data>
+  <data name="ERR_AttributeNotOnEventAccessor" xml:space="preserve">
+    <value>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</value>
+  </data>
+  <data name="IDS_FeatureObsoleteOnPropertyAccessor" xml:space="preserve">
+    <value>obsolete on property accessor</value>
+  </data>
+  <data name="WRN_NullReferenceIterationVariable" xml:space="preserve">
+	<value>Possible null reference assignment to iteration variable</value>
+  </data>
+  <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
+	<value>Possible null reference assignment to iteration variable</value>
+  </data>
+  <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage" xml:space="preserve">
+    <value>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
+  </data>
+  <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title" xml:space="preserve">
+    <value>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
+  </data>
+  <data name="WRN_UndecoratedCancellationTokenParameter" xml:space="preserve">
+    <value>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+  </data>
+  <data name="WRN_UndecoratedCancellationTokenParameter_Title" xml:space="preserve">
+    <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+  </data>
+  <data name="ERR_MultipleEnumeratorCancellationAttributes" xml:space="preserve">
+    <value>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</value>
+  </data>
+  <data name="ERR_OverrideRefConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</value>
+  </data>
+  <data name="ERR_OverrideValConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</value>
+  </data>
+  <data name="IDS_OverrideWithConstraints" xml:space="preserve">
+    <value>constraints for override and explicit interface implementation methods</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnPartialImplementation" xml:space="preserve">
+    <value>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title" xml:space="preserve">
+    <value>Partial method declarations have inconsistent nullability in constraints for type parameter</value>
+  </data>
+  <data name="IDS_FeatureNestedStackalloc" xml:space="preserve">
+    <value>stackalloc in nested expressions</value>
+  </data>
+  <data name="ERR_NotNullConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'notnull' constraint must come before any other constraints</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint" xml:space="preserve">
+    <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</value>
+  </data>
+  <data name="WRN_SpecialTypeAsBound" xml:space="preserve">
+    <value>Constraint cannot be special class '{0}'</value>
+  </data>
+  <data name="WRN_SpecialTypeAsBound_Title" xml:space="preserve">
+    <value>Constraint cannot be special class</value>
+  </data>
+  <data name="IDS_NotNullGenericTypeConstraint" xml:space="preserve">
+    <value>notnull generic type constraint</value>
   </data>
 </root>

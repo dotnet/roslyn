@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
@@ -849,10 +848,9 @@ $$
 
         internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations,
-            IAsyncCompletionBroker asyncCompletionBroker)
+            IEditorOperationsFactoryService editorOperations)
         {
-            return new AutomaticLineEnderCommandHandler(undoRegistry, editorOperations, asyncCompletionBroker);
+            return new AutomaticLineEnderCommandHandler(undoRegistry, editorOperations);
         }
     }
 }

@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
 
         IgnoreNullableModifiersForReferenceTypes = 8,
-        UnknownNullableModifierMatchesAny = 16,
+        ObliviousNullableModifierMatchesAny = 16,
 
-        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny,
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,
 

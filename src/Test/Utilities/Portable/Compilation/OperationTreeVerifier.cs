@@ -1888,20 +1888,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
-        {
-            LogString(nameof(IFromEndIndexOperation));
-
-            if (operation.IsLifted)
-            {
-                LogString(" (IsLifted)");
-            }
-
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.Operand, nameof(operation.Operand));
-        }
-
         public override void VisitRangeOperation(IRangeOperation operation)
         {
             LogString(nameof(IRangeOperation));

@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatements,
                 baseExceptionRegions,
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,

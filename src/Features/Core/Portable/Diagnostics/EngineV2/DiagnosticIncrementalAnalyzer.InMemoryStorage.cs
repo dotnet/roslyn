@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         // in memory cache entry
-        private struct CacheEntry
+        private readonly struct CacheEntry
         {
             public readonly VersionStamp Version;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;

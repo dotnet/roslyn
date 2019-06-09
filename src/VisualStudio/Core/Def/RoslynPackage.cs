@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -16,10 +17,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -39,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 16)]
+    [ProvideMenuResource("Menus.ctmenu", version: 17)]
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;
@@ -88,8 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
-
-            RegisterCodeCleanupProvider();
         }
 
         private void InitializeColors()
@@ -116,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
-            this.ComponentModel.GetService<DiagnosticProgressReporter>();
+            this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
@@ -131,13 +128,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadAnalyzerNodeComponents();
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
-        }
-
-        private void RegisterCodeCleanupProvider()
-        {
-            var regService = ComponentModel.GetService<ICodeCleanUpFixerRegistrationService>();
-            var provider = ComponentModel.GetService<CodeCleanUpFixerProvider>();
-            regService.TryRegisterFixerProvider(provider);
         }
 
         private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
@@ -211,6 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             PersistedVersionStampLogger.ReportTelemetry();
             LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
+            AsyncCompletionLogger.ReportTelemetry();
+            CompletionProvidersLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

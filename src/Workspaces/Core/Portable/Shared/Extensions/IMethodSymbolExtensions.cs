@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (method.PartialDefinitionPart != null)
             {
-                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
                 return ImmutableArray.Create(method, method.PartialDefinitionPart);
             }
             else if (method.PartialImplementationPart != null)
             {
-                Debug.Assert(method.PartialImplementationPart != method);
+                Debug.Assert(!Equals(method.PartialImplementationPart, method));
                 return ImmutableArray.Create(method.PartialImplementationPart, method);
             }
             else
@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
+            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
             for (int i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
@@ -139,7 +140,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // We generate the type parameter in two passes.  The first creates the new type
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
+
+            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
             for (int i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];

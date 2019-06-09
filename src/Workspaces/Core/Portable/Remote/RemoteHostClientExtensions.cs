@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
             this Workspace workspace, CancellationToken cancellationToken)
-            => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
+            => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken) ?? SpecializedTasks.Default<RemoteHostClient>();
 
         public static Task<bool> TryRunRemoteAsync(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
@@ -217,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await remoteHostClient.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, solution,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                    new object[] { checksum, solution.WorkspaceVersion },
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 

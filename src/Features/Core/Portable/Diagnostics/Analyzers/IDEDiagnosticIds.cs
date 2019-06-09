@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MakeStructFieldsWritable = "IDE0064";
 
+        public const string MoveMisplacedUsingDirectivesDiagnosticId = "IDE0065";
+
+        public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
+
+        public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
+        public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
+        public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

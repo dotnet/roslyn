@@ -229,6 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
@@ -260,6 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
         }
+
+        // operators are never 'readonly' because there is no 'this' parameter
+        internal override bool IsDeclaredReadOnly => false;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

@@ -371,12 +371,12 @@ class C1
                 var document1 = solution1.GetDocument(document.Id);
                 var dversion1 = await document1.GetTextVersionAsync();
                 Assert.NotEqual(dversion, dversion1); // new document version
-                Assert.True(dversion1.TestOnly_IsNewerThan(dversion));
+                Assert.True(dversion1.GetTestAccessor().IsNewerThan(dversion));
                 Assert.Equal(solution.Version, solution1.Version); // updating document should not have changed solution version
                 Assert.Equal(project.Version, document1.Project.Version); // updating doc should not have changed project version
                 var latestDV1 = await document1.Project.GetLatestDocumentVersionAsync();
                 Assert.NotEqual(latestDV, latestDV1);
-                Assert.True(latestDV1.TestOnly_IsNewerThan(latestDV));
+                Assert.True(latestDV1.GetTestAccessor().IsNewerThan(latestDV));
                 Assert.Equal(latestDV1, await document1.GetTextVersionAsync()); // projects latest doc version should be this doc's version
 
                 // update project
@@ -385,14 +385,14 @@ class C1
                 var dversion2 = await document2.GetTextVersionAsync();
                 Assert.Equal(dversion1, dversion2); // document didn't change, so version should be the same.
                 Assert.NotEqual(document1.Project.Version, document2.Project.Version); // project did change, so project versions should be different
-                Assert.True(document2.Project.Version.TestOnly_IsNewerThan(document1.Project.Version));
+                Assert.True(document2.Project.Version.GetTestAccessor().IsNewerThan(document1.Project.Version));
                 Assert.Equal(solution1.Version, solution2.Version); // solution didn't change, just individual project.
 
                 // update solution
                 var pid2 = ProjectId.CreateNewId();
                 var solution3 = solution2.AddProject(pid2, "foo", "foo", LanguageNames.CSharp);
                 Assert.NotEqual(solution2.Version, solution3.Version); // solution changed, added project.
-                Assert.True(solution3.Version.TestOnly_IsNewerThan(solution2.Version));
+                Assert.True(solution3.Version.GetTestAccessor().IsNewerThan(solution2.Version));
             }
         }
 
@@ -3625,6 +3625,46 @@ class C { }";
                 var compilation = await project.GetCompilationAsync();
 
                 Assert.Single(compilation.References.OfType<CompilationReference>());
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/core-eng/issues/6424"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscovery()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+                var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments);
+                Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
+                var text = await analyzerConfigDocument.GetTextAsync();
+                Assert.Equal("root = true", text.ToString());
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscoveryDisabled()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .ReplaceFileElement(@"CSharpProject\CSharpProject.csproj", "DiscoverEditorConfigFiles", "false")
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+                Assert.Empty(project.AnalyzerConfigDocuments);
             }
         }
 

@@ -263,5 +263,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
         }
+
+        internal void AppendArgumentIfNotNull(string argument)
+        {
+            if (!string.IsNullOrEmpty(argument))
+            {
+                AppendSpaceIfNotEmpty();
+                AppendTextWithQuoting(argument);
+            }
+        }
     }
 }

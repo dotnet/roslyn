@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType.IsRefLikeType; }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get { return _underlyingType.IsReadOnly; }
         }

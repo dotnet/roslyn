@@ -2,28 +2,22 @@
 trigger:
 - master
 - master-vs-deps
+- release/*
 - features/*
 - demos/*
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
-- dev16.0
-- dev16.0-vs-deps
 
 # Branches that trigger builds on PR
 pr:
 - master
 - master-vs-deps
+- release/*
 - features/*
 - demos/*
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
-- dev16.0
-- dev16.0-vs-deps
 
 jobs:
 - job: Windows_Desktop_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 4
@@ -66,7 +60,7 @@ jobs:
 
 - job: Windows_Desktop_Spanish_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
   timeoutInMinutes: 90
 
@@ -93,7 +87,7 @@ jobs:
 
 - job: Windows_CoreClr_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 2
@@ -128,7 +122,7 @@ jobs:
            
 - job: Windows_Determinism_Test
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -146,7 +140,7 @@ jobs:
 
 - job: Windows_Correctness_Test
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -179,14 +173,14 @@ jobs:
       condition: succeeded()
 
 - job: Linux_Test
-  pool: 
-   name: NetCorePublic-Int-Pool
+  pool:
+   name: NetCorePublic-Pool
    queue: BuildPool.Ubuntu.1604.amd64.Open
   strategy:
     maxParallel: 2
     matrix:
       coreclr:
-        _args: --testCoreClr
+        _args: --testCoreClr --docker
         _name: CoreClr
         _configuration: Debug
       mono:
@@ -211,6 +205,33 @@ jobs:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_configuration)'
         ArtifactName: 'Linux $(_name)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+- job: macOS_Test
+  pool:
+    vmImage: 'macOS-10.13'
+  timeoutInMinutes: 90
+
+  steps:
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+      displayName: Build and Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/Debug/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'macOS CoreClr'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
+        ArtifactName: 'macOS CoreClr'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())

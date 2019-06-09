@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> StaticConstructors { get; }
         public abstract ImmutableArray<IMethodSymbol> Constructors { get; }
         public abstract ImmutableArray<ITypeSymbol> TypeArguments { get; }
+        public abstract ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 
         public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
@@ -101,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsUnmanagedType => throw new NotImplementedException();
 
-        public bool IsRefLikeType => throw new NotImplementedException();
+        public bool IsRefLikeType => Modifiers.IsRef;
+
     }
 }

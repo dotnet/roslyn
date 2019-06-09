@@ -136,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -277,6 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<MethodSymbol>.Empty;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => false;
 
         public sealed override bool IsImplicitlyDeclared
         {

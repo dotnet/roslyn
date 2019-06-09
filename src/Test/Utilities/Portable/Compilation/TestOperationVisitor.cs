@@ -1434,12 +1434,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(operation.Local.IsStatic);
         }
 
-        internal override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
-        {
-            Assert.Equal(OperationKind.None, operation.Kind);
-            Assert.Same(operation.Operand, operation.Children.Single());
-        }
-
         public override void VisitRangeOperation(IRangeOperation operation)
         {
             Assert.Equal(OperationKind.Range, operation.Kind);

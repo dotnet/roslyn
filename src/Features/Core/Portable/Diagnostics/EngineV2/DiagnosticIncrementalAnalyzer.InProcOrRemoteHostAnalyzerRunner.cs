@@ -46,13 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var workspace = project.Solution.Workspace;
-                if (!workspace.Options.GetOption(RemoteFeatureOptions.DiagnosticsEnabled))
-                {
-                    // diagnostic service running on remote host is disabled. just run things in in proc
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-                }
-
-                var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
+                var service = workspace.Services.GetService<IRemoteHostClientService>();
                 if (service == null)
                 {
                     // host doesn't support RemoteHostService such as under unit test
@@ -66,8 +60,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, remoteHostClient, cancellationToken);
+                // due to in-process only analyzers, we need to run inproc as well for such analyzers for fix all
+                // otherwise, we don't need to run open file only analyzers for closed files even if full solution analysis is on (perf improvement)
+                //
+                // we have this open file analyzers since some of our built in analyzers such as SimplifyTypeNamesDiagnosticAnalyzer are too
+                // slow to run for whole solution when full solution analysis is on. easily taking more than an hour to run whole solution.
+                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => (forcedAnalysis || !a.IsOpenFileOnly(workspace)) && a.IsInProcessOnly()), project, remoteHostClient, cancellationToken);
+
+                // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
+                // that are not part of roslyn solution. these host analyzers must be sync to OOP before hand by the Host. 
                 var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
 
                 // run them concurrently in vs and remote host
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
-                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
+                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsInProcessOnly() && (forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace))));
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -231,10 +232,9 @@ This data should always be correct as we're never persisting the data between se
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
             {
-                foreach (var kv in exceptions)
+                foreach (var (analyzer, diagnostics) in exceptions)
                 {
-                    var analyzer = kv.Key;
-                    foreach (var diagnostic in kv.Value)
+                    foreach (var diagnostic in diagnostics)
                     {
                         _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }

@@ -139,6 +139,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 client?.Shutdown();
             }
 
+            bool IRemoteHostClientService.IsEnabled()
+            {
+                // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
+                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                {
+                    // not turned on
+                    return false;
+                }
+
+                var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
+                if (remoteHostClientFactory is null)
+                {
+                    // not available
+                    return false;
+                }
+
+                return true;
+            }
+
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -262,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    WatsonReporter.Report(new Exception("Connection to remote host closed"));
+                    WatsonReporter.Report(new Exception("Connection to remote host closed"), WatsonSeverity.Critical);
 
                     RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
                 }

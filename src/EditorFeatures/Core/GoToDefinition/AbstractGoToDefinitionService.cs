@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                         ? symbolToNavigateTo
                         : symbolToNavigateTo.ContainingType;
 
-                    if (containingTypeSymbol == candidateTypeSymbol)
+                    if (Equals(containingTypeSymbol, candidateTypeSymbol))
                     {
                         // We are navigating from the same type, so don't allow third parties to perform the navigation.
                         // This ensures that if we navigate to a class from within that class, we'll stay in the same file

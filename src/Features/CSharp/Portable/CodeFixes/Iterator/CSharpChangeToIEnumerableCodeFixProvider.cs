@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         /// </summary>
         private const string CS1624 = nameof(CS1624);
 
+        [ImportingConstructor]
+        public CSharpChangeToIEnumerableCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS1624); }

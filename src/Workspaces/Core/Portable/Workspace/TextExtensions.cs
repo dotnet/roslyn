@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Text
                     return null;
                 }
 
-                return solution.WithDocumentText(id, text, PreservationMode.PreserveIdentity)
+                // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
+                // one linked file to another and be surprised if the text is entirely different.
+                var allIds = solution.GetRelatedDocumentIds(id);
+                return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
                                .GetDocument(id);
             }
 

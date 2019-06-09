@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => new VisualStudioWorkspace_InProc();
 
         public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var convertedValue = value ? 1 : 0;
                 var project = GetProject(projectName);
@@ -48,14 +49,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
 
         public void EnableQuickInfo(bool value)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     InternalFeatureOnOffOptions.QuickInfo, value);
@@ -109,10 +110,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-            => GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
+        {
+            if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
+            {
+                WaitForProjectSystem(timeout);
+            }
+
+            GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
+        }
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
-            => GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        {
+            if (featureNames.Contains(FeatureAttribute.Workspace))
+            {
+                WaitForProjectSystem(timeout);
+            }
+
+            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+        }
+
+        private static void WaitForProjectSystem(TimeSpan timeout)
+        {
+            var operationProgressStatus = InvokeOnUIThread(_ => GetGlobalService<SVsOperationProgress, IVsOperationProgressStatusService>());
+            var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            stageStatus.WaitForCompletionAsync().Wait(timeout);
+        }
 
         private static void LoadRoslynPackage()
         {
@@ -124,14 +146,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void CleanUpWorkspace()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 LoadRoslynPackage();
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
 
         public void CleanUpWaitingService()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var provider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
@@ -144,7 +166,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var optionService = _visualStudioWorkspace.Services.GetService<IOptionService>();
                 var option = optionService.GetRegisteredOptions().FirstOrDefault(o => o.Feature == feature && o.Name == optionName);

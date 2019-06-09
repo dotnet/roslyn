@@ -2,33 +2,31 @@
 trigger:
 - master
 - master-vs-deps
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
-- dev16.0
-- dev16.0-vs-deps
+- release/*
+- features/*
+- demos/*
 
 # Branches that trigger builds on PR
 pr:
 - master
 - master-vs-deps
+- release/*
 - features/*
 - demos/*
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
-- dev16.0
-- dev16.0-vs-deps
 
 jobs:
-- job: Windows_VisualStudio_Integration_Tests
-  pool: dotnet-external-vs2019-preview
+- job: VS_Integration
+  pool:
+    name: NetCorePublic-Pool
+    queue: buildpool.windows.10.amd64.vs2019.pre.open
   strategy:
     maxParallel: 4
     matrix:
-      debug:
+      debug_async:
         _configuration: Debug
         _useLegacyCompletion: false
         _completionName: Async
-      release:
+      release_async:
         _configuration: Release
         _useLegacyCompletion: false
         _completionName: Async
@@ -52,14 +50,23 @@ jobs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
         mergeTestResults: true
-        testRunTitle: 'Windows Visual Studio Integration $(_configuration)_$(_useLegacyCompletion)' 
+        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration) $(_completionName)' 
       condition: always()
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Secondary Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log2\$(_configuration)'
+        ArtifactName: '$(System.JobAttempt)-Secondary Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
@@ -68,7 +75,7 @@ jobs:
       displayName: Publish Screenshots
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: 'Screenshots $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        ArtifactName: '$(System.JobAttempt)-Screenshots $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())

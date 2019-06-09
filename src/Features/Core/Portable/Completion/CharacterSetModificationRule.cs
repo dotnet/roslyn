@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A rule that modifies a set of characters.
     /// </summary>
-    public struct CharacterSetModificationRule
+    public readonly struct CharacterSetModificationRule
     {
         /// <summary>
         /// The kind of modification.

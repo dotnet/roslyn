@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                     list.Add(new TodoItem(
                         priority, message,
-                        document.Project.Solution.Workspace, document.Id,
+                        document.Id,
                         mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile));
                 }
             }

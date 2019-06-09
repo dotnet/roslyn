@@ -1,29 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-
+<Project>
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
-    <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
-         but gets included in lots of output items like VSIX. -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1'">false</GenerateRuntimeConfigurationFiles>
-
-    <!-- Place VS insertion (CoreXT) packages to a separate directory -->
-    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(DevDivPackagesDir)</PackageOutputPath>
+    <!-- 
+      Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+      but gets included in lots of output items like VSIX.
+    -->
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
 
     <!-- 
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <!-- 
+      Bootstrap compiler should run as a 32 bit process on our 32 bit test runs. This will validate
+      the legacy JIT ability to handle the compiler. 
+    -->
+    <PlatformTarget Condition="'$(OutputType)' == 'Exe' AND '$(TargetFramework)' == 'net472' AND '$(BOOTSTRAP32)' == 'true'">x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -287,5 +287,16 @@
     <ItemGroup>
       <FileWrites Include="$(_UpdatedApplicationManifestPath)"/>
     </ItemGroup>
+  </Target>
+
+  <!-- 
+    Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
+  -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll': '$(TargetFileName)'"
+           Condition="$(IsUnitTestProject) != $(TargetFileName.EndsWith('.UnitTests.dll'))" />
+
+    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
+           Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
   </Target>
 </Project>

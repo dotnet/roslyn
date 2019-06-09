@@ -111,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitConvertedStackAllocExpression((BoundConvertedStackAllocExpression)expression, used);
                     break;
 
+                case BoundKind.ReadOnlySpanFromArray:
+                    EmitReadOnlySpanFromArrayExpression((BoundReadOnlySpanFromArray)expression, used);
+                    break;
+
                 case BoundKind.Conversion:
                     EmitConversionExpression((BoundConversion)expression, used);
                     break;
@@ -1688,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(methodContainingType.IsVerifierValue(), "only struct calls can be readonly");
 
-            if (methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor)
+            if (method.IsEffectivelyReadOnly && method.MethodKind != MethodKind.Constructor)
             {
                 return true;
             }
@@ -2100,14 +2104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (right.Kind == BoundKind.ObjectCreationExpression)
+            if (right is BoundObjectCreationExpression objCreation)
             {
+                // If we are creating a Span<T> from a stackalloc, which is a particular pattern of code
+                // produced by lowering, we must use the constructor in its standard form because the stack
+                // is required to contain nothing more than stackalloc's argument.
+                if (objCreation.Arguments.Length > 0 && objCreation.Arguments[0].Kind == BoundKind.ConvertedStackAllocExpression)
+                {
+                    return false;
+                }
+
                 // It is desirable to do in-place ctor call if possible.
                 // we could do newobj/stloc, but in-place call 
                 // produces the same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
-                    var objCreation = (BoundObjectCreationExpression)right;
                     var ctor = objCreation.Constructor;
 
                     // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist

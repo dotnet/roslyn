@@ -315,8 +315,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             If Not String.IsNullOrEmpty(pCompilerOptions.wszExeName) Then
                 VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
+
+                ' Some legacy projects (e.g. Venus IntelliSense project) set '\' as the wszOutputPath.
+                ' /src/venus/project/vb/vbprj/vbintelliproj.cpp
+                ' Ignore paths that are not absolute.
                 If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
-                    VisualStudioProject.IntermediateOutputFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                    If PathUtilities.IsAbsolute(pCompilerOptions.wszOutputPath) Then
+                        VisualStudioProject.IntermediateOutputFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                    Else
+                        VisualStudioProject.IntermediateOutputFilePath = Nothing
+                    End If
                 End If
             End If
 

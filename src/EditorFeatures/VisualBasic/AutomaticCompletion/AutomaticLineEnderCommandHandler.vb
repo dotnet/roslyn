@@ -23,11 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         Inherits AbstractAutomaticLineEnderCommandHandler
 
         <ImportingConstructor>
-        Friend Sub New(undoRegistry As ITextUndoHistoryRegistry,
-                       editorOperations As IEditorOperationsFactoryService,
-                       asyncCompletionBroker As IAsyncCompletionBroker)
+        Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
+                       editorOperations As IEditorOperationsFactoryService)
 
-            MyBase.New(undoRegistry, editorOperations, asyncCompletionBroker)
+            MyBase.New(undoRegistry, editorOperations)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)

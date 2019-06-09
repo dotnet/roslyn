@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 // Otherwise, massage it a bit to be a more suitable match for
                 // how people actually writing parameters.
-                var trimmed = nameBasedOnArgument.TrimStart('_');
-                BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
-                BestNameForParameter = parameterNamingRule.NamingStyle.MakeCompliant(BestNameForParameter).First();
+                BestNameForParameter = parameterNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
             }
         }
 

@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public GenerateDefaultConstructorsCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

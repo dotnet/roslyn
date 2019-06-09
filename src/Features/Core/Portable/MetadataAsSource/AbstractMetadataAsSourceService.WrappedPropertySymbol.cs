@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol Type => _symbol.Type;
 
+            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+
             public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
 
             public ImmutableArray<CustomModifier> TypeCustomModifiers => _symbol.TypeCustomModifiers;

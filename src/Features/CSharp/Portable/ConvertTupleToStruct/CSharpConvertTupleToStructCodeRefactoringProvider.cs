@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct
             TypeDeclarationSyntax,
             NamespaceDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertTupleToStructCodeRefactoringProvider()
+        {
+        }
+
         protected override ObjectCreationExpressionSyntax CreateObjectCreationExpression(
             NameSyntax nameNode, SyntaxToken openParen, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParen)
         {

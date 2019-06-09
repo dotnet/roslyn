@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Remote
     [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientService)), Shared]
     internal partial class DefaultRemoteHostClientServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public DefaultRemoteHostClientServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new RemoteHostClientService(workspaceServices.Workspace);

@@ -116,6 +116,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public IEnumerable<DocumentId> GetAddedAnalyzerConfigDocuments()
+        {
+            foreach (var doc in _newProject.AnalyzerConfigDocuments)
+            {
+                if (!_oldProject.ContainsAnalyzerConfigDocument(doc.Id))
+                {
+                    yield return doc.Id;
+                }
+            }
+        }
+
         /// <summary>
         /// Get Documents with any changes, including textual and non-textual changes
         /// </summary>
@@ -170,6 +181,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public IEnumerable<DocumentId> GetChangedAnalyzerConfigDocuments()
+        {
+            // if the document states are different then there is a change.
+            foreach (var doc in _newProject.AnalyzerConfigDocuments)
+            {
+                var newState = _newProject.GetAnalyzerConfigDocumentState(doc.Id);
+                var oldState = _oldProject.GetAnalyzerConfigDocumentState(doc.Id);
+                if (oldState != null && newState != oldState)
+                {
+                    yield return doc.Id;
+                }
+            }
+        }
+
         public IEnumerable<DocumentId> GetRemovedDocuments()
         {
             foreach (var id in _oldProject.DocumentIds)
@@ -188,6 +213,17 @@ namespace Microsoft.CodeAnalysis
                 if (!_newProject.ContainsAdditionalDocument(id))
                 {
                     yield return id;
+                }
+            }
+        }
+
+        public IEnumerable<DocumentId> GetRemovedAnalyzerConfigDocuments()
+        {
+            foreach (var doc in _oldProject.AnalyzerConfigDocuments)
+            {
+                if (!_newProject.ContainsAnalyzerConfigDocument(doc.Id))
+                {
+                    yield return doc.Id;
                 }
             }
         }
