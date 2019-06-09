@@ -67,9 +67,19 @@
         <target state="translated">Classifications</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Coloriser les expressions régulières</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
+        <source>Detect and offer editor features for likely JSON strings</source>
+        <target state="new">Detect and offer editor features for likely JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -105,6 +115,11 @@
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">L'interface ne peut pas avoir de champ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -220,6 +235,11 @@
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Renommer {0} en {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
