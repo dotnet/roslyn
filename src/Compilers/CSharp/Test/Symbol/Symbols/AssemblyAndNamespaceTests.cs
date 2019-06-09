@@ -434,5 +434,38 @@ class App
             Assert.Null(comp.Assembly.GetTypeByMetadataName("System.Threading.Tasks.Task"));
             Assert.Equal(taskType, comp.Assembly.CorLibrary.GetTypeByMetadataName("System.Threading.Tasks.Task"));
         }
+
+        [WorkItem(863435, "DevDiv/Personal")]
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace01()
+        {
+            var test = @"
+public namespace NS // CS1671
+{
+    class Test
+    {
+        public static int Main()
+        {
+            return 1;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void CS1671ERR_BadModifiersOnNamespace02()
+        {
+            var test = @"[System.Obsolete]
+namespace N { }
+";
+
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
+        }
     }
 }
