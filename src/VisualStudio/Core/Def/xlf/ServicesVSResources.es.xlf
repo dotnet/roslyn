@@ -1829,8 +1829,8 @@ Estoy de acuerdo con todo lo anterior:</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">

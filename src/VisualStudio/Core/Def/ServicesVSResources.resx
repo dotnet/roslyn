@@ -1043,7 +1043,7 @@ I agree to all of the foregoing:</value>
     <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
-    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+    <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
   <data name="Modifier_preferences_colon" xml:space="preserve">
     <value>Modifier preferences:</value>

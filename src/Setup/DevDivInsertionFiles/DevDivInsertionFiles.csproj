@@ -48,6 +48,7 @@
   -->
   <ItemGroup>
     <ExpectedDependency Include="Humanizer.Core"/>
+    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
@@ -93,12 +94,6 @@
     <!--     
       Exclude dependencies that are not inserted from Roslyn repo.
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
-      
-      these dependency should be removed once StreamJsonRpc adds a build target for
-      net472 - https://github.com/dotnet/roslyn/issues/34558
-      
-      <_Dependency Remove="Nerdbank.Streams"/>
-      <_Dependency Remove="System.IO.Pipelines"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
@@ -114,6 +109,7 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
@@ -199,13 +195,14 @@
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
-          AfterTargets="Build" 
-          DependsOnTargets="_CalculateDependenciesToInsert"
+          BeforeTargets="AfterBuild"
+          DependsOnTargets="_CalculateDependenciesToInsert;GetAssemblyVersion"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
+    <WriteLinesToFile Lines="Roslyn,$(AssemblyVersion)" File="$(_DependentAssemblyVersionsFile)" Overwrite="false" />
 
     <ItemGroup>
       <FileWrites Include="$(_DependentAssemblyVersionsFile)"/>
@@ -223,7 +220,7 @@
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
   <Target Name="_CopyPackagesToInsert"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 

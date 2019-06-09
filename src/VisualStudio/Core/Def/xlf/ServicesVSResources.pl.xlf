@@ -1829,8 +1829,8 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">

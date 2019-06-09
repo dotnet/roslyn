@@ -1829,8 +1829,8 @@ L'utente accetta le condizioni sopra riportate:</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">

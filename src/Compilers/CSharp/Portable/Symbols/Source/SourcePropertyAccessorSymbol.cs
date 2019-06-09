@@ -561,6 +561,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
         }
 
+        internal override bool IsExplicitInterfaceImplementation
+        {
+            get
+            {
+                return _property.IsExplicitInterfaceImplementation;
+            }
+        }
+
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get

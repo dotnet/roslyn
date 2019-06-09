@@ -1829,8 +1829,8 @@ I agree to all of the foregoing:</source>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
