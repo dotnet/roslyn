@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private BaseDiagnosticItem _diagnosticItem;
+            private readonly BaseDiagnosticItem _diagnosticItem;
 
             public BrowseObject(BaseDiagnosticItem diagnosticItem)
             {

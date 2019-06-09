@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 
             private class MyCodeAction : CodeAction
             {
-                private Document _oldDocument;
+                private readonly Document _oldDocument;
 
                 public MyCodeAction(Document document)
                 {

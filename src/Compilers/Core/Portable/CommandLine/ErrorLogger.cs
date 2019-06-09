@@ -332,10 +332,10 @@ namespace Microsoft.CodeAnalysis
         private sealed class DiagnosticDescriptorSet
         {
             // DiagnosticDescriptor.Id -> auto-incremented counter
-            private Dictionary<string, int> _counters = new Dictionary<string, int>();
+            private readonly Dictionary<string, int> _counters = new Dictionary<string, int>();
 
             // DiagnosticDescriptor -> unique key
-            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
+            private readonly Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
 
             /// <summary>
             /// The total number of descriptors in the set.

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private Task _gcTask;
         private Task<IClientConnection> _listenTask;
         private CancellationTokenSource _listenCancellationTokenSource;
-        private List<Task<ConnectionData>> _connectionList = new List<Task<ConnectionData>>();
+        private readonly List<Task<ConnectionData>> _connectionList = new List<Task<ConnectionData>>();
         private TimeSpan? _keepAlive;
         private bool _keepAliveIsDefault;
 

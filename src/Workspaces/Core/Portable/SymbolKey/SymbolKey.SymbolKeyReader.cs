@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
             private bool _resolveLocations;
 
             private SymbolKeyReader()

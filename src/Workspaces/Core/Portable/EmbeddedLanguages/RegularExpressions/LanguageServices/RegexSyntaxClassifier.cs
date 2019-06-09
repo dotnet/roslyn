@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// </summary>
     internal sealed class RegexSyntaxClassifier : AbstractSyntaxClassifier
     {
-        private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
+        private static readonly ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
         private readonly EmbeddedLanguageInfo _info;
 

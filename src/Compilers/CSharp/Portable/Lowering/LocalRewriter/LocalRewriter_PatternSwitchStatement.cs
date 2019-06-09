@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A map from section syntax to the first label in that section.
             /// </summary>
-            private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
+            private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
             /// <summary>
             /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.

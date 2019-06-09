@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;

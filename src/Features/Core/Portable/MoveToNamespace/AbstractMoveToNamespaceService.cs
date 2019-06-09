@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
         }
 
-        private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 

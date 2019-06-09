@@ -3970,7 +3970,7 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + s_IAsyncEnumerable + s_ValueTask, expectedFlowGraph, expectedDiagnostics);
         }
 
-        private static string s_ValueTask = @"
+        private static readonly string s_ValueTask = @"
 namespace System.Threading.Tasks
 {
     [AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]

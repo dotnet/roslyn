@@ -23,12 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     {
         private readonly short _type;
 
-        private short _padding1;
-        private short _padding2;
-        private short _padding3;
+        private readonly short _padding1;
+        private readonly short _padding2;
+        private readonly short _padding3;
 
         private readonly short _booleanValue;
-        private IntPtr _padding4; // this will be aligned to the IntPtr-sized address
+        private readonly IntPtr _padding4; // this will be aligned to the IntPtr-sized address
 
         public unsafe object ConvertToObject()
         {

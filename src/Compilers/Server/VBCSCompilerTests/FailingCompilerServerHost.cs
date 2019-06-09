@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private class FailingClientConnection : IClientConnection
         {
-            private IClientConnection _underlyingConnection;
+            private readonly IClientConnection _underlyingConnection;
 
             public FailingClientConnection(IClientConnection underlyingConnection)
             {

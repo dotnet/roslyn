@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [Export(typeof(IExtensionErrorHandler))]
     internal class TestExtensionErrorHandler : IExtensionErrorHandler
     {
-        private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
+        private readonly ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
 
         [ImportingConstructor]
         public TestExtensionErrorHandler()

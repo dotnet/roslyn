@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
+        private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
             new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Cache of project to the checksum for it so that we don't have to expensively recompute
         /// this each time we get a project.
         /// </summary>
-        private static ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
+        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
             new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)

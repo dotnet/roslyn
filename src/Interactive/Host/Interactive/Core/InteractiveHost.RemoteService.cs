@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
-            private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost _host;              // nulled on dispose

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     internal class SpanChange : AbstractChange
     {
         private readonly DocumentId _id;
-        private ITrackingSpan _span;
+        private readonly ITrackingSpan _span;
         private readonly string _text;
         private readonly ITextBuffer _buffer;
         private readonly string _rightText;

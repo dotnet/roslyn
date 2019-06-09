@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             // Indexed by: allOccurrences, isConstant, isLocal
-            private static string[,,] formatStrings = new string[2, 2, 2]
+            private static readonly string[,,] formatStrings = new string[2, 2, 2]
                 {
                   {
                     { FeaturesResources.Introduce_field_for_0, FeaturesResources.Introduce_local_for_0 },

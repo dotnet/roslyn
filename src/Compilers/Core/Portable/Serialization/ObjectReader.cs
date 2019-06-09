@@ -41,8 +41,8 @@ namespace Roslyn.Utilities
         ///
         /// These are not readonly because they're structs and we mutate them.
         /// </summary>
-        private ReaderReferenceMap<object> _objectReferenceMap;
-        private ReaderReferenceMap<string> _stringReferenceMap;
+        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function

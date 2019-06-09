@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities
 {
     internal class PinnedBlob : IDisposable
     {
-        private GCHandle _bytes; // non-readonly as Free() mutates to prevent double-free.
+        private readonly GCHandle _bytes; // non-readonly as Free() mutates to prevent double-free.
         public readonly IntPtr Pointer;
         public readonly int Size;
 
