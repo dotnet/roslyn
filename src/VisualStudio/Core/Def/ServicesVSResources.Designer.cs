@@ -652,7 +652,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files..
+        ///   Looks up a localized string similar to Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info.
         /// </summary>
         internal static string Code_style_header_use_editor_config {
             get {

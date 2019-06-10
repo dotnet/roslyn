@@ -12,16 +12,6 @@
         <target state="translated">修正插入的逐字字串</target>
         <note />
       </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">using 指示詞位置錯誤</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">移動位置錯誤的 using 指示詞</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (按 TAB 鍵插入)</target>
@@ -36,21 +26,6 @@
         <source>Split string</source>
         <target state="translated">分割字串</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">using 指示詞必須放在 namespace 宣告內</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">using 指示詞必須放在 namespace 宣告外</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">警告: 移動 using 指示詞可能會變更程式碼意義。</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

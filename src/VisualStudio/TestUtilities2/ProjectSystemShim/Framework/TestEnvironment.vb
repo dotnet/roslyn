@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
                 Select Case serviceType
-                    Case GetType(IVsSolution), GetType(SVsSolution)
+                    Case GetType(SVsSolution)
                         Return VsSolutionMock
 
                     Case GetType(SComponentModel)

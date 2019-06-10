@@ -588,6 +588,9 @@ class C
     public void M<T>(T value) where T : class, object { }
 }");
             comp.VerifyDiagnostics(
+                // (4,48): warning CS8715: Constraint cannot be special class 'object'
+                //     public void M<T>(T value) where T : class, object { }
+                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 48),
                 // (4,48): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public void M<T>(T value) where T : class, object { }
                 Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 48)
