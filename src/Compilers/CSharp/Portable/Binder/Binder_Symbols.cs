@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
                             break;
                         case ConstraintContextualKeyword.NotNull:
-                            CheckFeatureAvailability(identifierSyntax, MessageID.IDS_NotNullGenericTypeConstraint, diagnostics);
+                            CheckFeatureAvailability(identifierSyntax, MessageID.IDS_FeatureNotNullGenericTypeConstraint, diagnostics);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(keyword);

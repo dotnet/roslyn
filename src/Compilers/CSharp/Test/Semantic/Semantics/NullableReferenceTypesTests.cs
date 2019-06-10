@@ -58137,7 +58137,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58152,7 +58152,7 @@ class B
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.
-                                                                                                WithMiscellaneousOptions(SymbolDisplayFormat.TestFormatWithConstraints.MiscellaneousOptions &
+                                                                                                WithMiscellaneousOptions(TestFormatWithConstraintsAndNonNullableTypeModifier.MiscellaneousOptions &
                                                                                                                             (~SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -58194,7 +58194,7 @@ class B<T2> where T2 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var a = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
-                Assert.Equal("A<T1> where T1 : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("A<T1> where T1 : class!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = a.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58207,7 +58207,7 @@ class B<T2> where T2 : class?
                 }
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58254,13 +58254,13 @@ class B
             Assert.Equal(2, localSyntaxes.Length);
 
             var f1 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
-            Assert.Equal("void F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.False(t1.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[1]);
-            Assert.Equal("void F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
@@ -58301,7 +58301,7 @@ class B<T1> where T1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T1> where T1 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("B<T1> where T1 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = b.TypeParameters[0];
                 Assert.True(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58314,7 +58314,7 @@ class B<T1> where T1 : class?
                 }
 
                 var f2 = (MethodSymbol)b.GetMember("F2");
-                Assert.Equal("void B<T1>.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B<T1>.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58923,7 +58923,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58936,7 +58936,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -58988,20 +58988,20 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
             Assert.False(t11.IsReferenceType);
 
             Assert.Null(bf1.OverriddenMethod);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
             Assert.True(t22.ReferenceTypeConstraintIsNullable);
 
             var af2 = bf2.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
             TypeParameterSymbol t2 = af2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -59112,7 +59112,7 @@ class D : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59125,7 +59125,7 @@ class D : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59139,10 +59139,10 @@ class D : IA
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
-                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
-                Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             }
 
             var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
@@ -59217,7 +59217,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59230,7 +59230,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59281,7 +59281,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59294,7 +59294,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59352,7 +59352,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59365,7 +59365,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59419,7 +59419,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59432,7 +59432,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59476,12 +59476,12 @@ class B : IA
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "class?").WithLocation(10, 42));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
-            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
             Assert.True(t11.IsReferenceType);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F2");
-            Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
             Assert.True(t22.ReferenceTypeConstraintIsNullable);
         }
@@ -59507,7 +59507,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T2>() where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59539,7 +59539,7 @@ class B<T2> where T2 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59582,7 +59582,7 @@ class B
             Assert.Equal(1, localSyntaxes.Length);
 
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
-            Assert.Equal("void F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void F2<T2>() where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
@@ -59790,7 +59790,7 @@ class D : IA<string>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59803,7 +59803,7 @@ class D : IA<string>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59817,10 +59817,10 @@ class D : IA<string>
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
-                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
-                Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             }
 
             var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
@@ -60782,7 +60782,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
@@ -60796,44 +60796,6 @@ class B
                 {
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", attributes[0].ToString());
                 }
-            }
-        }
-
-        [Fact]
-        public void Constraints_46_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>() where T1 : object
-    {
-    }
-
-    public static void F2<T2>() where T2 : System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-            );
-
-            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : System.Object", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = f1.TypeParameters[0];
-                Assert.False(t1.IsReferenceType);
-                Assert.True(t1.IsNotNullableIfReferenceType);
-                Assert.Empty(t1.GetAttributes());
-
-                var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : System.Object", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.False(t2.IsReferenceType);
-                Assert.True(t2.IsNotNullableIfReferenceType);
-                Assert.Empty(t2.GetAttributes());
             }
         }
 
@@ -60858,7 +60820,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.HasNotNullConstraint);
@@ -60873,44 +60835,6 @@ class B
                 {
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", attributes[0].ToString());
                 }
-            }
-        }
-
-        [Fact]
-        public void Constraints_47_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>() where T1 : object
-    {
-    }
-
-    public static void F2<T2>() where T2 : System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-            );
-
-            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : System.Object", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = f1.TypeParameters[0];
-                Assert.False(t1.IsReferenceType);
-                Assert.Null(t1.IsNotNullableIfReferenceType);
-                Assert.Empty(t1.GetAttributes());
-
-                var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : System.Object", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.False(t2.IsReferenceType);
-                Assert.Null(t2.IsNotNullableIfReferenceType);
-                Assert.Empty(t2.GetAttributes());
             }
         }
 
@@ -60934,28 +60858,28 @@ class B
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : object?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31),
-                // (4,50): error CS0702: Constraint cannot be special class 'object?'
+                // (4,50): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F1<T1>(T1? t1) where T1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 50),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(4, 50),
                 // (8,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>(T2? t2) where T2 : System.Object?
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(8, 31),
-                // (8,50): error CS0702: Constraint cannot be special class 'object?'
+                // (8,50): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F2<T2>(T2? t2) where T2 : System.Object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object?").WithLocation(8, 50)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object").WithLocation(8, 50)
             );
 
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1)", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1)", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.False(t1.IsReferenceType);
             Assert.False(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2)", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F2<T2>(T2? t2)", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.False(t2.IsReferenceType);
             Assert.False(t2.IsNotNullableIfReferenceType);
@@ -60987,7 +60911,7 @@ class B
                 var m = comp.SourceModule;
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61007,85 +60931,11 @@ class B
                 var m = comp.SourceModule;
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
                 Assert.Empty(t1.GetAttributes());
-            }
-        }
-
-        [Fact]
-        public void Constraints_49_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>() where T1 : object
-    {
-    }
-
-    public static void F2<T2>() where T2 : System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3);
-            var expected = new[]
-            {
-                // (4,44): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F1<T1>() where T1 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(4, 44),
-                // (8,44): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public static void F2<T2>() where T2 : System.Object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Object").WithArguments("object generic type constraint").WithLocation(8, 44)
-            };
-
-            comp.VerifyDiagnostics(expected);
-
-            {
-                var m = comp.SourceModule;
-
-                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : System.Object", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = f1.TypeParameters[0];
-                Assert.False(t1.IsReferenceType);
-                Assert.Null(t1.IsNotNullableIfReferenceType);
-                Assert.Empty(t1.GetAttributes());
-
-                var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : System.Object", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.False(t2.IsReferenceType);
-                Assert.Null(t2.IsNotNullableIfReferenceType);
-                Assert.Empty(t2.GetAttributes());
-            }
-
-            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-
-            comp.VerifyDiagnostics(expected
-            .Concat(new[] {
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "preview").WithLocation(1, 1),
-            }).ToArray()
-            );
-
-            {
-                var m = comp.SourceModule;
-
-                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : System.Object", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = f1.TypeParameters[0];
-                Assert.False(t1.IsReferenceType);
-                Assert.True(t1.IsNotNullableIfReferenceType);
-                Assert.Empty(t1.GetAttributes());
-
-                var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : System.Object", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t2 = f2.TypeParameters[0];
-                Assert.False(t2.IsReferenceType);
-                Assert.True(t2.IsNotNullableIfReferenceType);
-                Assert.Empty(t2.GetAttributes());
             }
         }
 
@@ -61105,32 +60955,6 @@ class B
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : notnull
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31)
-            );
-        }
-
-        [Fact]
-        public void Constraints_50_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : object
-    {
-    }
-
-    public static void F2<T2>(T2? t2) where T2 : System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F1<T1>(T1? t1) where T1 : object
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31),
-                // (8,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F2<T2>(T2? t2) where T2 : System.Object
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(8, 31)
             );
         }
 
@@ -61162,7 +60986,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsValueType);
             Assert.True(t1.HasNotNullConstraint);
@@ -61170,7 +60994,7 @@ class B
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : struct", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : struct", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsValueType);
             Assert.True(t2.HasNotNullConstraint);
@@ -61206,56 +61030,14 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t2 = f2.TypeParameters[0];
-            Assert.True(t2.IsReferenceType);
-            Assert.True(t2.IsNotNullableIfReferenceType);
-            Assert.Empty(t2.GetAttributes());
-        }
-
-        [Fact]
-        public void Constraints_52_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : class, object
-    {
-    }
-
-    public static void F2<T2>(T2? t2) where T2 : class, System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (4,57): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F1<T1>(T1? t1) where T1 : class, object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 57),
-                // (8,57): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F2<T2>(T2? t2) where T2 : class, System.Object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Object").WithArguments("object").WithLocation(8, 57)
-            );
-
-            var m = comp.SourceModule;
-
-            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.True(t1.IsReferenceType);
-            Assert.True(t1.IsNotNullableIfReferenceType);
-            Assert.Empty(t1.GetAttributes());
-
-            var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class!", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsReferenceType);
             Assert.True(t2.IsNotNullableIfReferenceType);
@@ -61293,68 +61075,17 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsReferenceType);
             Assert.True(t2.IsNotNullableIfReferenceType);
-            Assert.Empty(t2.GetAttributes());
-        }
-
-        [Fact]
-        public void Constraints_53_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : class?, object
-    {
-    }
-
-    public static void F2<T2>(T2? t2) where T2 : class?, System.Object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-
-            Assert.False(((MethodSymbol)comp.SourceModule.GlobalNamespace.GetMember("B.F1")).TypeParameters[0].IsNotNullableIfReferenceType);
-
-            comp.VerifyDiagnostics(
-                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F1<T1>(T1? t1) where T1 : class?, object
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31),
-                // (4,58): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F1<T1>(T1? t1) where T1 : class?, object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 58),
-                // (8,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F2<T2>(T2? t2) where T2 : class?, System.Object
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T2?").WithLocation(8, 31),
-                // (8,58): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
-                //     public static void F2<T2>(T2? t2) where T2 : class?, System.Object
-                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Object").WithArguments("object").WithLocation(8, 58)
-            );
-
-            var m = comp.SourceModule;
-
-            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.True(t1.IsReferenceType);
-            Assert.False(t1.IsNotNullableIfReferenceType);
-            Assert.Empty(t1.GetAttributes());
-
-            var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t2 = f2.TypeParameters[0];
-            Assert.True(t2.IsReferenceType);
-            Assert.False(t2.IsNotNullableIfReferenceType);
             Assert.Empty(t2.GetAttributes());
         }
 
@@ -61383,7 +61114,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.False(t1.IsNotNullableIfReferenceType);
@@ -61423,24 +61154,42 @@ class B : I<object?>
                 var af1 = (MethodSymbol)m.GlobalNamespace.GetMember("A.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", af1.Name);
                 Assert.Equal("I<System.Object>.F1", af1.MetadataName);
-                Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : System.Object", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                if (isSource)
+                {
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
                 Assert.False(at1.IsReferenceType);
                 Assert.True(at1.IsNotNullableIfReferenceType);
                 Assert.Empty(at1.GetAttributes());
 
-                Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                if (isSource)
+                {
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    var impl = af1.ExplicitInterfaceImplementations.Single();
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Null(impl.TypeParameters[0].IsNotNullableIfReferenceType);
+                }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", bf1.Name);
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61449,17 +61198,22 @@ class B : I<object?>
                 if (isSource)
                 {
                     Assert.Empty(tf1.GetAttributes());
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x)", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x)", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
                     var attributes = tf1.GetAttributes();
                     Assert.Equal(1, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    var impl = bf1.ExplicitInterfaceImplementations.Single();
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Null(impl.TypeParameters[0].IsNotNullableIfReferenceType);
                 }
             }
         }
+
+        private static SymbolDisplayFormat TestFormatWithConstraintsAndNonNullableTypeModifier =>
+            SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
         [Fact]
         public void Constraints_56()
@@ -61495,24 +61249,40 @@ class B : I<A?>
                 var af1 = (MethodSymbol)m.GlobalNamespace.GetMember("A.I<A>.F1");
                 Assert.Equal("I<A>.F1", af1.Name);
                 Assert.Equal("I<A>.F1", af1.MetadataName);
-                Assert.Equal("void A.I<A>.F1<TF1A>(TF1A x) where TF1A : A", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                if (isSource)
+                {
+                    Assert.Equal("void A.I<A!>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void A.I<A>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
                 Assert.True(at1.IsReferenceType);
                 Assert.True(at1.IsNotNullableIfReferenceType);
                 Assert.Empty(at1.GetAttributes());
 
-                Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                if (isSource)
+                {
+                    Assert.Equal("void I<A!>.F1<TF1>(TF1 x) where TF1 : A!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<A>.F1");
                 Assert.Equal("I<A>.F1", bf1.Name);
                 Assert.Equal("I<A>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<A?>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<A?>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<A>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<A>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61521,11 +61291,11 @@ class B : I<A?>
                 Assert.Empty(tf1.GetAttributes());
                 if (isSource)
                 {
-                    Assert.Equal("void I<A?>.F1<TF1>(TF1 x) where TF1 : A?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<A?>.F1<TF1>(TF1 x) where TF1 : A?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
             }
         }
@@ -61564,23 +61334,39 @@ class B : I<object?>
                 var af1 = (MethodSymbol)m.GlobalNamespace.GetMember("A.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", af1.Name);
                 Assert.Equal("I<System.Object>.F1", af1.MetadataName);
-                Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : class?, System.Object", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                if (isSource)
+                {
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
                 Assert.True(at1.IsReferenceType);
                 Assert.True(at1.IsNotNullableIfReferenceType);
 
-                Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                if (isSource)
+                {
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : class?, System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", bf1.Name);
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61588,11 +61374,11 @@ class B : I<object?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : class?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : class?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
             }
         }
@@ -61618,34 +61404,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.True(t1.IsReferenceType);
-            Assert.True(t1.IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        public void Constraints_58_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : B, object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (4,53): error CS0406: The class type constraint 'object' must come before any other constraints
-                //     public static void F1<T1>(T1? t1) where T1 : B, object
-                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "object").WithArguments("object").WithLocation(4, 53)
-            );
-
-            var m = comp.SourceModule;
-
-            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61669,42 +61428,12 @@ class B
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.True(t1.IsReferenceType);
                 Assert.True(t1.HasNotNullConstraint);
                 Assert.True(t1.IsNotNullableIfReferenceType);
             }
-        }
-
-        [Fact]
-        public void Constraints_59_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : B?, object
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F1<T1>(T1? t1) where T1 : B?, object
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31),
-                // (4,54): error CS0406: The class type constraint 'object' must come before any other constraints
-                //     public static void F1<T1>(T1? t1) where T1 : B?, object
-                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "object").WithArguments("object").WithLocation(4, 54)
-            );
-
-            var m = comp.SourceModule;
-
-            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.True(t1.IsReferenceType);
-            Assert.False(t1.IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -61724,39 +61453,9 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
-            Assert.True(t1.IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        public void Constraints_60_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class B
-{
-    public static void F1<T1>(T1? t1) where T1 : object, B
-    {
-    }
-}";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public static void F1<T1>(T1? t1) where T1 : object, B
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T1?").WithLocation(4, 31),
-                // (4,58): error CS0406: The class type constraint 'B' must come before any other constraints
-                //     public static void F1<T1>(T1? t1) where T1 : object, B
-                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(4, 58)
-            );
-
-            var m = comp.SourceModule;
-
-            var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : System.Object", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = f1.TypeParameters[0];
-            Assert.False(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
         }
 
@@ -61773,15 +61472,15 @@ class B
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (4,50): error CS0702: Constraint cannot be special class 'object?'
+                // (4,50): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F1<T1>(T1? t1) where T1 : object?, B
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 50)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(4, 50)
             );
 
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61821,23 +61520,39 @@ class B : I<object?>
                 var af1 = (MethodSymbol)m.GlobalNamespace.GetMember("A.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", af1.Name);
                 Assert.Equal("I<System.Object>.F1", af1.MetadataName);
-                Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : B?, System.Object", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                if (isSource)
+                {
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
                 Assert.True(at1.IsReferenceType);
                 Assert.True(at1.IsNotNullableIfReferenceType);
 
-                Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : B?, System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                if (isSource)
+                {
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
+                else
+                {
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object>.F1");
                 Assert.Equal("I<System.Object>.F1", bf1.Name);
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61845,11 +61560,11 @@ class B : I<object?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : B?, System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
             }
         }
@@ -61890,11 +61605,11 @@ class B : I<object?, B?>
                 Assert.Equal("I<System.Object,B>.F1", af1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<System.Object, B?>.F1<TF1A>(TF1A x) where TF1A : System.Object, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void A.I<System.Object!, B?>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<System.Object, B>.F1<TF1A>(TF1A x) where TF1A : System.Object, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void A.I<System.Object, B>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61903,11 +61618,11 @@ class B : I<object?, B?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object, B?>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object!, B?>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : System.Object, B", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object,B>.F1");
@@ -61915,11 +61630,11 @@ class B : I<object?, B?>
                 Assert.Equal("I<System.Object,B>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?, B?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object?, B?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object, B>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void B.I<System.Object, B>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61927,11 +61642,11 @@ class B : I<object?, B?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?, B?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object?, B?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : System.Object, B", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 }
             }
         }
@@ -62002,82 +61717,6 @@ class A : I1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F2").WithArguments("TF2A", "A.F2<TF2A>()", "TF2", "I1.F2<TF2>()").WithLocation(27, 17),
                 // (35,17): warning CS8633: Nullability in constraints for type parameter 'TF6A' of method 'A.F6<TF6A>()' doesn't match the constraints for type parameter 'TF6' of interface method 'I1.F6<TF6>()'. Consider using an explicit interface implementation instead.
                 //     public void F6<TF6A>() where TF6A : notnull, I3?
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F6").WithArguments("TF6A", "A.F6<TF6A>()", "TF6", "I1.F6<TF6>()").WithLocation(35, 17),
-                // (39,17): warning CS8633: Nullability in constraints for type parameter 'TF8A' of method 'A.F8<TF8A>()' doesn't match the constraints for type parameter 'TF8' of interface method 'I1.F8<TF8>()'. Consider using an explicit interface implementation instead.
-                //     public void F8<TF8A>() where TF8A : I3?
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F8").WithArguments("TF8A", "A.F8<TF8A>()", "TF8", "I1.F8<TF8>()").WithLocation(39, 17),
-                // (45,17): warning CS8633: Nullability in constraints for type parameter 'TF11A' of method 'A.F11<TF11A>()' doesn't match the constraints for type parameter 'TF11' of interface method 'I1.F11<TF11>()'. Consider using an explicit interface implementation instead.
-                //     public void F11<TF11A>() where TF11A : I3?
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F11").WithArguments("TF11A", "A.F11<TF11A>()", "TF11", "I1.F11<TF11>()").WithLocation(45, 17)
-            );
-        }
-
-        [Fact]
-        public void Constraints_64_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-interface I1
-{
-    void F1<TF1>();
-    void F2<TF2>() where TF2 : object;
-    void F3<TF3>() where TF3 : object;
-    void F4<TF4>() where TF4 : I3;
-    void F5<TF5>() where TF5 : I3;
-    void F6<TF6>() where TF6 : I3?;
-    void F7<TF7>() where TF7 : object, I3;
-    void F8<TF8>() where TF8 : object, I3;
-    void F9<TF9>() where TF9 : object, I3;
-    void F10<TF10>() where TF10 : object, I3?;
-    void F11<TF11>() where TF11 : object, I3?;
-    void F12<TF12>() where TF12 : object, I3?;
-    void F13<TF13>() where TF13 : object, I3?;
-}
-
-public interface I3
-{
-}
-
-class A : I1
-{
-    public void F1<TF1A>() where TF1A : object
-    {}
-    public void F2<TF2A>()
-    {}
-    public void F3<TF3A>() where TF3A : object
-    {}
-    public void F4<TF4A>() where TF4A : object, I3
-    {}
-    public void F5<TF5A>() where TF5A : object, I3?
-    {}
-    public void F6<TF6A>() where TF6A : object, I3?
-    {}
-    public void F7<TF7A>() where TF7A : I3
-    {}
-    public void F8<TF8A>() where TF8A : I3?
-    {}
-    public void F9<TF9A>() where TF9A : object, I3
-    {}
-    public void F10<TF10A>() where TF10A : I3
-    {}
-    public void F11<TF11A>() where TF11A : I3?
-    {}
-    public void F12<TF12A>() where TF12A : object, I3
-    {}
-    public void F13<TF13A>() where TF13A : object, I3?
-    {}
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (25,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
-                //     public void F1<TF1A>() where TF1A : object
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F1").WithArguments("TF1A", "A.F1<TF1A>()", "TF1", "I1.F1<TF1>()").WithLocation(25, 17),
-                // (27,17): warning CS8633: Nullability in constraints for type parameter 'TF2A' of method 'A.F2<TF2A>()' doesn't match the constraints for type parameter 'TF2' of interface method 'I1.F2<TF2>()'. Consider using an explicit interface implementation instead.
-                //     public void F2<TF2A>()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F2").WithArguments("TF2A", "A.F2<TF2A>()", "TF2", "I1.F2<TF2>()").WithLocation(27, 17),
-                // (35,17): warning CS8633: Nullability in constraints for type parameter 'TF6A' of method 'A.F6<TF6A>()' doesn't match the constraints for type parameter 'TF6' of interface method 'I1.F6<TF6>()'. Consider using an explicit interface implementation instead.
-                //     public void F6<TF6A>() where TF6A : object, I3?
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, "F6").WithArguments("TF6A", "A.F6<TF6A>()", "TF6", "I1.F6<TF6>()").WithLocation(35, 17),
                 // (39,17): warning CS8633: Nullability in constraints for type parameter 'TF8A' of method 'A.F8<TF8A>()' doesn't match the constraints for type parameter 'TF8' of interface method 'I1.F8<TF8>()'. Consider using an explicit interface implementation instead.
                 //     public void F8<TF8A>() where TF8A : I3?
@@ -62170,80 +61809,6 @@ class A : I1
         }
 
         [Fact]
-        public void Constraints_65_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-public interface I1
-{
-    void F1<TF1>();
-    void F2<TF2>() where TF2 : object;
-    void F3<TF3>() where TF3 : object;
-    void F4<TF4>() where TF4 : I3;
-    void F5<TF5>() where TF5 : I3;
-    void F7<TF7>() where TF7 : object, I3;
-    void F8<TF8>() where TF8 : object, I3;
-    void F9<TF9>() where TF9 : object, I3;
-}
-
-public interface I3
-{
-}
-";
-
-            var source2 =
-@"#pragma warning disable CS8715
-class A : I1
-{
-    public void F1<TF1A>() where TF1A : object
-    {}
-    public void F2<TF2A>()
-    {}
-    public void F3<TF3A>() where TF3A : object
-    {}
-    public void F4<TF4A>() where TF4A : object, I3
-    {}
-    public void F5<TF5A>() where TF5A : object, I3?
-    {}
-    public void F7<TF7A>() where TF7A : I3
-    {}
-    public void F8<TF8A>() where TF8A : I3?
-    {}
-    public void F9<TF9A>() where TF9A : object, I3
-    {}
-}
-";
-            var comp1 = CreateCompilation(source1, options: WithNonNullTypesFalse());
-
-            foreach (var reference in new[] { comp1.ToMetadataReference(), comp1.EmitToImageReference() })
-            {
-                var comp2 = CreateCompilation(source2, options: WithNonNullTypesTrue(), references: new[] { reference });
-
-                comp2.VerifyDiagnostics();
-            }
-
-            string il = @"
-.class interface public abstract auto ansi I1
-{
-  .method public hidebysig newslot abstract virtual 
-          instance void  F1<TF1>() cil managed
-  {
-  } // end of method I1::F1
-
-} // end of class I1";
-
-            string source3 = @"#pragma warning disable CS8715
-class A : I1
-{
-    public void F1<TF1A>() where TF1A : object
-    {}
-}
-";
-            var comp3 = CreateCompilationWithIL(new[] { source3 }, il, options: WithNonNullTypesTrue());
-            comp3.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void Constraints_66()
         {
             var source1 =
@@ -62302,60 +61867,6 @@ class A : I1
         }
 
         [Fact]
-        public void Constraints_66_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-public interface I1
-{
-    void F1<TF1>();
-    void F2<TF2>() where TF2 : object;
-    void F3<TF3>() where TF3 : object;
-    void F4<TF4>() where TF4 : I3;
-    void F7<TF7>() where TF7 : object, I3;
-    void F9<TF9>() where TF9 : object, I3;
-    void F10<TF10>() where TF10 : object, I3?;
-    void F12<TF12>() where TF12 : object, I3?;
-}
-
-public interface I3
-{
-}
-";
-
-            var source2 =
-@"#pragma warning disable CS8715
-class A : I1
-{
-    public void F1<TF1A>() where TF1A : object
-    {}
-    public void F2<TF2A>()
-    {}
-    public void F3<TF3A>() where TF3A : object
-    {}
-    public void F4<TF4A>() where TF4A : object, I3
-    {}
-    public void F7<TF7A>() where TF7A : I3
-    {}
-    public void F9<TF9A>() where TF9A : object, I3
-    {}
-    public void F10<TF10A>() where TF10A : I3
-    {}
-    public void F12<TF12A>() where TF12A : object, I3
-    {}
-}
-";
-            var comp1 = CreateCompilation(source1, options: WithNonNullTypesTrue());
-
-            foreach (var reference in new[] { comp1.ToMetadataReference(), comp1.EmitToImageReference() })
-            {
-                var comp2 = CreateCompilation(source2, options: WithNonNullTypes(NullableContextOptions.Warnings), references: new[] { reference });
-
-                comp2.VerifyDiagnostics();
-            }
-        }
-
-        [Fact]
         public void Constraints_67()
         {
             var source =
@@ -62363,43 +61874,6 @@ class A : I1
 class A
 {
     public void F1<TF1>(object x1, TF1 y1, TF1 z1 ) where TF1 : notnull
-    {
-        y1.ToString();
-        x1 = z1;
-    }
-
-    public void F2<TF2>(object x2, TF2 y2, TF2 z2 ) where TF2 : class
-    {
-        y2.ToString();
-        x2 = z2;
-    }
-
-    public void F3<TF3>(object x3, TF3 y3, TF3 z3 ) where TF3 : class?
-    {
-        y3.ToString();
-        x3 = z3;
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (18,9): warning CS8602: Dereference of a possibly null reference.
-                //         y3.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y3").WithLocation(18, 9),
-                // (19,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x3 = z3;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z3").WithLocation(19, 14)
-                );
-        }
-
-        [Fact]
-        public void Constraints_67_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-class A
-{
-    public void F1<TF1>(object x1, TF1 y1, TF1 z1 ) where TF1 : object
     {
         y1.ToString();
         x1 = z1;
@@ -62519,73 +61993,6 @@ delegate C<object?> D(C<object?> p); // 8
                 // (19,25): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
                 // delegate C<object?> D(C<object?> p); // 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "object?").WithArguments("C<T>", "T", "object?").WithLocation(19, 25));
-        }
-
-        [Fact]
-        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
-        public void Constraints_69_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-#nullable enable
-class C<T> where T : object { }
-interface I
-{
-    C<object?> Property { get; } // 1
-    C<object?> Method(C<object?> p); // 2
-}
-class C2 : I
-{
-    public C<object?> Field = new C<object?>(); // 3
-    C<object?> Property => Field; // 4
-    C<object?> Method(C<object?> p) => Field; // 5
-
-    C<object?> I.Property => Field; // 6
-    C<object?> I.Method(C<object?> p) => Field; // 7 
-}
-
-delegate C<object?> D(C<object?> p); // 8
-";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (6,16): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Property { get; } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Property").WithArguments("C<T>", "object", "T", "object?").WithLocation(6, 16),
-                // (7,16): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Method(C<object?> p); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Method").WithArguments("C<T>", "object", "T", "object?").WithLocation(7, 16),
-                // (7,34): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Method(C<object?> p); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "object?").WithLocation(7, 34),
-                // (11,23): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     public C<object?> Field = new C<object?>(); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Field").WithArguments("C<T>", "object", "T", "object?").WithLocation(11, 23),
-                // (11,37): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     public C<object?> Field = new C<object?>(); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "object?").WithArguments("C<T>", "object", "T", "object?").WithLocation(11, 37),
-                // (12,16): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Property => Field; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Property").WithArguments("C<T>", "object", "T", "object?").WithLocation(12, 16),
-                // (13,16): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Method(C<object?> p) => Field; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Method").WithArguments("C<T>", "object", "T", "object?").WithLocation(13, 16),
-                // (13,34): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> Method(C<object?> p) => Field; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "object?").WithLocation(13, 34),
-                // (15,18): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> I.Property => Field; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Property").WithArguments("C<T>", "object", "T", "object?").WithLocation(15, 18),
-                // (16,18): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Method").WithArguments("C<T>", "object", "T", "object?").WithLocation(16, 18),
-                // (16,36): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "object?").WithLocation(16, 36),
-                // (19,12): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                // delegate C<object?> D(C<object?> p); // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "object?").WithArguments("C<T>", "object", "T", "object?").WithLocation(19, 12),
-                // (19,25): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                // delegate C<object?> D(C<object?> p); // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "object?").WithArguments("C<T>", "object", "T", "object?").WithLocation(19, 25));
         }
 
         [Fact]
@@ -62777,37 +62184,6 @@ class D2 {
 
         [Fact]
         [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
-        public void Constraints_74_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-#nullable enable
-class C<T> where T : object { }
-class D1 {
-    D1((string, string?) p) { } // 1
-    D1(C<(string, string?)> p) { } // 2
-    D1(C<string?> p) { } // 3
-}
-class D2 {
-    D2((string, string) p) { }
-    D2(C<(string, string)> p) { }
-    D2(C<string> p) { }
-}
-";
-            var compilation = CreateCompilation(new[] { Tuple2NonNullable, source }, targetFramework: TargetFramework.Mscorlib46);
-            compilation.VerifyDiagnostics(
-                // (5,26): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //     D1((string, string?) p) { } // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(5, 26),
-                // (6,29): warning CS8714: The type 'string?' cannot be used as type parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //     D1(C<(string, string?)> p) { } // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "p").WithArguments("System.ValueTuple<T1, T2>", "T2", "string?").WithLocation(6, 29),
-                // (7,19): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //     D1(C<string?> p) { } // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "string?").WithLocation(7, 19));
-        }
-
-        [Fact]
-        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
         public void Constraints_75()
         {
             var source = @"
@@ -62833,35 +62209,6 @@ class D2 {
                 // (10,64): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
                 //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "string?").WithArguments("C<T>", "T", "string?").WithLocation(10, 64));
-        }
-
-        [Fact]
-        [WorkItem(32953, "https://github.com/dotnet/roslyn/issues/32953")]
-        public void Constraints_75_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-#nullable enable
-class C<T> where T : object { }
-class D1 {
-    public static implicit operator D1(C<string> c) => new D1();
-    public static implicit operator C<string>(D1 D1) => new C<string>();
-}
-class D2 {
-    public static implicit operator D2(C<string?> c) => new D2(); // 1
-    public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
-}
-";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib46);
-            compilation.VerifyDiagnostics(
-                // (9,51): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //     public static implicit operator D2(C<string?> c) => new D2(); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "c").WithArguments("C<T>", "object", "T", "string?").WithLocation(9, 51),
-                // (10,37): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C<string?>").WithArguments("C<T>", "object", "T", "string?").WithLocation(10, 37),
-                // (10,64): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //     public static implicit operator C<string?>(D2 D2) => new C<string?>(); // 2, 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("C<T>", "object", "T", "string?").WithLocation(10, 64));
         }
 
         [Fact]
@@ -63065,7 +62412,7 @@ public interface I1
             void symbolValidator1(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63088,7 +62435,7 @@ public interface I1
             void symbolValidator2(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1, TF2>() where TF2 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF2 : class", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
                 {
@@ -63117,7 +62464,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63144,7 +62491,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63171,10 +62518,10 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
             }
         }
@@ -63198,10 +62545,10 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
             }
         }
@@ -63225,7 +62572,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63258,7 +62605,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63299,7 +62646,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63328,7 +62675,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63363,7 +62710,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1, TF2>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
                 {
@@ -63404,7 +62751,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63443,7 +62790,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63480,10 +62827,10 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 var attributes = tf1.GetAttributes();
                 Assert.Empty(attributes);
             }
@@ -63508,10 +62855,10 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 var attributes = tf1.GetAttributes();
                 Assert.Empty(attributes);
             }
@@ -63536,7 +62883,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63566,7 +62913,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63603,7 +62950,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63630,7 +62977,7 @@ public interface I1<TF1>
             void symbolValidator1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63652,7 +62999,7 @@ public interface I1<TF1, TF2> where TF2 : class
             void symbolValidator2(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1, TF2> where TF2 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1, TF2> where TF2 : class", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
                 {
@@ -63680,7 +63027,7 @@ public interface I1<TF1> where TF1 : new()
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63706,7 +63053,7 @@ public interface I1<TF1> where TF1 : class
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : class", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63732,10 +63079,10 @@ public interface I1<TF1> where TF1 : struct
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
             }
         }
@@ -63758,10 +63105,10 @@ public interface I1<TF1> where TF1 : unmanaged
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
             }
         }
@@ -63784,7 +63131,7 @@ public interface I1<TF1> where TF1 : I1<TF1>
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63816,7 +63163,7 @@ public interface I1<TF1> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63856,7 +63203,7 @@ public interface I1<TF1> where TF1 : I1<TF1>?
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63884,7 +63231,7 @@ public interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63918,7 +63265,7 @@ public interface I1<TF1, TF2> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1, TF2> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1, TF2> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
                 {
@@ -63958,7 +63305,7 @@ public interface I1<TF1> where TF1 : new()
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63996,7 +63343,7 @@ public interface I1<TF1> where TF1 : class
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : class!", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -64032,10 +63379,10 @@ public interface I1<TF1> where TF1 : struct
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 var attributes = tf1.GetAttributes();
                 Assert.Empty(attributes);
             }
@@ -64059,10 +63406,10 @@ public interface I1<TF1> where TF1 : unmanaged
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
-                Assert.False(tf1.IsNotNullableIfReferenceType);
+                Assert.True(tf1.IsNotNullableIfReferenceType);
                 var attributes = tf1.GetAttributes();
                 Assert.Empty(attributes);
             }
@@ -64086,7 +63433,7 @@ public interface I1<TF1> where TF1 : I1<TF1>
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>!", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -64115,7 +63462,7 @@ public interface I1<TF1> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -64151,7 +63498,7 @@ public interface I1<TF1> where TF1 : I1<TF1>?
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -64183,7 +63530,7 @@ partial interface I1<TF1>
             void symbolValidator1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -64216,7 +63563,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -64260,7 +63607,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -64305,7 +63652,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -64398,53 +63745,6 @@ partial interface I1<TF1> where TF1 : new()
         }
 
         [Fact]
-        public void Constraints_116_Object()
-        {
-            var source1 =
-@"#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1>
-{
-}
-#pragma warning disable CS8715
-partial interface I1<TF1> where TF1 : object
-{
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
-            TypeParameterSymbol tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
-
-            var source2 =
-@"#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1> where TF1 : new()
-{
-}
-#pragma warning disable CS8715
-partial interface I1<TF1> where TF1 : object, new()
-{
-}
-";
-            var comp2 = CreateCompilation(source2);
-
-            comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
-
-            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
-            tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
-            Assert.True(tf1.HasConstructorConstraint);
-        }
-
-        [Fact]
         public void Constraints_117()
         {
             var source1 =
@@ -64489,53 +63789,6 @@ partial interface I1<TF1> where TF1 : notnull, new()
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
             Assert.False(tf1.HasNotNullConstraint);
-            Assert.False(tf1.IsNotNullableIfReferenceType);
-            Assert.True(tf1.HasConstructorConstraint);
-        }
-
-        [Fact]
-        public void Constraints_117_Object()
-        {
-            var source1 =
-@"
-#nullable enable
-partial interface I1<TF1>
-{
-}
-#pragma warning disable CS8715
-partial interface I1<TF1> where TF1 : object
-{
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
-            TypeParameterSymbol tf1 = i1.TypeParameters[0];
-            Assert.True(tf1.IsNotNullableIfReferenceType);
-
-            var source2 =
-@"
-#nullable enable
-partial interface I1<TF1> where TF1 : new()
-{
-}
-#pragma warning disable CS8715
-partial interface I1<TF1> where TF1 : object, new()
-{
-}
-";
-            var comp2 = CreateCompilation(source2);
-
-            comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
-
-            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
-            tf1 = i1.TypeParameters[0];
             Assert.False(tf1.IsNotNullableIfReferenceType);
             Assert.True(tf1.HasConstructorConstraint);
         }
@@ -64619,56 +63872,6 @@ partial interface I1<TF1> where TF1 : new()
         }
 
         [Fact]
-        public void Constraints_118_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1>
-{
-}
-
-#nullable enable
-partial interface I1<TF1> where TF1 : object
-{
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
-            TypeParameterSymbol tf1 = i1.TypeParameters[0];
-            Assert.True(tf1.IsNotNullableIfReferenceType);
-
-            var source2 =
-@"#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1> where TF1 : new()
-{
-}
-#pragma warning disable CS8715
-#nullable enable
-partial interface I1<TF1> where TF1 : object, new()
-{
-}
-";
-            var comp2 = CreateCompilation(source2);
-
-            comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
-
-            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
-            tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
-            Assert.True(tf1.HasConstructorConstraint);
-        }
-
-        [Fact]
         public void Constraints_119()
         {
             var source1 =
@@ -64720,57 +63923,6 @@ partial interface I1<TF1> where TF1 : notnull, new()
         }
 
         [Fact]
-        public void Constraints_119_Object()
-        {
-            var source1 =
-@"
-#nullable enable
-partial interface I1<TF1>
-{
-}
-#pragma warning disable CS8715
-#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1> where TF1 : object
-{
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
-            TypeParameterSymbol tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
-
-            var source2 =
-@"
-#nullable enable
-partial interface I1<TF1> where TF1 : new()
-{
-}
-#pragma warning disable CS8715
-#nullable disable
-#pragma warning enable nullable
-partial interface I1<TF1> where TF1 : object, new()
-{
-}
-";
-            var comp2 = CreateCompilation(source2);
-
-            comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
-
-            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
-            tf1 = i1.TypeParameters[0];
-            Assert.False(tf1.IsNotNullableIfReferenceType);
-            Assert.True(tf1.HasConstructorConstraint);
-        }
-
-        [Fact]
         public void Constraints_120()
         {
             var source1 =
@@ -64787,9 +63939,9 @@ partial interface I1<TF1> where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (7,39): error CS0702: Constraint cannot be special class 'object?'
+                // (7,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 39),
                 // (7,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 45)
@@ -64813,9 +63965,9 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (7,39): error CS0702: Constraint cannot be special class 'object?'
+                // (7,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 39),
                 // (7,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 45)
@@ -64840,9 +63992,9 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (7,44): error CS0702: Constraint cannot be special class 'object?'
+                // (7,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 44),
                 // (7,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 50)
@@ -64874,9 +64026,9 @@ partial interface I1<TF1> where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (7,39): error CS0702: Constraint cannot be special class 'object?'
+                // (7,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 39)
                 );
 
             var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
@@ -64897,9 +64049,9 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (7,39): error CS0702: Constraint cannot be special class 'object?'
+                // (7,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 39)
                 );
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
@@ -64921,9 +64073,9 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (7,44): error CS0702: Constraint cannot be special class 'object?'
+                // (7,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 44)
                 );
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
@@ -64954,9 +64106,9 @@ partial interface I1<TF1> where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (8,39): error CS0702: Constraint cannot be special class 'object?'
+                // (8,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 39)
                 );
 
             var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
@@ -64978,9 +64130,9 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (8,39): error CS0702: Constraint cannot be special class 'object?'
+                // (8,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 39)
                 );
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
@@ -65003,9 +64155,9 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                // (8,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 44)
                 );
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
@@ -65036,9 +64188,9 @@ partial interface I1<TF1> where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (8,39): error CS0702: Constraint cannot be special class 'object?'
+                // (8,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 39),
                 // (8,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45)
@@ -65063,9 +64215,9 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (8,39): error CS0702: Constraint cannot be special class 'object?'
+                // (8,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 39),
                 // (8,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45)
@@ -65091,9 +64243,9 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                // (8,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 44),
                 // (8,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 50)
@@ -65125,9 +64277,9 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39),
                 // (3,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
@@ -65151,9 +64303,9 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39),
                 // (3,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
@@ -65178,9 +64330,9 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // (3,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 44),
                 // (3,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
@@ -65212,9 +64364,9 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39)
                 );
 
             var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
@@ -65235,9 +64387,9 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39)
                 );
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
@@ -65259,9 +64411,9 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // (3,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 44)
                 );
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
@@ -65292,9 +64444,9 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39),
                 // (3,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
@@ -65319,9 +64471,9 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39),
                 // (3,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
@@ -65347,9 +64499,9 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // (3,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 44),
                 // (3,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
@@ -65384,9 +64536,9 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39)
                 );
 
             var i1 = comp1.GlobalNamespace.GetTypeMember("I1");
@@ -65409,9 +64561,9 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,39): error CS0702: Constraint cannot be special class 'object?'
+                // (3,39): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 39)
                 );
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
@@ -65435,9 +64587,9 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // (3,44): error CS0702: Constraint cannot be special class 'object'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(3, 44)
                 );
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
@@ -65607,27 +64759,6 @@ partial void M1<TF1>() where TF1 : notnull
         }
 
         [Fact]
-        public void Constraints_132_Object()
-        {
-            var source1 =
-@"
-partial class A
-{
-#nullable disable
-#pragma warning enable nullable
-partial void M1<TF1>();
-#pragma warning disable CS8715
-partial void M1<TF1>() where TF1 : object
-{
-}
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-        }
-
-        [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_133()
         {
@@ -65658,35 +64789,6 @@ partial void M1<TF1>() where TF1 : notnull
 
         [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_133_Object()
-        {
-            var source1 =
-@"
-partial class A
-{
-#nullable enable
-partial void M1<TF1>();
-#pragma warning disable CS8715
-partial void M1<TF1>() where TF1 : object
-{
-}
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics(
-                // (7,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
-                // partial void M1<TF1>() where TF1 : object
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(7, 14)
-                );
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_134()
         {
             var source1 =
@@ -65698,32 +64800,6 @@ partial class A
 partial void M1<TF1>();
 #nullable enable
 partial void M1<TF1>() where TF1 : notnull
-{
-}
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_134_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-partial class A
-{
-#nullable disable
-#pragma warning enable nullable
-partial void M1<TF1>();
-#nullable enable
-partial void M1<TF1>() where TF1 : object
 {
 }
 }
@@ -65769,32 +64845,6 @@ partial void M1<TF1>() where TF1 : notnull
 
         [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_135_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-partial class A
-{
-#nullable enable
-partial void M1<TF1>();
-#nullable disable
-#pragma warning enable nullable
-partial void M1<TF1>() where TF1 : object
-{
-}
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_136()
         {
             var source1 =
@@ -65812,9 +64862,9 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (7,36): error CS0702: Constraint cannot be special class 'object?'
+                // (7,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 36),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 36),
                 // (7,42): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 42)
@@ -65844,9 +64894,9 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (7,36): error CS0702: Constraint cannot be special class 'object?'
+                // (7,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 36)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(7, 36)
                 );
         }
 
@@ -65870,9 +64920,9 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (8,36): error CS0702: Constraint cannot be special class 'object?'
+                // (8,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 36)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 36)
                 );
 
             var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
@@ -65899,9 +64949,9 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (8,36): error CS0702: Constraint cannot be special class 'object?'
+                // (8,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 36),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(8, 36),
                 // (8,42): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 42)
@@ -66024,27 +65074,6 @@ partial void M1<TF1>() where TF1 : notnull;
         }
 
         [Fact]
-        public void Constraints_144_Object()
-        {
-            var source1 =
-@"
-partial class A
-{
-#nullable disable
-#pragma warning enable nullable
-partial void M1<TF1>()
-{
-}
-#pragma warning disable CS8715
-partial void M1<TF1>() where TF1 : object;
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-        }
-
-        [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_145()
         {
@@ -66075,35 +65104,6 @@ partial void M1<TF1>() where TF1 : notnull;
 
         [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_145_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-partial class A
-{
-#nullable enable
-partial void M1<TF1>()
-{
-}
-
-partial void M1<TF1>() where TF1 : object;
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics(
-                // (5,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(5, 14)
-                );
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_146()
         {
             var source1 =
@@ -66117,33 +65117,6 @@ partial void M1<TF1>()
 
 #nullable enable
 partial void M1<TF1>() where TF1 : notnull;
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_146_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-#nullable disable
-partial class A
-{
-#pragma warning enable nullable
-partial void M1<TF1>()
-{
-}
-
-#nullable enable
-partial void M1<TF1>() where TF1 : object;
 }
 ";
             var comp1 = CreateCompilation(source1);
@@ -66188,33 +65161,6 @@ partial void M1<TF1>() where TF1 : notnull;
 
         [Fact]
         [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
-        public void Constraints_147_Object()
-        {
-            var source1 =
-@"#pragma warning disable CS8715
-partial class A
-{
-#nullable enable
-partial void M1<TF1>()
-{
-}
-
-#nullable disable
-#pragma warning enable nullable
-partial void M1<TF1>() where TF1 : object;
-}
-";
-            var comp1 = CreateCompilation(source1);
-
-            comp1.VerifyDiagnostics();
-
-            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
-            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
-            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
-        }
-
-        [Fact]
-        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_148()
         {
             var source1 =
@@ -66232,9 +65178,9 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (9,36): error CS0702: Constraint cannot be special class 'object?'
+                // (9,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?;
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(9, 36),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(9, 36),
                 // (9,42): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 42)
@@ -66263,9 +65209,9 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (9,36): error CS0702: Constraint cannot be special class 'object?'
+                // (9,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?;
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(9, 36)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(9, 36)
                 );
         }
 
@@ -66289,9 +65235,9 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (10,36): error CS0702: Constraint cannot be special class 'object?'
+                // (10,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?;
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(10, 36)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(10, 36)
                 );
 
             var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
@@ -66318,9 +65264,9 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // (10,36): error CS0702: Constraint cannot be special class 'object?'
+                // (10,36): error CS0702: Constraint cannot be special class 'object'
                 // partial void M1<TF1>() where TF1 : object?;
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(10, 36),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(10, 36),
                 // (10,42): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 42)
@@ -66363,7 +65309,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -66376,7 +65322,7 @@ class B : A<int>
                 }
 
                 var af1 = bf1.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t1 = af1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -66389,7 +65335,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -66403,7 +65349,7 @@ class B : A<int>
                 }
 
                 var af2 = bf2.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t2 = af2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -66458,7 +65404,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -66471,7 +65417,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -66533,7 +65479,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -66546,7 +65492,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -67171,27 +66117,19 @@ class B
     }
 }";
 
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            foreach (var options in new[] { WithNonNullTypesTrue(), WithNonNullTypesFalse() })
+            {
+                var comp1 = CreateCompilation(new[] { source }, options: options);
 
-            comp1.VerifyDiagnostics(
-                // (4,44): warning CS8715: Constraint cannot be special class 'object'
-                //     public static void F1<T1>() where T1 : object
-                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 44),
-                // (8,44): warning CS8715: Constraint cannot be special class 'object'
-                //     public static void F2<T2>() where T2 : System.Object
-                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(8, 44)
-                );
-
-            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
-
-            comp2.VerifyDiagnostics(
-                // (4,44): warning CS8715: Constraint cannot be special class 'object'
-                //     public static void F1<T1>() where T1 : object
-                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 44),
-                // (8,44): warning CS8715: Constraint cannot be special class 'object'
-                //     public static void F2<T2>() where T2 : System.Object
-                Diagnostic(ErrorCode.WRN_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(8, 44)
-                );
+                comp1.VerifyDiagnostics(
+                    // (4,44): error CS0702: Constraint cannot be special class 'object'
+                    //     public static void F1<T1>() where T1 : object
+                    Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 44),
+                    // (8,44): error CS0702: Constraint cannot be special class 'object'
+                    //     public static void F2<T2>() where T2 : System.Object
+                    Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(8, 44)
+                    );
+            }
         }
 
         [Fact]
@@ -67213,26 +66151,26 @@ class B
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
-                // (4,44): error CS0702: Constraint cannot be special class 'object?'
+                // (4,44): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F1<T1>() where T1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 44),
-                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(4, 44),
+                // (8,44): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F2<T2>() where T2 : System.Object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object?").WithLocation(8, 44)
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object").WithLocation(8, 44)
                 );
 
             var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
 
             comp2.VerifyDiagnostics(
-                // (4,44): error CS0702: Constraint cannot be special class 'object?'
+                // (4,44): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F1<T1>() where T1 : object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(4, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object").WithLocation(4, 44),
                 // (4,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void F1<T1>() where T1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 50),
-                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                // (8,44): error CS0702: Constraint cannot be special class 'object'
                 //     public static void F2<T2>() where T2 : System.Object?
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object?").WithLocation(8, 44),
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object?").WithArguments("object").WithLocation(8, 44),
                 // (8,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void F2<T2>() where T2 : System.Object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 57)
@@ -67465,6 +66403,1201 @@ public class Test72 : Test7
                     //         x = default; // 12
                     Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("S").WithLocation(126, 13)
                     );
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_04()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : T {}
+}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_05()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : T {}
+}
+
+#nullable enable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_06()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : T {}
+}
+
+#nullable enable
+public class Test2 : Test1<object?>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_07()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_08()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1?, T {}
+}
+
+public interface I1 {}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_09()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1, T {}
+}
+
+public interface I1 {}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_10()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_11()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1?, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_12()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : I1, T {}
+}
+
+public interface I1 {}
+
+#nullable enable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_13()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class, T {}
+}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : class", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_14()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class?, T {}
+}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_15()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class, T {}
+}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : class!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_16()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_17()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class?, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class?, System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_18()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : class, T {}
+}
+
+public interface I1 {}
+
+#nullable enable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class, System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_19()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : notnull, T {}
+}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_20()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : notnull, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_21()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : struct, T {}
+}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_22()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T>
+{
+    public virtual void M1<S>(S x) where S : struct, T {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_23()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T, U>
+{
+    public virtual void M1<S>(S x) where S : U, T {}
+}
+
+public class Test2 : Test1<object, int>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_24()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T, U>
+{
+    public virtual void M1<S>(S x) where S : U, T {}
+}
+
+public class Test2 : Test1<object, int>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_25()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T, U>
+{
+    public virtual void M1<S>(S x) where S : U, T {}
+}
+
+public class Test2 : Test1<object, int?>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, System.Int32?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_26()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T, U>
+{
+    public virtual void M1<S>(S x) where S : U, T {}
+}
+
+public class Test2 : Test1<object, int?>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, System.Int32?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_27()
+        {
+            string il = @"
+.class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+       extends [mscorlib]System.Attribute
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method EmbeddedAttribute::.ctor
+
+} // end of class Microsoft.CodeAnalysis.EmbeddedAttribute
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+       extends [mscorlib]System.Attribute
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .field public initonly uint8[] NullableFlags
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(uint8 A_1) cil managed
+  {
+    // Code size       24 (0x18)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ldarg.0
+    IL_0008:  ldc.i4.1
+    IL_0009:  newarr     [mscorlib]System.Byte
+    IL_000e:  dup
+    IL_000f:  ldc.i4.0
+    IL_0010:  ldarg.1
+    IL_0011:  stelem.i1
+    IL_0012:  stfld      uint8[] System.Runtime.CompilerServices.NullableAttribute::NullableFlags
+    IL_0017:  ret
+  } // end of method NullableAttribute::.ctor
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(uint8[] A_1) cil managed
+  {
+    // Code size       15 (0xf)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ldarg.0
+    IL_0008:  ldarg.1
+    IL_0009:  stfld      uint8[] System.Runtime.CompilerServices.NullableAttribute::NullableFlags
+    IL_000e:  ret
+  } // end of method NullableAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.NullableAttribute
+
+.class interface public abstract auto ansi I1
+{
+} // end of class I1
+
+.class public auto ansi beforefieldinit Test2
+       extends class [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void class [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Test2::.ctor
+
+  .method public hidebysig instance void 
+          M1<([mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M1
+
+  .method public hidebysig instance void 
+          M2<(I1, [mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M2
+
+  .method public hidebysig instance void 
+          M3<class ([mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M3
+
+  .method public hidebysig virtual instance void 
+          M4<class ([mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    .param type S 
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 02 00 00 ) 
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M4
+
+  .method public hidebysig virtual instance void 
+          M5<class ([mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    .param type S 
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 01 00 00 ) 
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M5
+
+  .method public hidebysig virtual instance void 
+          M6<([mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    .param type S 
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 01 00 00 ) 
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M6
+
+  .method public hidebysig instance void 
+          M7<S>(!!S x) cil managed
+  {
+    .param type S 
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 02 00 00 ) 
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = ( 01 00 01 00 00 ) 
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M7
+
+  .method public hidebysig instance void 
+          M8<valuetype .ctor ([mscorlib]System.Object, [mscorlib]System.ValueType) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M8
+
+  .method public hidebysig virtual instance void 
+          M9<([mscorlib]System.Int32, [mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M9
+
+  .method public hidebysig virtual instance void 
+          M10<(valuetype [mscorlib]System.Nullable`1<int32>, [mscorlib]System.Object) S>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M10
+} // end of class Test2
+";
+            var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
+
+            var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
+            Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m2 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M2");
+            Assert.Equal("void Test2.M2<S>(S x) where S : I1", m2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m2.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m3 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M3");
+            Assert.Equal("void Test2.M3<S>(S x) where S : class", m3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m3.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m4 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M4");
+            Assert.Equal("void Test2.M4<S>(S x) where S : class?, System.Object", m4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m4.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m5 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M5");
+            Assert.Equal("void Test2.M5<S>(S x) where S : class!", m5.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.True(m5.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m6 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M6");
+            Assert.Equal("void Test2.M6<S>(S x) where S : notnull", m6.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.True(m6.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m7 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M7");
+            Assert.Equal("void Test2.M7<S>(S x)", m7.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.False(m7.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m8 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M8");
+            Assert.Equal("void Test2.M8<S>(S x) where S : struct", m8.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.True(m8.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m9 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M9");
+            Assert.Equal("void Test2.M9<S>(S x) where S : System.Int32", m9.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.True(m9.TypeParameters[0].IsNotNullableIfReferenceType);
+
+            var m10 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M10");
+            Assert.Equal("void Test2.M10<S>(S x) where S : System.Object, System.Int32?", m10.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m10.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        public void ObjectConstraint_28()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit Test2
+       extends class [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void class [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Test2::.ctor
+
+  .method public hidebysig instance void 
+          M1<([mscorlib]System.Object, !!S) S,U>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M1
+} // end of class Test2
+";
+            var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
+
+            var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
+            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        public void ObjectConstraint_29()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit Test2
+       extends class [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void class [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Test2::.ctor
+
+  .method public hidebysig instance void 
+          M1<([mscorlib]System.Object, !!U) S, (!!S) U>(!!S x) cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method Test2::M1
+} // end of class Test2
+";
+            var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
+
+            var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
+            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object, U", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+        }
+
+        [Fact]
+        public void ObjectConstraint_30()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T>
+{
+#nullable enable
+    public virtual void M1<S>(S x) where S : class?, T {}
+}
+
+#nullable disable
+public class Test2 : Test1<object>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_31()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable disable
+object,
+#nullable enable
+object?
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_32()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+object?,
+#nullable disable
+object
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_33()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable disable
+object,
+#nullable enable
+object
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_34()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+object,
+#nullable disable
+object
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
 
@@ -68033,7 +68166,7 @@ class B
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.M1");
-                Assert.Equal("void B.M1<TM1>(TM1 x) where TM1 : class", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Equal("void B.M1<TM1>(TM1 x) where TM1 : class", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
                 TypeParameterSymbol tm1 = m1.TypeParameters[0];
                 Assert.Null(tm1.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(tm1.GetAttributes());
@@ -68853,64 +68986,6 @@ class B
         }
 
         [Fact]
-        public void ConstraintsChecks_25_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-#pragma warning disable CS0168
-
-public interface IA<TA> where TA : object
-{
-}
-
-public interface IB : IA<string?> // 1
-{}
-
-public interface IC : IA<string>
-{}
-
-class B
-{
-    public void Test1()
-    {
-        IA<string?> x1; // 2
-        IA<string> z1;
-    }
-
-    public void M1<TM1>(TM1 x) where TM1: object
-    {}
-
-    public void Test2(string? a2, string b2)
-    {
-        M1(a2); // 3
-        M1(b2); 
-        M1<string?>(a2); // 4
-        M1<string?>(b2); // 5
-        M1<string>(b2);
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp1.VerifyDiagnostics(
-                // (8,18): warning CS8631: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                // public interface IB : IA<string?> // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "object", "TA", "string?").WithLocation(8, 18),
-                // (18,12): warning CS8631: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //         IA<string?> x1; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("IA<TA>", "object", "TA", "string?").WithLocation(18, 12),
-                // (27,9): warning CS8631: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //         M1(a2); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B.M1<TM1>(TM1)", "object", "TM1", "string?").WithLocation(27, 9),
-                // (29,9): warning CS8631: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //         M1<string?>(a2); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "object", "TM1", "string?").WithLocation(29, 9),
-                // (30,9): warning CS8631: The type 'string?' cannot be used as type parameter 'TM1' in the generic type or method 'B.M1<TM1>(TM1)'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
-                //         M1<string?>(b2); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<string?>").WithArguments("B.M1<TM1>(TM1)", "object", "TM1", "string?").WithLocation(30, 9)
-            );
-        }
-
-        [Fact]
         public void ConstraintsChecks_26()
         {
             var source =
@@ -68969,49 +69044,6 @@ class B
         }
 
         [Fact]
-        public void ConstraintsChecks_26_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-#pragma warning disable CS0168
-#nullable disable
-public interface IA<TA> where TA : object
-{
-}
-#nullable enable
-public interface IB : IA<string?>
-{}
-
-public interface IC : IA<string>
-{}
-
-class B
-{
-    public void Test1()
-    {
-        IA<string?> x1;
-        IA<string> z1;
-    }
-#nullable disable
-    public void M1<TM1>(TM1 x) where TM1: object
-    {}
-#nullable enable
-    public void Test2(string? a2, string b2)
-    {
-        M1(a2);
-        M1(b2);
-        M1<string?>(a2);
-        M1<string?>(b2);
-        M1<string>(b2);
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp1.VerifyDiagnostics(
-            );
-        }
-
-        [Fact]
         [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
         public void ConstraintsChecks_27()
         {
@@ -69064,62 +69096,6 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C {
                 // (32,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
                 //         M1<TB1>(a2); // 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(32, 9)
-            );
-        }
-
-        [Fact]
-        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
-        public void ConstraintsChecks_27_Object()
-        {
-            var source =
-@"
-#pragma warning disable CS0168
-#pragma warning disable CS8715
-public interface IA<TA> where TA : object
-{
-}
-#nullable disable
-public interface IB<TIB> : IA<TIB> where TIB : C? // 1
-{}
-#nullable disable
-public interface IC<TIC> : IA<TIC> where TIC : C // 2
-{}
-
-public class C
-{}
-#nullable disable
-class B<TB1, TB2> where TB1 : C? where TB2 : C {
-#nullable enable
-    public void Test1()
-    {
-        IA<TB1> x1; // 3
-        IA<TB2> z1; // 4
-    }
-#nullable enable
-    public void M1<TM1>(TM1 x) where TM1: object
-    {}
-#nullable enable
-    public void Test2(TB1 a2, TB2 b2)
-    {
-        M1(a2); // 5
-        M1(b2); // 6
-        M1<TB1>(a2); // 7
-        M1<TB2>(b2); // 8
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
-            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
-                // (21,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         IA<TB1> x1; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "object", "TA", "TB1").WithLocation(21, 12),
-                // (30,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1(a2); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(30, 9),
-                // (32,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1<TB1>(a2); // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(32, 9)
             );
         }
 
@@ -69188,60 +69164,6 @@ class B<TB1, TB2> : A where TB2 : notnull
         }
 
         [Fact]
-        public void ConstraintsChecks_28_Object()
-        {
-            var source =
-@"
-#pragma warning disable CS0168, CS8715
-
-public interface IA<TA> where TA : object
-{
-}
-
-public interface IB<TIB> : IA<TIB> // 1
-{}
-
-public interface IC<TIC> : IA<TIC> where TIC : object
-{}
-
-class B<TB1, TB2> where TB2 : object
-{
-    public void Test1()
-    {
-        IA<TB1> x1; // 2
-        IA<TB2> z1;
-    }
-
-    public void M1<TM1>(TM1 x) where TM1: object
-    {}
-
-    public void Test2(TB1 a2, TB2 b2)
-    {
-        M1(a2); // 3
-        M1(b2); 
-        M1<TB1>(a2); // 4
-        M1<TB2>(b2);
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp1.VerifyDiagnostics(
-                // (8,18): warning CS8631: The type 'TIB' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TIB' doesn't match constraint type 'object'.
-                // public interface IB<TIB> : IA<TIB> // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "IB").WithArguments("IA<TA>", "object", "TA", "TIB").WithLocation(8, 18),
-                // (18,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         IA<TB1> x1; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "object", "TA", "TB1").WithLocation(18, 12),
-                // (27,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1(a2); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(27, 9),
-                // (29,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1<TB1>(a2); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(29, 9)
-            );
-        }
-
-        [Fact]
         public void ConstraintsChecks_29()
         {
             var source =
@@ -69267,48 +69189,6 @@ class B<TB1, TB2> where TB2 : notnull {
     }
 #nullable enable
     public void M1<TM1>(TM1 x) where TM1: notnull
-    {}
-#nullable enable
-    public void Test2(TB1 a2, TB2 b2)
-    {
-        M1(a2); // 5
-        M1(b2); // 6
-        M1<TB1>(a2); // 7
-        M1<TB2>(b2); // 8
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
-            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify();
-        }
-
-        [Fact]
-        public void ConstraintsChecks_29_Object()
-        {
-            var source =
-@"
-#pragma warning disable CS0168
-#pragma warning disable CS8715
-public interface IA<TA> where TA : object
-{
-}
-#nullable disable
-public interface IB<TIB> : IA<TIB> // 1
-{}
-#nullable disable
-public interface IC<TIC> : IA<TIC> where TIC : object // 2
-{}
-#nullable disable
-class B<TB1, TB2> where TB2 : object {
-#nullable enable
-    public void Test1()
-    {
-        IA<TB1> x1; // 3
-        IA<TB2> z1; // 4
-    }
-#nullable enable
-    public void M1<TM1>(TM1 x) where TM1: object
     {}
 #nullable enable
     public void Test2(TB1 a2, TB2 b2)
@@ -69383,73 +69263,6 @@ public interface IC
                 // (21,9): warning CS8714: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match 'notnull' constraint.
                 //         M1<TB1>(a2); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "TM1", "TB1").WithLocation(21, 9),
-                // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
-                //         M1<TB1>(a2); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "IB", "TM1", "TB1").WithLocation(21, 9),
-                // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
-                //         M1<TB1>(a2); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "IC", "TM1", "TB1").WithLocation(21, 9)
-            );
-        }
-
-        [Fact]
-        public void ConstraintsChecks_30_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-#pragma warning disable CS0168
-
-public interface IA<TA> where TA : object, IB, IC
-{
-}
-
-class B<TB1> where TB1 : IB?, IC? 
-{
-    public void Test1()
-    {
-        IA<TB1> x1; // 1
-    }
-
-    public void M1<TM1>(TM1 x) where TM1: object, IB, IC
-    {}
-
-    public void Test2(TB1 a2)
-    {
-        M1(a2); // 2
-        M1<TB1>(a2); // 3
-    }
-}
-
-public interface IB
-{}
-
-public interface IC
-{}
-";
-            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-
-            comp1.VerifyDiagnostics(
-                // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         IA<TB1> x1; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "object", "TA", "TB1").WithLocation(12, 12),
-                // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
-                //         IA<TB1> x1; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "IB", "TA", "TB1").WithLocation(12, 12),
-                // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
-                //         IA<TB1> x1; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "IC", "TA", "TB1").WithLocation(12, 12),
-                // (20,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1(a2); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(20, 9),
-                // (20,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
-                //         M1(a2); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "IB", "TM1", "TB1").WithLocation(20, 9),
-                // (20,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IC'.
-                //         M1(a2); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1>(TM1)", "IC", "TM1", "TB1").WithLocation(20, 9),
-                // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1<TB1>(a2); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(21, 9),
                 // (21,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'IB'.
                 //         M1<TB1>(a2); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1>.M1<TM1>(TM1)", "IB", "TM1", "TB1").WithLocation(21, 9),
@@ -69535,57 +69348,6 @@ class C
 class D
 {
     public static void Test<T>(T x) where T : notnull
-    {}
-}
-";
-            var comp1 = CreateCompilation(source);
-
-            comp1.VerifyDiagnostics();
-        }
-
-        [Fact]
-        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
-        public void ConstraintsChecks_32_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-#pragma warning disable CS0649
-#nullable disable
-class A<T1, T2, T3> where T2 : class where T3 : object
-{
-    T1 F1;
-    T2 F2;
-    T3 F3;
-    B F4;
-
-#nullable enable
-    void M3()
-    {
-        C.Test<T1>();
-        C.Test<T2>();
-        C.Test<T3>();
-    }
-
-    void M4()
-    {
-        D.Test(F1);
-        D.Test(F2);
-        D.Test(F3);
-        D.Test(F4);
-    }
-}
-
-class B {}
-
-class C
-{
-    public static void Test<T>() where T : object
-    {}
-}
-
-class D
-{
-    public static void Test<T>(T x) where T : object
     {}
 }
 ";
@@ -71123,7 +70885,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 
             var c = comp.GetTypeByMetadataName("C`2");
             Assert.IsAssignableFrom<PENamedTypeSymbol>(c);
-            Assert.Equal("C<T, U> where T : class where U : T?", c.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("C<T, U> where T : class! where U : T?", c.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
 
             comp.VerifyDiagnostics(
                 // (6,19): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
@@ -73719,7 +73481,7 @@ class A<T> where T :
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : class!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : class!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
             }
         }
 
@@ -73738,7 +73500,7 @@ class A<T> where T :
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : class", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
         }
 
         [Fact]
@@ -73762,7 +73524,7 @@ class A<T> where T : class
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : class?", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
 
                 comp.VerifyDiagnostics();
             }
@@ -73783,7 +73545,7 @@ class A<T> where T : class
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : class?", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
 
             comp.VerifyDiagnostics(
                 // (4,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -73815,7 +73577,7 @@ class unmanaged {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : unmanaged!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : unmanaged!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
             }
         }
 
@@ -73836,7 +73598,7 @@ class unmanaged {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : unmanaged", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : unmanaged", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
         }
 
         [Fact]
@@ -74943,95 +74705,6 @@ class D
         }
 
         [Fact]
-        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
-        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
-        public void ObliviousTypeParameter_01_Object()
-        {
-            var source =
-$@"
-#pragma warning disable {(int)ErrorCode.WRN_UninitializedNonNullableField}, CS8715
-#pragma warning disable {(int)ErrorCode.WRN_UnreferencedField}
-#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
-#pragma warning disable {(int)ErrorCode.WRN_UnreferencedVarAssg}
-#pragma warning disable {(int)ErrorCode.WRN_UnassignedInternalField}
-"
-+
-@"
-
-#nullable disable
-class A<T1, T2, T3> where T2 : class where T3 : object
-{
-    T1 F1;
-    T2 F2;
-    T3 F3;
-    B F4;
-
-#nullable enable
-    void M1()
-    {
-        F1.ToString();
-        F2.ToString();
-        F3.ToString();
-        F4.ToString();
-    }
-
-#nullable enable
-    void M2()
-    {
-        T1 x2 = default;
-        T2 y2 = default;
-        T3 z2 = default;
-    }
-
-#nullable enable
-    void M3()
-    {
-        C.Test<T1>();
-        C.Test<T2>();
-        C.Test<T3>();
-    }
-
-#nullable enable
-    void M4()
-    {
-        D.Test(F1);
-        D.Test(F2);
-        D.Test(F3);
-        D.Test(F4);
-    }
-}
-
-class B {}
-
-#nullable enable
-class C
-{
-    public static void Test<T>() where T : object
-    {}
-}
-
-#nullable enable
-class D
-{
-    public static void Test<T>(T x) where T : object
-    {}
-}
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                // (29,17): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //         T1 x2 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(29, 17),
-                // (30,17): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
-                //         T2 y2 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T2").WithLocation(30, 17),
-                // (31,17): warning CS8653: A default expression introduces a null value when 'T3' is a non-nullable reference type.
-                //         T3 z2 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(31, 17)
-                );
-        }
-
-        [Fact]
         [WorkItem(30220, "https://github.com/dotnet/roslyn/issues/30220")]
         public void ObliviousTypeParameter_02()
         {
@@ -75112,70 +74785,11 @@ class B { }
 
         [Fact]
         [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
-        public void ObliviousTypeParameter_03_Object()
-        {
-            var source =
-$@"#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}, CS8715
-"
-+
-@"#nullable disable
-class A<T1, T2, T3> where T2 : class where T3 : object
-{
-    T1 F1;
-    T2 F2;
-    T3 F3;
-    B F4;
-
-#nullable enable
-    void M1()
-    {
-        F1 = default;
-        F2 = default;
-        F2 = null;
-        F3 = default;
-        F4 = default;
-    }
-}
-class B { }
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
         public void ObliviousTypeParameter_04()
         {
             var source =
 @"#nullable disable
 class A<T1, T2, T3> where T2 : class where T3 : notnull
-{
-    void M1(T1 x, T2 y, T3 z, B w)
-#nullable enable
-    {
-        x = default;
-        y = default;
-        y = null;
-        z = default;
-        w = default;
-    }
-}
-class B { }
-";
-            var comp = CreateCompilation(new[] { source });
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
-        public void ObliviousTypeParameter_04_Object()
-        {
-            var source =
-@"#pragma warning disable CS8715
-#nullable disable
-class A<T1, T2, T3> where T2 : class where T3 : object
 {
     void M1(T1 x, T2 y, T3 z, B w)
 #nullable enable
@@ -76867,59 +76481,6 @@ class Outer
         }
 
         [Fact]
-        public void NullabilityOfTypeParameters_007_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer
-{
-    T M0<T>(T x0, T y0)
-    {
-        if (x0 == null) throw null!;
-        M2(x0) = x0;
-        M2<T>(x0) = y0;
-
-        M2(x0).ToString();
-        M2<T>(x0).ToString();
-        throw null!;
-    }
-
-    void M1(object? x1, object? y1)
-    {
-        if (x1 == null) return;
-        M2(x1) = x1;
-        M2(x1) = y1;
-    }
-
-    ref U M2<U>(U a) where U : object => throw null!;
-}
-";
-            // Note: you cannot pass a `T` to a `U : object` even if the `T` was null-tested
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2(x0) = x0;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(7, 9),
-                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2<T>(x0) = y0;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(8, 9),
-                // (10,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2(x0).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(10, 9),
-                // (10,9): warning CS8602: Dereference of a possibly null reference.
-                //         M2(x0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M2(x0)").WithLocation(10, 9),
-                // (11,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2<T>(x0).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(11, 9),
-                // (11,9): warning CS8602: Dereference of a possibly null reference.
-                //         M2<T>(x0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M2<T>(x0)").WithLocation(11, 9),
-                // (19,18): warning CS8601: Possible null reference assignment.
-                //         M2(x1) = y1;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(19, 18)
-                );
-        }
-
-        [Fact]
         public void NullabilityOfTypeParameters_008()
         {
             var source = @"
@@ -78174,33 +77735,6 @@ class Outer
         }
 
         [Fact]
-        public void NullabilityOfTypeParameters_042_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer
-{
-    void M0<T>(T x)
-    {
-        M1(x);
-        M1<T>(x);
-    }
-
-    void M1<T>(T x) where T : object
-    {}
-}
-";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M1(x);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(6, 9),
-                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M1<T>(x);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
         public void NullabilityOfTypeParameters_043()
         {
             var source = @"
@@ -78225,34 +77759,6 @@ class Outer
                 // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
                 //         M1<T>(x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "T", "T").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void NullabilityOfTypeParameters_043_Object()
-        {
-            var source = @"
-class Outer
-{
-    void M0<T>(T x)
-    {
-        if (x == null) return;
-        M1(x);
-        M1<T>(x);
-    }
-#pragma warning disable CS8715
-    void M1<T>(T x) where T : object
-    {}
-}
-";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M1(x);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(7, 9),
-                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'Outer.M1<T>(T)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M1<T>(x);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<T>").WithArguments("Outer.M1<T>(T)", "object", "T", "T").WithLocation(8, 9)
                 );
         }
 
@@ -79137,35 +78643,6 @@ class Outer
         }
 
         [Fact]
-        public void NullabilityOfTypeParameters_079_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer
-{
-    void M0<T, U>(T x0, T y0, U z0) where U : T
-    {
-        if (x0 == null) return;
-        if (y0 == null) return;
-        M2(ref M3(x0), ref M3(y0)) = z0;
-        M2<T>(ref M3(x0), ref M3(y0)) = z0;
-    }
-
-    ref U M2<U>(ref U a, ref U b) where U : object => throw null!;
-    ref U M3<U>(U a) => throw null!;
-}
-";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2(ref M3(x0), ref M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(ref U, ref U)", "object", "U", "T").WithLocation(8, 9),
-                // (9,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(ref U, ref U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2<T>(ref M3(x0), ref M3(y0)) = z0;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(ref U, ref U)", "object", "U", "T").WithLocation(9, 9)
-                );
-        }
-
-        [Fact]
         [WorkItem(30946, "https://github.com/dotnet/roslyn/issues/30946")]
         public void NullabilityOfTypeParameters_080()
         {
@@ -79194,38 +78671,6 @@ class Other<U> where U : notnull
                 // (8,9): warning CS8714: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
                 //         M2<T>(x0).M3(ref y0);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "U", "T").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        [WorkItem(30946, "https://github.com/dotnet/roslyn/issues/30946")]
-        public void NullabilityOfTypeParameters_080_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer
-{
-    void M0<T>(T x0, T y0)
-    {
-        if (x0 == null) return;
-        M2(x0).M3(ref y0);
-        M2<T>(x0).M3(ref y0);
-    }
-
-    Other<U> M2<U>(U a) where U : object => throw null!;
-}
-
-class Other<U> where U : object
-{
-    public void M3(ref U a) => throw null!;
-}
-";
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (7,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2(x0).M3(ref y0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(7, 9),
-                // (8,9): warning CS8631: The type 'T' cannot be used as type parameter 'U' in the generic type or method 'Outer.M2<U>(U)'. Nullability of type argument 'T' doesn't match constraint type 'object'.
-                //         M2<T>(x0).M3(ref y0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M2<T>").WithArguments("Outer.M2<U>(U)", "object", "U", "T").WithLocation(8, 9)
                 );
         }
 
@@ -82429,50 +81874,10 @@ class Outer<T> where T : notnull
         }
 
         [Fact]
-        public void NullabilityOfTypeParameters_202_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer<T> where T : object
-{
-    void M0(T x0)
-    {
-        object y0 = x0 as object;
-        y0?.ToString();
-        y0.ToString(); // 1
-    }
-}
-";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,9): warning CS8602: Dereference of a possibly null reference.
-                //         y0.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
         public void NullabilityOfTypeParameters_203()
         {
             var source = @"
 class Outer<T> where T : notnull
-{
-    void M0(T x0)
-    {
-        dynamic y0 = x0 as dynamic;
-        y0.ToString();
-    }
-}
-";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void NullabilityOfTypeParameters_203_Object()
-        {
-            var source = @"#pragma warning disable CS8715
-class Outer<T> where T : object
 {
     void M0(T x0)
     {

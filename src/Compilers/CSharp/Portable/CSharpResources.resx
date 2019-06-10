@@ -5712,9 +5712,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title" xml:space="preserve">
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</value>
   </data>
-  <data name="IDS_FeatureObjectGenericTypeConstraint" xml:space="preserve">
-    <value>object generic type constraint</value>
-  </data>
   <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
     <value>Unexpected character sequence '...'</value>
   </data>
@@ -5907,13 +5904,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title" xml:space="preserve">
     <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</value>
   </data>
-  <data name="WRN_SpecialTypeAsBound" xml:space="preserve">
-    <value>Constraint cannot be special class '{0}'</value>
-  </data>
-  <data name="WRN_SpecialTypeAsBound_Title" xml:space="preserve">
-    <value>Constraint cannot be special class</value>
-  </data>
-  <data name="IDS_NotNullGenericTypeConstraint" xml:space="preserve">
+  <data name="IDS_FeatureNotNullGenericTypeConstraint" xml:space="preserve">
     <value>notnull generic type constraint</value>
   </data>
 </root>

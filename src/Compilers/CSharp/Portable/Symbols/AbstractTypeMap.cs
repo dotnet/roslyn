@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
-        internal void SubstituteTypesDistinctWithoutModifiers(
+        internal void SubstituteConstraintTypesDistinctWithoutModifiers(
             ImmutableArray<TypeWithAnnotations> original,
             ArrayBuilder<TypeWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
@@ -346,20 +346,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var set = new HashSet<TypeSymbol>();
+                var map = new Dictionary<TypeWithAnnotations, int>(ConstraintEqualsComparer.Instance);
                 foreach (var type in original)
                 {
                     if (ignoreTypesDependentOnTypeParametersOpt == null ||
                         !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
                         var substituted = SubstituteType(type);
-                        // TODO: Do we need to merge annotations?
-                        if (set.Add(substituted.Type))
+
+                        if (!map.TryGetValue(substituted, out int mergeWith))
                         {
+                            map.Add(substituted, result.Count);
                             result.Add(substituted);
+                        }
+                        else
+                        {
+                            result[mergeWith] = ConstraintsHelper.MergeTopLevelNullabilityForConstraint(result[mergeWith], substituted);
                         }
                     }
                 }
+            }
+        }
+
+        private sealed class ConstraintEqualsComparer : EqualityComparer<TypeWithAnnotations>
+        {
+            internal static readonly ConstraintEqualsComparer Instance = new ConstraintEqualsComparer();
+
+            private ConstraintEqualsComparer()
+            {
+            }
+
+            public override int GetHashCode(TypeWithAnnotations obj)
+            {
+                return obj.Type.GetHashCode();
+            }
+
+            public override bool Equals(TypeWithAnnotations x, TypeWithAnnotations y)
+            {
+                return x.Type.Equals(y.Type) && x.AnnotationsMatch(y, TypeCompareKind.ConsiderEverything, isValueTypeOverrideOpt: null);
             }
         }
 

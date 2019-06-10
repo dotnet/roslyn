@@ -228,7 +228,6 @@
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-                case ErrorCode.WRN_SpecialTypeAsBound:
                     return true;
                 default:
                     return false;
