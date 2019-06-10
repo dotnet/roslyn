@@ -114,10 +114,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // We need to filter if 
             // 1. a non-empty strict subset of filters are selected
-            // 2. any unselected expander exists
-            var selectedNonExpanderFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).Where(f => !(f is CompletionExpander)).ToImmutableArray();
-            var unselectedExpanders = data.SelectedFilters.Where(f => f.Filter is CompletionExpander && !f.IsSelected).Select(f => f.Filter).ToImmutableArray();
-            var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < data.SelectedFilters.Length;
+            // 2. a non-empty set of expanders are unselected
+            var nonExpanderFilterStates = data.SelectedFilters.Where(f => !(f.Filter is CompletionExpander)).ToImmutableArray();
+
+            var selectedNonExpanderFilters = nonExpanderFilterStates.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
+            var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
+
+            var unselectedExpanders = data.SelectedFilters.Where(f => !f.IsSelected).Select(f => f.Filter).Where(f => f is CompletionExpander).ToImmutableArray();
+            var needToFilterExpanded = unselectedExpanders.Length > 0;
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
@@ -156,10 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     continue;
                 }
 
-                // TODO: Putting expander in filter list might affect perf, even no expander is selected.
-                //       Since we are creating a editor owned special expander, we should consider making
-                //       it a independent property on VS CompletionItem.
-                if (unselectedExpanders.Length > 0 && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
+                if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
                 {
                     continue;
                 }
@@ -247,6 +248,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 highlightedList,
                 completionHelper,
                 hasSuggestedItemOptions);
+
+
+            static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
+            {
+                foreach (var itemFilter in item.Filters)
+                {
+                    if (activeNonExpanderFilters.Contains(itemFilter))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            static bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> unselectedExpanders)
+            {
+                var associatedWithUnselectedExpander = false;
+                foreach (var itemFilter in item.Filters)
+                {
+                    if (itemFilter is CompletionExpander)
+                    {
+                        if (!unselectedExpanders.Contains(itemFilter))
+                        {
+                            // If any of the associated expander is selected, the item should be included in the expanded list.
+                            return false;
+                        }
+
+                        associatedWithUnselectedExpander = true;
+                    }
+                }
+
+                // at this point, the item either:
+                // 1. has no expander filter, therefore should be included
+                // 2, or, all associated expanders are unselected, therefore should be excluded
+                return associatedWithUnselectedExpander;
+            }
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -458,44 +496,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // When no items are available for a given filter, it becomes unavailable.
             // Expanders always appear available as long as it's presented.
             return ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(n.Filter is CompletionExpander ? true : textFilteredFilters.Contains(n.Filter))));
-        }
-
-        private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
-        {
-            Debug.Assert(!activeNonExpanderFilters.Any(f => f is CompletionExpander));
-
-            foreach (var itemFilter in item.Filters)
-            {
-                if (activeNonExpanderFilters.Contains(itemFilter))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static bool ShouldBeFilteredOutOfExpandedCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> unselectedExpanders)
-        {
-            var associatedWithUnselectedExpander = false;
-            foreach (var itemFilter in item.Filters)
-            {
-                if (itemFilter is CompletionExpander)
-                {
-                    if (!unselectedExpanders.Contains(itemFilter))
-                    {
-                        // If any of the associated expander is selected, the item should be included in the expanded list.
-                        return false;
-                    }
-
-                    associatedWithUnselectedExpander = true;
-                }
-            }
-
-            // at this point, the item either:
-            // 1. has no expander filter, therefore should be included
-            // 2, or, all associated expanders are unselected, therefore should be excluded
-            return associatedWithUnselectedExpander;
         }
 
         /// <summary>
