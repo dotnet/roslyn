@@ -58137,7 +58137,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58150,9 +58150,9 @@ class B
                 }
 
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.
-                                                                                                WithMiscellaneousOptions(TestFormatWithConstraintsAndNonNullableTypeModifier.MiscellaneousOptions &
+                Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormat.WithGenericsOptions(SymbolDisplayFormat.TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints)));
+                Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormat.WithGenericsOptions(SymbolDisplayFormat.TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints).
+                                                                                                WithMiscellaneousOptions(SymbolDisplayFormat.TestFormatWithConstraints.MiscellaneousOptions &
                                                                                                                             (~SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -58194,7 +58194,7 @@ class B<T2> where T2 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var a = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
-                Assert.Equal("A<T1> where T1 : class!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("A<T1> where T1 : class!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = a.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58207,7 +58207,7 @@ class B<T2> where T2 : class?
                 }
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58254,13 +58254,13 @@ class B
             Assert.Equal(2, localSyntaxes.Length);
 
             var f1 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
-            Assert.Equal("void F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.False(t1.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[1]);
-            Assert.Equal("void F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
@@ -58301,7 +58301,7 @@ class B<T1> where T1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T1> where T1 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("B<T1> where T1 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = b.TypeParameters[0];
                 Assert.True(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58314,7 +58314,7 @@ class B<T1> where T1 : class?
                 }
 
                 var f2 = (MethodSymbol)b.GetMember("F2");
-                Assert.Equal("void B<T1>.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B<T1>.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58923,7 +58923,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -58936,7 +58936,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -58988,20 +58988,20 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
             Assert.False(t11.IsReferenceType);
 
             Assert.Null(bf1.OverriddenMethod);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
             Assert.True(t22.ReferenceTypeConstraintIsNullable);
 
             var af2 = bf2.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
             TypeParameterSymbol t2 = af2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -59112,7 +59112,7 @@ class D : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59125,7 +59125,7 @@ class D : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59139,10 +59139,10 @@ class D : IA
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
-                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
-                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
             var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
@@ -59217,7 +59217,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59230,7 +59230,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59281,7 +59281,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59294,7 +59294,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59352,7 +59352,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59365,7 +59365,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59419,7 +59419,7 @@ class B : IA
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F1");
-                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59432,7 +59432,7 @@ class B : IA
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.IA.F2");
-                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.IA.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59476,12 +59476,12 @@ class B : IA
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "class?").WithLocation(10, 42));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
-            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
             Assert.True(t11.IsReferenceType);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F2");
-            Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t22 = bf2.TypeParameters[0];
             Assert.True(t22.ReferenceTypeConstraintIsNullable);
         }
@@ -59507,7 +59507,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T2>() where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59539,7 +59539,7 @@ class B<T2> where T2 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var b = (NamedTypeSymbol)m.GlobalNamespace.GetMember("B");
-                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("B<T2> where T2 : class?", b.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t2 = b.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59582,7 +59582,7 @@ class B
             Assert.Equal(1, localSyntaxes.Length);
 
             var f2 = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntaxes[0]);
-            Assert.Equal("void F2<T2>() where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void F2<T2>() where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.ReferenceTypeConstraintIsNullable);
             Assert.Empty(t2.GetAttributes());
@@ -59790,7 +59790,7 @@ class D : IA<string>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>() where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -59803,7 +59803,7 @@ class D : IA<string>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>() where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -59817,10 +59817,10 @@ class D : IA<string>
                 }
 
                 var bf3 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F3");
-                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F3<T33>() where T33 : C1<C2?>!", bf3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 var bf4 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F4");
-                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F4<T44>() where T44 : C1<C2!>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
             var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
@@ -60782,7 +60782,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
@@ -60820,7 +60820,7 @@ class B
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.HasNotNullConstraint);
@@ -60872,14 +60872,14 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1)", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1)", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.False(t1.IsReferenceType);
             Assert.False(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2)", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F2<T2>(T2? t2)", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.False(t2.IsReferenceType);
             Assert.False(t2.IsNotNullableIfReferenceType);
@@ -60911,7 +60911,7 @@ class B
                 var m = comp.SourceModule;
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
@@ -60931,7 +60931,7 @@ class B
                 var m = comp.SourceModule;
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>() where T1 : notnull", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.False(t1.IsReferenceType);
                 Assert.True(t1.IsNotNullableIfReferenceType);
@@ -60986,7 +60986,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsValueType);
             Assert.True(t1.HasNotNullConstraint);
@@ -60994,7 +60994,7 @@ class B
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : struct", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : struct", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsValueType);
             Assert.True(t2.HasNotNullConstraint);
@@ -61030,14 +61030,14 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class!", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class!", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsReferenceType);
             Assert.True(t2.IsNotNullableIfReferenceType);
@@ -61075,14 +61075,14 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
             Assert.Empty(t1.GetAttributes());
 
             var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F2<T2>(T2? t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t2 = f2.TypeParameters[0];
             Assert.True(t2.IsReferenceType);
             Assert.True(t2.IsNotNullableIfReferenceType);
@@ -61114,7 +61114,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.False(t1.IsNotNullableIfReferenceType);
@@ -61157,11 +61157,11 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A x) where TF1A : System.Object!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61171,12 +61171,12 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
                     var impl = af1.ExplicitInterfaceImplementations.Single();
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                     Assert.Null(impl.TypeParameters[0].IsNotNullableIfReferenceType);
                 }
 
@@ -61185,11 +61185,11 @@ class B : I<object?>
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61198,7 +61198,7 @@ class B : I<object?>
                 if (isSource)
                 {
                     Assert.Empty(tf1.GetAttributes());
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x)", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x)", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
@@ -61206,14 +61206,11 @@ class B : I<object?>
                     Assert.Equal(1, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
                     var impl = bf1.ExplicitInterfaceImplementations.Single();
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x)", impl.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                     Assert.Null(impl.TypeParameters[0].IsNotNullableIfReferenceType);
                 }
             }
         }
-
-        private static SymbolDisplayFormat TestFormatWithConstraintsAndNonNullableTypeModifier =>
-            SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
         [Fact]
         public void Constraints_56()
@@ -61252,11 +61249,11 @@ class B : I<A?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<A!>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<A!>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<A>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<A>.F1<TF1A>(TF1A! x) where TF1A : A!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61266,11 +61263,11 @@ class B : I<A?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<A!>.F1<TF1>(TF1 x) where TF1 : A!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<A!>.F1<TF1>(TF1 x) where TF1 : A!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<A>.F1");
@@ -61278,11 +61275,11 @@ class B : I<A?>
                 Assert.Equal("I<A>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<A?>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<A?>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<A>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<A>.F1<TF1B>(TF1B x) where TF1B : A?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61291,11 +61288,11 @@ class B : I<A?>
                 Assert.Empty(tf1.GetAttributes());
                 if (isSource)
                 {
-                    Assert.Equal("void I<A?>.F1<TF1>(TF1 x) where TF1 : A?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<A?>.F1<TF1>(TF1 x) where TF1 : A?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<A>.F1<TF1>(TF1 x) where TF1 : A", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
             }
         }
@@ -61337,11 +61334,11 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : class?, System.Object!", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61350,11 +61347,11 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : class?, System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : class?, System.Object!", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object>.F1");
@@ -61362,11 +61359,11 @@ class B : I<object?>
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : class?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61374,11 +61371,11 @@ class B : I<object?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : class?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : class?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : class?, System.Object", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
             }
         }
@@ -61404,7 +61401,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61428,7 +61425,7 @@ class B
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = f1.TypeParameters[0];
                 Assert.True(t1.IsReferenceType);
                 Assert.True(t1.HasNotNullConstraint);
@@ -61453,7 +61450,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : notnull, B!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61480,7 +61477,7 @@ class B
             var m = comp.SourceModule;
 
             var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void B.F1<T1>(T1? t1) where T1 : B!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t1 = f1.TypeParameters[0];
             Assert.True(t1.IsReferenceType);
             Assert.True(t1.IsNotNullableIfReferenceType);
@@ -61523,11 +61520,11 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object!>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61536,11 +61533,11 @@ class B : I<object?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object!>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object>.F1");
@@ -61548,11 +61545,11 @@ class B : I<object?>
                 Assert.Equal("I<System.Object>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61560,11 +61557,11 @@ class B : I<object?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object>.F1<TF1>(TF1 x) where TF1 : System.Object, B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
             }
         }
@@ -61605,11 +61602,11 @@ class B : I<object?, B?>
                 Assert.Equal("I<System.Object,B>.F1", af1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void A.I<System.Object!, B?>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object!, B?>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void A.I<System.Object, B>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void A.I<System.Object, B>.F1<TF1A>(TF1A! x) where TF1A : System.Object!, B?", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol at1 = af1.TypeParameters[0];
@@ -61618,11 +61615,11 @@ class B : I<object?, B?>
 
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object!, B?>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object!, B?>.F1<TF1>(TF1 x) where TF1 : System.Object!, B?", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", af1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.I<System.Object,B>.F1");
@@ -61630,11 +61627,11 @@ class B : I<object?, B?>
                 Assert.Equal("I<System.Object,B>.F1", bf1.MetadataName);
                 if (isSource)
                 {
-                    Assert.Equal("void B.I<System.Object?, B?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object?, B?>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void B.I<System.Object, B>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void B.I<System.Object, B>.F1<TF1B>(TF1B x) where TF1B : B?", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
 
                 TypeParameterSymbol tf1 = bf1.TypeParameters[0];
@@ -61642,11 +61639,11 @@ class B : I<object?, B?>
                 Assert.False(tf1.IsNotNullableIfReferenceType);
                 if (isSource)
                 {
-                    Assert.Equal("void I<System.Object?, B?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object?, B?>.F1<TF1>(TF1 x) where TF1 : B?", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
                 else
                 {
-                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                    Assert.Equal("void I<System.Object, B>.F1<TF1>(TF1 x) where TF1 : B", bf1.ExplicitInterfaceImplementations.Single().ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 }
             }
         }
@@ -62412,7 +62409,7 @@ public interface I1
             void symbolValidator1(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -62435,7 +62432,7 @@ public interface I1
             void symbolValidator2(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1, TF2>() where TF2 : class", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF2 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
                 {
@@ -62464,7 +62461,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -62491,7 +62488,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -62518,7 +62515,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62545,7 +62542,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62572,7 +62569,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -62605,7 +62602,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62646,7 +62643,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62675,7 +62672,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62710,7 +62707,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1, TF2>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
                 {
@@ -62751,7 +62748,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : new()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62790,7 +62787,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62827,7 +62824,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : struct", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62855,7 +62852,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : unmanaged", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62883,7 +62880,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1!", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1!", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -62913,7 +62910,7 @@ public interface I1
                 bool isSource = !(m is PEModuleSymbol);
 
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62950,7 +62947,7 @@ public interface I1
             void symbolValidator(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
-                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void I1.F1<TF1>() where TF1 : I1?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -62977,7 +62974,7 @@ public interface I1<TF1>
             void symbolValidator1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -62999,7 +62996,7 @@ public interface I1<TF1, TF2> where TF2 : class
             void symbolValidator2(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1, TF2> where TF2 : class", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1, TF2> where TF2 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
                 {
@@ -63027,7 +63024,7 @@ public interface I1<TF1> where TF1 : new()
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63053,7 +63050,7 @@ public interface I1<TF1> where TF1 : class
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63079,7 +63076,7 @@ public interface I1<TF1> where TF1 : struct
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63105,7 +63102,7 @@ public interface I1<TF1> where TF1 : unmanaged
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63131,7 +63128,7 @@ public interface I1<TF1> where TF1 : I1<TF1>
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63163,7 +63160,7 @@ public interface I1<TF1> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63203,7 +63200,7 @@ public interface I1<TF1> where TF1 : I1<TF1>?
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63231,7 +63228,7 @@ public interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63265,7 +63262,7 @@ public interface I1<TF1, TF2> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1, TF2> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1, TF2> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
                 {
@@ -63305,7 +63302,7 @@ public interface I1<TF1> where TF1 : new()
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : new()", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63343,7 +63340,7 @@ public interface I1<TF1> where TF1 : class
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class!", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : class!", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63379,7 +63376,7 @@ public interface I1<TF1> where TF1 : struct
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : struct", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63406,7 +63403,7 @@ public interface I1<TF1> where TF1 : unmanaged
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : unmanaged", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63433,7 +63430,7 @@ public interface I1<TF1> where TF1 : I1<TF1>
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>!", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>!", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.True(tf1.IsNotNullableIfReferenceType);
@@ -63462,7 +63459,7 @@ public interface I1<TF1> where TF1 : class?
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63498,7 +63495,7 @@ public interface I1<TF1> where TF1 : I1<TF1>?
             void symbolValidator(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1> where TF1 : I1<TF1>?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63530,7 +63527,7 @@ partial interface I1<TF1>
             void symbolValidator1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
@@ -63563,7 +63560,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63607,7 +63604,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -63652,7 +63649,7 @@ partial interface I1<TF1>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                Assert.Equal("I1<TF1>", i1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.False(tf1.IsNotNullableIfReferenceType);
@@ -65309,7 +65306,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -65322,7 +65319,7 @@ class B : A<int>
                 }
 
                 var af1 = bf1.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t1 = af1.TypeParameters[0];
                 Assert.False(t1.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -65335,7 +65332,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -65349,7 +65346,7 @@ class B : A<int>
                 }
 
                 var af2 = bf2.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t2 = af2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -65404,7 +65401,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -65417,7 +65414,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -65479,7 +65476,7 @@ class B : A<int>
                 bool isSource = !(m is PEModuleSymbol);
 
                 var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class!", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol t11 = bf1.TypeParameters[0];
                 Assert.False(t11.ReferenceTypeConstraintIsNullable);
                 if (isSource)
@@ -65492,7 +65489,7 @@ class B : A<int>
                 }
 
                 var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
                 TypeParameterSymbol t22 = bf2.TypeParameters[0];
                 Assert.True(t22.ReferenceTypeConstraintIsNullable);
@@ -66431,7 +66428,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66462,7 +66459,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66493,7 +66490,7 @@ public class Test2 : Test1<object?>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66525,7 +66522,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66558,7 +66555,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66591,7 +66588,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66623,7 +66620,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66655,7 +66652,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66688,7 +66685,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66718,7 +66715,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : class", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : class", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66749,7 +66746,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66780,7 +66777,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : class!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : class!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66812,7 +66809,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S! x) where S : class!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66844,7 +66841,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S! x) where S : class?, System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class?, System.Object!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66877,7 +66874,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S! x) where S : class, System.Object!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S! x) where S : class, System.Object!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66908,7 +66905,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66940,7 +66937,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : notnull", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -66971,7 +66968,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67003,7 +67000,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : struct", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67033,7 +67030,7 @@ public class Test2 : Test1<object, int>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67063,7 +67060,7 @@ public class Test2 : Test1<object, int>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Int32", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67093,7 +67090,7 @@ public class Test2 : Test1<object, int?>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, System.Int32?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, System.Int32?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67123,7 +67120,7 @@ public class Test2 : Test1<object, int?>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, System.Int32?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, System.Int32?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67313,43 +67310,43 @@ public class Test2 : Test1<object, int?>
             var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
 
             var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
-            Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M1<S>(S x)", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m2 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M2");
-            Assert.Equal("void Test2.M2<S>(S x) where S : I1", m2.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M2<S>(S x) where S : I1", m2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m2.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m3 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M3");
-            Assert.Equal("void Test2.M3<S>(S x) where S : class", m3.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M3<S>(S x) where S : class", m3.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m3.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m4 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M4");
-            Assert.Equal("void Test2.M4<S>(S x) where S : class?, System.Object", m4.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M4<S>(S x) where S : class?, System.Object", m4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m4.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m5 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M5");
-            Assert.Equal("void Test2.M5<S>(S x) where S : class!", m5.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M5<S>(S x) where S : class!", m5.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.True(m5.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m6 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M6");
-            Assert.Equal("void Test2.M6<S>(S x) where S : notnull", m6.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M6<S>(S x) where S : notnull", m6.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.True(m6.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m7 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M7");
-            Assert.Equal("void Test2.M7<S>(S x)", m7.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M7<S>(S x)", m7.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.False(m7.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m8 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M8");
-            Assert.Equal("void Test2.M8<S>(S x) where S : struct", m8.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M8<S>(S x) where S : struct", m8.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.True(m8.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m9 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M9");
-            Assert.Equal("void Test2.M9<S>(S x) where S : System.Int32", m9.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M9<S>(S x) where S : System.Int32", m9.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.True(m9.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var m10 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M10");
-            Assert.Equal("void Test2.M10<S>(S x) where S : System.Object, System.Int32?", m10.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M10<S>(S x) where S : System.Object, System.Int32?", m10.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m10.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
@@ -67384,7 +67381,7 @@ public class Test2 : Test1<object, int?>
             var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
 
             var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
-            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
@@ -67419,7 +67416,7 @@ public class Test2 : Test1<object, int?>
             var compilation = CreateCompilationWithIL(new[] { "" }, il, options: WithNonNullTypesTrue());
 
             var m1 = (MethodSymbol)compilation.GlobalNamespace.GetMember("Test2.M1");
-            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object, U", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("void Test2.M1<S, U>(S x) where S : System.Object, U", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
@@ -67450,7 +67447,7 @@ public class Test2 : Test1<object>
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : class?, System.Object", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67487,7 +67484,7 @@ object?
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67523,7 +67520,7 @@ object
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67560,7 +67557,7 @@ object
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67596,7 +67593,7 @@ object
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : System.Object!, I1?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67633,7 +67630,7 @@ string?
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67669,7 +67666,7 @@ string
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67706,7 +67703,7 @@ string
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67742,7 +67739,7 @@ string
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67778,7 +67775,7 @@ string?
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String?", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67814,7 +67811,7 @@ string
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -67850,7 +67847,7 @@ string
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
-                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
             }
         }
@@ -68420,7 +68417,7 @@ class B
             void symbolValidator(ModuleSymbol m)
             {
                 var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.M1");
-                Assert.Equal("void B.M1<TM1>(TM1 x) where TM1 : class", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Equal("void B.M1<TM1>(TM1 x) where TM1 : class", m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 TypeParameterSymbol tm1 = m1.TypeParameters[0];
                 Assert.Null(tm1.ReferenceTypeConstraintIsNullable);
                 Assert.Empty(tm1.GetAttributes());
@@ -71139,7 +71136,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 
             var c = comp.GetTypeByMetadataName("C`2");
             Assert.IsAssignableFrom<PENamedTypeSymbol>(c);
-            Assert.Equal("C<T, U> where T : class! where U : T?", c.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+            Assert.Equal("C<T, U> where T : class! where U : T?", c.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
 
             comp.VerifyDiagnostics(
                 // (6,19): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
@@ -73735,7 +73732,7 @@ class A<T> where T :
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : class!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : class!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
             }
         }
 
@@ -73754,7 +73751,7 @@ class A<T> where T :
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : class", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : class", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
         }
 
         [Fact]
@@ -73778,7 +73775,7 @@ class A<T> where T : class
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : class?", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
 
                 comp.VerifyDiagnostics();
             }
@@ -73799,7 +73796,7 @@ class A<T> where T : class
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : class?", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : class?", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
 
             comp.VerifyDiagnostics(
                 // (4,5): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -73831,7 +73828,7 @@ class unmanaged {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var a = comp.GetTypeByMetadataName("A`1");
-                Assert.Equal("A<T> where T : unmanaged!", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+                Assert.Equal("A<T> where T : unmanaged!", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
             }
         }
 
@@ -73852,7 +73849,7 @@ class unmanaged {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var a = comp.GetTypeByMetadataName("A`1");
-            Assert.Equal("A<T> where T : unmanaged", a.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
+            Assert.Equal("A<T> where T : unmanaged", a.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)));
         }
 
         [Fact]
