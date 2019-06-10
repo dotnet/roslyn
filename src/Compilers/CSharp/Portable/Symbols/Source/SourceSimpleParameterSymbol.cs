@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var node = this.GetNonNullSyntaxNode();
-                if (node is ParameterSyntax)
+                if (node is ParameterSyntax param)
                 {
-                    return ((ParameterSyntax)node).ExclamationToken.Kind() == SyntaxKind.ExclamationToken;
+                    return param.ExclamationToken.IsMissing;
                 }
                 return false;
             }
