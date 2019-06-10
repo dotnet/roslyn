@@ -7556,11 +7556,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
-                    // Check for some required well-known members. They may not be needed
-                    // during lowering, but it's simpler to always require them to prevent
-                    // the user from getting surprising errors when optimizations fail
-                    _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_Start, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_End, diagnostics, syntax: syntax);
+                    checkWellKnown(WellKnownMember.System_Range__get_Start);
+                    checkWellKnown(WellKnownMember.System_Range__get_End);
                 }
             }
             else
@@ -7598,11 +7595,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
-                            // Check for some required well-known members. They may not be needed
-                            // during lowering, but it's simpler to always require them to prevent
-                            // the user from getting surprising errors when optimizations fail
-                            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_Start, diagnostics, syntax: syntax);
-                            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__get_End, diagnostics, syntax: syntax);
+                            checkWellKnown(WellKnownMember.System_Range__get_Start);
+                            checkWellKnown(WellKnownMember.System_Range__get_End);
                             break;
                         }
                     }
@@ -7616,10 +7610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
-            // Check for some required well-known members. They may not be needed
-            // during lowering, but it's simpler to always require them to prevent
-            // the user from getting surprising errors when optimizations fail
-            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
+            checkWellKnown(WellKnownMember.System_Index__GetOffset);
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -7631,6 +7622,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isIntNotByRef(ParameterSymbol param)
                 => param.Type.SpecialType == SpecialType.System_Int32 &&
                    param.RefKind == RefKind.None;
+
+            void checkWellKnown(WellKnownMember member)
+            {
+                // Check required well-known member. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                _ = GetWellKnownTypeMember(Compilation, member, diagnostics, syntax: syntax);
+            }
 
             bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)
             {
