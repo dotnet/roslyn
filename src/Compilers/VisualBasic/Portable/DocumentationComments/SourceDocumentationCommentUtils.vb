@@ -10,7 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             preferredCulture As CultureInfo,
             expandIncludes As Boolean,
             ByRef lazyXmlText As String,
-            cancellationToken As CancellationToken) As String
+            cancellationToken As CancellationToken
+        ) As String
 
             If lazyXmlText Is Nothing Then
                 Dim xmlText = GetDocumentationCommentForSymbol(symbol, preferredCulture, expandIncludes, cancellationToken)

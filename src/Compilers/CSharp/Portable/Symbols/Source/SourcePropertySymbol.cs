@@ -1052,14 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (expandIncludes)
-            {
-                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, ref _lazyExpandedDocComment);
-            }
-            else
-            {
-                return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref _lazyDocComment);
-            }
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         // Separate these checks out of FindExplicitlyImplementedProperty because they depend on the accessor symbols,
