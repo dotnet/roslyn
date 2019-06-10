@@ -326,8 +326,12 @@ class C
             comp.VerifyDiagnostics();
 
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            SimpleLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            SimpleLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                    .GetMember<SourceMethodSymbol>("M")
+                                                                    .GetNonNullSyntaxNode()
+                                                                    .DescendantNodes()
+                                                                    .OfType<SimpleLambdaExpressionSyntax>()
+                                                                    .Single();
             var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
@@ -347,10 +351,14 @@ class C
             var tree = Parse(source);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
 
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                           .GetMember<SourceMethodSymbol>("M")
+                                                                           .GetNonNullSyntaxNode()
+                                                                           .DescendantNodes()
+                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
+                                                                           .Single();
             var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
@@ -373,8 +381,12 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Syntax.ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<Syntax.ParenthesizedLambdaExpressionSyntax>().Single();
+            Syntax.ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                                  .GetMember<SourceMethodSymbol>("M")
+                                                                                  .GetNonNullSyntaxNode()
+                                                                                  .DescendantNodes()
+                                                                                  .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
+                                                                                  .Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
@@ -414,8 +426,12 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                           .GetMember<SourceMethodSymbol>("M")
+                                                                           .GetNonNullSyntaxNode()
+                                                                           .DescendantNodes()
+                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
+                                                                           .Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
@@ -437,8 +453,12 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                           .GetMember<SourceMethodSymbol>("M")
+                                                                           .GetNonNullSyntaxNode()
+                                                                           .DescendantNodes()
+                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
+                                                                           .Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
@@ -461,8 +481,12 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                           .GetMember<SourceMethodSymbol>("M")
+                                                           .GetNonNullSyntaxNode()
+                                                           .DescendantNodes()
+                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
+                                                           .Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
@@ -485,8 +509,12 @@ class C
             comp.VerifyDiagnostics();
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single(); ;
+            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
+                                                                           .GetMember<SourceMethodSymbol>("M")
+                                                                           .GetNonNullSyntaxNode()
+                                                                           .DescendantNodes()
+                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
+                                                                           .Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
