@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         internal override bool IsNullChecked
-            => this.CSharpSyntaxNode.ExclamationToken.IsMissing;
+            => !this.CSharpSyntaxNode.ExclamationToken.IsMissing;
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(ParameterWellKnownAttributeData attributeData)
         {

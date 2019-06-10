@@ -159,7 +159,7 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourcePropertySymbol>("this[]");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -190,10 +190,10 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
 
             var m2 = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M2");
-            Debug.Assert(!((SourceParameterSymbol)m2.Parameters[0]).IsNullChecked);
+            Assert.False(((SourceParameterSymbol)m2.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -246,7 +246,7 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -260,7 +260,7 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -274,7 +274,7 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -288,7 +288,7 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>(".ctor");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -305,8 +305,8 @@ class Box
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("Box").GetMember<SourceUserDefinedOperatorSymbol>("op_Addition");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
-            Debug.Assert(!((SourceParameterSymbol)m.Parameters[1]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+            Assert.False(((SourceParameterSymbol)m.Parameters[1]).IsNullChecked);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             SimpleLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
             var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -352,8 +352,8 @@ class C
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Debug.Assert(!((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
         }
 
         [Fact]
@@ -376,7 +376,7 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Syntax.ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<Syntax.ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -417,7 +417,7 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
@@ -440,8 +440,8 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Debug.Assert(!((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.False(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
         }
 
         [Fact]
@@ -464,8 +464,8 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
         }
 
         [Fact]
@@ -488,7 +488,7 @@ class C
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single(); ;
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
-            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
+            Assert.True(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
     }
 }

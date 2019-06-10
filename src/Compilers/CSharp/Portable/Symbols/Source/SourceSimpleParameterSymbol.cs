@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var node = this.GetNonNullSyntaxNode();
                 if (node is ParameterSyntax param)
                 {
-                    return param.ExclamationToken.IsMissing;
+                    return !param.ExclamationToken.IsMissing;
                 }
                 return false;
             }
