@@ -264,48 +264,6 @@ class C
         }
 
         [Fact]
-        public void NullCheckedMethodValidationWithOptionalParameterNoSpaces()
-        {
-            var source = @"
-class C
-{
-    void M(string name!=null) { }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (4,23): error CS8713: Space required between '!' and '=' here.
-                    //     void M(string name!=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
-        }
-
-        [Fact]
-        public void NullCheckedMethodValidationWithOptionalParameterLeadingSpace()
-        {
-            var source = @"
-class C
-{
-    void M(string name !=null) { }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (4,24): error CS8713: Space required between '!' and '=' here.
-                    //     void M(string name !=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 24));
-        }
-
-        [Fact]
-        public void NullCheckedMethodValidationWithOptionalParameterTrailingSpace()
-        {
-            var source = @"
-class C
-{
-    void M(string name!= null) { }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (4,23): error CS8713: Space required between '!' and '=' here.
-                    //     void M(string name!=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
-        }
-
-        [Fact]
         public void NullCheckedMethodValidationWithOptionalParameterSplitBySpace()
         {
             var source = @"
@@ -317,36 +275,6 @@ class C
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
             Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
-        }
-
-        [Fact]
-        public void NullCheckedParameterWithLeadingNewLine()
-        {
-            var source = @"
-class C
-{
-    void M(string name
-!=null) { }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (5,1): error CS8713: Space required between '!' and '=' here.
-                    // !=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(5, 1));
-        }
-
-        [Fact]
-        public void NullCheckedParameterWithTrailingNewLine()
-        {
-            var source = @"
-class C
-{
-    void M(string name!=
-null) { }
-}";
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (4,23): error CS8713: Space required between '!' and '=' here.
-                    //     void M(string name!=
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(4, 23));
         }
 
         [Fact]
