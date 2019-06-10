@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Partial Friend Class ModernCompletionTestState
         Inherits TestStateBase
 
+        Private Const timeoutMs = 10000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 includeFormatCommandHandler,
                 workspaceKind:=workspaceKind)
 
-            Me.CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
+            CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
@@ -307,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
-            Return DirectCast(item.Properties(RoslynItem), CompletionItem)
+            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
         End Function
 
         Public Overrides Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)
@@ -348,6 +349,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Public Overrides Async Function WaitForUIRenderedAsync() As Task
+            Dim tcs = New TaskCompletionSource(Of Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(TextView), MockCompletionPresenter)
+            Dim uiUpdated As EventHandler(Of Data.CompletionItemSelectedEventArgs)
+
+            uiUpdated = Sub()
+                            RemoveHandler presenter.UiUpdated, uiUpdated
+                            tcs.TrySetResult(True)
+                        End Sub
+
+            AddHandler presenter.UiUpdated, uiUpdated
+            Dim ct = New CancellationTokenSource(timeoutMs)
+            ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
+
+            Await tcs.Task.ConfigureAwait(True)
+        End Function
 
 #End Region
     End Class

@@ -257,6 +257,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
+        Public MustOverride Function WaitForUIRenderedAsync() As Task
+
 #End Region
 
 #Region "Signature Help Operations"
