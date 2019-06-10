@@ -1613,5 +1613,321 @@ Block[B1] - Exit
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn1()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static ref int Method()
+    {
+        /*<bind>*/return ref _value;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null) (Syntax: 'return ref _value;')
+  ReturnedValue: 
+    IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+      Instance Receiver: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn2()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static ref int Method()
+        /*<bind>*/=> ref _value/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> ref _value')
+  IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+        Instance Receiver: 
+          null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn3()
+        {
+            string source = @"
+class C
+{
+    private static readonly int _value;
+    static ref int Method()
+    {
+        /*<bind>*/return ref _value;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return ref _value;')
+  ReturnedValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '_value')
+      Children(1):
+          IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '_value')
+            Instance Receiver: 
+              null
+";
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(7,30): error CS8161: A static readonly field cannot be returned by writable reference
+                //         /*<bind>*/return ref _value;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "_value").WithLocation(7, 30)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn4()
+        {
+            string source = @"
+class C
+{
+    private static readonly int _value;
+    static ref int Method()
+        /*<bind>*/=> ref _value/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> ref _value')
+  IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '_value')
+        Children(1):
+            IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '_value')
+              Instance Receiver: 
+                null
+";
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,26): error CS8161: A static readonly field cannot be returned by writable reference
+                //         /*<bind>*/=> ref _value/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "_value").WithLocation(6, 26),
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn5()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static ref int Method()
+        /*<bind>*/=> _value/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> _value')
+  IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '_value')
+        Instance Receiver: 
+          null
+";
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(4,24): warning CS0649: Field 'C._value' is never assigned to, and will always have its default value 0
+                //     private static int _value;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_value").WithArguments("C._value", "0").WithLocation(4, 24),
+                // file.cs(6,22): error CS8150: By-value returns may only be used in methods that return by value
+                //         /*<bind>*/=> _value/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "_value").WithLocation(6, 22),
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn6()
+        {
+            string source = @"
+class C
+{
+    static ref int Method()
+    {
+        /*<bind>*/return;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return;')
+  ReturnedValue: 
+    null
+";
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,19): error CS8150: By-value returns may only be used in methods that return by value
+                //         /*<bind>*/return;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 19),
+                // file.cs(6,19): error CS0126: An object of a type convertible to 'int' is required
+                //         /*<bind>*/return;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 19),
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn7()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static ref int Property
+        /*<bind>*/=> ref _value/*</bind>*/;
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> ref _value')
+  IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+        Instance Receiver: 
+          null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn8()
+        {
+            string source = @"
+class C
+{
+    private int _value;
+    int Method()
+    {
+        return LocalFunction();
+
+        ref int LocalFunction()
+        {
+            /*<bind>*/return ref _value;/*</bind>*/
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null) (Syntax: 'return ref _value;')
+  ReturnedValue: 
+    IFieldReferenceOperation: System.Int32 C._value (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+      Instance Receiver: 
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_value')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn9()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static int Method()
+    {
+        return LocalFunction();
+
+        static ref int LocalFunction()
+        {
+            /*<bind>*/return ref _value;/*</bind>*/
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null) (Syntax: 'return ref _value;')
+  ReturnedValue: 
+    IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+      Instance Receiver: 
+        null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn10()
+        {
+            string source = @"
+class C
+{
+    private int _value;
+    int Method()
+    {
+        return LocalFunction();
+
+        ref int LocalFunction()
+            /*<bind>*/=> ref _value/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> ref _value')
+  IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IFieldReferenceOperation: System.Int32 C._value (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_value')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void RefReturn11()
+        {
+            string source = @"
+class C
+{
+    private static int _value;
+    static int Method()
+    {
+        return LocalFunction();
+
+        static ref int LocalFunction()
+            /*<bind>*/=> ref _value/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> ref _value')
+  IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsImplicit) (Syntax: '_value')
+    ReturnedValue: 
+      IFieldReferenceOperation: System.Int32 C._value (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_value')
+        Instance Receiver: 
+          null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
