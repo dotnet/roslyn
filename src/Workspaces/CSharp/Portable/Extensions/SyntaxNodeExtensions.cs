@@ -572,44 +572,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode member)
         {
-            if (member != null)
+            switch (member)
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.EnumDeclaration:
-                        return ((EnumDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        return ((TypeDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.FieldDeclaration:
-                        return ((FieldDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.EventFieldDeclaration:
-                        return ((EventFieldDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).Modifiers;
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)member).Modifiers;
-                }
+                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
+                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
             }
 
             return default;
@@ -617,44 +583,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxNode WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)
         {
-            if (member != null)
+            switch (member)
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.EnumDeclaration:
-                        return ((EnumDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        return ((TypeDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.FieldDeclaration:
-                        return ((FieldDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.EventFieldDeclaration:
-                        return ((EventFieldDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.PropertyDeclaration:
-                        return ((PropertyDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.EventDeclaration:
-                        return ((EventDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).WithModifiers(modifiers);
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)member).WithModifiers(modifiers);
-                }
+                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
+                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
             }
 
             return null;
