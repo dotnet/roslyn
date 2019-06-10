@@ -216,15 +216,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var newDeclaration = newRoot.GetAnnotatedNodes<SyntaxNode>(declarationAnnotation).First();
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
-            var fieldType = field.GetSymbolType();
-            var fieldNullability = fieldType.GetNullability();
-
             var generatedProperty = GenerateProperty(
                                         generatedPropertyName,
                                         finalFieldName,
                                         originalField.DeclaredAccessibility,
                                         originalField,
-                                        fieldType.WithNullability(fieldNullability),
+                                        field.GetSymbolType(),
                                         field.ContainingType,
                                         new SyntaxAnnotation(),
                                         document,
