@@ -231,12 +231,27 @@ class C
         }
 
         [Fact]
-        public void NullCheckedMethodValidationWithOptionalParameter()
+        public void NullCheckedMethodValidationWithOptionalNullParameter()
         {
+            // PROTOTYPE : Make it an error for the default parameter to be set to null with a null-checked value.
             var source = @"
 class C
 {
     void M(string name! = null) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
+        }
+
+        [Fact]
+        public void NullCheckedMethodValidationWithOptionalStringLiteralParameter()
+        {
+            var source = @"
+class C
+{
+    void M(string name! = ""rose"") { }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
