@@ -54,15 +54,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
+        Public ReadOnly Property ThreadingContext As IThreadingContext
+        Public ReadOnly Property ServiceProvider As MockServiceProvider
+        Public ReadOnly Property ExportProvider As Composition.ExportProvider
+
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
             ExportProvider = s_exportProviderFactory.Value.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
 
-            Dim mockServiceProvider As MockServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
-            mockServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            ServiceProvider = mockServiceProvider
+            ServiceProvider = ExportProvider.GetExportedValue(Of MockServiceProvider)()
+            ServiceProvider.MockMonitorSelection = New MockShellMonitorSelection(solutionIsFullyLoaded)
         End Sub
 
         Public ReadOnly Property ProjectFactory As VisualStudioProjectFactory
@@ -103,11 +106,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
-
-        Public ReadOnly Property ThreadingContext As IThreadingContext
-        Public ReadOnly Property ServiceProvider As IServiceProvider
-        Public ReadOnly Property ExportProvider As Composition.ExportProvider
-
         Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
             Get
                 Return _workspace
@@ -133,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function CreateHierarchy(projectName As String, projectBinPath As String, projectRefPath As String, projectCapabilities As String) As IVsHierarchy
-            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities)
+            Return New MockHierarchy(projectName, CreateProjectFile(projectName), projectBinPath, projectRefPath, projectCapabilities, Guid.NewGuid())
         End Function
 
         Public Function GetUpdatedCompilationOptionOfSingleProject() As CompilationOptions
@@ -143,7 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <PartNotDiscoverable>
         <Export>
         <Export(GetType(SVsServiceProvider))>
-        Private Class MockServiceProvider
+        Public Class MockServiceProvider
             Implements System.IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
             Implements Shell.IAsyncServiceProvider
@@ -152,19 +150,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
 
             Public MockMonitorSelection As IVsMonitorSelection
+            Public VsSolutionMock As MockVsSolution
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 _exportProvider = exportProvider
+                VsSolutionMock = New MockVsSolution()
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
                 Select Case serviceType
                     Case GetType(SVsSolution)
-                        ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
-                        Return solutionMock.Object
+                        Return VsSolutionMock
 
                     Case GetType(SComponentModel)
                         Return GetComponentModelMock()
@@ -180,6 +178,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
                     Case GetType(SVsFileChangeEx)
                         Return _fileChangeEx
+
+                    Case GetType(SVsRunningDocumentTable)
+                        Dim rdtMock As New Mock(Of IVsRunningDocumentTable4)(MockBehavior.Loose)
+                        Return rdtMock.Object
 
                     Case Else
                         Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")

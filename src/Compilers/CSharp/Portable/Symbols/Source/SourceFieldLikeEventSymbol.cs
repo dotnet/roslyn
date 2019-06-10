@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
         private readonly SourceEventFieldSymbol _associatedField;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
+        private readonly SynthesizedEventAccessorSymbol _addMethod;
+        private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {

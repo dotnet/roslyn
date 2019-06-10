@@ -170,20 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool SpansPreprocessorDirective<TSyntaxNode>(
-            this IEnumerable<TSyntaxNode> list)
-            where TSyntaxNode : SyntaxNode
-        {
-            if (list == null || list.IsEmpty())
-            {
-                return false;
-            }
-
-            var tokens = list.SelectMany(n => n.DescendantTokens());
-
-            // todo: we need to dive into trivia here.
-            return tokens.SpansPreprocessorDirective();
-        }
+        public static bool SpansPreprocessorDirective<TSyntaxNode>(this IEnumerable<TSyntaxNode> list) where TSyntaxNode : SyntaxNode
+            => CSharpSyntaxFactsService.Instance.SpansPreprocessorDirective(list);
 
         public static TNode ConvertToSingleLine<TNode>(this TNode node, bool useElasticTrivia = false)
             where TNode : SyntaxNode

@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,18 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
         }
 
-        public async Task OnDownloadFullDatabaseStartedAsync(string title)
+        public async Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
         {
             try
             {
-                await OnDownloadFullDatabaseStartedWorkerAsync(title).ConfigureAwait(false);
+                await OnDownloadFullDatabaseStartedWorkerAsync(title, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
             }
         }
 
-        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title)
+        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title, CancellationToken cancellationToken)
         {
             var options = GetOptions(title);
             var data = new TaskProgressData
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return options;
         }
 
-        public Task OnDownloadFullDatabaseSucceededAsync()
+        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellation)
         {
             lock (_gate)
             {
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        public Task OnDownloadFullDatabaseCanceledAsync()
+        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message)
+        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
         {
             lock (_gate)
             {

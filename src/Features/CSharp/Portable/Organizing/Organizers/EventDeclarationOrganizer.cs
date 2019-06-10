@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                 syntax.Type,
                 syntax.ExplicitInterfaceSpecifier,
                 syntax.Identifier,
-                syntax.AccessorList);
+                syntax.AccessorList,
+                syntax.SemicolonToken);
         }
     }
 }

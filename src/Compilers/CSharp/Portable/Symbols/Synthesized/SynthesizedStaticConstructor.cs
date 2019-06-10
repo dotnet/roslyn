@@ -136,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get

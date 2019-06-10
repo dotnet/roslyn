@@ -130,12 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return new LinePositionSpan(position2, position1);
         }
 
-        private static LinePosition Max(LinePosition position1, LinePosition position2)
-        {
-            return position1 > position2 ? position1 : position2;
-        }
-
-        public static LinePosition GetAdjustedLineColumn(Microsoft.CodeAnalysis.Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
+        public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)

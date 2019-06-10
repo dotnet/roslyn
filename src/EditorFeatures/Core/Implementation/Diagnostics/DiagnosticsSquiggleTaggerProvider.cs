@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
-        private bool? _blueSquiggleForBuildDiagnostic;
-
 #pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
 #pragma warning restore RS0033 // Importing constructor should be [Obsolete]
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
-            var isUnnecessary = (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+            var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
             return
                 (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
@@ -79,34 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             return GetErrorTypeFromDiagnosticTags(diagnostic) ??
-                   GetErrorTypeFromDiagnosticProperty(diagnostic) ??
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
-        }
-
-        private string GetErrorTypeFromDiagnosticProperty(DiagnosticData diagnostic)
-        {
-            if (diagnostic.Properties.Count == 0)
-            {
-                return null;
-            }
-
-            if (diagnostic.IsBuildDiagnostic() && UseBlueSquiggleForBuildDiagnostics(diagnostic))
-            {
-                return PredefinedErrorTypeNames.CompilerError;
-            }
-
-            return null;
-        }
-
-        private bool UseBlueSquiggleForBuildDiagnostics(DiagnosticData data)
-        {
-            if (_blueSquiggleForBuildDiagnostic == null)
-            {
-                var optionService = data.Workspace.Services.GetService<IOptionService>();
-                _blueSquiggleForBuildDiagnostic = optionService.GetOption(InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic);
-            }
-
-            return _blueSquiggleForBuildDiagnostic.Value;
         }
 
         private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)

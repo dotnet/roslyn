@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { throw ExceptionUtilities.Unreachable; }

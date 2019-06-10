@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic,
             InternalDiagnosticsOptions.CompilationEndCodeFix,
             InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic,
             InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles,

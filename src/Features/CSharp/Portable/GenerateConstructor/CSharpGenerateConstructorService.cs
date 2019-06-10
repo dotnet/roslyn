@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
+            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(

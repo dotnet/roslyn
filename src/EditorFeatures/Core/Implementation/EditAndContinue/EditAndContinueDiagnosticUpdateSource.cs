@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             var documentIds = PooledHashSet<DocumentId>.GetInstance();
             var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
             var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var project = solution.GetProject(projectId);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
                 else if (updateEvent != null)
                 {
-                    projectDiagnosticData.Add(DiagnosticData.Create(project, diagnostic));
+                    projectDiagnosticData.Add(DiagnosticData.Create(solution.Workspace, diagnostic, projectId));
                 }
             }
 
