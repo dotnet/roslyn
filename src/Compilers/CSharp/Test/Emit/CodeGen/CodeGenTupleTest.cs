@@ -15969,6 +15969,44 @@ class C
         }
 
         [Fact]
+        [WorkItem(36185, "https://github.com/dotnet/roslyn/issues/36185")]
+        public void GetTypeInfo_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M((1, ""hello""));
+        M((2, null));
+    }
+    public static void M((short, string) x) { }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var n1 = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"(1, ""hello"")", n1.ToString());
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(n1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n1).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n1).Kind);
+
+            var n2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+
+            Assert.Equal(@"(2, null)", n2.ToString());
+            Assert.Null(model.GetTypeInfo(n2).Type);
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n2).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n2).Kind);
+        }
+
+        [Fact]
         [WorkItem(14600, "https://github.com/dotnet/roslyn/issues/14600")]
         public void GetSymbolInfo_01()
         {

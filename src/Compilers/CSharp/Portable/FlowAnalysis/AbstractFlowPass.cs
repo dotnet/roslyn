@@ -957,8 +957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
-            Visit(node.Left);
-            Visit(node.Right);
+            Visit(node.ConvertedLeft);
+            Visit(node.ConvertedRight);
             return null;
         }
 

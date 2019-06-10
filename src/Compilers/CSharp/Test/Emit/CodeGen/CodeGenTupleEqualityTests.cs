@@ -331,21 +331,30 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
-  // Code size       32 (0x20)
+// Code size       38 (0x26)
   .maxstack  3
+  .locals init (int V_0,
+                byte V_1,
+                byte V_2)
   IL_0000:  ldstr      ""{0} ""
   IL_0005:  ldarg.0
-  IL_0006:  ldarg.1
-  IL_0007:  bne.un.s   IL_000f
-  IL_0009:  ldarg.0
+  IL_0006:  ldarg.0
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.1
+  IL_0009:  stloc.1
   IL_000a:  ldarg.1
-  IL_000b:  ceq
-  IL_000d:  br.s       IL_0010
-  IL_000f:  ldc.i4.0
-  IL_0010:  box        ""bool""
-  IL_0015:  call       ""string string.Format(string, object)""
-  IL_001a:  call       ""void System.Console.Write(string)""
-  IL_001f:  ret
+  IL_000b:  stloc.2
+  IL_000c:  ldloc.1
+  IL_000d:  bne.un.s   IL_0015
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.2
+  IL_0011:  ceq
+  IL_0013:  br.s       IL_0016
+  IL_0015:  ldc.i4.0
+  IL_0016:  box        ""bool""
+  IL_001b:  call       ""string string.Format(string, object)""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  ret
 }");
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -847,7 +856,7 @@ class C
         }
 
         [Fact]
-        public void TestSimpleTupleAndTupleType()
+        public void TestSimpleTupleAndTupleType_01()
         {
             var source = @"
 class C
@@ -883,14 +892,63 @@ class C
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int64)", tupleType.ConvertedType.ToTestDisplayString());
-            // PROTOTYPE(ngafter): Why is this not ConversionKind.ImplicitTupleLiteral below?
-            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(tuple).Kind);
 
             var two = tuple.Arguments[1].Expression;
+            Assert.Equal("2", two.ToString());
+
             var twoType = model.GetTypeInfo(two);
             Assert.Equal("System.Int32", twoType.Type.ToTestDisplayString());
             Assert.Equal("System.Int64", twoType.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitNumeric, model.GetConversion(two).Kind);
+        }
+
+        [Fact]
+        public void TestSimpleTupleAndTupleType_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t1 = (1, 2UL);
+        System.Console.Write(t1 == (1L, 2));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+
+            // check t1
+            var t1 = equals.Left;
+            Assert.Equal("t1", t1.ToString());
+
+            var t1TypeInfo = model.GetTypeInfo(t1);
+            Assert.Equal("(System.Int32, System.UInt64)", t1TypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.UInt64)", t1TypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t1).Kind);
+
+            // check tuple and its literal 2
+            var tuple = (TupleExpressionSyntax)equals.Right;
+            Assert.Equal("(1L, 2)", tuple.ToString());
+
+            var tupleType = model.GetTypeInfo(tuple);
+            Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.UInt64)", tupleType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(tuple).Kind);
+
+            var two = tuple.Arguments[1].Expression;
+            Assert.Equal("2", two.ToString());
+
+            var twoType = model.GetTypeInfo(two);
+            Assert.Equal("System.Int32", twoType.Type.ToTestDisplayString());
+            Assert.Equal("System.UInt64", twoType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitConstant, model.GetConversion(two).Kind);
         }
 
         [Fact]

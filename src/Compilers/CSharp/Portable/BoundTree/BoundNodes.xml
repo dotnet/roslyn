@@ -1521,7 +1521,7 @@
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
+  Once converted to a target type, they cannot be target-typed again.
   The tuple literal is one which has not been converted to a target type.
   -->
   <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
@@ -1535,14 +1535,14 @@
 
   <!-- 
   Tuple literals can convert to the target type.
-  Once converted to a target type, they cannot be target-typed again. 
-  The Converted tuple literal is one which has been already converted to a target type.
+  Once converted to a target type, they cannot be target-typed again.
+  The Converted tuple literal is one which has already been converted to a target type.
   Converted tuple literal always has a type.
   -->
   <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
     <!-- It is possible for a converted tuple not to have a type in a tuple equality. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
-    <!-- Natural type is preserved for the purpose of semantic model. Can be null -->
+    <!-- Natural type is preserved for the purpose of semantic model. Can be null. -->
     <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
   </Node>
 

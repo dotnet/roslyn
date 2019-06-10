@@ -427,7 +427,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int compoundStringLength = 0;
 
             BoundExpression result = BindExpression(current, diagnostics);
-            result = BindToNaturalType(result, diagnostics);
 
             if (node.IsKind(SyntaxKind.SubtractExpression)
                 && current.IsKind(SyntaxKind.ParenthesizedExpression))
@@ -455,7 +454,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
-                right = BindToNaturalType(right, diagnostics);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
                 result = boundOp;
             }
