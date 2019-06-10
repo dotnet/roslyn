@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return DecodeFlowAnalysisAttributes(GetDecodedWellKnownAttributeData());
             }
         }
-        public override bool IsNullChecked
+        internal override bool IsNullChecked
             => this.CSharpSyntaxNode.ExclamationToken.IsMissing;
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(ParameterWellKnownAttributeData attributeData)

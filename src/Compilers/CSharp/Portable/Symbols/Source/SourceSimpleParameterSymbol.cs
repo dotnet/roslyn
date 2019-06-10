@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override bool IsNullChecked
+        internal override bool IsNullChecked
         {
             get
             {
