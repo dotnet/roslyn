@@ -185,11 +185,15 @@ class C
 class C
 {
     void M(string name!) { }
+    void M2(string x) { }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked;
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked);
+
+            var m2 = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M2");
+            Debug.Assert(!((SourceParameterSymbol)m2.Parameters[0]).IsNullChecked);
         }
 
         [Fact]
