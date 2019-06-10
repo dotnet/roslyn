@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Value to be returned.
         /// </summary>
         IOperation ReturnedValue { get; }
+
+        /// <summary>
+        /// The ref-kind of the returned value.
+        /// </summary>
+        RefKind RefKind { get; }
     }
 }
 

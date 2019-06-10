@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.ExpressionOpt);
 
             // byref return is also a potential write
-            if (node.RefKind != RefKind.None)
+            if (node.RefKind != RefKind.None && node.ExpressionOpt is object)
             {
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }

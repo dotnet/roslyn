@@ -2609,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, arg, hasErrors: true);
+                return new BoundReturnStatement(syntax, sigRefKind, arg, hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -2676,7 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg);
+            return new BoundReturnStatement(syntax, sigRefKind, arg);
         }
 
         internal BoundExpression CreateReturnConversion(

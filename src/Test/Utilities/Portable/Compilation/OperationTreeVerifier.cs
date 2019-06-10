@@ -665,6 +665,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitReturn(IReturnOperation operation)
         {
             LogString(nameof(IReturnOperation));
+
+            if (operation.RefKind != RefKind.None)
+            {
+                LogString(" (RefKind: ");
+                if (operation.RefKind == RefKind.RefReadOnly)
+                {
+                    // Ensure this renders as 'RefReadOnly' instead of 'In' for return values
+                    LogString(nameof(RefKind.RefReadOnly));
+                }
+                else
+                {
+                    LogString(operation.RefKind.ToString());
+                }
+
+                LogString(")");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.ReturnedValue, "ReturnedValue");

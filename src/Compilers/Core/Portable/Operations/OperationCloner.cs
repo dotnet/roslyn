@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitReturn(IReturnOperation operation, object argument)
         {
-            return new ReturnOperation(operation.Kind, Visit(operation.ReturnedValue), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ReturnOperation(operation.Kind, Visit(operation.ReturnedValue), operation.RefKind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLock(ILockOperation operation, object argument)

@@ -221,7 +221,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
                   ILocalReferenceOperation: ry (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'ry')
                 Right: 
                   IParameterReferenceOperation: rx (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'rx')
-  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return ref  ...  = ref rx);')
+  IReturnOperation (RefKind: RefReadOnly) (OperationKind.Return, Type: null) (Syntax: 'return ref  ...  = ref rx);')
     ReturnedValue: 
       ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'ry = ref rx')
         Left: 

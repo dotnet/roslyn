@@ -1277,7 +1277,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundReturnStatement.WasCompilerGenerated OrElse IsEndSubOrFunctionStatement(syntax)
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VisualBasicLazyReturnOperation(Me, returnedValue, RefKind.None, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Shared Function IsEndSubOrFunctionStatement(syntax As SyntaxNode) As Boolean
@@ -1330,7 +1330,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundYieldStatement.WasCompilerGenerated
-            Return New VisualBasicLazyReturnOperation(Me, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New VisualBasicLazyReturnOperation(Me, returnedValue, RefKind.None, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledOperation
