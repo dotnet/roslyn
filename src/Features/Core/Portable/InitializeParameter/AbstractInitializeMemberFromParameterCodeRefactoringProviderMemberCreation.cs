@@ -9,13 +9,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -61,11 +58,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // if we can't.
 
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
-            var parameterNameMinusPrefixAndSuffix = NamingStyle.GetBaseName(parameter, rules);
-            var parameterWordParts = GetParameterWordParts(parameterNameMinusPrefixAndSuffix);
+            var parameterNameParts = IdentifierNameParts.GetIdentifierBaseName(parameter, rules);
 
             var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync(
-                document, parameter, blockStatementOpt, rules, parameterWordParts, cancellationToken).ConfigureAwait(false);
+                document, parameter, blockStatementOpt, rules, parameterNameParts.BaseNameParts, cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty != null)
             {
@@ -92,8 +88,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
 
-                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterWordParts);
-                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterWordParts);
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts.BaseNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -470,29 +466,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Get the individual words in the parameter base name.  This way we can generate 
-        /// appropriate field/property names based on the user's preference.
-        /// </summary>
-        private ImmutableArray<string> GetParameterWordParts(string parameterBaseName)
-        {
-            var parts = StringBreaker.GetWordParts(parameterBaseName);
-            var result = CreateWords(parts, parameterBaseName);
-            parts.Free();
-            return result;
-        }
-
-        private ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
-        {
-            var result = ArrayBuilder<string>.GetInstance(parts.Count);
-            foreach (var part in parts)
-            {
-                result.Add(name.Substring(part.Start, part.Length));
-            }
-
-            return result.ToImmutableAndFree();
         }
     }
 }

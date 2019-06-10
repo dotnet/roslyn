@@ -346,35 +346,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return FinishFixingName(name);
         }
 
-        internal static string GetBaseName(ISymbol symbol, ImmutableArray<NamingRule> rules)
-        {
-            var baseName = symbol.Name;
-
-            foreach (var rule in rules)
-            {
-                if (rule.SymbolSpecification.AppliesTo(symbol))
-                {
-                    // remove specified prefix
-                    var prefix = rule.NamingStyle.Prefix;
-                    baseName = baseName.StartsWith(prefix) ?
-                        baseName.Substring(prefix.Length) :
-                        baseName;
-
-                    // remove specified suffix
-                    var suffix = rule.NamingStyle.Suffix;
-                    baseName = symbol.Name.EndsWith(suffix) ?
-                        baseName.Substring(0, baseName.Length - suffix.Length) :
-                        baseName;
-
-                    break;
-                }
-            }
-
-            // remove any common prefixes
-            return StripCommonPrefixes(baseName, out var _);
-        }
-
-        private static string StripCommonPrefixes(string name, out string prefix)
+        public static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)

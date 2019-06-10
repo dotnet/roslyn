@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 Document document,
                 CancellationToken cancellationToken)
             {
-                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers);
+                var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
+                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers, rules);
                 var applicableConstructors = ArrayBuilder<ConstructorCandidate>.GetInstance();
 
                 foreach (var constructor in containingType.InstanceConstructors)

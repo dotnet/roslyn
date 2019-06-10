@@ -6,9 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -106,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => property.Parameters.IsEmpty;
 
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
-            ImmutableArray<ISymbol> selectedMembers)
+            ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
             var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
@@ -116,12 +119,16 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     ? ((IFieldSymbol)symbol).Type
                     : ((IPropertySymbol)symbol).Type;
 
+                var identifierNameParts = IdentifierNameParts.GetIdentifierBaseName(symbol, rules);
+                var parameterNamingRule = rules.Where(rule => rule.SymbolSpecification.AppliesTo(SymbolKind.Parameter, Accessibility.NotApplicable)).First();
+                var parameterName = parameterNamingRule.NamingStyle.MakeCompliant(identifierNameParts.BaseName).First();
+
                 parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
+                    name: parameterName));
             }
 
             return parameters.ToImmutableAndFree();

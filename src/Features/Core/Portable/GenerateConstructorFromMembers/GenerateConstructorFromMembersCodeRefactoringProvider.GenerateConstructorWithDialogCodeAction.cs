@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
-                var state = State.TryGenerate(
+                var state = await State.TryGenerateAsync(
                     _service, _document, _textSpan, _containingType,
-                    result.Members, cancellationToken);
+                    result.Members, cancellationToken).ConfigureAwait(false);
 
                 // There was an existing constructor that matched what the user wants to create.
                 // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
