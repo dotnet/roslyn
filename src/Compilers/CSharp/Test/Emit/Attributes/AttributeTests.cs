@@ -5479,6 +5479,26 @@ class Goo<T>
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
 
+        [Fact]
+        public void AttributeContainsGenericWithGenericAttributeFeature()
+        {
+            string source = @"
+[Goo<int>]
+class G
+{
+}
+class Goo<T>
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
+        }
+
         /// <summary>
         /// Bug 7620: System.Nullreference Exception throws while the value of  parameter  AttributeUsage Is Null
         /// </summary>
@@ -7101,6 +7121,36 @@ public class Test
         }
 
         [Fact]
+        public void OpenGenericTypeInAttributeWithGenericAttributeFeature()
+        {
+            var source =
+@"
+class Gen<T> {}
+class Gen2<T>: System.Attribute {}
+	
+[Gen]
+[Gen2]
+public class Test
+{
+	public static int Main()
+	{
+		return 1;
+	}
+}";
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (5,2): error CS0404: error CS0616: 'Gen<T>' is not an attribute class
+                // [Gen]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>"),
+                // (6,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                // [Gen2]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1"));
+        }
+
+        [Fact]
         public void GenericAttributeTypeFromILSource()
         {
             var ilSource = @"
@@ -7127,6 +7177,35 @@ public class Test
                 // (3,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
                 // [Gen2]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
+        }
+
+        [Fact]
+        public void GenericAttributeTypeFromILSourceWithGenericAttribute()
+        {
+            var ilSource = @"
+.class public Gen<T> { }
+.class public Gen2<T> extends [mscorlib] System.Attribute { }
+";
+            var csharpSource = @"
+[Gen]
+[Gen2]
+public class Test
+{
+	public static int Main()
+	{
+		return 1;
+	}
+}";
+
+            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0404: error CS0616: 'Gen<T>' is not an attribute class
+                // [Gen]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>"),
+                // (3,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                // [Gen2]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1"));
         }
 
         [WorkItem(544230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544230")]
@@ -8042,6 +8121,68 @@ public class C<T, U> : Attribute
                 // (26,24): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
                 // public class C<T, U> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
+        }
+
+        [Fact]
+        public void GenericAttributeTypeWithGenericAttributeFeature()
+        {
+            var source = @"
+using System;
+
+[A<>]
+[A<int>]
+[B]
+[B<>]
+[B<int>]
+[C]
+[C<>]
+[C<int>]
+[C<,>]
+[C<int, int>]
+class Test
+{
+}
+
+public class A : Attribute
+{
+}
+
+public class B<T> : Attribute
+{
+}
+
+public class C<T, U> : Attribute
+{
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<>]
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type"),
+                // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type"),
+
+                // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
+                // [B]
+                Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1"),
+                // (7,2): error CS7003: Unexpected use of an unbound generic name
+                // [B<>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>"),
+                // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
+                // [C]
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "1"),
+                // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "1"),
+                // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
+                // [C<int>]
+                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "1"),
+                // (12,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<,>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>"));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
