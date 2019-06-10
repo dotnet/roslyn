@@ -35,12 +35,12 @@ namespace System.Runtime.CompilerServices
     public sealed class NullableAttribute : Attribute
     {
         public readonly byte[] NullableFlags;
-    
-        public NullableAttribute(byte b) 
+
+        public NullableAttribute(byte b)
         {
             NullableFlags = new byte[] { b };
         }
-        
+
         public NullableAttribute(byte[] b)
         {
             NullableFlags = b;
@@ -52,14 +52,14 @@ namespace System.Runtime.CompilerServices
 Each type reference is accompanied by a NullableAttribute with an array of bytes, where 0 is Oblivious, 1 is NotAnnotated and 2 is Annotated.
 All value types are marked with flag 0 (oblivious).
 
-To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.  
+To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.
 
 Trivial/optimized cases:
 1)	All parts are NotAnnotated – a NullableAttribute with a single value 1 (rather than an array of 1s)
 2)	All parts are Annotated - a NullableAttribute with a single value 2 (rather than an array of 2s)
 3)	All parts are Oblivious – the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
     For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
-    but compiler will never emit an attribute like this. 
+    but compiler will never emit an attribute like this.
 
 NullableAttribute(1) should be placed on a type parameter definition that has a `notnull` constraint.
 NullableAttribute(1) should be placed on a type parameter definition that has a `class!` constraint.
@@ -103,9 +103,11 @@ A number of null checks affect the flow state when tested for:
 - `is` operator: `x is null`, `x is K` (where `K` is a constant), `x is string`, `x is string s`
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
-- `[NotNullWhenTrue]` (e.g. `TryGetValue`) and `[NotNullWhenFalse]` (e.g. `string.IsNullOrEmpty`)
-- `[EnsuresNotNull]` (e.g. `ThrowIfNull`)
+- simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
+- simple post-conditions: `[MaybeNull]` and `[NotNull]`
+- conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
+See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.

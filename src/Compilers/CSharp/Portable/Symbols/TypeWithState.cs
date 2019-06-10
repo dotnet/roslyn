@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
 
+        public TypeWithState WithSuppression(bool suppress) => suppress ? new TypeWithState(Type, NullableFlowState.NotNull) : this;
+
         public TypeWithAnnotations ToTypeWithAnnotations()
         {
             NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
