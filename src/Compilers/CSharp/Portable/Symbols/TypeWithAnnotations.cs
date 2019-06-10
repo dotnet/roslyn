@@ -333,11 +333,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return AnnotationsMatch(other, comparison, isValueTypeOverrideOpt);
-        }
-
-        internal bool AnnotationsMatch(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
-        {
             var thisAnnotation = NullableAnnotation;
             var otherAnnotation = other.NullableAnnotation;
 

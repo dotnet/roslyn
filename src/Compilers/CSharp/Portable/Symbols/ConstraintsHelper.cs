@@ -1230,7 +1230,7 @@ hasRelatedInterfaces:
                 conversions.HasBoxingConversion(deducedBase, effectiveBase, ref useSiteDiagnostics));
         }
 
-        internal static TypeWithAnnotations MergeTopLevelNullabilityForConstraint(TypeWithAnnotations type1, TypeWithAnnotations type2)
+        internal static TypeWithAnnotations ConstraintWithMostSignificantNullability(TypeWithAnnotations type1, TypeWithAnnotations type2)
         {
             switch (type2.NullableAnnotation)
             {
@@ -1250,7 +1250,7 @@ hasRelatedInterfaces:
             }
         }
 
-        internal static bool IsObjectConstraint(TypeWithAnnotations type, ref TypeWithAnnotations possiblySignificantObjectConstraint)
+        internal static bool IsObjectConstraint(TypeWithAnnotations type, ref TypeWithAnnotations bestObjectConstraint)
         {
             if (type.SpecialType == SpecialType.System_Object)
             {
@@ -1259,13 +1259,13 @@ hasRelatedInterfaces:
                     case NullableAnnotation.Annotated:
                         break;
                     default:
-                        if (!possiblySignificantObjectConstraint.HasType)
+                        if (!bestObjectConstraint.HasType)
                         {
-                            possiblySignificantObjectConstraint = type;
+                            bestObjectConstraint = type;
                         }
                         else
                         {
-                            possiblySignificantObjectConstraint = MergeTopLevelNullabilityForConstraint(possiblySignificantObjectConstraint, type);
+                            bestObjectConstraint = ConstraintWithMostSignificantNullability(bestObjectConstraint, type);
                         }
                         break;
                 }

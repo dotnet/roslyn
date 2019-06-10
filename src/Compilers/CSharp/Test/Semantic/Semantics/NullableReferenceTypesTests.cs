@@ -67602,6 +67602,260 @@ object
         }
 
         [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_01()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable disable
+string,
+#nullable enable
+string?
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_02()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+string?,
+#nullable disable
+string
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_03()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable disable
+string,
+#nullable enable
+string
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_04()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+string,
+#nullable disable
+string
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_05()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable enable
+string?,
+string?
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String?", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_06()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable enable
+string,
+string
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S! x) where S : I1?, System.String!", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void DuplicateConstraintsIgnoringTopLevelNullability_07()
+        {
+            var source1 =
+ @"
+#nullable enable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : I1?, T1, T2 {}
+}
+
+public interface I1 {}
+
+public class Test2 : Test1<
+#nullable disable
+string,
+string
+>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2.M1<S>(S x) where S : I1?, System.String", m1.ToDisplayString(TestFormatWithConstraintsAndNonNullableTypeModifier));
+                Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
         public void UnconstrainedTypeParameter_Local()
         {
             var source =

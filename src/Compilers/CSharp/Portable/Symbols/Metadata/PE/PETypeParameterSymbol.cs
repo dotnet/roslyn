@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         if (!type.HasType)
                         {
-                            // Droped 'System.ValueType' constraint type when the 'valuetype' constraint was also specified.
+                            // Dropped 'System.ValueType' constraint type when the 'valuetype' constraint was also specified.
                             continue;
                         }
 

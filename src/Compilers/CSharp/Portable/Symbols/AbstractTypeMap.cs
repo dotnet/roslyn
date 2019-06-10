@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var map = new Dictionary<TypeWithAnnotations, int>(ConstraintEqualsComparer.Instance);
+                var map = PooledDictionary<TypeSymbol, int>.GetInstance();
                 foreach (var type in original)
                 {
                     if (ignoreTypesDependentOnTypeParametersOpt == null ||
@@ -354,36 +354,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var substituted = SubstituteType(type);
 
-                        if (!map.TryGetValue(substituted, out int mergeWith))
+                        if (!map.TryGetValue(substituted.Type, out int mergeWith))
                         {
-                            map.Add(substituted, result.Count);
+                            map.Add(substituted.Type, result.Count);
                             result.Add(substituted);
                         }
                         else
                         {
-                            result[mergeWith] = ConstraintsHelper.MergeTopLevelNullabilityForConstraint(result[mergeWith], substituted);
+                            result[mergeWith] = ConstraintsHelper.ConstraintWithMostSignificantNullability(result[mergeWith], substituted);
                         }
                     }
                 }
-            }
-        }
 
-        private sealed class ConstraintEqualsComparer : EqualityComparer<TypeWithAnnotations>
-        {
-            internal static readonly ConstraintEqualsComparer Instance = new ConstraintEqualsComparer();
-
-            private ConstraintEqualsComparer()
-            {
-            }
-
-            public override int GetHashCode(TypeWithAnnotations obj)
-            {
-                return obj.Type.GetHashCode();
-            }
-
-            public override bool Equals(TypeWithAnnotations x, TypeWithAnnotations y)
-            {
-                return x.Type.Equals(y.Type) && x.AnnotationsMatch(y, TypeCompareKind.ConsiderEverything, isValueTypeOverrideOpt: null);
+                map.Free();
             }
         }
 
