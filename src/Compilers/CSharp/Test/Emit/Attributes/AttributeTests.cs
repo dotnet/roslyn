@@ -8243,7 +8243,7 @@ public class C<T> : Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                /// (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
                 // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
@@ -8295,6 +8295,46 @@ class Test
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
         }
 
+        [Fact]
+        public void AliasedGenericAttributeType_MetadataWithGenericAttributeFeature()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C`1<T>
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+";
+
+            var source = @"
+using Alias = C<int>;
+
+[Alias]
+[Alias<>]
+[Alias<int>]
+class Test
+{
+}
+";
+
+            // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
+            // attribute at emit-time.
+            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            comp.VerifyDiagnostics(
+                    // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                    // [Alias<>]
+                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
+                    // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                    // [Alias<int>]
+                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2));
+        }
+
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void AliasedGenericAttributeType_Nested()
@@ -8329,6 +8369,41 @@ public class Outer<T>
             // (8,17): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             //     [OuterAlias.Inner]
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
+        }
+
+        [Fact]
+        public void AliasedGenericAttributeType_NestedWithGenericAttributeFeature()
+        {
+            var source = @"
+using InnerAlias = Outer<int>.Inner;
+using OuterAlias = Outer<int>;
+
+[InnerAlias]
+class Test
+{
+    [OuterAlias.Inner]
+    static void Main()
+    {
+    }
+}
+
+public class Outer<T>
+{
+    // Not a subtype of Attribute, since that wouldn't compile.
+    public class Inner 
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    // [InnerAlias]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
+                    // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    //     [OuterAlias.Inner]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17));
         }
 
         [WorkItem(687816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687816")]
