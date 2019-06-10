@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -14,6 +15,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 new[] { s, TestSources.GetSubArray, },
                 expectedOutput is null ? TestOptions.ReleaseDll : TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void StringAndSpanPatternRangeOpenEnd()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        string s = ""abcd"";
+        Console.WriteLine(s[..]);
+        ReadOnlySpan<char> span = s;
+        foreach (var c in span[..])
+        {
+            Console.Write(c);
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+abcd
+abcd");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       86 (0x56)
+  .maxstack  4
+  .locals init (int V_0,
+                System.ReadOnlySpan<char> V_1,
+                System.ReadOnlySpan<char> V_2,
+                int V_3)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  dup
+  IL_0007:  callvirt   ""int string.Length.get""
+  IL_000c:  ldc.i4.0
+  IL_000d:  sub
+  IL_000e:  stloc.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloc.0
+  IL_0011:  callvirt   ""string string.Substring(int, int)""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0028:  ldc.i4.0
+  IL_0029:  sub
+  IL_002a:  stloc.3
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  ldc.i4.0
+  IL_002e:  ldloc.3
+  IL_002f:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_0034:  stloc.1
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.0
+  IL_0037:  br.s       IL_004b
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldloc.0
+  IL_003c:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0041:  ldind.u2
+  IL_0042:  call       ""void System.Console.Write(char)""
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.0
+  IL_004b:  ldloc.0
+  IL_004c:  ldloca.s   V_1
+  IL_004e:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0053:  blt.s      IL_0039
+  IL_0055:  ret
+}");
         }
 
         [Fact]

@@ -218,6 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakePatternIndexOffsetExpression(argument, lengthLocal, out bool usedLength),
                 out var indexStore);
 
+            // Hint the array size here because the only case when the length is not needed is if the
+            // user writes code like receiver[(Index)offset], as opposed to just receiver[offset]
+            // and that will probably be very rare.
             var locals = ArrayBuilder<LocalSymbol>.GetInstance(3);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(3);
 
@@ -335,11 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool usedLength = false;
 
-                if (rangeExpr.LeftOperandOpt is null)
-                {
-                    startExpr = F.Literal(0);
-                }
-                else
+                if (rangeExpr.LeftOperandOpt is BoundExpression left)
                 {
                     var startLocal = F.StoreToTemp(
                         MakePatternIndexOffsetExpression(rangeExpr.LeftOperandOpt, lengthLocal, out usedLength),
@@ -348,6 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder.Add(startLocal.LocalSymbol);
                     sideEffectsBuilder.Add(startStore);
                     startExpr = startLocal;
+                }
+                else
+                {
+                    startExpr = F.Literal(0);
                 }
 
                 BoundExpression endExpr;
@@ -367,6 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (usedLength)
                 {
+                    // If we used the length, it needs to be calculated after the receiver (the
+                    // first bound node in the builder) and before the first use, which could be the
+                    // second or third node in the builder
                     localsBuilder.Insert(1, lengthLocal.LocalSymbol);
                     sideEffectsBuilder.Insert(1, lengthStore);
                 }
