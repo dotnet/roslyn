@@ -8173,13 +8173,13 @@ public class C<T, U> : Attribute
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>"),
                 // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
                 // [C]
-                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "1"),
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2"),
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "1"),
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2"),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
                 // [C<int>]
-                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "1"),
+                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2"),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<,>]
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>"));
@@ -8220,6 +8220,35 @@ public class C<T> : Attribute
                 // (12,21): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
                 // public class C<T> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
+        }
+
+        [Fact]
+        public void AliasedGenericAttributeType_SourceWithGenericAttributeFeature()
+        {
+            var source = @"
+using System;
+using Alias = C<int>;
+
+[Alias]
+[Alias<>]
+[Alias<int>]
+class Test
+{
+}
+
+public class C<T> : Attribute
+{
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                /// (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
+                // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
