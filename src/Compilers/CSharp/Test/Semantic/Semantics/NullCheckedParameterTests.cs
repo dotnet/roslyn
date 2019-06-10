@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using ICSharpCode.Decompiler.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -152,7 +156,10 @@ class C
 {
     public string this[int index!] => null;
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourcePropertySymbol>("this[]");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -179,7 +186,10 @@ class C
 {
     void M(string name!) { }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -216,7 +226,8 @@ class C
     {
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -227,7 +238,10 @@ class C
 {
     void M(string name! = null) { }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -280,7 +294,10 @@ class C
 {
     void M(string name! =null) { }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -321,7 +338,10 @@ class C
 {
     public C(string name!) { }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>(".ctor");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -335,7 +355,11 @@ class Box
         return 2;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("Box").GetMember<SourceUserDefinedOperatorSymbol>("op_Addition");
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[0]).IsNullChecked == true);
+            Debug.Assert(((SourceParameterSymbol)m.Parameters[1]).IsNullChecked == false);
         }
 
         [Fact]
@@ -350,7 +374,15 @@ class C
         Func<string, string> func1 = x! => x + ""1"";
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            SimpleLambdaExpressionSyntax node = (SimpleLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -365,7 +397,16 @@ class C
         Func<int, int, bool> func1 = (x!, y) => x == y;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked == false);
         }
 
         [Fact]
@@ -380,7 +421,15 @@ class C
         Func<int, int> func1 = (x!) => x;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -413,7 +462,15 @@ class C
         Func<int, int> func1 = (int x!) => x;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
         }
 
         [Fact]
@@ -428,7 +485,16 @@ class C
         Func<int, int, int> func1 = (int x!, int y) => x;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked == false);
         }
 
         [Fact]
@@ -443,7 +509,16 @@ class C
         Func<int, int, int> func1 = (int x!, int y!) => x;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked == true);
         }
 
         [Fact]
@@ -458,7 +533,15 @@ class C
         Func<int, int> func1 = (_!) => 42;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            var tree = Parse(source);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
+            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked == true);
         }
     }
 }
