@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim provider = New TestTodoListProvider(CreateItem(workspace, documentId))
+                Dim provider = New TestTodoListProvider(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
 
-                provider.Items = New TodoItem() {CreateItem(workspace, documentId)}
+                provider.Items = New TodoItem() {CreateItem(documentId)}
                 provider.RaiseTodoListUpdated(workspace)
                 Assert.Equal(1, sink.Entries.Count)
 
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -137,7 +137,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -215,7 +215,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -233,8 +233,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoItem() {
-                    New TodoItem(1, "test2", workspace, documentId, 11, 11, 21, 21, Nothing, "test2"),
-                    New TodoItem(0, "test", workspace, documentId, 11, 11, 21, 21, Nothing, "test1")}
+                    New TodoItem(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
+                    New TodoItem(0, "test", documentId, 11, 11, 21, 21, Nothing, "test1")}
 
                 provider.RaiseTodoListUpdated(workspace)
 
@@ -248,7 +248,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -266,8 +266,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoItem() {
-                    New TodoItem(1, "test2", workspace, documentId, 11, 11, 21, 21, Nothing, "test2"),
-                    New TodoItem(0, "test3", workspace, documentId, 11, 11, 21, 21, Nothing, "test3")}
+                    New TodoItem(1, "test2", documentId, 11, 11, 21, 21, Nothing, "test2"),
+                    New TodoItem(0, "test3", documentId, 11, 11, 21, 21, Nothing, "test3")}
 
                 provider.RaiseTodoListUpdated(workspace)
 
@@ -281,7 +281,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
-                Dim item = CreateItem(workspace, documentId)
+                Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -318,8 +318,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.Create(markup)
                 Dim projects = workspace.CurrentSolution.Projects.ToArray()
 
-                Dim item1 = CreateItem(workspace, projects(0).DocumentIds.First())
-                Dim item2 = CreateItem(workspace, projects(1).DocumentIds.First())
+                Dim item1 = CreateItem(projects(0).DocumentIds.First())
+                Dim item2 = CreateItem(projects(1).DocumentIds.First())
 
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
@@ -354,8 +354,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId) As TodoItem
-            Return New TodoItem(0, "test", workspace, documentId, 10, 10, 20, 20, Nothing, "test1")
+        Private Function CreateItem(documentId As DocumentId) As TodoItem
+            Return New TodoItem(0, "test", documentId, 10, 10, 20, 20, Nothing, "test1")
         End Function
 
         Private Class TestTodoListProvider
@@ -369,19 +369,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Function GetTodoItemsUpdatedEventArgs(workspace As Microsoft.CodeAnalysis.Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
-                Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), t.Workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArrayOrEmpty()
+            Public Function GetTodoItemsUpdatedEventArgs(workspace As Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
+                Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArray()
             End Function
 
-            Public Sub RaiseTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
-                Dim map = Items.Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
+            Public Sub RaiseTodoListUpdated(workspace As Workspace)
+                Dim map = Items.ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map
                     RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(

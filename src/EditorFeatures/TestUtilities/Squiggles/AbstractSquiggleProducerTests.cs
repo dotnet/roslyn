@@ -74,8 +74,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal DiagnosticData CreateDiagnosticData(TestHostDocument document, TextSpan span)
         {
-            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, document.Project.Id,
-                new DiagnosticDataLocation(document.Id, span));
+            return new DiagnosticData(
+                id: "test",
+                category: "test",
+                message: "test",
+                enuMessageForBingSearch: "test",
+                severity: DiagnosticSeverity.Error,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                projectId: document.Project.Id,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                location: new DiagnosticDataLocation(document.Id, span));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource

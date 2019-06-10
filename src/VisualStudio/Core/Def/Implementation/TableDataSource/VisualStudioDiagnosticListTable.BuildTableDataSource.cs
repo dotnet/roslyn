@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -79,6 +80,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 
+            public override IEqualityComparer<DiagnosticTableItem> GroupingComparer
+                => DiagnosticTableItem.GroupingComparer.Instance;
+
             public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
                 // errors are already given in order. use it as it is.
@@ -101,14 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
-                    var groupedItems = _source._buildErrorSource
-                                               .GetBuildErrors()
-                                               .Select(data => new DiagnosticTableItem(_source.Workspace, cache: null, data))
-                                               .GroupBy(d => d.DeduplicationKey)
-                                               .Select(g => (IList<DiagnosticTableItem>)g)
-                                               .ToImmutableArray();
-
-                    return _source.Deduplicate(groupedItems);
+                    return _source.AggregateItems(
+                        _source._buildErrorSource.GetBuildErrors().
+                        GroupBy(d => d, d => DiagnosticTableItem.Create(_source.Workspace, d), DiagnosticTableItem.GroupingComparer.Instance));
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
@@ -186,14 +185,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectName;
                             return content != null;
                         case ProjectNames:
-                            content = item.ProjectNames;
-                            return ((string[])content).Length > 0;
+                            var names = item.ProjectNames;
+                            content = names;
+                            return names.Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
                             content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
-                            content = item.ProjectGuids;
-                            return ((Guid[])content).Length > 0;
+                            var guids = item.ProjectGuids;
+                            content = guids;
+                            return guids.Length > 0;
                         case SuppressionStateColumnDefinition.ColumnName:
                             // Build doesn't support suppression.
                             Contract.ThrowIfTrue(data.IsSuppressed);
