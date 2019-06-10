@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using ICSharpCode.Decompiler.CSharp.Syntax;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -325,10 +325,10 @@ class C
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            SimpleLambdaExpressionSyntax node = (SimpleLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            SimpleLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
 
@@ -349,9 +349,9 @@ class C
             comp.VerifyDiagnostics();
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
 
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
-            LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Debug.Assert(!((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
         }
@@ -374,7 +374,7 @@ class C
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            Syntax.ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<Syntax.ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
@@ -415,7 +415,7 @@ class C
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
@@ -438,7 +438,7 @@ class C
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
+            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Debug.Assert(!((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
@@ -462,7 +462,7 @@ class C
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[12];
+            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[1]).IsNullChecked);
@@ -486,7 +486,7 @@ class C
 
             CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var m = comp.GlobalNamespace.GetTypeMember("C").GetMember<SourceMethodSymbol>("M");
-            ParenthesizedLambdaExpressionSyntax node = (ParenthesizedLambdaExpressionSyntax)m.GetNonNullSyntaxNode().DescendantNodes().AsImmutable()[11];
+            ParenthesizedLambdaExpressionSyntax node = m.GetNonNullSyntaxNode().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single(); ;
             LambdaSymbol lambdaSymbol = (LambdaSymbol)model.GetSymbolInfo(node).Symbol;
             Debug.Assert(((SourceParameterSymbol)lambdaSymbol.Parameters[0]).IsNullChecked);
         }
