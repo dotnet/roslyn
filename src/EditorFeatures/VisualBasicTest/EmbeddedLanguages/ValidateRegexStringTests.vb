@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                         options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                         options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
         End Function
     End Class
 End Namespace

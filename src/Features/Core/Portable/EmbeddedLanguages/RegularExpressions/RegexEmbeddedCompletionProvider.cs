@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using static WorkspacesResources;
+    using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal partial class RegexEmbeddedCompletionProvider : CompletionProvider

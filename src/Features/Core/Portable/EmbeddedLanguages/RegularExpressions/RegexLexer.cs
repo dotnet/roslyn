@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (Position == Text.Length)
                 {
                     var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
-                        WorkspacesResources.Unterminated_regex_comment,
+                        FeaturesResources.Unterminated_regex_comment,
                         GetTextSpan(start, Position)));
                     return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start), diagnostics);
                 }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (!RegexCharClass.IsEscapeCategory(category))
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources.Unknown_property_0, category),
+                    string.Format(FeaturesResources.Unknown_property_0, category),
                     token.GetSpan()));
             }
 
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (error)
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
+                    FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
                     token.GetSpan()));
             }
 
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (length != count)
             {
                 result = result.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Insufficient_hexadecimal_digits,
+                    FeaturesResources.Insufficient_hexadecimal_digits,
                     GetTextSpan(beforeSlash, Position)));
             }
 
