@@ -522,8 +522,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
                     {
-                        // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
-                        var suppressionDiag = Diagnostic.Create(SuppressionDiagnosticDescriptor, diag.Location, diag.Id, diag.GetMessage(Culture), id, justification);
+                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
                         if (_reportedDiagnostics.Add(suppressionDiag))
                         {
                             PrintError(suppressionDiag, consoleOutput);
@@ -551,14 +550,6 @@ namespace Microsoft.CodeAnalysis
                 _reportedDiagnostics.Add(diag);
             }
         }
-
-        private readonly DiagnosticDescriptor SuppressionDiagnosticDescriptor = new DiagnosticDescriptor(
-            "SP0001",
-            CodeAnalysisResources.SuppressionDiagnosticDescriptorTitle,
-            CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
-            "ProgrammaticSuppression",
-            DiagnosticSeverity.Info,
-            isEnabledByDefault: true);
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
         private bool ReportDiagnostics(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)

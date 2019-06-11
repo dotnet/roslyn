@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis
         public LocalizableString Justification { get; }
 
         /// <summary>
-        /// Create a SuppressionDescriptor, which provides justification about a programmatic suppression of a <see cref="Diagnostic"/>.
+        /// Create a SuppressionDescriptor, which provides a justification about a programmatic suppression of a <see cref="Diagnostic"/>.
         /// NOTE: For localizable <paramref name="justification"/>,
-        /// use constructor overload .
+        /// use constructor overload <see cref="SuppressionDescriptor(string, string, LocalizableString)"/>.
         /// </summary>
         /// <param name="id">A unique identifier for the suppression. For example, suppression ID "SP1001".</param>
         /// <param name="suppressedDiagnosticId">Identifier of the suppressed diagnostic, i.e. <see cref="Diagnostic.Id"/>. For example, compiler warning Id "CS0649".</param>
@@ -38,13 +38,12 @@ namespace Microsoft.CodeAnalysis
             string id,
             string suppressedDiagnosticId,
             string justification)
-            : this(id, suppressedDiagnosticId,
-                   LocalizableString.Create(justification ?? throw new ArgumentNullException(nameof(justification))))
+            : this(id, suppressedDiagnosticId, (LocalizableString)justification)
         {
         }
 
         /// <summary>
-        /// Create a SuppressionDescriptor, which provides description about a programmatic suppression of a <see cref="Diagnostic"/>.
+        /// Create a SuppressionDescriptor, which provides a localizable justification about a programmatic suppression of a <see cref="Diagnostic"/>.
         /// </summary>
         /// <param name="id">A unique identifier for the suppression. For example, suppression ID "SP1001".</param>
         /// <param name="suppressedDiagnosticId">Identifier of the suppressed diagnostic, i.e. <see cref="Diagnostic.Id"/>. For example, compiler warning Id "CS0649".</param>

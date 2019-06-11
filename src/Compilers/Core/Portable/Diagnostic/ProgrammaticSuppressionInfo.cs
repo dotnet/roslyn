@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool Equals(ProgrammaticSuppressionInfo other)
         {
             return other != null &&
-                this.Suppressions.SequenceEqual(other.Suppressions);
+                this.Suppressions.SetEquals(other.Suppressions);
         }
 
         public override bool Equals(object obj)
