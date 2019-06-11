@@ -252,13 +252,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.NullableDirectiveTrivia:
                         var nn = (NullableDirectiveTriviaSyntax)dt;
                         var setting = nn.SettingToken;
+                        var target = nn.TargetToken;
                         if (null == exp.Text)
                         {
                             Assert.True(setting.IsMissing);
+                            Assert.True(target.IsMissing);
                         }
                         else
                         {
-                            Assert.Equal(exp.Text, setting.ValueText);
+                            var actualText = setting.ValueText;
+                            if (!string.IsNullOrEmpty(target.ValueText))
+                            {
+                                actualText += " " + target.ValueText;
+                            }
+
+                            Assert.Equal(exp.Text, actualText);
+                            Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
+                                        target.Kind() == SyntaxKind.None);
+
                             Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
                                         setting.Kind() == SyntaxKind.RestoreKeyword);
                         }
@@ -4259,6 +4270,50 @@ class A
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableWarnings()
+        {
+            var text = @"#nullable enable warnings";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableAnnotations()
+        {
+            var text = @"#nullable enable annotations";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable annotations" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableWarnings()
+        {
+            var text = @"#nullable disable warnings // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable warnings" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableBadTarget()
+        {
+            var text = @"#nullable disable errors";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
         /// <summary>
         /// "enable" should be a keyword within the directive only.
         /// </summary>
@@ -4302,7 +4357,7 @@ class enable
             var text = @"#nullable disable true";
             var node = Parse(text, options: TestOptions.Regular);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_EndOfPPLineExpected, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
