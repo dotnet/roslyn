@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        internal static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
+        internal static Diagnostic TryGetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
         {
             try
             {
@@ -122,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        return await stateMachine.GetDiagnostic(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
+                        return stateMachine.TryGetDiagnostic(tree, diagnosticDescriptor, cancellationToken);
                     }
                 }
 
-                return ImmutableArray<Diagnostic>.Empty;
+                return null;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

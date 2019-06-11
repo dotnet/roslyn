@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VariableTypes = variableTypes;
                 VariableNullableStates = variableNullableStates;
             }
+
+            internal VariableState Clone()
+            {
+                return new VariableState(VariableSlot, VariableBySlot, VariableTypes, VariableNullableStates.Clone());
+            }
         }
 
         /// <summary>
@@ -195,7 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetResultType(BoundExpression expression, TypeWithState type)
         {
-
             SetResult(expression, resultType: type, lvalueType: type.ToTypeWithAnnotations());
         }
 
@@ -1052,8 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportDiagnostic(ErrorCode errorCode, Location location, params object[] arguments)
         {
             Debug.Assert(ErrorFacts.NullableFlowAnalysisWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
-            Debug.Assert(!IsConditionalState);
-            if (this.State.Reachable && !_disableDiagnostics)
+            if (IsReachable() && !_disableDiagnostics)
             {
                 Diagnostics.Add(errorCode, location, arguments);
             }
@@ -2302,6 +2305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
+            // We should not blindly strip conversions here. Tracked by https://github.com/dotnet/roslyn/issues/36164
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
             return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state);
@@ -2841,91 +2845,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.ReturnTypeAnnotationAttributes;
         }
 
-        /// <summary>
-        /// For each argument, get the annotation from the corresponding parameter.
-        /// </summary>
-        private ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
-            bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
-        {
-            ArrayBuilder<FlowAnalysisAnnotations> builder = null;
-
-            for (int i = 0; i < numArguments; i++)
-            {
-                (ParameterSymbol parameter, _, FlowAnalysisAnnotations annotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-
-                annotations = removeInapplicableAnnotations(parameter, annotations);
-
-                if (annotations != FlowAnalysisAnnotations.None && builder == null)
-                {
-                    builder = ArrayBuilder<FlowAnalysisAnnotations>.GetInstance(numArguments);
-                    builder.AddMany(FlowAnalysisAnnotations.None, i);
-                }
-
-                if (builder != null)
-                {
-                    builder.Add(annotations);
-                }
-            }
-
-            return builder == null ? default : builder.ToImmutableAndFree();
-
-            FlowAnalysisAnnotations removeInapplicableAnnotations(ParameterSymbol parameter, FlowAnalysisAnnotations annotations)
-            {
-                // Ignore NotNullWhenTrue that is inapplicable
-                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: true);
-
-                // Ignore NotNullWhenFalse that is inapplicable
-                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
-
-                const FlowAnalysisAnnotations both = FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse;
-                if (parameter?.Type.SpecialType != SpecialType.System_Boolean)
-                {
-                    // AssertsTrue and AssertsFalse must be applied to a bool parameter
-                    annotations &= ~both;
-                }
-                else if ((annotations & both) == both)
-                {
-                    // We'll ignore AssertsTrue and AssertsFalse if both set
-                    annotations &= ~both;
-                }
-
-                return annotations;
-            }
-
-            FlowAnalysisAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol parameter, FlowAnalysisAnnotations annotations, bool sense)
-            {
-                if (parameter is null)
-                {
-                    return annotations;
-                }
-
-                var whenSense = sense ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse;
-                var whenNotSense = sense ? FlowAnalysisAnnotations.NotNullWhenFalse : FlowAnalysisAnnotations.NotNullWhenTrue;
-
-                // NotNullWhenSense (without NotNullWhenNotSense) must be applied on a bool-returning member
-                if ((annotations & whenSense) != 0 &&
-                    (annotations & whenNotSense) == 0 &&
-                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType != SpecialType.System_Boolean)
-                {
-                    annotations &= ~whenSense;
-                }
-
-                // NotNullWhenSense must be applied to a reference type, a nullable value type, or an unconstrained generic type
-                if ((annotations & whenSense) != 0 && !parameter.Type.CanContainNull())
-                {
-                    annotations &= ~whenSense;
-                }
-
-                // NotNullWhenSense is inapplicable when argument corresponds to params parameter and we're in expanded form
-                if ((annotations & whenSense) != 0 && expanded && ReferenceEquals(parameter, parameters.Last()))
-                {
-                    annotations &= ~whenSense;
-                }
-
-                return annotations;
-            }
-        }
-
         private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
@@ -3022,13 +2941,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method = null)
         {
             Debug.Assert(!arguments.IsDefault);
-            var savedState = this.State.Clone();
 
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
-            // We do a first pass to work through the arguments without making any assumptions
-            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt);
+            // Visit the arguments and collect results
+            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt, parameters, argsToParamsOpt, expanded);
 
+            // Re-infer method type parameters
             if ((object)method != null && method.IsGenericMethod)
             {
                 if (HasImplicitTypeArguments(node))
@@ -3045,34 +2964,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentConversions(arguments, argumentsNoConversions, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
-            }
+                // Visit conversions, inbound assignments including pre-conditions
+                for (int i = 0; i < argumentsNoConversions.Length; i++)
+                {
+                    (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                    if (parameter is null)
+                    {
+                        continue;
+                    }
 
-            // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
-            // to get the proper result state.
-            ImmutableArray<FlowAnalysisAnnotations> annotations =
-                GetAnnotations(argumentsNoConversions.Length, expanded, parameters, argsToParamsOpt);
+                    var argumentNoConversion = argumentsNoConversions[i];
+                    VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
+                        GetConversionIfApplicable(arguments[i], argumentNoConversion),
+                        argumentNoConversion,
+                        conversions.IsDefault ? Conversion.Identity : conversions[i],
+                        GetRefKind(refKindsOpt, i),
+                        parameter,
+                        parameterType,
+                        parameterAnnotations,
+                        results[i],
+                        invokedAsExtensionMethod && i == 0);
+                }
 
-            if (!annotations.IsDefault)
-            {
-                this.SetState(savedState);
-
-                bool saveDisableDiagnostics = _disableDiagnostics;
-                _disableDiagnostics = true;
+                // Visit outbound assignments and post-conditions
+                // Note: the state may get split in this step
                 if (!node.HasErrors && !parameters.IsDefault)
                 {
-                    // recompute out vars after state was reset
-                    VisitArgumentConversions(arguments, argumentsNoConversions, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
-                }
-                VisitArgumentsEvaluateHonoringAnnotations(argumentsNoConversions, refKindsOpt, annotations);
+                    for (int i = 0; i < argumentsNoConversions.Length; i++)
+                    {
+                        (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                        if (parameter is null)
+                        {
+                            continue;
+                        }
 
-                _disableDiagnostics = saveDisableDiagnostics;
+                        VisitArgumentOutboundAssignmentsAndPostConditions(
+                            arguments[i],
+                            GetRefKind(refKindsOpt, i),
+                            parameter,
+                            parameterType,
+                            parameterAnnotations,
+                            results[i]);
+                    }
+                }
             }
 
             return (method, results);
         }
 
-        private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
+        private ImmutableArray<VisitArgumentResult> VisitArgumentsEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             Debug.Assert(!IsConditionalState);
             int n = arguments.Length;
@@ -3083,37 +3023,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<VisitArgumentResult>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                builder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), preserveConditionalState: false));
+                FlowAnalysisAnnotations parameterAnnotations = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded).Annotations;
+                builder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
             }
 
             SetInvalidResult();
             return builder.ToImmutableAndFree();
         }
 
-        private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, bool preserveConditionalState)
+        private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
         {
             Debug.Assert(!IsConditionalState);
             var savedState = (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
+            // Note: AssertsTrue/AssertsFalse are ineffective on ref/out parameters
+
             switch (refKind)
             {
                 case RefKind.Ref:
                     Visit(argument);
-                    if (!preserveConditionalState)
-                    {
-                        Unsplit();
-                    }
+                    Unsplit();
                     break;
                 case RefKind.None:
                 case RefKind.In:
-                    if (preserveConditionalState)
+                    switch (annotations & (FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse))
                     {
-                        Visit(argument);
-                        // No Unsplit
-                        UseRvalueOnly(argument); // force use of flow result
-                    }
-                    else
-                    {
-                        VisitRvalue(argument);
+                        case FlowAnalysisAnnotations.AssertsTrue:
+                        case FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse:
+                            Visit(argument);
+                            if (IsConditionalState)
+                            {
+                                SetState(StateWhenTrue);
+                            }
+                            break;
+
+                        case FlowAnalysisAnnotations.AssertsFalse:
+                            Visit(argument);
+                            if (IsConditionalState)
+                            {
+                                SetState(StateWhenFalse);
+                            }
+                            break;
+
+                        default:
+                            VisitRvalue(argument);
+                            break;
                     }
                     break;
                 case RefKind.Out:
@@ -3126,153 +3079,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            Debug.Assert(!IsConditionalState);
             return new VisitArgumentResult(_visitResult, savedState);
         }
 
         /// <summary>
-        /// Visit all the arguments for the purpose of computing the exit state of the method,
-        /// given the annotations.
-        /// If there is any [NotNullWhenTrue/False] annotation, then we'll return in a conditional state for the invocation.
+        /// Verifies that an argument's nullability is compatible with its parameter's on the way in.
         /// </summary>
-        private void VisitArgumentsEvaluateHonoringAnnotations(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<FlowAnalysisAnnotations> annotations)
-        {
-            Debug.Assert(!IsConditionalState);
-            Debug.Assert(annotations.Length == arguments.Length);
-            Debug.Assert(_disableDiagnostics);
-
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                FlowAnalysisAnnotations annotation = annotations[i];
-                bool assertsTrue = (annotation & FlowAnalysisAnnotations.AssertsTrue) != 0;
-                bool assertsFalse = (annotation & FlowAnalysisAnnotations.AssertsFalse) != 0;
-
-                if (this.IsConditionalState)
-                {
-                    // We could be in a conditional state because of a conditional annotation (like NotNullWhenFalse)
-                    // Then WhenTrue/False states correspond to the invocation returning true/false
-
-                    // We'll first assume that we're in the unconditional state where the method returns true,
-                    // then we'll repeat assuming the method returns false.
-
-                    LocalState whenTrue = this.StateWhenTrue.Clone();
-                    LocalState whenFalse = this.StateWhenFalse.Clone();
-
-                    this.SetState(whenTrue);
-                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
-                    Debug.Assert(!IsConditionalState);
-                    whenTrue = this.State; // LocalState may be a struct
-
-                    this.SetState(whenFalse);
-                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
-                    Debug.Assert(!IsConditionalState);
-                    whenFalse = this.State; // LocalState may be a struct
-
-                    this.SetConditionalState(whenTrue, whenFalse);
-                }
-                else
-                {
-                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
-                }
-
-                var argument = arguments[i];
-                var argumentType = argument.Type;
-                if (!PossiblyNullableType(argumentType))
-                {
-                    continue;
-                }
-
-                bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                if (notNullWhenTrue || notNullWhenFalse)
-                {
-                    // The WhenTrue/False states correspond to the invocation returning true/false
-                    bool wasPreviouslySplit = this.IsConditionalState;
-                    Split();
-
-                    var slotBuilder = ArrayBuilder<int>.GetInstance();
-                    GetSlotsToMarkAsNotNullable(arguments[i], slotBuilder);
-
-                    if (notNullWhenTrue)
-                    {
-                        MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
-                    }
-                    if (notNullWhenFalse)
-                    {
-                        MarkSlotsAsNotNull(slotBuilder, ref StateWhenFalse);
-                        if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
-                    }
-                    slotBuilder.Free();
-                }
-            }
-
-            SetInvalidResult();
-
-            // Evaluate an argument, potentially producing a split state.
-            // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
-            void visitArgumentEvaluateAndUnsplit(int argumentIndex, bool assertsTrue, bool assertsFalse)
-            {
-                Debug.Assert(!IsConditionalState);
-                VisitArgumentEvaluate(arguments[argumentIndex], GetRefKind(refKindsOpt, argumentIndex), preserveConditionalState: true);
-
-                if (!this.IsConditionalState)
-                {
-                    return;
-                }
-                else if (assertsTrue)
-                {
-                    this.SetState(this.StateWhenTrue);
-                }
-                else if (assertsFalse)
-                {
-                    this.SetState(this.StateWhenFalse);
-                }
-                else
-                {
-                    this.Unsplit();
-                }
-            }
-        }
-
-        private void VisitArgumentConversions(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<BoundExpression> argumentsNoConversions,
-            ImmutableArray<Conversion> conversions,
-            ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<ParameterSymbol> parameters,
-            ImmutableArray<int> argsToParamsOpt,
-            bool expanded,
-            bool invokedAsExtensionMethod,
-            ImmutableArray<VisitArgumentResult> results)
-        {
-            for (int i = 0; i < argumentsNoConversions.Length; i++)
-            {
-                (ParameterSymbol parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-                if (parameter is null)
-                {
-                    continue;
-                }
-
-                var argumentNoConversion = argumentsNoConversions[i];
-                VisitArgumentConversion(
-                    GetConversionIfApplicable(arguments[i], argumentNoConversion),
-                    argumentNoConversion,
-                    conversions.IsDefault ? Conversion.Identity : conversions[i],
-                    GetRefKind(refKindsOpt, i),
-                    parameter,
-                    parameterType,
-                    parameterAnnotations,
-                    results[i],
-                    invokedAsExtensionMethod && i == 0);
-            }
-        }
-
-        /// <summary>
-        /// Report warnings for an argument corresponding to a specific parameter.
-        /// </summary>
-        private void VisitArgumentConversion(
+        private void VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
             BoundConversion conversionOpt,
             BoundExpression argumentNoConversion,
             Conversion conversion,
@@ -3283,16 +3097,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentResult result,
             bool extensionMethodThisArgument)
         {
+            Debug.Assert(!this.IsConditionalState);
             // Note: we allow for some variance in `in` and `out` cases. Unlike in binding, we're not
             // limited by CLR constraints.
 
             var resultType = result.RValueType;
-            bool reported = false;
             switch (refKind)
             {
                 case RefKind.None:
                 case RefKind.In:
                     {
+                        // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
                         SetResultType(argumentNoConversion,
                             VisitConversion(
                                 conversionOpt: conversionOpt,
@@ -3310,74 +3125,226 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case RefKind.Ref:
+                    if (!argumentNoConversion.IsSuppressed)
                     {
-                        if (!argumentNoConversion.IsSuppressed)
+                        var lvalueResultType = result.LValueType;
+                        if (IsNullabilityMismatch(lvalueResultType.Type, parameterType.Type))
                         {
-                            var lvalueResultType = result.LValueType;
-                            if (IsNullabilityMismatch(lvalueResultType.Type, parameterType.Type))
-                            {
-                                // declared types must match, ignoring top-level nullability
-                                ReportNullabilityMismatchInRefArgument(argumentNoConversion, argumentType: lvalueResultType.Type, parameter, parameterType.Type);
-                            }
-                            else
-                            {
-                                // types match, but state would let a null in
-                                ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
-                            }
+                            // declared types must match, ignoring top-level nullability
+                            ReportNullabilityMismatchInRefArgument(argumentNoConversion, argumentType: lvalueResultType.Type, parameter, parameterType.Type);
                         }
+                        else
+                        {
+                            // types match, but state would let a null in
+                            ReportNullableAssignmentIfNecessary(argumentNoConversion, ApplyLValueAnnotations(parameterType, parameterAnnotations), resultType, useLegacyWarnings: false);
+                        }
+                    }
 
-                        // Check assignment from a fictional value from the parameter to the argument.
+                    break;
+                case RefKind.Out:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+
+            Debug.Assert(!this.IsConditionalState);
+        }
+
+        /// <summary>
+        /// Verifies that outbound assignments (from parameter to argument) are safe and
+        /// tracks those assignments (or learns from post-condition attributes)
+        /// </summary>
+        private void VisitArgumentOutboundAssignmentsAndPostConditions(
+            BoundExpression argument,
+            RefKind refKind,
+            ParameterSymbol parameter,
+            TypeWithAnnotations parameterType,
+            FlowAnalysisAnnotations parameterAnnotations,
+            VisitArgumentResult result)
+        {
+            // Note: the state may be conditional if a previous argument involved a conditional post-condition
+            // The WhenTrue/False states correspond to the invocation returning true/false
+
+            switch (refKind)
+            {
+                case RefKind.None:
+                case RefKind.In:
+                    {
+                        // learn from post-conditions [Maybe/NotNull, Maybe/NotNullWhen] without using an assignment
+                        learnFromPostConditions(argument, parameterAnnotations);
+                    }
+                    break;
+                case RefKind.Ref:
+                    {
+                        // assign from a fictional value from the parameter to the argument.
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
-                        if (argumentNoConversion.IsSuppressed)
-                        {
-                            parameterWithState = parameterWithState.WithNotNullState();
-                        }
-
-                        var parameterValue = new BoundParameter(argumentNoConversion.Syntax, parameter);
+                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
-                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState);
+                        trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
-                        // check whether parameter would unsafely let a null out
-                        ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: false);
+                        // check whether parameter would unsafely let a null out in the worse case
+                        if (!argument.IsSuppressed)
+                        {
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
+                        }
                     }
                     break;
                 case RefKind.Out:
                     {
                         var lValueType = result.LValueType;
                         var parameterWithAnnotations = ApplyRValueAnnotations(parameterType, parameterAnnotations);
-                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
-                        if (argumentNoConversion is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                        if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             _variableTypes[local.LocalSymbol] = parameterWithAnnotations;
                             lValueType = parameterWithAnnotations;
                         }
 
-                        // Check assignment from a fictional value from the parameter to the argument.
-                        var parameterValue = new BoundParameter(argumentNoConversion.Syntax, parameter);
+                        // assign from a fictional value from the parameter to the argument.
+                        var parameterWithState = TypeWithState.Create(parameterWithAnnotations, parameterAnnotations);
+                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
+                        trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
-                        if (!argumentNoConversion.IsSuppressed && !reported)
+                        // check whether parameter would unsafely let a null out in the worse case
+                        if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: UseLegacyWarnings(argumentNoConversion, result.LValueType));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
                             {
-                                ReportNullabilityMismatchInArgument(argumentNoConversion.Syntax, lValueType.Type, parameter, parameterType.Type, forOutput: true);
+                                ReportNullabilityMismatchInArgument(argument.Syntax, lValueType.Type, parameter, parameterType.Type, forOutput: true);
                             }
                         }
-                        else
-                        {
-                            parameterWithState = parameterWithState.WithNotNullState();
-                        }
-
-                        // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState);
-
-                        SetResultType(argumentNoConversion, parameterWithState);
                     }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+
+            void trackNullableStateForAssignment(BoundExpression parameterValue, TypeWithAnnotations lValueType, int targetSlot, TypeWithState parameterWithState, bool isSuppressed, FlowAnalysisAnnotations parameterAnnotations)
+            {
+                if (!IsConditionalState && !hasConditionalPostCondition(parameterAnnotations))
+                {
+                    TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, parameterWithState.WithSuppression(isSuppressed));
+                }
+                else
+                {
+                    Split();
+                    var originalWhenFalse = StateWhenFalse.Clone();
+
+                    SetState(StateWhenTrue);
+                    // Note: the suppression applies over the post-condition attributes
+                    TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, applyPostConditionsWhenTrue(parameterWithState, parameterAnnotations).WithSuppression(isSuppressed));
+                    Debug.Assert(!IsConditionalState);
+                    var newWhenTrue = State.Clone();
+
+                    SetState(originalWhenFalse);
+                    TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, applyPostConditionsWhenFalse(parameterWithState, parameterAnnotations).WithSuppression(isSuppressed));
+                    Debug.Assert(!IsConditionalState);
+
+                    SetConditionalState(newWhenTrue, whenFalse: State);
+                }
+            }
+
+            static bool hasConditionalPostCondition(FlowAnalysisAnnotations annotations)
+            {
+                return (((annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0) ^ ((annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0)) ||
+                    (((annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0) ^ ((annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0));
+            }
+
+            static TypeWithState applyPostConditionsUnconditionally(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
+            {
+                if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    // MaybeNull and MaybeNullWhen
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                }
+
+                if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
+                {
+                    // NotNull
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+                }
+
+                return typeWithState;
+            }
+
+            static TypeWithState applyPostConditionsWhenTrue(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
+            {
+                bool notNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+
+                if (maybeNullWhenTrue)
+                {
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                }
+                else if (notNullWhenTrue)
+                {
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+                }
+
+                return typeWithState;
+            }
+
+            static TypeWithState applyPostConditionsWhenFalse(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
+            {
+                bool notNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool maybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
+
+                if (maybeNullWhenFalse)
+                {
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                }
+                else if (notNullWhenFalse)
+                {
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+                }
+
+                return typeWithState;
+            }
+
+            void learnFromPostConditions(BoundExpression argument, FlowAnalysisAnnotations parameterAnnotations)
+            {
+                // Note: NotNull = NotNullWhen(true) + NotNullWhen(false)
+                bool notNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+
+                // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
+                bool maybeNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+                bool maybeNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
+
+                if (maybeNullWhenTrue && maybeNullWhenFalse && !IsConditionalState && !(notNullWhenTrue && notNullWhenFalse))
+                {
+                    LearnFromNullTest(argument, ref State);
+                }
+                else if (notNullWhenTrue && notNullWhenFalse && !IsConditionalState && !(maybeNullWhenTrue && maybeNullWhenFalse))
+                {
+                    LearnFromNonNullTest(argument, ref State);
+                }
+                else if (notNullWhenTrue || notNullWhenFalse || maybeNullWhenTrue || maybeNullWhenFalse)
+                {
+                    Split();
+
+                    if (notNullWhenTrue)
+                    {
+                        LearnFromNonNullTest(argument, ref StateWhenTrue);
+                    }
+
+                    if (notNullWhenFalse)
+                    {
+                        LearnFromNonNullTest(argument, ref StateWhenFalse);
+                    }
+
+                    if (maybeNullWhenTrue)
+                    {
+                        LearnFromNullTest(argument, ref StateWhenTrue);
+                    }
+
+                    if (maybeNullWhenFalse)
+                    {
+                        LearnFromNullTest(argument, ref StateWhenFalse);
+                    }
+                }
             }
         }
 
@@ -4990,6 +4957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         arguments.Add(CreatePlaceholderIfNecessary(receiverOpt, receiverType.ToTypeWithAnnotations()));
                     }
+
                     // Create placeholders for the arguments. (See Conversions.GetDelegateArguments()
                     // which is used for that purpose in initial binding.)
                     foreach (var parameter in delegateType.DelegateInvokeMethod.Parameters)
@@ -5231,9 +5199,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // Check nullability for `this` parameter
-                        CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
-
                         if (deconstructMethod.IsGenericMethod)
                         {
                             // re-infer the deconstruct parameters based on the 'this' parameter
@@ -5257,6 +5222,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
                     Debug.Assert(parameters.Length - offset == n);
 
+                    if (invocation.InvokedAsExtensionMethod)
+                    {
+                        // Check nullability for `this` parameter
+                        CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
+                    }
+
                     for (int i = 0; i < n; i++)
                     {
                         var variable = variables[i];
@@ -5270,10 +5241,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            VisitArgumentConversion(
-                                conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter),
-                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                            VisitArgumentConversionAndInboundAssignmentsAndPreConditions(conversionOpt: null, variable.Expression, underlyingConversion, parameter.RefKind,
+                                parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter), new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
                                 extensionMethodThisArgument: false);
+                        }
+                    }
+
+                    for (int i = 0; i < n; i++)
+                    {
+                        var variable = variables[i];
+                        var parameter = parameters[i + offset];
+                        var nestedVariables = variable.NestedVariables;
+                        if (nestedVariables == null)
+                        {
+                            VisitArgumentOutboundAssignmentsAndPostConditions(
+                                variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetAnnotations(parameter),
+                                new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default));
                         }
                     }
                 }
@@ -6407,7 +6390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type is null);
             SetNotNullResult(node);
             return null;
@@ -6491,7 +6474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
             }
 
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
@@ -6522,7 +6505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var arguments = node.Arguments;
-            var argumentResults = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt);
+            var argumentResults = VisitArgumentsEvaluate(arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
             return null;
         }
@@ -6603,7 +6586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
             _ = CheckPossibleNullReceiver(receiver);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert(node.Type.IsDynamic());
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             SetLvalueResultType(node, result);
@@ -6661,7 +6644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckExtensionMethodThisNullability(BoundExpression expr, Conversion conversion, ParameterSymbol parameter, TypeWithState result)
         {
-            VisitArgumentConversion(
+            VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
                 conversionOpt: null,
                 expr,
                 conversion,

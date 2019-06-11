@@ -25,7 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return await RenameTrackingTaggerProvider.GetDiagnosticsAsync(syntaxTree, DiagnosticDescriptor, cancellationToken).ConfigureAwait(false);
+            var diagnostic = RenameTrackingTaggerProvider.TryGetDiagnostic(syntaxTree, DiagnosticDescriptor, cancellationToken);
+            if (diagnostic is null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            return ImmutableArray.Create(diagnostic);
         }
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
