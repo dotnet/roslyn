@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
                                 analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
 
-                                if (diagnostics.AsEnumerable().Any(IsReportedError))
+                                if (HasUnsuppressedErrors(diagnostics))
                                 {
                                     success = false;
                                 }

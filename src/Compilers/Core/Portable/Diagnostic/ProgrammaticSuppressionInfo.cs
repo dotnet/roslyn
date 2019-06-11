@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -21,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool Equals(ProgrammaticSuppressionInfo other)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return other != null &&
                 this.Suppressions.SetEquals(other.Suppressions);
         }
@@ -32,13 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            var hash = Suppressions.Count.GetHashCode();
-            foreach (var suppression in Suppressions.Order())
-            {
-                hash = Hash.Combine(suppression.GetHashCode(), hash);
-            }
-
-            return hash;
+            return Suppressions.Count;
         }
     }
 }

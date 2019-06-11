@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SuppressionDescriptor other)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return
                 other != null &&
                 this.Id == other.Id &&

@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return Equals(_originalDiagnostic, other._originalDiagnostic) &&
                     Equals(_suppressionId, other._suppressionId) &&
                     Equals(_suppressionJustification, other._suppressionJustification);

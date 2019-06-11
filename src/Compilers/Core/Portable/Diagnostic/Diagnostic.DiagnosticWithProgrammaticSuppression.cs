@@ -89,6 +89,11 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&
                     Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
             }
