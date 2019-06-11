@@ -67599,6 +67599,133 @@ object
         }
 
         [Fact]
+        public void ObjectConstraint_35()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : T1, T2 {}
+}
+
+public class Test2<T> : Test1<object, T>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+
+#nullable enable
+public class Test3 : Test2<Test3?>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var t2m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2<T>.M1<S>(S x) where S : T", t2m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Null(t2m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var t3m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test3.M1");
+                Assert.Equal("void Test3.M1<S>(S x) where S : System.Object, Test3?", t3m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Null(t3m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_36()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : T1, T2 {}
+}
+
+public class Test2<T> : Test1<object, T>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var source2 =
+@"
+#nullable enable
+public class Test3 : Test2<Test3?>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp1.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var t3m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test3.M1");
+                Assert.Equal("void Test3.M1<S>(S x) where S : System.Object, Test3?", t3m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.Null(t3m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
+        public void ObjectConstraint_37()
+        {
+            var source1 =
+ @"
+#nullable disable
+public class Test1<T1, T2>
+{
+    public virtual void M1<S>(S x) where S : T1, T2 {}
+}
+
+public class Test2<T> : Test1<object, T> where T : struct
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+
+#nullable enable
+public class Test3 : Test2<int>
+{
+    public override void M1<S>(S x)
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 });
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var t2m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test2.M1");
+                Assert.Equal("void Test2<T>.M1<S>(S x) where S : T", t2m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(t2m1.TypeParameters[0].IsNotNullableIfReferenceType);
+
+                var t3m1 = (MethodSymbol)m.GlobalNamespace.GetMember("Test3.M1");
+                Assert.Equal("void Test3.M1<S>(S x) where S : System.Int32", t3m1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                Assert.True(t3m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            }
+        }
+
+        [Fact]
         public void DuplicateConstraintsIgnoringTopLevelNullability_01()
         {
             var source1 =
