@@ -232,10 +232,9 @@ This data should always be correct as we're never persisting the data between se
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
             {
-                foreach (var kv in exceptions)
+                foreach (var (analyzer, diagnostics) in exceptions)
                 {
-                    var analyzer = kv.Key;
-                    foreach (var diagnostic in kv.Value)
+                    foreach (var diagnostic in diagnostics)
                     {
                         _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }

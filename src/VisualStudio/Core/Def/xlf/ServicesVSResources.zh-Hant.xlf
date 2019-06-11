@@ -1809,8 +1809,8 @@ I agree to all of the foregoing:</source>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
-        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="translated">在此處進行的設定僅適用於您的電腦。若要這些設定隨著您的解決方案移動，請使用 .editorconfig 檔案。</target>
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="needs-review-translation">在此處進行的設定僅適用於您的電腦。若要這些設定隨著您的解決方案移動，請使用 .editorconfig 檔案。</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">

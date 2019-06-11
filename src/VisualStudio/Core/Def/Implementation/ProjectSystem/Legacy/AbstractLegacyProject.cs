@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -88,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     // projectSystemName because they'll have a better one eventually.
                     AssemblyName = projectSystemName,
                     FilePath = projectFilePath,
-                    Hierarchy = hierarchy,
-                    ProjectGuid = GetProjectIDGuid(hierarchy),
+                    ProjectGuid = hierarchy.GetProjectGuid(),
                 });
 
             ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
@@ -110,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // TODO: remove this terrible hack, which is working around shims throwing in not-good ways
             try
             {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, serviceProvider);
+                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
                 _editAndContinueProject = new VsENCRebuildableProjectImpl(Workspace, VisualStudioProject, serviceProvider);
             }
             catch (Exception)
@@ -251,32 +249,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             {
                 VisualStudioProject.OutputRefFilePath = null;
             }
-        }
-
-        private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)
-        {
-            if (hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var guid))
-            {
-                return guid;
-            }
-
-            return Guid.Empty;
-        }
-
-        private static bool GetIsWebsiteProject(IVsHierarchy hierarchy)
-        {
-            try
-            {
-                if (hierarchy.TryGetProject(out var project))
-                {
-                    return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            return false;
         }
 
         /// <summary>
