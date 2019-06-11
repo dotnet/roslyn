@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<TResult> InvokeAsync<TResult>(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments, cancellationToken);
+            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments?.AsArray(), cancellationToken);
         }
 
         protected Task<TResult> InvokeAsync<TResult>(
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task InvokeAsync(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken);
+            return _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), cancellationToken);
         }
 
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)

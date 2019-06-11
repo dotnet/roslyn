@@ -244,6 +244,9 @@ namespace Roslyn.Utilities
             return source.Where((Func<T, bool>)s_notNullTest);
         }
 
+        public static T[] AsArray<T>(this IEnumerable<T> source)
+            => source as T[] ?? source.ToArray();
+
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
             if (source == null)
