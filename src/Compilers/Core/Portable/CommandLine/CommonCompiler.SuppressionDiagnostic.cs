@@ -49,8 +49,9 @@ namespace Microsoft.CodeAnalysis
             public override string GetMessage(IFormatProvider formatProvider = null)
             {
                 // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+                var localizableMessageFormat = s_suppressionDiagnosticDescriptor.MessageFormat.ToString(formatProvider);
                 return string.Format(formatProvider,
-                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    localizableMessageFormat,
                     _originalDiagnostic.Id,
                     _originalDiagnostic.GetMessage(formatProvider),
                     _suppressionId,
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             public override bool IsSuppressed => false;
             public override int WarningLevel => GetDefaultWarningLevel(DiagnosticSeverity.Info);
             public override Location Location => _originalDiagnostic.Location;
-            public override IReadOnlyList<Location> AdditionalLocations => SpecializedCollections.EmptyReadOnlyList<Location>();
+            public override IReadOnlyList<Location> AdditionalLocations => _originalDiagnostic.AdditionalLocations;
             public override ImmutableDictionary<string, string> Properties => ImmutableDictionary<string, string>.Empty;
 
             public override bool Equals(Diagnostic obj)
