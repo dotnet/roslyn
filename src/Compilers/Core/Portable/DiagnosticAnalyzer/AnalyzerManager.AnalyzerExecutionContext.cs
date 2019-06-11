@@ -219,34 +219,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public ImmutableArray<DiagnosticDescriptor> GetOrComputeDescriptors(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
             {
-                lock (_gate)
+                if (!_lazyDescriptors.IsDefault)
                 {
-                    if (!_lazyDescriptors.IsDefault)
-                    {
-                        return _lazyDescriptors;
-                    }
+                    return _lazyDescriptors;
                 }
 
                 // Otherwise, compute the value.
-                // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
                 var descriptors = ComputeDescriptors(analyzer, analyzerExecutor);
-
-                lock (_gate)
-                {
-                    // Check if another thread already stored the computed value.
-                    if (!_lazyDescriptors.IsDefault)
-                    {
-                        // If so, we return the stored value.
-                        descriptors = _lazyDescriptors;
-                    }
-                    else
-                    {
-                        // Otherwise, store the value computed here.
-                        _lazyDescriptors = descriptors;
-                    }
-                }
-
-                return descriptors;
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyDescriptors, descriptors);
+                return _lazyDescriptors;
             }
 
             /// <summary>
