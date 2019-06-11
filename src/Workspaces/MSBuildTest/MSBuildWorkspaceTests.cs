@@ -25,6 +25,7 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -3628,7 +3629,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/core-eng/issues/6424"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestEditorConfigDiscovery()
         {
             var files = GetSimpleCSharpSolutionFiles()
@@ -3649,7 +3650,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudio16_2OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestEditorConfigDiscoveryDisabled()
         {
             var files = GetSimpleCSharpSolutionFiles()
