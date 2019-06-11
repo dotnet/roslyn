@@ -58,6 +58,12 @@ jobs:
       feedSource: 'https://devdiv-test.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json'
 
   - script: eng\cibuild.cmd
+              -restore
+              -build
+              -bootstrap
+              -pack
+              -sign
+              -publish
               -configuration $(BuildConfiguration)
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)

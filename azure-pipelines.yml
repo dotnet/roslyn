@@ -37,8 +37,17 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump
-      displayName: Build and Test
+    #- script: eng/cibuild.cmd -prepareMachine
+    #  displayName: Prepare Machine
+    #
+    #- script: eng/cibuild.cmd -configuration $(_configuration) -restore
+    #  displayName: Restore NuGet Packages
+
+    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -restore -build -bootstrap -pack -sign -publish
+      displayName: Build
+
+    - script: eng/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind) -procdump
+      displayName: Test
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -65,8 +74,17 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop
-      displayName: Build and Test
+    - script: eng/cibuild.cmd -prepareMachine
+      displayName: Prepare Machine
+
+    - script: eng/cibuild.cmd -configuration Debug -restore
+      displayName: Restore NuGet Packages
+
+    - script: eng/cibuild.cmd -configuration Debug -build -bootstrap -pack -sign -publish
+      displayName: Build
+
+    - script: eng/cibuild.cmd -configuration Debug -testDesktop
+      displayName: Test
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -99,8 +117,17 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr
-      displayName: Build and Test
+    - script: eng/cibuild.cmd -prepareMachine
+      displayName: Prepare Machine
+
+    - script: eng/cibuild.cmd -configuration $(_configuration) -msbuildEngine:dotnet -restore
+      displayName: Restore NuGet Packages
+
+    - script: eng/cibuild.cmd -configuration $(_configuration) -msbuildEngine:dotnet -build -bootstrap -pack -sign -publish
+      displayName: Build
+
+    - script: eng/cibuild.cmd -configuration $(_configuration) -msbuildEngine:dotnet -testCoreClr
+      displayName: Test
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -180,17 +207,25 @@ jobs:
     maxParallel: 2
     matrix:
       coreclr:
-        _args: --testCoreClr --docker
+        _args: --docker
+        _testArgs: --testCoreClr
         _name: CoreClr
         _configuration: Debug
       mono:
-        _args: --testMono --docker
+        _args: --docker
+        _testArgs: --testMono
         _name: Mono
         _configuration: Debug
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
-      displayName: Build and Test
+    - script: ./eng/cibuild.sh --prepareMachine $(_args)
+      displayName: Prepare Machine
+    - script: ./eng/cibuild.sh --configuration $(_configuration) $(_args) --restore
+      displayName: Restore NuGet Packages
+    - script: ./eng/cibuild.sh --configuration $(_configuration) $(_args) --build --bootstrap --pack --publish
+      displayName: Build
+    - script: ./eng/cibuild.sh --configuration $(_configuration) $(_args) $(_testArgs)
+      displayName: Test
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
       inputs:
@@ -215,8 +250,17 @@ jobs:
   timeoutInMinutes: 90
 
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
-      displayName: Build and Test
+    - script: ./eng/cibuild.sh --prepareMachine
+      displayName: Prepare Machine
+
+    - script: ./eng/cibuild.sh --configuration Debug --restore
+      displayName: Restore NuGet Packages
+
+    - script: ./eng/cibuild.sh --configuration Debug --build --bootstrap --pack --publish
+      displayName: Build
+
+    - script: ./eng/cibuild.sh --configuration Debug --testCoreClr
+      displayName: Test
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
