@@ -1772,7 +1772,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnOperation (RefKind: Ref) (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return;')
+IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return;')
   ReturnedValue: 
     null
 ";

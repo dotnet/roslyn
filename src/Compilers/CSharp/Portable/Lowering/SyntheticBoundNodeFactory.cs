@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(Syntax, CurrentFunction.RefKind, expression) { WasCompilerGenerated = true };
+            return new BoundReturnStatement(Syntax, BoundReturnStatement.StatementRefKind(CurrentFunction.RefKind, expression?.GetRefKind() ?? RefKind.None), expression) { WasCompilerGenerated = true };
         }
 
         public void CloseMethod(BoundStatement body)

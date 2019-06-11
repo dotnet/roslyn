@@ -2922,6 +2922,9 @@ class C<T>
         public void RefAssignment_Foreach_Nested()
         {
             verify(fieldType: "string?",
+                // (4,20): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value null
+                //     public string? Field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "null").WithLocation(4, 20),
                 // (9,13): warning CS8602: Dereference of a possibly null reference.
                 //             item.Field.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "item.Field").WithLocation(9, 13));
@@ -2929,7 +2932,10 @@ class C<T>
             verify(fieldType: "string",
                 // (4,19): warning CS8618: Non-nullable field 'Field' is uninitialized.
                 //     public string Field;
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Field").WithArguments("field", "Field").WithLocation(4, 19));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Field").WithArguments("field", "Field").WithLocation(4, 19),
+                // (4,19): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value null
+                //     public string Field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("C.Field", "null").WithLocation(4, 19));
 
             void verify(string fieldType, params DiagnosticDescription[] expected)
             {

@@ -2609,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, sigRefKind, arg, hasErrors: true);
+                return new BoundReturnStatement(syntax, BoundReturnStatement.StatementRefKind(sigRefKind, refKind), arg, hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -2676,7 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, sigRefKind, arg);
+            return new BoundReturnStatement(syntax, BoundReturnStatement.StatementRefKind(sigRefKind, refKind), arg);
         }
 
         internal BoundExpression CreateReturnConversion(
@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This can happen if we are binding an async anonymous method to a delegate type.
                 Error(diagnostics, ErrorCode.ERR_MustNotHaveRefReturn, syntax);
-                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, BoundReturnStatement.StatementRefKind(returnRefKind, refKind), expression) { WasCompilerGenerated = true };
             }
             else if ((object)returnType != null)
             {
@@ -3035,7 +3035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, BoundReturnStatement.StatementRefKind(returnRefKind, refKind), expression) { WasCompilerGenerated = true };
                 }
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)
@@ -3044,7 +3044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(syntax, BoundReturnStatement.StatementRefKind(returnRefKind, refKind), expression) { WasCompilerGenerated = true };
             }
 
             // Need to attach the tree for when we generate sequence points.

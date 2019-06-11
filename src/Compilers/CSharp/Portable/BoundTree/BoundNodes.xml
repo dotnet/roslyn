@@ -833,6 +833,10 @@
   </Node>
 
   <Node Name="BoundReturnStatement" Base="BoundStatement">
+    <!-- The ref kind of the returned value. For cases where the returned value expression has a ref kind of 'ref' but
+      the containing method has a ref kind of 'ref readonly', the ref kind of the return statement is 'ref readonly'.
+      In all other cases, the ref kind of the return statement is taken directly from the returned value expression.
+    -->
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>

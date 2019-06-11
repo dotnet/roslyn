@@ -512,6 +512,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundReturnStatement
     {
+        /// <summary>
+        /// Gets the effective <see cref="CodeAnalysis.RefKind"/> of a bound return statement.
+        /// </summary>
+        /// <param name="signatureRefKind">The <see cref="CodeAnalysis.RefKind"/> of the containing method.</param>
+        /// <param name="valueRefKind">The <see cref="CodeAnalysis.RefKind"/> of the returned value.</param>
+        /// <returns>If the value is returned by reference and the containing method has <c>ref readonly</c> return
+        /// value, this method returns <see cref="RefKind.RefReadOnly"/>. Otherwise, this method returns
+        /// <paramref name="valueRefKind"/>.</returns>
+        public static RefKind StatementRefKind(RefKind signatureRefKind, RefKind valueRefKind)
+        {
+            if (valueRefKind == RefKind.Ref && signatureRefKind == RefKind.RefReadOnly)
+            {
+                return RefKind.RefReadOnly;
+            }
+
+            return valueRefKind;
+        }
+
         public static BoundReturnStatement Synthesized(SyntaxNode syntax, RefKind refKind, BoundExpression expression, bool hasErrors = false)
         {
             return new BoundReturnStatement(syntax, refKind, expression, hasErrors) { WasCompilerGenerated = true };
