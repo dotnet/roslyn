@@ -231,6 +231,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return Task.CompletedTask
         End Function
 
+        Public Overrides Async Function WaitForUIRenderedAsync() As Task
+            Await WaitForAsynchronousOperationsAsync()
+        End Function
+
 #End Region
     End Class
 End Namespace
