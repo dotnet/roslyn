@@ -3782,13 +3782,28 @@ tryAgain:
 
             TypeSyntax type;
             SyntaxToken name;
+            SyntaxToken exclamation = null;
+            SyntaxToken equals = null;
             if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
                 name = this.ParseIdentifierToken();
 
+                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                {
+                    exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                }
+
+                else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+                {
+                    var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
+                    equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
+                    equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
+                    exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
+                }
+
                 // When the user type "int goo[]", give them a useful error
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
+                else if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
                 {
                     var open = this.EatToken();
                     var close = this.EatToken();
@@ -3802,19 +3817,6 @@ tryAgain:
                 // .Identifier has the kind ArgListKeyword.
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
-            }
-            SyntaxToken exclamation = null;
-            SyntaxToken equals = null;
-            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-            {
-                exclamation = this.EatToken(SyntaxKind.ExclamationToken);
-            }
-            else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
-            {
-                var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
-                equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
-                equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-                exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
             }
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {

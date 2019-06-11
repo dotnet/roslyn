@@ -27,6 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal override bool IsNullChecked
+        {
+            get
+            {
+                var node = this.GetNonNullSyntaxNode();
+                if (node is ParameterSyntax param)
+                {
+                    return param.ExclamationToken.Kind() == SyntaxKind.ExclamationToken;
+                }
+                return false;
+            }
+        }
+
         internal override bool IsMetadataOptional
         {
             get { return false; }

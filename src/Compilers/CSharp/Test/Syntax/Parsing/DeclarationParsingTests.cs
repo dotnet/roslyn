@@ -7307,7 +7307,10 @@ class C<T> where T : struct? {}
         [Fact]
         public void TestNullCheckedArgList()
         {
-            UsingStatement(@"void M(__arglist!) { }");
+            UsingStatement(@"void M(__arglist!) { }",
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // void M(__arglist!) { }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7321,7 +7324,6 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.ArgListKeyword);
-                        N(SyntaxKind.ExclamationToken);
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
