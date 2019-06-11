@@ -262,7 +262,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -272,10 +271,8 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
               Value: 
                 IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [1]
@@ -285,34 +282,25 @@ Block[B0] - Entry
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
-
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
                 Leaving: {R2}
-
             Next (Regular) Block[B4]
                 Leaving: {R2} {R1}
     }
-
     Block[B3] - Block
         Predecessors: [B2]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsImplicit) (Syntax: 'i1 ??= i2')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i1 ??= i2')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
               Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (ImplicitNullable)
-                  Operand: 
-                    IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i2')
-
+                IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i2')
         Next (Regular) Block[B4]
             Leaving: {R1}
 }
-
 Block[B4] - Exit
     Predecessors: [B2] [B3]
     Statements (0)

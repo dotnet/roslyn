@@ -1333,11 +1333,6 @@
         <target state="translated">Une expression par défaut introduit une valeur null pour un paramètre de type.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">'default' converti en 'null', et non 'default({0})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
         <source>'default' is converted to 'null'</source>
         <target state="translated">'default' converti en 'null'</target>

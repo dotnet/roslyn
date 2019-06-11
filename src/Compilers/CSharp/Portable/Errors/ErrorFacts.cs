@@ -390,7 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
-                case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:

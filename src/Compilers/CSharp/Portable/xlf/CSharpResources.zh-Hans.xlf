@@ -1373,11 +1373,6 @@
         <target state="translated">默认表达式会为类型参数引入 null 值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">“default” 被转换为 “null” 而非“default({0})”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
         <source>'default' is converted to 'null'</source>
         <target state="translated">“default” 被转换为 “null”</target>

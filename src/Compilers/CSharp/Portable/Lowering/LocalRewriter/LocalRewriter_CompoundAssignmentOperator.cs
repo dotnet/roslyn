@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundExpression TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, SynthesizedLocalKind localKind)
         {
             Debug.Assert(propertyOrEvent.Kind == SymbolKind.Property || propertyOrEvent.Kind == SymbolKind.Event);
 
@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC VIOLATION: as value types.
             var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None, kind: localKind);
             stores.Add(assignmentToTemp);
             temps.Add(receiverTemp.LocalSymbol);
 
             return receiverTemp;
         }
 
-        private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, SynthesizedLocalKind localKind)
         {
             if (!CanChangeValueBetweenReads(memberAccess.Receiver))
             {
@@ -203,14 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // store receiver to temp:
             var rewrittenReceiver = VisitExpression(memberAccess.Receiver);
             BoundAssignmentOperator assignmentToTemp;
-            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, kind: localKind);
             stores.Add(assignmentToTemp);
             temps.Add(receiverTemp.LocalSymbol);
 
             return new BoundDynamicMemberAccess(memberAccess.Syntax, receiverTemp, memberAccess.TypeArgumentsOpt, memberAccess.Name, memberAccess.Invoked, memberAccess.Indexed, memberAccess.Type);
         }
 
-        private BoundIndexerAccess TransformIndexerAccess(BoundIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundIndexerAccess TransformIndexerAccess(BoundIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, SynthesizedLocalKind localKind)
         {
             var receiverOpt = indexerAccess.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: as value types.
                 var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-                var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+                var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None, kind: localKind);
                 transformedReceiver = receiverTemp;
                 stores.Add(assignmentToTemp);
                 temps.Add(receiverTemp.LocalSymbol);
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the <paramref name="receiver"/> was lowered and transformed.
         /// The <paramref name="receiver"/> is not changed if this function returns false. 
         /// </summary>
-        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, SynthesizedLocalKind localKind)
         {
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
 
@@ -397,20 +397,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundAssignmentOperator assignmentToTemp;
-            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, kind: localKind);
             stores.Add(assignmentToTemp);
             temps.Add(receiverTemp.LocalSymbol);
             receiver = receiverTemp;
             return true;
         }
 
-        private BoundDynamicIndexerAccess TransformDynamicIndexerAccess(BoundDynamicIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundDynamicIndexerAccess TransformDynamicIndexerAccess(BoundDynamicIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, SynthesizedLocalKind localKind)
         {
             BoundExpression loweredReceiver;
             if (CanChangeValueBetweenReads(indexerAccess.ReceiverOpt))
             {
                 BoundAssignmentOperator assignmentToTemp;
-                var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
+                var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp, kind: localKind);
                 stores.Add(assignmentToTemp);
                 temps.Add(temp.LocalSymbol);
                 loweredReceiver = temp;
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A side-effect-free expression representing the LHS.
         /// The returned node needs to be lowered but its children are already lowered.
         /// </returns>
-        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment, bool needsSpilling = false)
         {
             // There are five possible cases.
             //
@@ -491,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we have a variable on the left. Transform it into:
             // ref temp = ref variable
             // temp = temp + value
+            var localKind = needsSpilling ? SynthesizedLocalKind.Spill : SynthesizedLocalKind.LoweringTemp;
 
             switch (originalLHS.Kind)
             {
@@ -502,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
                             // This is a temporary object that will be rewritten away before the lowering completes.
-                            return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt, stores, temps),
+                            return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt, stores, temps, localKind),
                                                          propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
@@ -515,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundIndexerAccess)originalLHS;
                         if (indexerAccess.Indexer.RefKind == RefKind.None)
                         {
-                            return TransformIndexerAccess((BoundIndexerAccess)originalLHS, stores, temps);
+                            return TransformIndexerAccess((BoundIndexerAccess)originalLHS, stores, temps, localKind);
                         }
                     }
                     break;
@@ -530,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var fieldAccess = (BoundFieldAccess)originalLHS;
                         BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
 
-                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(fieldAccess.FieldSymbol, ref receiverOpt, stores, temps))
+                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(fieldAccess.FieldSymbol, ref receiverOpt, stores, temps, localKind))
                         {
                             return MakeFieldAccess(fieldAccess.Syntax, receiverOpt, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type, fieldAccess);
                         }
@@ -560,16 +561,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var loweredArray = VisitExpression(arrayAccess.Expression);
                             var loweredIndices = VisitList(arrayAccess.Indices);
 
-                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps, localKind);
                         }
                     }
                     break;
 
                 case BoundKind.DynamicMemberAccess:
-                    return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps);
+                    return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps, localKind);
 
                 case BoundKind.DynamicIndexerAccess:
-                    return TransformDynamicIndexerAccess((BoundDynamicIndexerAccess)originalLHS, stores, temps);
+                    return TransformDynamicIndexerAccess((BoundDynamicIndexerAccess)originalLHS, stores, temps, localKind);
 
                 case BoundKind.Local:
                 case BoundKind.Parameter:
@@ -604,11 +605,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
                             // This is a temporary object that will be rewritten away before the lowering completes.
-                            return eventAccess.Update(TransformPropertyOrEventReceiver(eventAccess.EventSymbol, eventAccess.ReceiverOpt, stores, temps),
+                            return eventAccess.Update(TransformPropertyOrEventReceiver(eventAccess.EventSymbol, eventAccess.ReceiverOpt, stores, temps, localKind),
                                                       eventAccess.EventSymbol, eventAccess.IsUsableAsField, eventAccess.ResultKind, eventAccess.Type);
                         }
 
-                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, ref receiverOpt, stores, temps))
+                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, ref receiverOpt, stores, temps, localKind))
                         {
                             return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValue, eventAccess.ResultKind, eventAccess.Type);
                         }
@@ -629,7 +630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenVariable = VisitExpression(originalLHS);
 
             BoundAssignmentOperator assignmentToTemp2;
-            var variableTemp = _factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref);
+            var variableTemp = _factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref,
+                kind: needsSpilling ? SynthesizedLocalKind.Spill : SynthesizedLocalKind.LoweringTemp);
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
@@ -655,7 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredExpression,
             ImmutableArray<BoundExpression> loweredIndices,
             ArrayBuilder<BoundExpression> stores,
-            ArrayBuilder<LocalSymbol> temps)
+            ArrayBuilder<LocalSymbol> temps,
+            SynthesizedLocalKind localKind)
         {
             BoundAssignmentOperator assignmentToArrayTemp;
             var arrayTemp = _factory.StoreToTemp(loweredExpression, out assignmentToArrayTemp);
@@ -669,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (CanChangeValueBetweenReads(loweredIndices[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
-                    var temp = _factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
+                    var temp = _factory.StoreToTemp(loweredIndices[i], out assignmentToTemp, kind: localKind);
                     stores.Add(assignmentToTemp);
                     temps.Add(temp.LocalSymbol);
                     boundTempIndices[i] = temp;

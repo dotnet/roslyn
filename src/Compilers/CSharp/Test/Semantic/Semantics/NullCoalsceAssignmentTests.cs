@@ -133,7 +133,7 @@ class D : C {}";
         }
 
         [Fact]
-        public void CoalesceAssignment_NotConvertedToNonNullable()
+        public void CoalesceAssignment_ConvertedToNonNullable()
         {
             var source = @"
 class C
@@ -152,14 +152,10 @@ class C
             var semanticModel = comp.GetSemanticModel(syntaxTree);
             var coalesceAssignment = syntaxRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
-            var nullable = comp.GetSpecialType(SpecialType.System_Nullable_T);
             var int32 = comp.GetSpecialType(SpecialType.System_Int32);
-
             var coalesceType = semanticModel.GetTypeInfo(coalesceAssignment).Type;
-            var genericParameter = ((INamedTypeSymbol)coalesceType).TypeArguments.Single();
 
-            Assert.Equal(nullable, coalesceType.OriginalDefinition);
-            Assert.Equal(int32, genericParameter);
+            Assert.Equal(int32, coalesceType);
         }
     }
 }

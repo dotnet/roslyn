@@ -1333,11 +1333,6 @@
         <target state="translated">Varsayılan bir ifade, bir tür parametresi için null bir değer ortaya çıkarır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
-        <source>'default' is converted to 'null', not 'default({0})'</source>
-        <target state="translated">'default', 'default({0})' değil 'null' değerine dönüştürülür</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
         <source>'default' is converted to 'null'</source>
         <target state="translated">'default', 'null' değerine dönüştürülür</target>
