@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -130,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -143,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -169,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -182,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -213,6 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsAbstract</ModifierKind>
@@ -228,6 +235,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -243,6 +251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -266,6 +275,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -278,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       <ApplicableAccessibilityList>
         <AccessibilityKind>Internal</AccessibilityKind>
         <AccessibilityKind>Private</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -288,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
       <ApplicableAccessibilityList>
         <AccessibilityKind>Internal</AccessibilityKind>
         <AccessibilityKind>Private</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList>
         <ModifierKind>IsStatic</ModifierKind>
@@ -306,6 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
@@ -321,6 +334,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <AccessibilityKind>Private</AccessibilityKind>
         <AccessibilityKind>Protected</AccessibilityKind>
         <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+        <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
       </ApplicableAccessibilityList>
       <RequiredModifierList />
     </SymbolSpecification>
