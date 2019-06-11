@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;	
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -27,11 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
-        
-        // Constructor used by F# kept for backwards compatability
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)	
-            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())	
-        {	
+
+        [Obsolete("This is a compatibility shim for F#; please do not use it.")]
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
+            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
+        {
         }
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
