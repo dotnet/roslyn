@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
         <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
+        <target state="translated">RestrictedInternalsVisibleToAttribute では、内部シンボルへのアクセスを指定された名前空間内のシンボルに制限する InternalsVisibleToAttribute の制限付きバージョンを有効にします。参照している各アセンブリは、参照しているアセンブリが許可する制限された名前空間で定義されている内部シンボルにのみアクセスできます。</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</target>
+        <target state="translated">内部シンボル '{0}' への外部アクセスは禁止されています。アセンブリ '{1}' では、次の名前空間で定義されている内部シンボルへのアクセスのみが許可されています。'{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
         <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
-        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
+        <target state="translated">制限された名前空間外の内部シンボルへの外部アクセス禁止</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
