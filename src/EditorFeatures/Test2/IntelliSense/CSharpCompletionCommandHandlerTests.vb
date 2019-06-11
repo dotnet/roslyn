@@ -5257,6 +5257,35 @@ class C
             End Using
         End Function
 
+        <WorkItem(36187, "https://github.com/dotnet/roslyn/issues/36187")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function CompletionWithTwoOverloadsOneOfThemIsEmpty(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C
+{
+    private enum A
+    {
+    	A,
+    	B,
+    }
+
+    private void Get(string a) { }
+    private void Get(A a) { }
+
+    private void Test()
+    {
+    	Get$$
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars("(")
+                Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
