@@ -7126,10 +7126,13 @@ public class Test
             var source =
 @"
 class Gen<T> {}
-class Gen2<T>: System.Attribute {}
+class Gen2<T> : System.Attribute {}
+class Gen3<T> : System.Attribute { Gen3(T parameter) { } }
 	
 [Gen]
 [Gen2]
+[Gen2()]
+[Gen3(1)]
 public class Test
 {
 	public static int Main()
@@ -7142,12 +7145,18 @@ public class Test
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-                // (5,2): error CS0404: error CS0616: 'Gen<T>' is not an attribute class
-                // [Gen]
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>"),
-                // (6,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
-                // [Gen2]
-                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1"));
+                    // (6,2): error CS0616: 'Gen<T>' is not an attribute class
+                    // [Gen]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(6, 2),
+                    // (7,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                    // [Gen2]
+                    Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(7, 2),
+                    // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                    // [Gen2()]
+                    Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
+                    // (9,2): error CS0305: Using the generic type 'Gen3<T>' requires 1 type arguments
+                    // [Gen3(1)]
+                    Diagnostic(ErrorCode.ERR_BadArity, "Gen3").WithArguments("Gen3<T>", "type", "1").WithLocation(9, 2));
         }
 
         [Fact]
@@ -8128,17 +8137,20 @@ public class C<T, U> : Attribute
         {
             var source = @"
 using System;
+using System.Collections.Generic;
 
 [A<>]
 [A<int>]
 [B]
 [B<>]
 [B<int>]
+[B<List<int>>]
 [C]
 [C<>]
 [C<int>]
 [C<,>]
 [C<int, int>]
+[C<int, string, byte>]
 class Test
 {
 }
@@ -8158,31 +8170,33 @@ public class C<T, U> : Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<>]
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type"),
-                // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<int>]
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type"),
-
-                // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
-                // [B]
-                Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1"),
-                // (7,2): error CS7003: Unexpected use of an unbound generic name
-                // [B<>]
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>"),
-                // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
-                // [C]
-                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2"),
-                // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
-                // [C<>]
-                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2"),
-                // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 1 type arguments
-                // [C<int>]
-                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2"),
-                // (12,2): error CS7003: Unexpected use of an unbound generic name
-                // [C<,>]
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>"));
+                    // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                    // [A<>]
+                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(5, 2),
+                    // (6,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                    // [A<int>]
+                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(6, 2),
+                    // (7,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
+                    // [B]
+                    Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(7, 2),
+                    // (8,2): error CS7003: Unexpected use of an unbound generic name
+                    // [B<>]
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(8, 2),
+                    // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                    // [C]
+                    Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
+                    // (12,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                    // [C<>]
+                    Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(12, 2),
+                    // (13,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                    // [C<int>]
+                    Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(13, 2),
+                    // (14,2): error CS7003: Unexpected use of an unbound generic name
+                    // [C<,>]
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(14, 2),
+                    // (16,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                    // [C<int, string, byte>]
+                    Diagnostic(ErrorCode.ERR_BadArity, "C<int, string, byte>").WithArguments("C<T, U>", "type", "2").WithLocation(16, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]

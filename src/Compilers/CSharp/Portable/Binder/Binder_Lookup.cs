@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbolWithoutSuffix;
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix);
 
-            // Generic types are not allowed.
+            // Generic types were allowed.
             Debug.Assert(Compilation.LanguageVersion.AllowGenericAttributes() || arity == 0 || !result.IsMultiViable);
 
             // Result with 'Attribute' suffix added.
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix);
 
-                // Generic types are not allowed.
+                // Generic types were allowed.
                 Debug.Assert(Compilation.LanguageVersion.AllowGenericAttributes() || arity == 0 || !result.IsMultiViable);
             }
 
