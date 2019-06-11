@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [ExportContentTypeLanguageService(FSharp.Editor.FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
+    [ExportContentTypeLanguageService(FSharpContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
     internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public IContentType GetDefaultContentType()
         {
-            return _contentTypeRegistry.GetContentType(FSharp.Editor.FSharpContentTypeNames.FSharpContentType);
+            return _contentTypeRegistry.GetContentType(FSharpContentTypeNames.FSharpContentType);
         }
     }
 }
