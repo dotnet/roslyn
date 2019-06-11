@@ -813,6 +813,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
                                      isConditionalAccessReceiver(reference) ||
+                                     isCoalesceAssignment(reference) ||
                                      isCoalesceAssignmentTarget(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?");
@@ -850,6 +851,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return false;
+            }
+
+            bool isCoalesceAssignment(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                CSharpSyntaxNode referenceSyntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax);
+                return referenceSyntax.IsKind(CSharp.SyntaxKind.CoalesceAssignmentExpression);
             }
 
             bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
@@ -1087,6 +1099,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                                 case CSharp.SyntaxKind.SwitchExpression:
                                     if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.CoalesceAssignmentExpression:
+                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
                                     {
                                         return true;
                                     }

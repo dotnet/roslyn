@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var leftType = (TypeSymbol)LeftOperand.Type;
+                var leftType = LeftOperand.Type;
                 if (leftType?.IsNullableType() != true)
                 {
                     return false;
