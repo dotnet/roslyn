@@ -16,7 +16,7 @@
       When building servicing set AssemblyVersion property to a fixed value to avoid updating binding redirects in VS.
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
-    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">3.1.0.0</AssemblyVersion>
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(VersionPrefix).0</AssemblyVersion>
   </PropertyGroup>
   <!-- 
     Dependency versions
