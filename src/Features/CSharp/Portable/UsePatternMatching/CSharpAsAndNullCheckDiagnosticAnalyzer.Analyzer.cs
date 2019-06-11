@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             private readonly SemanticModel _semanticModel;
             private readonly ILocalSymbol _localSymbol;
-            private readonly BinaryExpressionSyntax _comparison;
+            private readonly ExpressionSyntax _comparison;
             private readonly ExpressionSyntax _operand;
             private readonly SyntaxNode _localStatement;
             private readonly SyntaxNode _enclosingBlock;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             private Analyzer(
                 SemanticModel semanticModel,
                 ILocalSymbol localSymbol,
-                BinaryExpressionSyntax comparison,
+                ExpressionSyntax comparison,
                 ExpressionSyntax operand,
                 SyntaxNode localStatement,
                 SyntaxNode enclosingBlock,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             public static bool CanSafelyConvertToPatternMatching(
                 SemanticModel semanticModel,
                 ILocalSymbol localSymbol,
-                BinaryExpressionSyntax comparison,
+                ExpressionSyntax comparison,
                 ExpressionSyntax operand,
                 SyntaxNode localStatement,
                 SyntaxNode enclosingBlock,

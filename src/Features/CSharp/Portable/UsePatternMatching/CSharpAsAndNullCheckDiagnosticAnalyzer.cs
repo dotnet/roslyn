@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
                 SyntaxKind.EqualsExpression,
                 SyntaxKind.NotEqualsExpression,
-                SyntaxKind.IsExpression);
+                SyntaxKind.IsExpression,
+                SyntaxKind.IsPatternExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -66,8 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var comparison = (BinaryExpressionSyntax)node;
-            var operand = GetNullCheckOperand(comparison.Left, comparison.Right)?.WalkDownParentheses();
+            var comparison = (ExpressionSyntax)node;
+            var (comparisonLeft, comparisonRight) = comparison switch
+            {
+                BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, (SyntaxNode)binaryExpression.Right),
+                IsPatternExpressionSyntax isPattern => (isPattern.Expression, isPattern.Pattern),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            var operand = GetNullCheckOperand(comparisonLeft, comparisonRight)?.WalkDownParentheses();
             if (operand == null)
             {
                 return;
@@ -272,13 +280,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return declarator != null;
         }
 
-        private static ExpressionSyntax GetNullCheckOperand(ExpressionSyntax left, ExpressionSyntax right)
+        private static ExpressionSyntax GetNullCheckOperand(ExpressionSyntax left, SyntaxNode right)
         {
             if (left.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 // null == x
                 // null != x
-                return right;
+                return (ExpressionSyntax)right;
             }
 
             if (right.IsKind(SyntaxKind.NullLiteralExpression))
@@ -292,6 +300,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword))
             {
                 // x is object
+                return left;
+            }
+
+            if (right.IsKind(SyntaxKind.ConstantPattern, out ConstantPatternSyntax constantPattern)
+                && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                // x is null
                 return left;
             }
 
