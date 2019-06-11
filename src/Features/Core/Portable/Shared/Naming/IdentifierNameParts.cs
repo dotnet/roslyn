@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Naming
 {
-    internal struct IdentifierNameParts
+    internal readonly struct IdentifierNameParts
     {
-        public string BaseName;
-        public ImmutableArray<string> BaseNameParts;
+        public readonly string BaseName;
+        public readonly ImmutableArray<string> BaseNameParts;
 
         public IdentifierNameParts(string baseName, ImmutableArray<string> baseNameParts)
         {

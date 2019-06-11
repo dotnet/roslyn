@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                var mybool = await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false);
-                if (!mybool)
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
