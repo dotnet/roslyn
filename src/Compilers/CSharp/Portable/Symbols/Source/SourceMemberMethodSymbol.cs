@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int MethodKindMask = 0x1F;
             private const int DeclarationModifiersMask = 0x7FFFFF;
 
-            private const int ReturnsVoidBit = 1 << 27;
             private const int IsExtensionMethodBit = 1 << 28;
             private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
             private const int IsMetadataVirtualBit = 1 << 30;
@@ -165,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
+        protected string lazyExpandedDocComment;
 
         //null if has never been computed. Initial binding diagnostics
         //are stashed here in service of API usage patterns
@@ -357,6 +357,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.flags.ReturnsVoid;
             }
         }
+
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes =>
+            DecodeReturnTypeAnnotationAttributes(GetDecodedReturnTypeWellKnownAttributeData());
 
         public sealed override MethodKind MethodKind
         {
@@ -672,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
+            ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
@@ -940,7 +944,7 @@ done:
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
+        internal ReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
         {
             var attributesBag = _lazyReturnTypeCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -948,7 +952,7 @@ done:
                 attributesBag = this.GetReturnTypeAttributesBag();
             }
 
-            return (CommonReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (ReturnTypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1313,7 +1317,7 @@ done:
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
                 // MarshalAs applied to the return value:
-                MarshalAsAttributeDecoder<CommonReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -1343,6 +1347,14 @@ done:
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
+            {
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasMaybeNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullAttribute))
+            {
+                arguments.GetOrCreateData<ReturnTypeWellKnownAttributeData>().HasNotNullAttribute = true;
             }
         }
 
@@ -1499,6 +1511,23 @@ done:
             }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+        }
+
+        private static FlowAnalysisAnnotations DecodeReturnTypeAnnotationAttributes(ReturnTypeWellKnownAttributeData attributeData)
+        {
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (attributeData != null)
+            {
+                if (attributeData.HasMaybeNullAttribute)
+                {
+                    annotations |= FlowAnalysisAnnotations.MaybeNull;
+                }
+                if (attributeData.HasNotNullAttribute)
+                {
+                    annotations |= FlowAnalysisAnnotations.NotNull;
+                }
+            }
+            return annotations;
         }
 
         public sealed override bool HidesBaseMethodsByName

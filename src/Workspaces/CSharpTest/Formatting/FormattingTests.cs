@@ -5221,6 +5221,25 @@ _ = this is  C(  ){}  ; }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(34683, "https://github.com/dotnet/roslyn/issues/34683")]
+        public async Task FormatRecursivePattern_InBinaryOperation()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            var code = @"class C
+{
+    void M()
+    {
+        return
+            typeWithAnnotations is { } && true;
+    }
+}";
+            var expectedCode = code;
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatPropertyPattern_MultilineAndEmpty()
         {
             var code = @"class C

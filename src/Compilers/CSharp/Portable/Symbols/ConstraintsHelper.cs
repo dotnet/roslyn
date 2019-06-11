@@ -860,6 +860,12 @@ hasRelatedInterfaces:
                 return false;
             }
 
+            if (includeNullability && typeParameter.HasNotNullConstraint && typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType())
+            {
+                var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
+                nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
+            }
+
             if (typeParameter.HasReferenceTypeConstraint)
             {
                 if (!typeArgument.Type.IsReferenceType)
@@ -926,7 +932,7 @@ hasRelatedInterfaces:
                     if (includeNullability && nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsValueType &&
+                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType() &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);

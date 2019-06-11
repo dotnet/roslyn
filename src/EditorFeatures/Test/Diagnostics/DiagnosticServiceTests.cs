@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             set.Reset();
 
-            var diagnostic = CreateDiagnosticData(workspace, project, document);
+            var diagnostic = CreateDiagnosticData(project, document);
 
             source.RaiseDiagnosticsUpdatedEvent(
                 DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
@@ -166,19 +166,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnostic;
         }
 
-        private static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, ProjectId projectId, DocumentId documentId)
+        private static DiagnosticData CreateDiagnosticData(ProjectId projectId, DocumentId documentId)
         {
             return new DiagnosticData(
-                                "test1", "Test", "test1 message", "test1 message format",
-                                DiagnosticSeverity.Info, false, 1,
-                                workspace, projectId, new DiagnosticDataLocation(documentId,
-                                    null, "originalFile1", 10, 10, 20, 20));
+                id: "test1",
+                category: "Test",
+                message: "test1 message",
+                enuMessageForBingSearch: "test1 message format",
+                severity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: false,
+                warningLevel: 1,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                projectId,
+                location: new DiagnosticDataLocation(documentId, null, "originalFile1", 10, 10, 20, 20));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
-            private bool _support;
-            private ImmutableArray<DiagnosticData> _diagnosticData;
+            private readonly bool _support;
+            private readonly ImmutableArray<DiagnosticData> _diagnosticData;
 
             public TestDiagnosticUpdateSource(bool support, DiagnosticData[] diagnosticData)
             {
