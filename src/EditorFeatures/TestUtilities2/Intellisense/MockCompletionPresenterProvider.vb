@@ -25,7 +25,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public ReadOnly Property Options As CompletionPresenterOptions Implements ICompletionPresenterProvider.Options
             Get
-                Return New CompletionPresenterOptions(resultsPerPage:=1)
+                ' resultsPerPage can be set for any reasonable value corresponding to the number of lines in popup.
+                ' It is used in some tests involving Up/Down keystrokes.
+                Return New CompletionPresenterOptions(resultsPerPage:=10)
             End Get
         End Property
 
