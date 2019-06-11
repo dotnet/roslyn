@@ -8151,6 +8151,10 @@ using System.Collections.Generic;
 [C<,>]
 [C<int, int>]
 [C<int, string, byte>]
+[D<int>(1)]
+[D<string>(""1"")]
+[D<Type>(typeof(int))]
+[D<Test>(new Test())]
 class Test
 {
 }
@@ -8165,6 +8169,11 @@ public class B<T> : Attribute
 
 public class C<T, U> : Attribute
 {
+}
+
+public class D<T> : Attribute
+{
+    public D(T value) { }
 }
 ";
 
@@ -8196,7 +8205,10 @@ public class C<T, U> : Attribute
                     Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(14, 2),
                     // (16,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
                     // [C<int, string, byte>]
-                    Diagnostic(ErrorCode.ERR_BadArity, "C<int, string, byte>").WithArguments("C<T, U>", "type", "2").WithLocation(16, 2));
+                    Diagnostic(ErrorCode.ERR_BadArity, "C<int, string, byte>").WithArguments("C<T, U>", "type", "2").WithLocation(16, 2),
+                    // (20,2): error CS0181: Attribute constructor parameter 'value' has type 'Test', which is not a valid attribute parameter type
+                    // [D<Test>(new Test())]
+                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "D<Test>").WithArguments("value", "Test").WithLocation(20, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
