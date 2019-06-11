@@ -55,6 +55,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
+            var moveToNamespaceOptionsService = document.Project.Solution.Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
+            if (moveToNamespaceOptionsService == null)
+            {
+                // If the user can't provide options then there's no reason
+                // to do an analysis, they won't be able to use the feature
+                return MoveToNamespaceAnalysisResult.Invalid;
+            }
+
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
 
             var token = root.FindToken(position);
