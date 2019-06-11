@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private InProgressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
-        [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
