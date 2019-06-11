@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
-            builder.Add(getId(ErrorCode.WRN_NullDisallowedInAssignment));
+            builder.Add(getId(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment));
 
             NullableFlowAnalysisWarnings = builder.ToImmutable();
 
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_SpecialTypeAsBound:
-                case ErrorCode.WRN_NullDisallowedInAssignment:
+                case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                     return 1;
                 default:
                     return 0;
