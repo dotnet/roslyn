@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -213,7 +216,7 @@ End Class
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
 
-        [Fact(Skip = "Need to support NuGet package System.ValueTuple")]
+        [Fact]
         public async Task TestCSharpValueTupleUsageNet46()
         {
             var testCode = @"
@@ -228,7 +231,8 @@ class TestClass {
                 {
                     Sources = { testCode },
                 },
-                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default,
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("System.ValueTuple", NuGetVersion.Parse("4.5.0")))),
             }.RunAsync();
         }
 

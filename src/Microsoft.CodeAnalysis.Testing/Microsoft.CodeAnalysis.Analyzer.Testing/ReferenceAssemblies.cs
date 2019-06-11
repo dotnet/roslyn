@@ -6,17 +6,69 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using NuGet.Common;
+using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using NuGet.Resolver;
+using NuGet.Versioning;
+
+#if NET46 || NET472 || NETSTANDARD
+using NuGet.Packaging.Signing;
+#endif
 
 namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed class ReferenceAssemblies
     {
-        public ReferenceAssemblies(
-            ImmutableArray<MetadataReference> references,
-            ImmutableDictionary<string, ImmutableArray<MetadataReference>> languageSpecificReferences)
+        private const string ReferenceAssembliesPackageVersion = "1.0.0-preview.2";
+        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1);
+
+        private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
+            = new Dictionary<string, ImmutableArray<MetadataReference>>();
+
+        public ReferenceAssemblies(string targetFramework)
         {
-            References = references;
-            LanguageSpecificReferences = languageSpecificReferences;
+            TargetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
+            AssemblyIdentityComparer = AssemblyIdentityComparer.Default;
+            RelativePaths = ImmutableArray<string>.Empty;
+            Assemblies = ImmutableArray<string>.Empty;
+            LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+            Packages = ImmutableArray<PackageIdentity>.Empty;
+        }
+
+        public ReferenceAssemblies(string targetFramework, PackageIdentity referenceAssemblyPackage, ImmutableArray<string> relativePaths)
+        {
+            TargetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
+            AssemblyIdentityComparer = AssemblyIdentityComparer.Default;
+            ReferenceAssemblyPackage = referenceAssemblyPackage ?? throw new ArgumentNullException(nameof(referenceAssemblyPackage));
+            RelativePaths = relativePaths.IsDefault ? ImmutableArray<string>.Empty : relativePaths;
+            Assemblies = ImmutableArray<string>.Empty;
+            LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
+            Packages = ImmutableArray<PackageIdentity>.Empty;
+        }
+
+        private ReferenceAssemblies(
+            string targetFramework,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            PackageIdentity? referenceAssemblyPackage,
+            ImmutableArray<string> relativePaths,
+            ImmutableArray<string> assemblies,
+            ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies,
+            ImmutableArray<PackageIdentity> packages)
+        {
+            TargetFramework = targetFramework;
+            AssemblyIdentityComparer = assemblyIdentityComparer;
+            ReferenceAssemblyPackage = referenceAssemblyPackage;
+            RelativePaths = relativePaths.IsDefault ? ImmutableArray<string>.Empty : relativePaths;
+            Assemblies = assemblies.IsDefault ? ImmutableArray<string>.Empty : assemblies;
+            LanguageSpecificAssemblies = languageSpecificAssemblies;
+            Packages = packages.IsDefault ? ImmutableArray<PackageIdentity>.Empty : packages;
         }
 
         public static ReferenceAssemblies Default
@@ -26,940 +78,678 @@ namespace Microsoft.CodeAnalysis.Testing
 #if NETSTANDARD1_5
                 return NetStandard.NetStandard15;
 #elif NETSTANDARD2_0
-                return NetStandard.NetStandard2;
-#else
+                return NetStandard.NetStandard20;
+#elif NET452
+                return NetFramework.Net452.Default;
+#elif NET46
                 return NetFramework.Net46.Default;
+#elif NET472
+                return NetFramework.Net472.Default;
 #endif
             }
         }
 
-        public ImmutableArray<MetadataReference> References { get; }
+        public string TargetFramework { get; }
 
-        public ImmutableDictionary<string, ImmutableArray<MetadataReference>> LanguageSpecificReferences { get; }
+        public AssemblyIdentityComparer AssemblyIdentityComparer { get; }
 
-#if false
-        public string ReferenceAssembliesPath { get; }
+        public PackageIdentity? ReferenceAssemblyPackage { get; }
 
-        public string FacadeAssembliesPath { get; }
-#endif
+        public ImmutableArray<string> RelativePaths { get; }
 
-        internal IEnumerable<MetadataReference> GetMetadataReferences(string language)
+        public ImmutableArray<string> Assemblies { get; }
+
+        public ImmutableDictionary<string, ImmutableArray<string>> LanguageSpecificAssemblies { get; }
+
+        public ImmutableArray<PackageIdentity> Packages { get; }
+
+        public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
+            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, RelativePaths, Assemblies, LanguageSpecificAssemblies, Packages);
+
+        public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, RelativePaths, assemblies, LanguageSpecificAssemblies, Packages);
+
+        public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
+            => WithAssemblies(Assemblies.AddRange(assemblies));
+
+        public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, RelativePaths, Assemblies, languageSpecificAssemblies, Packages);
+
+        public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
+            => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
+
+        public ReferenceAssemblies AddLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
         {
-            if (LanguageSpecificReferences.TryGetValue(language, out var perLanguageReferences))
+            if (!LanguageSpecificAssemblies.TryGetValue(language, out var existing))
             {
-                return References.Concat(perLanguageReferences);
+                existing = ImmutableArray<string>.Empty;
             }
 
-            return References;
+            return WithLanguageSpecificAssemblies(language, existing.AddRange(assemblies));
+        }
+
+        public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, RelativePaths, Assemblies, LanguageSpecificAssemblies, packages);
+
+        public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
+            => WithPackages(Packages.AddRange(packages));
+
+        public async Task<ImmutableArray<MetadataReference>> ResolveAsync(string? language, CancellationToken cancellationToken)
+        {
+            if (language is object)
+            {
+                if (LanguageSpecificAssemblies.IsEmpty
+                    || !LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies)
+                    || languageSpecificAssemblies.IsEmpty)
+                {
+                    return await ResolveAsync(null, cancellationToken);
+                }
+            }
+
+            language ??= string.Empty;
+            lock (_references)
+            {
+                if (_references.TryGetValue(language, out var references))
+                {
+                    return references;
+                }
+            }
+
+            await Semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                lock (_references)
+                {
+                    if (_references.TryGetValue(language, out var references))
+                    {
+                        return references;
+                    }
+                }
+
+                var computedReferences = await ResolveCoreAsync(language, cancellationToken);
+                lock (_references)
+                {
+                    _references.Add(language, computedReferences);
+                }
+
+                return computedReferences;
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        /// <seealso href="https://martinbjorkstrom.com/posts/2018-09-19-revisiting-nuget-client-libraries"/>
+        private async Task<ImmutableArray<MetadataReference>> ResolveCoreAsync(string language, CancellationToken cancellationToken)
+        {
+            var settings = Settings.LoadDefaultSettings(root: null);
+#pragma warning disable CS0618 // Type or member is obsolete
+            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
+#pragma warning restore CS0618 // Type or member is obsolete
+            var targetFramework = NuGetFramework.ParseFolder(TargetFramework);
+            var logger = NullLogger.Instance;
+
+            using (var cacheContext = new SourceCacheContext())
+            {
+                var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
+                var dependencies = ImmutableDictionary.CreateBuilder<PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
+
+                if (ReferenceAssemblyPackage is object)
+                {
+                    await GetPackageDependenciesAsync(ReferenceAssemblyPackage, targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                }
+
+                foreach (var packageIdentity in Packages)
+                {
+                    await GetPackageDependenciesAsync(packageIdentity, targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                }
+
+                var availablePackages = dependencies.ToImmutable();
+
+                var packagesToInstall = new List<PackageIdentity>();
+                if (ReferenceAssemblyPackage is object)
+                {
+                    packagesToInstall.Add(ReferenceAssemblyPackage);
+                }
+
+                if (!Packages.IsEmpty)
+                {
+                    var resolverContext = new PackageResolverContext(
+                        DependencyBehavior.Lowest,
+                        Packages.Select(package => package.Id),
+                        Enumerable.Empty<string>(),
+                        Enumerable.Empty<PackageReference>(),
+                        Enumerable.Empty<PackageIdentity>(),
+                        availablePackages.Values,
+                        sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
+                        logger);
+                    var resolver = new PackageResolver();
+
+                    packagesToInstall.AddRange(resolver.Resolve(resolverContext, cancellationToken));
+                }
+
+                var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
+                var localPathResolver = new PackagePathResolver(Path.GetFullPath("packages"));
+#if NET452
+                var packageExtractionContext = new PackageExtractionContext(logger);
+#elif NET46 || NET472 || NETSTANDARD2_0
+                var packageExtractionContext = new PackageExtractionContext(
+                    PackageSaveMode.Defaultv3,
+                    XmlDocFileSaveMode.None,
+                    ClientPolicyContext.GetClientPolicy(settings, logger),
+                    logger);
+#elif NETSTANDARD1_5
+                var packageExtractionContext = new PackageExtractionContext(
+                    PackageSaveMode.Defaultv3,
+                    XmlDocFileSaveMode.None,
+                    logger,
+                    new PackageSignatureVerifier(
+                        SignatureVerificationProviderFactory.GetSignatureVerificationProviders(),
+                        SignedPackageVerifierSettings.Default));
+#else
+#error The current target framework is not supported.
+#endif
+
+                var frameworkReducer = new FrameworkReducer();
+
+                var resolvedAssemblies = new HashSet<string>();
+                foreach (var packageToInstall in packagesToInstall)
+                {
+                    PackageReaderBase packageReader;
+                    var installedPath = GetInstalledPath(localPathResolver, packageToInstall)
+                        ?? GetInstalledPath(globalPathResolver, packageToInstall);
+                    if (installedPath is null)
+                    {
+                        var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
+                        var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
+                            packageToInstall,
+                            new PackageDownloadContext(cacheContext),
+                            SettingsUtility.GetGlobalPackagesFolder(settings),
+                            logger,
+                            cancellationToken);
+
+                        if (!PackageIdentityComparer.Default.Equals(packageToInstall, ReferenceAssemblyPackage)
+                            && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Lib).Any()
+                            && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Ref).Any())
+                        {
+                            // This package has no compile time impact
+                            continue;
+                        }
+
+                        await PackageExtractor.ExtractPackageAsync(
+#if !NET452 && !NETSTANDARD1_5
+#pragma warning disable SA1114 // Parameter list should follow declaration
+                            downloadResult.PackageSource,
+#pragma warning restore SA1114 // Parameter list should follow declaration
+#endif
+                            downloadResult.PackageStream,
+                            localPathResolver,
+                            packageExtractionContext,
+                            cancellationToken);
+
+                        installedPath = localPathResolver.GetInstalledPath(packageToInstall);
+                        packageReader = downloadResult.PackageReader;
+                    }
+                    else
+                    {
+                        packageReader = new PackageFolderReader(installedPath);
+                    }
+
+                    var libItems = await packageReader.GetLibItemsAsync(cancellationToken);
+                    var nearestLib = frameworkReducer.GetNearest(targetFramework, libItems.Select(x => x.TargetFramework));
+                    var frameworkItems = await packageReader.GetFrameworkItemsAsync(cancellationToken);
+                    var nearestFramework = frameworkReducer.GetNearest(targetFramework, frameworkItems.Select(x => x.TargetFramework));
+                    var refItems = await packageReader.GetItemsAsync(PackagingConstants.Folders.Ref, cancellationToken);
+                    var nearestRef = frameworkReducer.GetNearest(targetFramework, refItems.Select(x => x.TargetFramework));
+                    if (nearestRef is object)
+                    {
+                        var nearestRefItems = refItems.Single(x => x.TargetFramework == nearestRef);
+                        foreach (var item in nearestRefItems.Items)
+                        {
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
+                            resolvedAssemblies.Add(Path.Combine(installedPath, item));
+                        }
+                    }
+                    else if (nearestLib is object)
+                    {
+                        var nearestLibItems = libItems.Single(x => x.TargetFramework == nearestLib);
+                        foreach (var item in nearestLibItems.Items)
+                        {
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
+                            resolvedAssemblies.Add(Path.Combine(installedPath, item));
+                        }
+                    }
+
+                    if (nearestFramework is object)
+                    {
+                        var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
+                        foreach (var item in nearestFrameworkItems.Items)
+                        {
+                            foreach (var relativePath in RelativePaths)
+                            {
+                                var installedFrameworkPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
+                                    ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                                if (File.Exists(Path.Combine(installedFrameworkPath, relativePath, item + ".dll")))
+                                {
+                                    resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, relativePath, item + ".dll")));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                foreach (var assembly in Assemblies)
+                {
+                    foreach (var relativePath in RelativePaths)
+                    {
+                        var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
+                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                        if (File.Exists(Path.Combine(installedPath, relativePath, assembly + ".dll")))
+                        {
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, relativePath, assembly + ".dll")));
+                            break;
+                        }
+                    }
+                }
+
+                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
+                {
+                    foreach (var assembly in languageSpecificAssemblies)
+                    {
+                        foreach (var relativePath in RelativePaths)
+                        {
+                            var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage)
+                                ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage);
+                            if (File.Exists(Path.Combine(installedPath, relativePath, assembly + ".dll")))
+                            {
+                                resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, relativePath, assembly + ".dll")));
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
+
+                static string? GetInstalledPath(PackagePathResolver resolver, PackageIdentity id)
+                {
+                    try
+                    {
+                        return resolver.GetInstalledPath(id);
+                    }
+                    catch (PathTooLongException)
+                    {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        private static async Task GetPackageDependenciesAsync(
+            PackageIdentity packageIdentity,
+            NuGetFramework targetFramework,
+            ImmutableArray<SourceRepository> repositories,
+            SourceCacheContext cacheContext,
+            ILogger logger,
+            ImmutableDictionary<PackageIdentity, SourcePackageDependencyInfo>.Builder dependencies,
+            CancellationToken cancellationToken)
+        {
+            if (dependencies.ContainsKey(packageIdentity))
+            {
+                return;
+            }
+
+            foreach (var sourceRepository in repositories)
+            {
+                var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>(cancellationToken);
+                var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                    packageIdentity,
+                    targetFramework,
+#if !NET452
+                    cacheContext,
+#endif
+                    logger,
+                    cancellationToken);
+                if (dependencyInfo is null)
+                {
+                    continue;
+                }
+
+                dependencies.Add(packageIdentity, dependencyInfo);
+                foreach (var dependency in dependencyInfo.Dependencies)
+                {
+                    await GetPackageDependenciesAsync(new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), targetFramework, repositories, cacheContext, logger, dependencies, cancellationToken);
+                }
+
+                break;
+            }
         }
 
         public static class NetFramework
         {
             public static class Net20
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net20.Mscorlib,
-                                MetadataReferences.NetFramework.Net20.System,
-                                MetadataReferences.NetFramework.Net20.SystemData,
-                                MetadataReferences.NetFramework.Net20.SystemXml),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net20.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net20",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net20",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v2.0"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Data", "System.Xml"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net20.Mscorlib,
-                                MetadataReferences.NetFramework.Net20.System,
-                                MetadataReferences.NetFramework.Net20.SystemData,
-                                MetadataReferences.NetFramework.Net20.SystemDrawing,
-                                MetadataReferences.NetFramework.Net20.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net20.SystemXml),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net20.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Drawing", "System.Windows.Forms"));
             }
 
             public static class Net40
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net40.Mscorlib,
-                                MetadataReferences.NetFramework.Net40.System,
-                                MetadataReferences.NetFramework.Net40.SystemCore,
-                                MetadataReferences.NetFramework.Net40.SystemData,
-                                MetadataReferences.NetFramework.Net40.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net40.SystemXml,
-                                MetadataReferences.NetFramework.Net40.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net40",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net40",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.0"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net40.Mscorlib,
-                                MetadataReferences.NetFramework.Net40.System,
-                                MetadataReferences.NetFramework.Net40.SystemCore,
-                                MetadataReferences.NetFramework.Net40.SystemData,
-                                MetadataReferences.NetFramework.Net40.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net40.SystemDeployment,
-                                MetadataReferences.NetFramework.Net40.SystemDrawing,
-                                MetadataReferences.NetFramework.Net40.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net40.SystemXml,
-                                MetadataReferences.NetFramework.Net40.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net40.Mscorlib,
-                                MetadataReferences.NetFramework.Net40.PresentationCore,
-                                MetadataReferences.NetFramework.Net40.PresentationFramework,
-                                MetadataReferences.NetFramework.Net40.System,
-                                MetadataReferences.NetFramework.Net40.SystemCore,
-                                MetadataReferences.NetFramework.Net40.SystemData,
-                                MetadataReferences.NetFramework.Net40.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net40.SystemXaml,
-                                MetadataReferences.NetFramework.Net40.SystemXml,
-                                MetadataReferences.NetFramework.Net40.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net40.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net40.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net45
             {
-                public static ReferenceAssemblies Default => throw new NotImplementedException();
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net45",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net45",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.5", @"build\.NETFramework\v4.5\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms => throw new NotImplementedException();
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf => throw new NotImplementedException();
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net451
             {
-                public static ReferenceAssemblies Default => throw new NotImplementedException();
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net451",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net451",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.5.1", @"build\.NETFramework\v4.5.1\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms => throw new NotImplementedException();
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf => throw new NotImplementedException();
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net452
             {
-                public static ReferenceAssemblies Default => throw new NotImplementedException();
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net452",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net452",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.5.2", @"build\.NETFramework\v4.5.2\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms => throw new NotImplementedException();
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf => throw new NotImplementedException();
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net46
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net46.Mscorlib,
-                                MetadataReferences.NetFramework.Net46.System,
-                                MetadataReferences.NetFramework.Net46.SystemCore,
-                                MetadataReferences.NetFramework.Net46.SystemData,
-                                MetadataReferences.NetFramework.Net46.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net46.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net46.SystemXml,
-                                MetadataReferences.NetFramework.Net46.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net46",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net46",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.6", @"build\.NETFramework\v4.6\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net46.Mscorlib,
-                                MetadataReferences.NetFramework.Net46.System,
-                                MetadataReferences.NetFramework.Net46.SystemCore,
-                                MetadataReferences.NetFramework.Net46.SystemData,
-                                MetadataReferences.NetFramework.Net46.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net46.SystemDeployment,
-                                MetadataReferences.NetFramework.Net46.SystemDrawing,
-                                MetadataReferences.NetFramework.Net46.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net46.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net46.SystemXml,
-                                MetadataReferences.NetFramework.Net46.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net46.Mscorlib,
-                                MetadataReferences.NetFramework.Net46.PresentationCore,
-                                MetadataReferences.NetFramework.Net46.PresentationFramework,
-                                MetadataReferences.NetFramework.Net46.System,
-                                MetadataReferences.NetFramework.Net46.SystemCore,
-                                MetadataReferences.NetFramework.Net46.SystemData,
-                                MetadataReferences.NetFramework.Net46.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net46.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net46.SystemXaml,
-                                MetadataReferences.NetFramework.Net46.SystemXml,
-                                MetadataReferences.NetFramework.Net46.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net46.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net46.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net461
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net461.Mscorlib,
-                                MetadataReferences.NetFramework.Net461.System,
-                                MetadataReferences.NetFramework.Net461.SystemCore,
-                                MetadataReferences.NetFramework.Net461.SystemData,
-                                MetadataReferences.NetFramework.Net461.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net461.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net461.SystemXml,
-                                MetadataReferences.NetFramework.Net461.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net461",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net461",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.6.1", @"build\.NETFramework\v4.6.1\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net461.Mscorlib,
-                                MetadataReferences.NetFramework.Net461.System,
-                                MetadataReferences.NetFramework.Net461.SystemCore,
-                                MetadataReferences.NetFramework.Net461.SystemData,
-                                MetadataReferences.NetFramework.Net461.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net461.SystemDeployment,
-                                MetadataReferences.NetFramework.Net461.SystemDrawing,
-                                MetadataReferences.NetFramework.Net461.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net461.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net461.SystemXml,
-                                MetadataReferences.NetFramework.Net461.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net461.Mscorlib,
-                                MetadataReferences.NetFramework.Net461.PresentationCore,
-                                MetadataReferences.NetFramework.Net461.PresentationFramework,
-                                MetadataReferences.NetFramework.Net461.System,
-                                MetadataReferences.NetFramework.Net461.SystemCore,
-                                MetadataReferences.NetFramework.Net461.SystemData,
-                                MetadataReferences.NetFramework.Net461.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net461.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net461.SystemXaml,
-                                MetadataReferences.NetFramework.Net461.SystemXml,
-                                MetadataReferences.NetFramework.Net461.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net461.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net461.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net462
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net462.Mscorlib,
-                                MetadataReferences.NetFramework.Net462.System,
-                                MetadataReferences.NetFramework.Net462.SystemCore,
-                                MetadataReferences.NetFramework.Net462.SystemData,
-                                MetadataReferences.NetFramework.Net462.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net462.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net462.SystemXml,
-                                MetadataReferences.NetFramework.Net462.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net462",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net462",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.6.2", @"build\.NETFramework\v4.6.2\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net462.Mscorlib,
-                                MetadataReferences.NetFramework.Net462.System,
-                                MetadataReferences.NetFramework.Net462.SystemCore,
-                                MetadataReferences.NetFramework.Net462.SystemData,
-                                MetadataReferences.NetFramework.Net462.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net462.SystemDeployment,
-                                MetadataReferences.NetFramework.Net462.SystemDrawing,
-                                MetadataReferences.NetFramework.Net462.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net462.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net462.SystemXml,
-                                MetadataReferences.NetFramework.Net462.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net462.Mscorlib,
-                                MetadataReferences.NetFramework.Net462.PresentationCore,
-                                MetadataReferences.NetFramework.Net462.PresentationFramework,
-                                MetadataReferences.NetFramework.Net462.System,
-                                MetadataReferences.NetFramework.Net462.SystemCore,
-                                MetadataReferences.NetFramework.Net462.SystemData,
-                                MetadataReferences.NetFramework.Net462.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net462.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net462.SystemXaml,
-                                MetadataReferences.NetFramework.Net462.SystemXml,
-                                MetadataReferences.NetFramework.Net462.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net462.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net462.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net47
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net47.Mscorlib,
-                                MetadataReferences.NetFramework.Net47.System,
-                                MetadataReferences.NetFramework.Net47.SystemCore,
-                                MetadataReferences.NetFramework.Net47.SystemData,
-                                MetadataReferences.NetFramework.Net47.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net47.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net47.SystemXml,
-                                MetadataReferences.NetFramework.Net47.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net47",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net47",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.7", @"build\.NETFramework\v4.7\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net47.Mscorlib,
-                                MetadataReferences.NetFramework.Net47.System,
-                                MetadataReferences.NetFramework.Net47.SystemCore,
-                                MetadataReferences.NetFramework.Net47.SystemData,
-                                MetadataReferences.NetFramework.Net47.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net47.SystemDeployment,
-                                MetadataReferences.NetFramework.Net47.SystemDrawing,
-                                MetadataReferences.NetFramework.Net47.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net47.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net47.SystemXml,
-                                MetadataReferences.NetFramework.Net47.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net47.Mscorlib,
-                                MetadataReferences.NetFramework.Net47.PresentationCore,
-                                MetadataReferences.NetFramework.Net47.PresentationFramework,
-                                MetadataReferences.NetFramework.Net47.System,
-                                MetadataReferences.NetFramework.Net47.SystemCore,
-                                MetadataReferences.NetFramework.Net47.SystemData,
-                                MetadataReferences.NetFramework.Net47.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net47.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net47.SystemXaml,
-                                MetadataReferences.NetFramework.Net47.SystemXml,
-                                MetadataReferences.NetFramework.Net47.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net47.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net47.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net471
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net471.Mscorlib,
-                                MetadataReferences.NetFramework.Net471.System,
-                                MetadataReferences.NetFramework.Net471.SystemCore,
-                                MetadataReferences.NetFramework.Net471.SystemData,
-                                MetadataReferences.NetFramework.Net471.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net471.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net471.SystemXml,
-                                MetadataReferences.NetFramework.Net471.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net471",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net471",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.7.1", @"build\.NETFramework\v4.7.1\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net471.Mscorlib,
-                                MetadataReferences.NetFramework.Net471.System,
-                                MetadataReferences.NetFramework.Net471.SystemCore,
-                                MetadataReferences.NetFramework.Net471.SystemData,
-                                MetadataReferences.NetFramework.Net471.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net471.SystemDeployment,
-                                MetadataReferences.NetFramework.Net471.SystemDrawing,
-                                MetadataReferences.NetFramework.Net471.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net471.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net471.SystemXml,
-                                MetadataReferences.NetFramework.Net471.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net471.Mscorlib,
-                                MetadataReferences.NetFramework.Net471.PresentationCore,
-                                MetadataReferences.NetFramework.Net471.PresentationFramework,
-                                MetadataReferences.NetFramework.Net471.System,
-                                MetadataReferences.NetFramework.Net471.SystemCore,
-                                MetadataReferences.NetFramework.Net471.SystemData,
-                                MetadataReferences.NetFramework.Net471.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net471.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net471.SystemXaml,
-                                MetadataReferences.NetFramework.Net471.SystemXml,
-                                MetadataReferences.NetFramework.Net471.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net471.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net471.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net472
             {
-                public static ReferenceAssemblies Default
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net472.Mscorlib,
-                                MetadataReferences.NetFramework.Net472.System,
-                                MetadataReferences.NetFramework.Net472.SystemCore,
-                                MetadataReferences.NetFramework.Net472.SystemData,
-                                MetadataReferences.NetFramework.Net472.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net472.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net472.SystemXml,
-                                MetadataReferences.NetFramework.Net472.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net472",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net472",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.7.2", @"build\.NETFramework\v4.7.2\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net472.Mscorlib,
-                                MetadataReferences.NetFramework.Net472.System,
-                                MetadataReferences.NetFramework.Net472.SystemCore,
-                                MetadataReferences.NetFramework.Net472.SystemData,
-                                MetadataReferences.NetFramework.Net472.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net472.SystemDeployment,
-                                MetadataReferences.NetFramework.Net472.SystemDrawing,
-                                MetadataReferences.NetFramework.Net472.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net472.SystemWindowsForms,
-                                MetadataReferences.NetFramework.Net472.SystemXml,
-                                MetadataReferences.NetFramework.Net472.SystemXmlLinq),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf
-                {
-                    get
-                    {
-                        return new ReferenceAssemblies(
-                            ImmutableArray.Create(
-                                MetadataReferences.NetFramework.Net472.Mscorlib,
-                                MetadataReferences.NetFramework.Net472.PresentationCore,
-                                MetadataReferences.NetFramework.Net472.PresentationFramework,
-                                MetadataReferences.NetFramework.Net472.System,
-                                MetadataReferences.NetFramework.Net472.SystemCore,
-                                MetadataReferences.NetFramework.Net472.SystemData,
-                                MetadataReferences.NetFramework.Net472.SystemDataDataSetExtensions,
-                                MetadataReferences.NetFramework.Net472.SystemNetHttp,
-                                MetadataReferences.NetFramework.Net472.SystemXaml,
-                                MetadataReferences.NetFramework.Net472.SystemXml,
-                                MetadataReferences.NetFramework.Net472.SystemXmlLinq,
-                                MetadataReferences.NetFramework.Net472.WindowsBase),
-                            ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>()
-                                .Add(LanguageNames.CSharp, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftCSharp))
-                                .Add(LanguageNames.VisualBasic, ImmutableArray.Create(MetadataReferences.NetFramework.Net472.MicrosoftVisualBasic)));
-                    }
-                }
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
 
             public static class Net48
             {
-                public static ReferenceAssemblies Default => throw new NotImplementedException();
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net48",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net48",
+                            NuGetVersion.Parse(ReferenceAssembliesPackageVersion)),
+                        ImmutableArray.Create(@"build\.NETFramework\v4.8", @"build\.NETFramework\v4.8\Facades"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Net.Http", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.CSharp, ImmutableArray.Create("Microsoft.CSharp"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
 
-                public static ReferenceAssemblies WindowsForms => throw new NotImplementedException();
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
 
-                public static ReferenceAssemblies Wpf => throw new NotImplementedException();
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "System.Xaml", "WindowsBase"));
             }
         }
 
         public static class NetCore
         {
-            public static ReferenceAssemblies NetCore10 => throw new NotImplementedException();
+            public static ReferenceAssemblies NetCoreApp10 { get; }
+                = new ReferenceAssemblies("netcoreapp1.0")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("1.0.16"))));
 
-            public static ReferenceAssemblies NetCore20 => throw new NotImplementedException();
+            public static ReferenceAssemblies NetCoreApp11 { get; }
+                = new ReferenceAssemblies("netcoreapp1.1")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("1.1.13"))));
+
+            public static ReferenceAssemblies NetCoreApp20 { get; }
+                = new ReferenceAssemblies("netcoreapp2.0")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("2.0.9"))));
+
+            public static ReferenceAssemblies NetCoreApp21 { get; }
+                = new ReferenceAssemblies("netcoreapp2.1")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", NuGetVersion.Parse("2.1.13"))));
         }
 
         public static class NetStandard
         {
-            public static ReferenceAssemblies NetStandard10
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard10.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard10.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard10.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard10.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard10.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard10.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard10.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard10.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard10.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard10.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard10.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard10.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard10.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard10.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard10.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard10.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard10.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard10.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard10.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard10.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard10.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard10.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard10 { get; }
+                = new ReferenceAssemblies("netstandard1.0")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard11
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard11.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard11.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard11.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard11.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard11.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard11.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard11.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard11.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard11.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard11.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard11.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard11.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard11.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard11.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard11.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard11.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard11.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard11.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard11.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard11.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard11.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard11.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard11.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard11.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard11.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard11.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard11 { get; }
+                = new ReferenceAssemblies("netstandard1.1")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard12
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard12.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard12.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard12.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard12.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard12.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard12.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard12.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard12.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard12.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard12.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard12.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard12.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard12.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard12.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard12.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard12.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard12.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard12.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard12.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard12.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard12.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard12.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard12.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard12.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard12.SystemThreadingTimer,
-                            MetadataReferences.NetStandard.NetStandard12.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard12.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard12 { get; }
+                = new ReferenceAssemblies("netstandard1.2")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard13
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard13.MicrosoftWin32Primitives,
-                            MetadataReferences.NetStandard.NetStandard13.SystemAppContext,
-                            MetadataReferences.NetStandard.NetStandard13.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard13.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard13.SystemConsole,
-                            MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard13.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard13.SystemGlobalizationCalendars,
-                            MetadataReferences.NetStandard.NetStandard13.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard13.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard13.SystemIOCompressionZipFile,
-                            MetadataReferences.NetStandard.NetStandard13.SystemIOFileSystem,
-                            MetadataReferences.NetStandard.NetStandard13.SystemIOFileSystemPrimitives,
-                            MetadataReferences.NetStandard.NetStandard13.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard13.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard13.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard13.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard13.SystemNetSockets,
-                            MetadataReferences.NetStandard.NetStandard13.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard13.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard13.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard13.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard13.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntimeHandles,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard13.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyAlgorithms,
-                            MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyEncoding,
-                            MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyPrimitives,
-                            MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyX509Certificates,
-                            MetadataReferences.NetStandard.NetStandard13.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard13.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard13.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard13.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard13.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard13.SystemThreadingTimer,
-                            MetadataReferences.NetStandard.NetStandard13.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard13.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard13 { get; }
+                = new ReferenceAssemblies("netstandard1.3")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard14
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard14.MicrosoftWin32Primitives,
-                            MetadataReferences.NetStandard.NetStandard14.SystemAppContext,
-                            MetadataReferences.NetStandard.NetStandard14.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard14.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard14.SystemConsole,
-                            MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard14.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard14.SystemGlobalizationCalendars,
-                            MetadataReferences.NetStandard.NetStandard14.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard14.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard14.SystemIOCompressionZipFile,
-                            MetadataReferences.NetStandard.NetStandard14.SystemIOFileSystem,
-                            MetadataReferences.NetStandard.NetStandard14.SystemIOFileSystemPrimitives,
-                            MetadataReferences.NetStandard.NetStandard14.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard14.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard14.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard14.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard14.SystemNetSockets,
-                            MetadataReferences.NetStandard.NetStandard14.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard14.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard14.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard14.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard14.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntimeHandles,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard14.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyAlgorithms,
-                            MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyEncoding,
-                            MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyPrimitives,
-                            MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyX509Certificates,
-                            MetadataReferences.NetStandard.NetStandard14.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard14.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard14.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard14.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard14.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard14.SystemThreadingTimer,
-                            MetadataReferences.NetStandard.NetStandard14.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard14.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard14 { get; }
+                = new ReferenceAssemblies("netstandard1.4")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard15
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard15.MicrosoftWin32Primitives,
-                            MetadataReferences.NetStandard.NetStandard15.SystemAppContext,
-                            MetadataReferences.NetStandard.NetStandard15.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard15.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard15.SystemConsole,
-                            MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard15.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard15.SystemGlobalizationCalendars,
-                            MetadataReferences.NetStandard.NetStandard15.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard15.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard15.SystemIOCompressionZipFile,
-                            MetadataReferences.NetStandard.NetStandard15.SystemIOFileSystem,
-                            MetadataReferences.NetStandard.NetStandard15.SystemIOFileSystemPrimitives,
-                            MetadataReferences.NetStandard.NetStandard15.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard15.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard15.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard15.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard15.SystemNetSockets,
-                            MetadataReferences.NetStandard.NetStandard15.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard15.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard15.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard15.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard15.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntimeHandles,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard15.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyAlgorithms,
-                            MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyEncoding,
-                            MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyPrimitives,
-                            MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyX509Certificates,
-                            MetadataReferences.NetStandard.NetStandard15.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard15.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard15.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard15.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard15.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard15.SystemThreadingTimer,
-                            MetadataReferences.NetStandard.NetStandard15.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard15.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard15 { get; }
+                = new ReferenceAssemblies("netstandard1.5")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard16
-            {
-                get
-                {
-                    return new ReferenceAssemblies(
-                        ImmutableArray.Create(
-                            MetadataReferences.NetStandard.NetStandard16.MicrosoftWin32Primitives,
-                            MetadataReferences.NetStandard.NetStandard16.SystemAppContext,
-                            MetadataReferences.NetStandard.NetStandard16.SystemCollections,
-                            MetadataReferences.NetStandard.NetStandard16.SystemCollectionsConcurrent,
-                            MetadataReferences.NetStandard.NetStandard16.SystemConsole,
-                            MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsDebug,
-                            MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsTools,
-                            MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsTracing,
-                            MetadataReferences.NetStandard.NetStandard16.SystemGlobalization,
-                            MetadataReferences.NetStandard.NetStandard16.SystemGlobalizationCalendars,
-                            MetadataReferences.NetStandard.NetStandard16.SystemIO,
-                            MetadataReferences.NetStandard.NetStandard16.SystemIOCompression,
-                            MetadataReferences.NetStandard.NetStandard16.SystemIOCompressionZipFile,
-                            MetadataReferences.NetStandard.NetStandard16.SystemIOFileSystem,
-                            MetadataReferences.NetStandard.NetStandard16.SystemIOFileSystemPrimitives,
-                            MetadataReferences.NetStandard.NetStandard16.SystemLinq,
-                            MetadataReferences.NetStandard.NetStandard16.SystemLinqExpressions,
-                            MetadataReferences.NetStandard.NetStandard16.SystemNetHttp,
-                            MetadataReferences.NetStandard.NetStandard16.SystemNetPrimitives,
-                            MetadataReferences.NetStandard.NetStandard16.SystemNetSockets,
-                            MetadataReferences.NetStandard.NetStandard16.SystemObjectModel,
-                            MetadataReferences.NetStandard.NetStandard16.SystemReflection,
-                            MetadataReferences.NetStandard.NetStandard16.SystemReflectionExtensions,
-                            MetadataReferences.NetStandard.NetStandard16.SystemReflectionPrimitives,
-                            MetadataReferences.NetStandard.NetStandard16.SystemResourcesResourceManager,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntime,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntimeExtensions,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntimeHandles,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntimeInteropServices,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntimeInteropServicesRuntimeInformation,
-                            MetadataReferences.NetStandard.NetStandard16.SystemRuntimeNumerics,
-                            MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyAlgorithms,
-                            MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyEncoding,
-                            MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyPrimitives,
-                            MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyX509Certificates,
-                            MetadataReferences.NetStandard.NetStandard16.SystemTextEncoding,
-                            MetadataReferences.NetStandard.NetStandard16.SystemTextEncodingExtensions,
-                            MetadataReferences.NetStandard.NetStandard16.SystemTextRegularExpressions,
-                            MetadataReferences.NetStandard.NetStandard16.SystemThreading,
-                            MetadataReferences.NetStandard.NetStandard16.SystemThreadingTasks,
-                            MetadataReferences.NetStandard.NetStandard16.SystemThreadingTimer,
-                            MetadataReferences.NetStandard.NetStandard16.SystemXmlReaderWriter,
-                            MetadataReferences.NetStandard.NetStandard16.SystemXmlXDocument),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard16 { get; }
+                = new ReferenceAssemblies("netstandard1.6")
+                .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("1.6.1"))));
 
-            public static ReferenceAssemblies NetStandard2
-            {
-                get
-                {
-                    var referenceAssembliesPath = Path.Combine(MetadataReferences.PackagesPath, "netstandard.library", "2.0.0", "build", "netstandard2.0", "ref");
-                    var referenceAssemblies = Directory.GetFiles(referenceAssembliesPath, "*.dll");
-                    var metadataReferences = referenceAssemblies.Select(path => MetadataReferences.CreateReferenceFromFile(path));
-                    return new ReferenceAssemblies(
-                        ImmutableArray.CreateRange(metadataReferences),
-                        ImmutableDictionary.Create<string, ImmutableArray<MetadataReference>>());
-                }
-            }
+            public static ReferenceAssemblies NetStandard20 { get; }
+                = new ReferenceAssemblies(
+                    "netstandard2.0",
+                    new PackageIdentity(
+                        "NETStandard.Library",
+                        NuGetVersion.Parse("2.0.3")),
+                    ImmutableArray.Create(@"build\netstandard2.0\ref"))
+                .AddAssemblies(ImmutableArray.Create("netstandard"));
+
+            ////public static ReferenceAssemblies NetStandard21 { get; }
+            ////    = new ReferenceAssemblies("netstandard2.1")
+            ////    .AddPackages(ImmutableArray.Create(new PackageIdentity("NETStandard.Library", NuGetVersion.Parse("2.0.3"))));
         }
 
+#if false
         public static class Runtime
         {
             public static ReferenceAssemblies Current
@@ -985,5 +775,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
         }
+#endif
     }
 }

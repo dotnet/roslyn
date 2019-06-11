@@ -486,9 +486,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        private Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
-            return GetSortedDiagnosticsAsync(GetSolution(sources, additionalFiles, additionalProjects, additionalMetadataReferences, verifier), analyzers, CompilerDiagnostics, cancellationToken);
+            return await GetSortedDiagnosticsAsync(await GetSolutionAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, verifier, cancellationToken), analyzers, CompilerDiagnostics, cancellationToken);
         }
 
         /// <summary>
@@ -560,12 +560,13 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="verifier">The verifier to use for test assertions.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A solution containing a project with the specified sources and additional files.</returns>
-        private Solution GetSolution((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, IVerifier verifier)
+        private async Task<Solution> GetSolutionAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, IVerifier verifier, CancellationToken cancellationToken)
         {
             verifier.LanguageIsSupported(Language);
 
-            var project = CreateProject(sources, additionalFiles, additionalProjects, additionalMetadataReferences, Language);
+            var project = await CreateProjectAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, Language, cancellationToken);
             var documents = project.Documents.ToArray();
 
             verifier.Equal(sources.Length, documents.Length, "Amount of sources did not match amount of Documents created");
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Create a project using the input strings as sources.
         /// </summary>
         /// <remarks>
-        /// <para>This method first creates a <see cref="Project"/> by calling <see cref="CreateProjectImpl"/>, and then
+        /// <para>This method first creates a <see cref="Project"/> by calling <see cref="CreateProjectImplAsync"/>, and then
         /// applies compilation options to the project by calling <see cref="ApplyCompilationOptions"/>.</para>
         /// </remarks>
         /// <param name="sources">Classes in the form of strings.</param>
@@ -586,11 +587,12 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="language">The language the source classes are in. Values may be taken from the
         /// <see cref="LanguageNames"/> class.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> created out of the <see cref="Document"/>s created from the source
         /// strings.</returns>
-        protected Project CreateProject((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language)
+        protected async Task<Project> CreateProjectAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language, CancellationToken cancellationToken)
         {
-            var project = CreateProjectImpl(sources, additionalFiles, additionalProjects, additionalMetadataReferences, language);
+            var project = await CreateProjectImplAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, language, cancellationToken);
             return ApplyCompilationOptions(project);
         }
 
@@ -603,15 +605,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="language">The language the source classes are in. Values may be taken from the
         /// <see cref="LanguageNames"/> class.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> created out of the <see cref="Document"/>s created from the source
         /// strings.</returns>
-        protected virtual Project CreateProjectImpl((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language)
+        protected virtual async Task<Project> CreateProjectImplAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language, CancellationToken cancellationToken)
         {
             var fileNamePrefix = DefaultFilePathPrefix;
             var fileExt = DefaultFileExt;
 
             var projectId = ProjectId.CreateNewId(debugName: DefaultTestProjectName);
-            var solution = CreateSolution(projectId, language);
+            var solution = await CreateSolutionAsync(projectId, language, cancellationToken);
 
             foreach (var projectState in additionalProjects)
             {
@@ -657,8 +660,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="projectId">The project identifier to use.</param>
         /// <param name="language">The language for which the solution is being created.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>The created solution.</returns>
-        protected virtual Solution CreateSolution(ProjectId projectId, string language)
+        protected virtual async Task<Solution> CreateSolutionAsync(ProjectId projectId, string language, CancellationToken cancellationToken)
         {
             var compilationOptions = CreateCompilationOptions();
 
@@ -668,13 +672,17 @@ namespace Microsoft.CodeAnalysis.Testing
                 xmlReferenceResolver.XmlReferences.Add(xmlReference.Key, xmlReference.Value);
             }
 
-            compilationOptions = compilationOptions.WithXmlReferenceResolver(xmlReferenceResolver);
+            compilationOptions = compilationOptions
+                .WithXmlReferenceResolver(xmlReferenceResolver)
+                .WithAssemblyIdentityComparer(ReferenceAssemblies.AssemblyIdentityComparer);
 
             var solution = CreateWorkspace()
                 .CurrentSolution
                 .AddProject(projectId, DefaultTestProjectName, DefaultTestProjectName, language)
-                .WithProjectCompilationOptions(projectId, compilationOptions)
-                .AddMetadataReferences(projectId, ReferenceAssemblies.GetMetadataReferences(language));
+                .WithProjectCompilationOptions(projectId, compilationOptions);
+
+            var metadataReferences = await ReferenceAssemblies.ResolveAsync(language, cancellationToken);
+            solution = solution.AddMetadataReferences(projectId, metadataReferences);
 
             foreach (var transform in OptionsTransforms)
             {
