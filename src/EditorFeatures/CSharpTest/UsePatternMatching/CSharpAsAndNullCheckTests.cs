@@ -22,12 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("null != x", "o is string x")]
         [InlineData("(object)x != null", "o is string x")]
         [InlineData("null != (object)x", "o is string x")]
+        [InlineData("x is object", "o is string x")]
         [InlineData("x == null", "!(o is string x)")]
         [InlineData("null == x", "!(o is string x)")]
         [InlineData("(object)x == null", "!(o is string x)")]
         [InlineData("null == (object)x", "!(o is string x)")]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck1(string input, string output)
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         [InlineData("(x = o as string) != null", "o is string x")]
         [InlineData("null != (x = o as string)", "o is string x")]
+        [InlineData("(x = o as string) is object", "o is string x")]
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck2(string input, string output)

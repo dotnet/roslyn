@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
                 SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression);
+                SyntaxKind.NotEqualsExpression,
+                SyntaxKind.IsExpression);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -275,11 +276,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
             if (left.IsKind(SyntaxKind.NullLiteralExpression))
             {
+                // null == x
+                // null != x
                 return right;
             }
 
             if (right.IsKind(SyntaxKind.NullLiteralExpression))
             {
+                // x == null
+                // x != null
+                return left;
+            }
+
+            if (right.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType)
+                && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword))
+            {
+                // x is object
                 return left;
             }
 
