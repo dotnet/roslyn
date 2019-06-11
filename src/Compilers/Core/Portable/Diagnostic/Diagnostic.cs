@@ -449,7 +449,12 @@ namespace Microsoft.CodeAnalysis
         /// Create a new instance of this diagnostic with the given programmatic suppression info.
         /// </summary>
         internal Diagnostic WithProgrammaticSuppression(ProgrammaticSuppressionInfo programmaticSuppressionInfo)
-            => new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
+        {
+            Debug.Assert(this.ProgrammaticSuppressionInfo == null);
+            Debug.Assert(programmaticSuppressionInfo != null);
+
+            return new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
+        }
 
         internal virtual ProgrammaticSuppressionInfo ProgrammaticSuppressionInfo { get { return null; } }
 

@@ -1538,10 +1538,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            lock (_addSuppression)
-            {
-                _addSuppression(suppression);
-            }
+            _addSuppression(suppression);
         }
 
         /// <summary>

@@ -65,6 +65,6 @@ Friend Module TestOptionExtensions
 
     <Extension()>
     Public Function WithDiagnosticSuppressorFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)(AnalyzerDriver.DiagnosticSuppressorFeatureName, "true")}))
+        Return options.WithFeatures(options.Features.Concat({New KeyValuePair(Of String, String)(AnalyzerDriver.DiagnosticSuppressorFeatureName, "true")}))
     End Function
 End Module

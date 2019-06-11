@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var programmaticSuppressionsByDiagnostic = _programmaticSuppressions.GroupBy(s => s.SuppressedDiagnostic)
                 .ToImmutableDictionary(g => g.Key,
-                                       g => new ProgrammaticSuppressionInfo(g.Select(s => (s.Descriptor.Id, s.Descriptor.Justification)).ToImmutableSortedSet()));
+                                       g => new ProgrammaticSuppressionInfo(g.Select(s => (s.Descriptor.Id, s.Descriptor.Justification)).ToImmutableHashSet()));
 
             foreach (var diagnostic in reportedDiagnostics)
             {

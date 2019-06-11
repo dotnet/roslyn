@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                return _originalUnsuppressedDiagnostic == other._originalUnsuppressedDiagnostic &&
-                    _programmaticSuppressionInfo == other._programmaticSuppressionInfo;
+                return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&
+                    Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
             }
 
             public override bool Equals(object obj)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
 
             internal override Diagnostic WithIsSuppressed(bool isSuppressed)
             {
-                // We do not supporting toggling suppressed diagnostic to unsuppressed.
+                // We do not support toggling suppressed diagnostic to unsuppressed.
                 if (!isSuppressed)
                 {
                     throw new ArgumentException(nameof(isSuppressed));

@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -403,10 +404,11 @@ class C { }";
             Assert.Single(diagnostics);
             var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
             Assert.Equal(2, programmaticSuppression.Suppressions.Count);
-            Assert.Equal(suppressionId, programmaticSuppression.Suppressions[0].Id);
-            Assert.Equal(suppressor.SuppressionDescriptor.Justification, programmaticSuppression.Suppressions[0].Justification);
-            Assert.Equal(suppressionId2, programmaticSuppression.Suppressions[1].Id);
-            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, programmaticSuppression.Suppressions[1].Justification);
+            var orderedSuppressions = programmaticSuppression.Suppressions.Order().ToImmutableArrayOrEmpty();
+            Assert.Equal(suppressionId, orderedSuppressions[0].Id);
+            Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
+            Assert.Equal(suppressionId2, orderedSuppressions[1].Id);
+            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Justification);
         }
     }
 }

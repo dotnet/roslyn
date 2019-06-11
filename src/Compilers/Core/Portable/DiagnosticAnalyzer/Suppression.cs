@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             SuppressedDiagnostic = suppressedDiagnostic ?? throw new ArgumentNullException(nameof(suppressedDiagnostic));
+            Debug.Assert(suppressedDiagnostic.ProgrammaticSuppressionInfo == null);
 
             if (descriptor.SuppressedDiagnosticId != suppressedDiagnostic.Id)
             {

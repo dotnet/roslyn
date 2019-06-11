@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -17,7 +16,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10778,9 +10776,10 @@ class C
             Assert.DoesNotContain($"error CS0078", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
 
-            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix, "l"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
             Assert.Contains("info SP0001", output, StringComparison.Ordinal);
@@ -10817,9 +10816,10 @@ class C
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId("CS1522");
 
-            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
 
@@ -10871,9 +10871,10 @@ class C
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId("CS0169");
 
-            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_UnreferencedField, "C.f"), Location.None).GetMessage(CultureInfo.InvariantCulture),
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
 
@@ -10975,9 +10976,10 @@ class C { }";
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
 
-            // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                analyzer.Descriptor.MessageFormat,
                 suppressor.SuppressionDescriptor.Id,
                 suppressor.SuppressionDescriptor.Justification);
 

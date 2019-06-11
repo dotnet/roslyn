@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -14,13 +12,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class ProgrammaticSuppressionInfo : IEquatable<ProgrammaticSuppressionInfo>
     {
-        public ImmutableSortedSet<(string Id, LocalizableString Justification)> Suppressions { get; }
+        public ImmutableHashSet<(string Id, LocalizableString Justification)> Suppressions { get; }
 
-        internal ProgrammaticSuppressionInfo(ImmutableSortedSet<(string Id, LocalizableString Justification)> suppressions)
+        internal ProgrammaticSuppressionInfo(ImmutableHashSet<(string Id, LocalizableString Justification)> suppressions)
         {
-            // Assert that we got a sorted list of suppressions.
-            Debug.Assert(suppressions.SequenceEqual(suppressions.Order()));
-
             Suppressions = suppressions;
         }
 
@@ -38,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override int GetHashCode()
         {
             var hash = Suppressions.Count.GetHashCode();
-            foreach (var suppression in Suppressions)
+            foreach (var suppression in Suppressions.Order())
             {
                 hash = Hash.Combine(suppression.GetHashCode(), hash);
             }

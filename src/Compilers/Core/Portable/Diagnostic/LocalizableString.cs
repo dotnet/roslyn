@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static LocalizableString Create(string fixedResource)
         {
-            return FixedLocalizableString.Create(fixedResource);
+            return FixedLocalizableString.CreateFixed(fixedResource);
         }
 
         public sealed override string ToString()

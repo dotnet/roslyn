@@ -522,14 +522,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
                     {
-                        // Diagnostic '{0}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{1}' and justification '{2}'
-                        var suppressionDiag = Diagnostic.Create(SuppressionDiagnosticDescriptor, diag.Location, diag.Id, id, justification);
+                        // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+                        var suppressionDiag = Diagnostic.Create(SuppressionDiagnosticDescriptor, diag.Location, diag.Id, diag.GetMessage(Culture), id, justification);
                         if (_reportedDiagnostics.Add(suppressionDiag))
                         {
                             PrintError(suppressionDiag, consoleOutput);
                         }
                     }
 
+                    _reportedDiagnostics.Add(diag);
                     return;
                 }
 
