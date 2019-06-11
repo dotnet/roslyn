@@ -434,23 +434,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
             }
 
-            SyntaxToken setting;
-
-            switch (this.CurrentToken.Kind)
+            SyntaxToken setting = this.CurrentToken.Kind switch
             {
-                case SyntaxKind.EnableKeyword:
-                case SyntaxKind.DisableKeyword:
-                case SyntaxKind.RestoreKeyword:
-                    setting = EatToken();
-                    break;
+                SyntaxKind.EnableKeyword => EatToken(),
+                SyntaxKind.DisableKeyword => EatToken(),
+                SyntaxKind.RestoreKeyword => EatToken(),
+                _ => EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive)
+            };
 
-                default:
-                    setting = EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
-                    break;
-            }
+            SyntaxToken target = this.CurrentToken.Kind switch
+            {
+                SyntaxKind.WarningsKeyword => EatToken(),
+                SyntaxKind.AnnotationsKeyword => EatToken(),
+                SyntaxKind.EndOfDirectiveToken => null,
+                SyntaxKind.EndOfFileToken => null,
+                _ => EatToken(SyntaxKind.WarningsKeyword, ErrorCode.ERR_NullableDirectiveTargetExpected, reportError: !setting.IsMissing && isActive)
+            };
 
-            var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || !isActive);
-            return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, end, isActive);
+            var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || target?.IsMissing == true || !isActive);
+            return SyntaxFactory.NullableDirectiveTrivia(hash, token, setting, target, end, isActive);
         }
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)

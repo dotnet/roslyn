@@ -292,6 +292,11 @@
         <target state="needs-review-translation">Ожидается "enable", "safeonly", "disable" или "restore"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NullableDirectiveTargetExpected">
+        <source>Expected 'warnings', 'annotations', or end of directive</source>
+        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
         <target state="translated">Недопустимое значение "{1}" элемента "{0}" для C# {2}. Используйте версию языка "{3}" или более позднюю.</target>

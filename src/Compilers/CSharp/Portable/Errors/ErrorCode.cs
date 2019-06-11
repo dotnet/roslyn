@@ -1703,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OverrideValConstraintNotSatisfied = 8666,
 
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+        ERR_NullableDirectiveTargetExpected = 8668,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

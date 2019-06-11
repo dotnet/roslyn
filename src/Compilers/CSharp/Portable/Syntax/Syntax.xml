@@ -4442,6 +4442,10 @@
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
     </Field>
+    <Field Name="TargetToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="WarningsKeyword"/>
+      <Kind Name="AnnotationsKeyword"/>
+    </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>
     </Field>
