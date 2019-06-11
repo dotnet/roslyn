@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
+            => (new CSharpRegexDiagnosticAnalyzer(), null);
 
         private IDictionary<OptionKey, object> OptionOn()
         {
@@ -40,7 +40,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }
@@ -59,7 +59,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
+                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }

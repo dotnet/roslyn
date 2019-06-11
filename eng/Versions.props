@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>2</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta4</PreReleaseVersionLabel>
     
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
@@ -28,7 +28,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.1.0-beta1-19113-04</CodeStyleAnalyzerVersion>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
-    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.11.4</BenchmarkDotNetVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <DropAppVersion>17.144.28413-buildid7983345</DropAppVersion>
