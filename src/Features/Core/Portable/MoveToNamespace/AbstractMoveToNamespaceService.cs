@@ -35,6 +35,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax namedTypeSyntax);
         protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
+        private readonly IMoveToNamespaceOptionsService _optionsService;
+
+        protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
+        {
+            _optionsService = moveToNamespaceOptionsService ?? throw new ArgumentNullException(nameof(moveToNamespaceOptionsService));
+        }
+
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan span,
@@ -245,14 +252,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             ImmutableArray<string> namespaces)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var moveToNamespaceOptionsService = document.Project.Solution.Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
 
-            if (moveToNamespaceOptionsService == null)
-            {
-                return MoveToNamespaceOptionsResult.Cancelled;
-            }
-
-            return moveToNamespaceOptionsService.GetChangeNamespaceOptions(
+            return _optionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
                 namespaces,
                 syntaxFactsService);

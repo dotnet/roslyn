@@ -1,12 +1,14 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
 using Microsoft.VisualStudio.Composition;
@@ -18,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
-        private static readonly ComposableCatalog Catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
-
         private static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(Catalog);
+            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic);
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
@@ -1097,7 +1097,8 @@ class MyClass
 }
 }";
 
-            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(Catalog.WithoutPartsOfType(typeof(TestMoveToNamespaceOptionsService)));
+            var exportProviderWithoutOptionsService = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(typeof(IMoveToNamespaceOptionsService)));
 
             using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
             using (var testState = new TestState(workspace))
