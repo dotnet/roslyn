@@ -690,8 +690,7 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_BadModifiersOnNamespace, file.Errors()[0].Code);
+            Assert.Equal(0, file.Errors().Length);
         }
 
         [Fact]
