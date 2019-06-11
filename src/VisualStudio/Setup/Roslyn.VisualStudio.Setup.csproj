@@ -63,11 +63,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\LegacyCodeAnalysis\Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\LiveShare\Microsoft.CodeAnalysis.ExternalAccess.LiveShare.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.LiveShare</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
