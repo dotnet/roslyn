@@ -27,6 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
+        
+        // Constructor used by F# kept for backwards compatability
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)	
+            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())	
+        {	
+        }
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
         {
