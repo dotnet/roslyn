@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
+                   CodeStyleOptions.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_coalesce_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
