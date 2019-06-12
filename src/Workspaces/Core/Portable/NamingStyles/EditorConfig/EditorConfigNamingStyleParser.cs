@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -59,10 +60,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            return new NamingStylePreferences(
+            var preferences = new NamingStylePreferences(
                 symbolSpecifications.ToImmutableAndFree(),
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
+
+            var orderedRules = preferences.Rules.NamingRules
+                .OrderBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
+                .ThenBy(rule => rule, NamingRuleModifierListComparer.Instance)
+                .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
+                .ThenBy(rule => rule.NamingStyle.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(rule => rule.NamingStyle.Name, StringComparer.Ordinal);
+
+            return new NamingStylePreferences(
+                preferences.SymbolSpecifications,
+                preferences.NamingStyles,
+                orderedRules.SelectAsArray(
+                    rule => new SerializableNamingRule
+                    {
+                        SymbolSpecificationID = rule.SymbolSpecification.ID,
+                        NamingStyleID = rule.NamingStyle.ID,
+                        EnforcementLevel = rule.EnforcementLevel,
+                    }));
         }
 
         private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)
@@ -85,5 +104,95 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 where nameSplit.Length == 3
                 select nameSplit[1])
                 .Distinct();
+
+        private abstract class NamingRuleSubsetComparer : IComparer<NamingRule>
+        {
+            protected NamingRuleSubsetComparer()
+            {
+            }
+
+            public int Compare(NamingRule x, NamingRule y)
+            {
+                var firstIsSubset = FirstIsSubset(in x, in y);
+                var secondIsSubset = FirstIsSubset(in y, in x);
+                if (firstIsSubset)
+                {
+                    return secondIsSubset ? 0 : -1;
+                }
+                else
+                {
+                    return secondIsSubset ? 1 : 0;
+                }
+            }
+
+            protected abstract bool FirstIsSubset(in NamingRule x, in NamingRule y);
+        }
+
+        private sealed class NamingRuleAccessibilityListComparer : NamingRuleSubsetComparer
+        {
+            internal static readonly NamingRuleAccessibilityListComparer Instance = new NamingRuleAccessibilityListComparer();
+
+            private NamingRuleAccessibilityListComparer()
+            {
+            }
+
+            protected override bool FirstIsSubset(in NamingRule x, in NamingRule y)
+            {
+                foreach (var accessibility in x.SymbolSpecification.ApplicableAccessibilityList)
+                {
+                    if (!y.SymbolSpecification.ApplicableAccessibilityList.Contains(accessibility))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        private sealed class NamingRuleModifierListComparer : NamingRuleSubsetComparer
+        {
+            internal static readonly NamingRuleModifierListComparer Instance = new NamingRuleModifierListComparer();
+
+            private NamingRuleModifierListComparer()
+            {
+            }
+
+            protected override bool FirstIsSubset(in NamingRule x, in NamingRule y)
+            {
+                // Since modifiers are "match all", a subset of symbols is matched by a superset of modifiers
+                foreach (var modifier in y.SymbolSpecification.RequiredModifierList)
+                {
+                    if (!x.SymbolSpecification.RequiredModifierList.Contains(modifier))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        private sealed class NamingRuleSymbolListComparer : NamingRuleSubsetComparer
+        {
+            internal static readonly NamingRuleSymbolListComparer Instance = new NamingRuleSymbolListComparer();
+
+            private NamingRuleSymbolListComparer()
+            {
+            }
+
+            protected override bool FirstIsSubset(in NamingRule x, in NamingRule y)
+            {
+                foreach (var symbolKind in x.SymbolSpecification.ApplicableSymbolKindList)
+                {
+                    if (!y.SymbolSpecification.ApplicableSymbolKindList.Contains(symbolKind))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
     }
 }
