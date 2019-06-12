@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
 
             Protected Overrides ReadOnly Property Title() As String
                 Get
-                    Return VBFeaturesResources.Convert_linq_query_to_linq_method
+                    Return VBFeaturesResources.Convert_to_method
                 End Get
             End Property
 

@@ -528,7 +528,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Convert_to_For_Each", resourceCulture)
             End Get
         End Property
-        
+
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to method.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_method() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_method", resourceCulture)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to query.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_query() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_query", resourceCulture)
+            End Get
+        End Property
+
         '''<summary>
         '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
         '''</summary>
@@ -537,25 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Convert_to_Select_Case", resourceCulture)
             End Get
         End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Convert &apos;LINQ method&apos; to &apos;LINQ query&apos;.
-        '''</summary>
-        Friend ReadOnly Property Convert_linq_method_to_linq_query() As String
-            Get
-                Return ResourceManager.GetString("Convert_linq_method_to_linq_query", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Convert &apos;LINQ query&apos; to &apos;LINQ method&apos;.
-        '''</summary>
-        Friend ReadOnly Property Convert_linq_query_to_linq_method() As String
-            Get
-                Return ResourceManager.GetString("Convert_linq_query_to_linq_method", resourceCulture)
-            End Get
-        End Property
-        
+
         '''<summary>
         '''  Looks up a localized string similar to Create event {0} in {1}.
         '''</summary>

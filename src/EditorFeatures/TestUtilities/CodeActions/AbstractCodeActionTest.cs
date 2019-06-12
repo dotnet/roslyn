@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -47,39 +46,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
-        }
-
-        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var provider = CreateCodeRefactoringProvider(workspace, parameters);
-            return SpecializedCollections.SingletonEnumerable(
-                await GetCodeRefactoringAsync(provider, workspace, parameters.allowMultipleSelections));
+            return await GetCodeRefactoringAsync(CreateCodeRefactoringProvider(workspace, parameters), workspace);
         }
 
         private async Task<CodeRefactoring> GetCodeRefactoringAsync(
             CodeRefactoringProvider provider,
-            TestWorkspace workspace,
-            bool allowMultipleSelections)
+            TestWorkspace workspace)
         {
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Any());
-            if (!allowMultipleSelections)
-            {
-                Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
-            }
 
             var actions = ArrayBuilder<CodeAction>.GetInstance();
             foreach (var documentWithSelection in documentsWithSelections)
             {
-                foreach(var span in documentWithSelection.SelectedSpans)
+                foreach (var span in documentWithSelection.SelectedSpans)
                 {
                     var document = workspace.CurrentSolution.GetDocument(documentWithSelection.Id);
                     var context = new CodeRefactoringContext(document, span, actions.Add, CancellationToken.None);
                     await provider.ComputeRefactoringsAsync(context);
                 }
             }
-            
+
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
             actions.Free();
             return result;

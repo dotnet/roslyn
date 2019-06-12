@@ -8,13 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
             internal readonly string title;
-            internal readonly bool allowMultipleSelections;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -48,9 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 int index = 0,
                 CodeActionPriority? priority = null,
                 bool retainNonFixableDiagnostics = false,
-                string title = null,
-                string fixAllActionEquivalenceKey = null,
-                bool allowMultipleSelections = false)
+                string title = null)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -60,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
                 this.title = title;
-                this.allowMultipleSelections = allowMultipleSelections;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
@@ -71,12 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public TestParameters WithIndex(int index)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
-
-            public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData, allowMultipleSelections);
-
-            public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData, allowMultipleSelections);
         }
 
         protected abstract string GetLanguage();
@@ -344,39 +332,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title));
         }
 
-        internal async Task<Tuple<Solution, Solution>> ApplyRefactoring(
-            string initialMarkup,
-            int index = 0,
-            CodeActionPriority? priority = null,
-            CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
-            string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
-        {
-            var parameters = new TestParameters(null, compilationOptions, options, fixAllActionEquivalenceKey, fixProviderData, allowMultipleSelections: true);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
-                var actions = await GetCodeActionsAsync(workspace, parameters);
-                Assert.True(actions.Any(), "Refactoring must have actions.");
-                var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
-                return GetOperationsAsync(workspace, operations);
-            }
-        }
-
-        protected Tuple<Solution, Solution> GetOperationsAsync(
-            TestWorkspace workspace,
-            ImmutableArray<CodeActionOperation> operations)
-        {
-            var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-            var oldSolution = appliedChanges.Item1;
-            var newSolution = appliedChanges.Item2;
-            return Tuple.Create(oldSolution, newSolution);
-        }
-
         internal async Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,
@@ -387,16 +342,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             parameters = parameters.WithIndex(index);
             await TestAsync(initialMarkup, expectedMarkup, priority, WithRegularOptions(parameters));
             await TestAsync(initialMarkup, expectedMarkup, priority, WithScriptOptions(parameters));
-        }
-
-        internal async Task<Tuple<Solution,Solution>> ApplyRefactoring1(
-            string initialMarkup,
-            int index = 0,
-            CodeActionPriority? priority = null,
-            TestParameters parameters = default(TestParameters))
-        {
-            return await ApplyRefactoringAsync(initialMarkup, index, priority, parameters.WithParseOptions(null));
-            //     await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(GetScriptOptions()));
         }
 
         internal Task TestAsync(
@@ -436,24 +381,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace, expected, action,
                     conflictSpans, renameSpans, warningSpans, navigationSpans,
                     parameters);
-            }
-        }
-
-        private async Task<Tuple<Solution, Solution>> ApplyRefactoringAsync(
-             string initialMarkup,
-             int index,
-             CodeActionPriority? priority,
-             TestParameters parameters)
-        {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
-                var actions = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
-                return GetOperationsAsync(workspace, operations);
             }
         }
 
@@ -531,16 +458,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     Assert.Equal(expected, actual);
                 }
             }
-        }
-
-        protected Tuple<Solution, Solution> GetOperationsAsync(
-            TestWorkspace workspace,
-            ImmutableArray<CodeActionOperation> operations)
-        {
-            var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-            var oldSolution = appliedChanges.Item1;
-            var newSolution = appliedChanges.Item2;
-            return Tuple.Create(oldSolution, newSolution);
         }
 
         protected static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)

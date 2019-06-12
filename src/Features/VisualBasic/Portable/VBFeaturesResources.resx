@@ -1281,10 +1281,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Sort_Imports" xml:space="preserve">
     <value>&amp;Sort Imports</value>
   </data>
-  <data name="Convert_linq_query_to_linq_method" xml:space="preserve">
-    <value>Convert 'LINQ query' to 'LINQ method'</value>
+  <data name="Convert_to_method" xml:space="preserve">
+    <value>Convert to method</value>
   </data>
-  <data name="Convert_linq_method_to_linq_query" xml:space="preserve">
-    <value>Convert 'LINQ method' to 'LINQ query'</value>
+  <data name="Convert_to_query" xml:space="preserve">
+    <value>Convert to query</value>
   </data>
 </root>

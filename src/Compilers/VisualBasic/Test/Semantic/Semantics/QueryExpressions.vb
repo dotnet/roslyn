@@ -15375,10 +15375,7 @@ BC36600: Range variable 'x' is already declared.
         <Fact>
         <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub From3111()
-            Dim source =
-<compilation>
-    <file name="a.vb">
-        <![CDATA[
+            Dim source = <![CDATA[
 Imports System
 Imports System.Collections
 Imports System.Linq
@@ -15387,19 +15384,9 @@ Public Class C1
         Dim q0 = From s1 In New Integer() {1, -1} Select s1 + 1 From s2 In New Integer() {2, 3}, s3 In New Integer() {4, 5}
     End Sub
 End Class
-         ]]>
-    </file>
-</compilation>
+]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={SystemCoreRef})
-
-            compilation.AssertNoDiagnostics()
-
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim node = tree.GetRoot().DescendantNodes().OfType(Of QueryExpressionSyntax)().Single()
-
-            compilation.VerifyOperationTree(node, expectedOperationTree:=
-            <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (Syntax: 'From s1 In  ... er() {4, 5}')
   Expression: 
     IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
@@ -15501,7 +15488,11 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                               IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-]]>.Value)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 

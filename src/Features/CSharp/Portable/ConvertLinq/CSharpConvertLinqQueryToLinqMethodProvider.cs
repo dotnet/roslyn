@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
             }
 
-            protected override string Title => CSharpFeaturesResources.Convert_linq_query_to_linq_method;
+            protected override string Title => CSharpFeaturesResources.Convert_to_method;
 
             protected override ExpressionSyntax TryConvert(QueryExpressionSyntax source)
             {

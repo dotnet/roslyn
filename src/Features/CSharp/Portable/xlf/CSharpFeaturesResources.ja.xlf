@@ -72,6 +72,11 @@
         <target state="translated">メソッドに変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_query">
+        <source>Convert to query</source>
+        <target state="new">Convert to query</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">Null 許容型として宣言する</target>
@@ -796,16 +801,6 @@
         <source>Warning: Moving using directives may change code meaning.</source>
         <target state="new">Warning: Moving using directives may change code meaning.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Convert_linq_method_to_linq_query">
-        <source>Convert 'LINQ method' to 'LINQ query'</source>
-        <target state="new">Convert 'LINQ method' to 'LINQ query'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_linq_query_to_linq_method">
-        <source>Convert 'LINQ query' to 'LINQ method'</source>
-        <target state="new">Convert 'LINQ query' to 'LINQ method'</target>
-        <note />
       </trans-unit>
     </body>
   </file>

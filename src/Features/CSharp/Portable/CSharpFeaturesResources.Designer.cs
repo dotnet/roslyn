@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to query.
+        /// </summary>
+        internal static string Convert_to_query {
+            get {
+                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
         /// </summary>
         internal static string Convert_to_switch {
@@ -445,24 +454,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Declare_as_nullable {
             get {
                 return ResourceManager.GetString("Declare_as_nullable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;LINQ method&apos; to &apos;LINQ query&apos;.
-        /// </summary>
-        internal static string Convert_linq_method_to_linq_query {
-            get {
-                return ResourceManager.GetString("Convert_linq_method_to_linq_query", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;LINQ query&apos; to &apos;LINQ method&apos;.
-        /// </summary>
-        internal static string Convert_linq_query_to_linq_method {
-            get {
-                return ResourceManager.GetString("Convert_linq_query_to_linq_method", resourceCulture);
             }
         }
         
