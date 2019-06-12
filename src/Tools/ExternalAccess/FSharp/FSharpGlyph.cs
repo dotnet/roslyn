@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         CompletionWarning,
 
         AddReference,
-        NuGet
+        NuGet,
+        TargetTypeMatch
     }
 }
