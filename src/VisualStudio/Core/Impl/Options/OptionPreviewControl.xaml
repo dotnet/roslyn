@@ -97,12 +97,13 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <ContentControl x:Name="listViewContentControl" Grid.Row="0" Grid.Column="0"></ContentControl>
-        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1">
+        <options:CodeStyleNoticeTextBlock Grid.Row="0" Margin="5 0 5 5"/>
+        <ContentControl x:Name="listViewContentControl" Grid.Row="1" Grid.Column="0"></ContentControl>
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
             <!-- The AutomationDelegatingListView is referenced from the .xaml.cs, so we just provide 
                  a container for it here. -->
             <ContentControl Name="EditorControl" Content="{Binding TextViewHost, Mode=OneWay}" Focusable="False"></ContentControl>

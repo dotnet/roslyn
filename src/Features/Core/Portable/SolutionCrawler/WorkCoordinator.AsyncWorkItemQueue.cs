@@ -177,19 +177,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public bool TryTake(TKey key, out WorkItem workInfo, out CancellationTokenSource source)
+                public bool TryTake(TKey key, out WorkItem workInfo, out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
-                            source = GetNewCancellationSource_NoLock(key);
+                            cancellationToken = GetNewCancellationToken_NoLock(key);
                             workInfo.AsyncToken.Dispose();
                             return true;
                         }
                         else
                         {
-                            source = null;
+                            cancellationToken = CancellationToken.None;
                             return false;
                         }
                     }
@@ -199,33 +199,33 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ProjectId preferableProjectId,
                     ProjectDependencyGraph dependencyGraph,
                     IDiagnosticAnalyzerService analyzerService,
-                    out WorkItem workItem, out CancellationTokenSource source)
+                    out WorkItem workItem, out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
                         {
-                            source = GetNewCancellationSource_NoLock(workItem.Key);
+                            cancellationToken = GetNewCancellationToken_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
                             return true;
                         }
                         else
                         {
-                            source = null;
+                            cancellationToken = CancellationToken.None;
                             return false;
                         }
                     }
                 }
 
-                protected CancellationTokenSource GetNewCancellationSource_NoLock(object key)
+                protected CancellationToken GetNewCancellationToken_NoLock(object key)
                 {
                     Debug.Assert(!_cancellationMap.ContainsKey(key));
 
                     var source = new CancellationTokenSource();
                     _cancellationMap.Add(key, source);
 
-                    return source;
+                    return source.Token;
                 }
 
                 protected ProjectId GetBestProjectId_NoLock<T>(

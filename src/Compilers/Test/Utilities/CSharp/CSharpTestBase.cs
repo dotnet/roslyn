@@ -463,16 +463,6 @@ namespace System.Runtime.CompilerServices
             return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
 
-        protected static string NonNullTypesOff()
-        {
-            return "#nullable disable";
-        }
-
-        internal static string NonNullTypesOn()
-        {
-            return "#nullable enable";
-        }
-
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,

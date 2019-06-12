@@ -189,6 +189,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             {
                 _instance.Workspace.WaitForAllAsyncOperations(
                     Helper.HangMitigatingTimeout,
+                    FeatureAttribute.Workspace,
                     FeatureAttribute.SolutionCrawler,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
