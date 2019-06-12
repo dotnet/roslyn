@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
+                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type.WithNullability(typeInfo.Nullability.FlowState));
 
                         // If it bound to a method, try to get the Action/Func form of that method.
                         if (typeInferenceInfo.InferredType == null)
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will actually return a viable type given where this invocation expression
                         // is.
                         var filteredMethods = instantiatedMethods.Where(m =>
-                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType, t).IsImplicit)).ToList();
+                            invocationTypes.Any(t => Compilation.ClassifyConversion(m.ReturnType.WithoutNullability(), t.WithoutNullability()).IsImplicit)).ToList();
 
                         // If we filtered down to nothing, then just fall back to the instantiated list.
                         // this is a best effort after all.
@@ -1088,7 +1088,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rightTypes
                     .Select(x => x.InferredType.IsValueType
-                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType)) // Goo() ?? 0
+                                     // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                                     ? new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(x.InferredType.WithoutNullability())) // Goo() ?? 0
                                      : x); // Goo() ?? ""
             }
 
@@ -1215,7 +1216,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType)));
+
+                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType.WithoutNullability())));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1511,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                             }
 
-                            elementTypesBuilder.Add(patternType.InferredType);
+                            elementTypesBuilder.Add(patternType.InferredType.WithoutNullability());
                         }
 
                         var type = Compilation.CreateTupleTypeSymbol(
@@ -1559,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
                         return SpecializedCollections.SingletonEnumerable(
-                            new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
+                            new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType.WithNullability(invoke.ReturnNullableAnnotation), isAsync)));
                     }
                 }
 
@@ -1696,7 +1699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         this.Compilation.ObjectType;
                                 }
 
-                                return CreateResult(ienumerableType.Construct(typeArg));
+                                // TODO: pass the nullability to Construct once https://github.com/dotnet/roslyn/issues/36046 is fixed
+                                return CreateResult(ienumerableType.Construct(typeArg.WithoutNullability()));
                             }
                         }
                     }
@@ -1875,7 +1879,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateResult(task);
                 }
 
-                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType)));
+                // TODO: pass along nullability to Construct when https://github.com/dotnet/roslyn/issues/36046 is fixed.
+                return types.Select(t => t.InferredType.SpecialType == SpecialType.System_Void ? new TypeInferenceInfo(task) : new TypeInferenceInfo(taskOfT.Construct(t.InferredType.WithoutNullability())));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInYieldStatement(YieldStatementSyntax yieldStatement, SyntaxToken? previousToken = null)
@@ -1925,7 +1930,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
                     {
-                        return ((INamedTypeSymbol)type).TypeArguments[0];
+                        var namedTypeSymbol = (INamedTypeSymbol)type;
+                        return namedTypeSymbol.TypeArguments[0].WithNullability(namedTypeSymbol.TypeArgumentsNullableAnnotations[0]);
                     }
 
                     if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
@@ -2066,7 +2072,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var types = GetTypes(variableType).Where(IsUsableTypeFunc);
+                var symbol = SemanticModel.GetDeclaredSymbol(variableDeclarator);
+                if (symbol == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                var type = symbol.GetSymbolType();
+                var types = CreateResult(type).Where(IsUsableTypeFunc);
 
                 if (variableType.IsVar)
                 {
@@ -2124,7 +2137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return Compilation.CreateTupleTypeSymbol(elementTypes, elementNames);
+                // TODO: pass nullability once https://github.com/dotnet/roslyn/issues/36047 is fixed
+                return Compilation.CreateTupleTypeSymbol(elementTypes.SelectAsArray(t => t.WithoutNullability()), elementNames);
             }
 
             private bool TryGetTupleTypesAndNames(

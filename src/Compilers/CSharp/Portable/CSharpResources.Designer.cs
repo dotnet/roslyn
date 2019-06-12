@@ -13985,6 +13985,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        /// </summary>
+        internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
+            get {
+                return ResourceManager.GetString("WRN_DisallowNullAttributeForbidsMaybeNullAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        /// </summary>
+        internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expression will always cause a System.NullReferenceException because the default value of &apos;{0}&apos; is null.
         /// </summary>
         internal static string WRN_DotOnDefault {

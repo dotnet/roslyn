@@ -35,7 +35,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                WithParts({
                                                          GetType(TestCompletionPresenter),
                                                          GetType(TestSignatureHelpPresenter),
-                                                         GetType(IntelliSenseTestState)})
+                                                         GetType(IntelliSenseTestState),
+                                                         GetType(MockCompletionPresenterProvider)
+                                                         })
                                            End Function)
 
         Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
@@ -255,6 +257,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
+        Public MustOverride Function WaitForUIRenderedAsync() As Task
+
 #End Region
 
 #Region "Signature Help Operations"
@@ -331,7 +335,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim result = New List(Of Type) From {
                 GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState)
+                GetType(IntelliSenseTestState),
+                GetType(MockCompletionPresenterProvider)
             }
 
             If extraExportedTypes IsNot Nothing Then

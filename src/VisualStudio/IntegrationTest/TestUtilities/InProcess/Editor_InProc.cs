@@ -52,31 +52,47 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static Editor_InProc Create()
             => new Editor_InProc();
 
+        protected override bool HasActiveTextView()
+            => ErrorHandler.Succeeded(TryGetActiveTextViewHost().hr);
+
         protected override IWpfTextView GetActiveTextView()
             => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
         {
+            var (textView, hr) = TryGetActiveVsTextView();
+            Marshal.ThrowExceptionForHR(hr);
+            return textView;
+        }
+
+        private static (IVsTextView textView, int hr) TryGetActiveVsTextView()
+        {
             var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
-
             var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return vsTextView;
+            return (vsTextView, hresult);
         }
 
         private static IWpfTextViewHost GetActiveTextViewHost()
+        {
+            var (textViewHost, hr) = TryGetActiveTextViewHost();
+            Marshal.ThrowExceptionForHR(hr);
+            return textViewHost;
+        }
+
+        private static (IWpfTextViewHost textViewHost, int hr) TryGetActiveTextViewHost()
         {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
             WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
-            var activeVsTextView = (IVsUserData)GetActiveVsTextView();
+            var (activeVsTextView, hr) = TryGetActiveVsTextView();
+            if (!ErrorHandler.Succeeded(hr))
+            {
+                return (null, hr);
+            }
 
-            var hresult = activeVsTextView.GetData(IWpfTextViewId, out var wpfTextViewHost);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return (IWpfTextViewHost)wpfTextViewHost;
+            var hresult = ((IVsUserData)activeVsTextView).GetData(IWpfTextViewId, out var wpfTextViewHost);
+            return ((IWpfTextViewHost)wpfTextViewHost, hresult);
         }
 
         public bool IsUseSuggestionModeOn()

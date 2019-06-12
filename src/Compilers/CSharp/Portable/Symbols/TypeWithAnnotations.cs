@@ -97,6 +97,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
         }
 
+        internal TypeWithAnnotations AsAnnotated()
+        {
+            if (NullableAnnotation.IsAnnotated() || (Type.IsValueType && Type.IsNullableType()))
+            {
+                return this;
+            }
+
+            return Create(Type, NullableAnnotation.Annotated, CustomModifiers);
+        }
+
+        internal TypeWithAnnotations AsNotAnnotated()
+        {
+            if (NullableAnnotation.IsNotAnnotated() || (Type.IsValueType && !Type.IsNullableType()))
+            {
+                return this;
+            }
+
+            return Create(Type, NullableAnnotation.NotAnnotated, CustomModifiers);
+        }
+
         internal bool IsPossiblyNullableTypeTypeParameter()
         {
             return NullableAnnotation.IsNotAnnotated() &&
@@ -236,6 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
+        /// 
+        /// To check whether a type is System.Nullable`1 or is a type parameter constrained to System.Nullable`1
+        /// use <see cref="TypeSymbolExtensions.IsNullableTypeOrTypeParameter" /> instead.
         /// </summary>
         public bool IsNullableType() => Type.IsNullableType();
 
