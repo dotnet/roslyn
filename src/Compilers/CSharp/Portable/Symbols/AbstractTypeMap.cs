@@ -327,10 +327,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
         internal void SubstituteConstraintTypesDistinctWithoutModifiers(
+            TypeParameterSymbol owner,
             ImmutableArray<TypeWithAnnotations> original,
             ArrayBuilder<TypeWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
+            DynamicTypeEraser dynamicEraser = null;
+
             if (original.Length == 0)
             {
                 return;
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ignoreTypesDependentOnTypeParametersOpt == null ||
                     !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                 {
-                    result.Add(SubstituteType(type));
+                    result.Add(substituteConstraintType(type));
                 }
             }
             else
@@ -352,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (ignoreTypesDependentOnTypeParametersOpt == null ||
                         !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
-                        var substituted = SubstituteType(type);
+                        var substituted = substituteConstraintType(type);
 
                         if (!map.TryGetValue(substituted.Type, out int mergeWith))
                         {
@@ -367,6 +370,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 map.Free();
+            }
+
+            TypeWithAnnotations substituteConstraintType(TypeWithAnnotations type)
+            {
+                if (dynamicEraser == null)
+                {
+                    dynamicEraser = new DynamicTypeEraser(owner.ContainingAssembly.CorLibrary.GetSpecialType(SpecialType.System_Object));
+                }
+
+                TypeWithAnnotations substituted = SubstituteType(type);
+
+                return substituted.WithTypeAndModifiers(dynamicEraser.EraseDynamic(substituted.Type), substituted.CustomModifiers);
             }
         }
 
