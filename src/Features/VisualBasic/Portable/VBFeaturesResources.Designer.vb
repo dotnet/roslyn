@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Convert_to_For_Each", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Convert to method.
         '''</summary>
@@ -537,16 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Convert_to_method", resourceCulture)
             End Get
         End Property
-
-        '''<summary>
-        '''  Looks up a localized string similar to Convert to query.
-        '''</summary>
-        Friend ReadOnly Property Convert_to_query() As String
-            Get
-                Return ResourceManager.GetString("Convert_to_query", resourceCulture)
-            End Get
-        End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
         '''</summary>
@@ -555,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Convert_to_Select_Case", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Create event {0} in {1}.
         '''</summary>

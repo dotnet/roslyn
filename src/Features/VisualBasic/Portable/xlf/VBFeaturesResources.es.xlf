@@ -32,11 +32,6 @@
         <target state="new">Convert to method</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
-        <note />
-      </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
         <target state="translated">La instrucción "if" se puede simplificar</target>
