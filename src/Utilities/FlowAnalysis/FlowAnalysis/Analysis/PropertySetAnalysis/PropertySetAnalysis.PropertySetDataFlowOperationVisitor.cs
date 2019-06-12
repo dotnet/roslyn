@@ -31,6 +31,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// </summary>
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Builder _hazardousUsageBuilder;
 
+            private readonly ImmutableHashSet<IMethodSymbol>.Builder _visitedLocalFunctions;
+
+            private readonly ImmutableHashSet<IFlowAnonymousFunctionOperation>.Builder _visitedLambdas;
+
             /// <summary>
             /// When looking for initialization hazardous usages, track the assignment operations for fields and properties for the tracked type.
             /// </summary>
@@ -49,7 +53,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
+                this._hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
+
+                this._visitedLocalFunctions = ImmutableHashSet.CreateBuilder<IMethodSymbol>();
+
+                this._visitedLambdas = ImmutableHashSet.CreateBuilder<IFlowAnonymousFunctionOperation>();
 
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
                 Debug.Assert(this.TrackedTypeSymbol != null);
@@ -62,14 +70,34 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousUsageBuilder.GetHashCode(), base.GetHashCode());
+                return HashUtilities.Combine(
+                    this._hazardousUsageBuilder.GetHashCode(),
+                    this._visitedLocalFunctions.GetHashCode(),
+                    this._visitedLambdas.GetHashCode(),
+                    base.GetHashCode());
             }
 
             public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages
             {
                 get
                 {
-                    return _hazardousUsageBuilder.ToImmutable();
+                    return this._hazardousUsageBuilder.ToImmutable();
+                }
+            }
+
+            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions
+            {
+                get
+                {
+                    return this._visitedLocalFunctions.ToImmutable();
+                }
+            }
+
+            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas
+            {
+                get
+                {
+                    return this._visitedLambdas.ToImmutable();
                 }
             }
 
@@ -477,6 +505,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                this._visitedLocalFunctions.Add(localFunction);
                 this.MergeInterproceduralResults(originalOperation);
                 return baseValue;
             }
@@ -484,6 +513,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                this._visitedLambdas.Add(lambda);
                 this.MergeInterproceduralResults(originalOperation);
                 return baseValue;
             }
@@ -507,8 +537,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             private void MergeInterproceduralResults(IOperation originalOperation)
             {
-                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult)
-                    || subResult.HazardousUsages.IsEmpty)
+                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult))
                 {
                     return;
                 }
@@ -523,6 +552,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     {
                         this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
                     }
+                }
+
+                foreach (IMethodSymbol localFunctionSymbol in subResult.VisitedLocalFunctions)
+                {
+                    this._visitedLocalFunctions.Add(localFunctionSymbol);
+                }
+
+                foreach (IFlowAnonymousFunctionOperation lambdaOperation in subResult.VisitedLambdas)
+                {
+                    this._visitedLambdas.Add(lambdaOperation);
                 }
             }
         }

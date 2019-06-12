@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -44,7 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
-        internal static ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> GetOrComputeHazardousUsages(
+        internal static PropertySetAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -125,7 +126,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 propertyMappers,
                 hazardousUsageEvaluators);
             var result = TryGetOrComputeResultForAnalysisContext(analysisContext);
-            return result?.HazardousUsages ?? ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Empty;
+            return result;
         }
 
         /// <summary>
@@ -140,7 +141,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
-        /// <remarks>Unlike <see cref="GetOrComputeHazardousUsages"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
+        /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
@@ -158,22 +159,46 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 cfgs.Clear();
                 ControlFlowGraph enclosingControlFlowGraph = Operation.GetEnclosingControlFlowGraph();
                 cfgs.Add(enclosingControlFlowGraph);
-                foreach (IMethodSymbol localFunctionSymbol in enclosingControlFlowGraph.LocalFunctions)
+                PropertySetAnalysisResult enclosingResult = PropertySetAnalysis.GetOrComputeResult(
+                    enclosingControlFlowGraph,
+                    compilation,
+                    ContainingSymbol,
+                    typeToTrackMetadataName,
+                    constructorMapper,
+                    propertyMappers,
+                    hazardousUsageEvaluators,
+                    interproceduralAnalysisConfig,
+                    pessimisticAnalysis);
+                if (enclosingResult == null)
                 {
-                    cfgs.Add(enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol));
+                    continue;
                 }
 
-                foreach (IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation in 
+                // Also look at local functions and lambdas that weren't visited via interprocedural analysis.
+                foreach (IMethodSymbol localFunctionSymbol in enclosingControlFlowGraph.LocalFunctions)
+                {
+                    if (!enclosingResult.VisitedLocalFunctions.Contains(localFunctionSymbol))
+                    {
+                        cfgs.Add(enclosingControlFlowGraph.GetLocalFunctionControlFlowGraph(localFunctionSymbol));
+                    }
+                }
+
+                foreach (IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation in
                     enclosingControlFlowGraph.DescendantOperations<IFlowAnonymousFunctionOperation>(
                         OperationKind.FlowAnonymousFunction))
                 {
-                    cfgs.Add(enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation));
+                    if (!enclosingResult.VisitedLambdas.Contains(flowAnonymousFunctionOperation))
+                    {
+                        cfgs.Add(enclosingControlFlowGraph.GetAnonymousFunctionControlFlowGraph(flowAnonymousFunctionOperation));
+                    }
                 }
 
                 foreach (ControlFlowGraph cfg in cfgs)
                 {
-                    ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
-                        PropertySetAnalysis.GetOrComputeHazardousUsages(
+                    PropertySetAnalysisResult dfaResult =
+                        cfg == enclosingControlFlowGraph
+                        ? enclosingResult
+                        : PropertySetAnalysis.GetOrComputeResult(
                             cfg,
                             compilation,
                             ContainingSymbol,
@@ -183,7 +208,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             hazardousUsageEvaluators,
                             interproceduralAnalysisConfig,
                             pessimisticAnalysis);
-                    if (dfaResult.IsEmpty)
+                    if (dfaResult == null || dfaResult.HazardousUsages.IsEmpty)
                     {
                         continue;
                     }
@@ -194,7 +219,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
 
                     foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
-                        in dfaResult)
+                        in dfaResult.HazardousUsages)
                     {
                         if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
                         {
@@ -329,7 +354,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             visitor.ProcessExitBlock(dataFlowAnalysisResult.ExitBlockOutput);
             return new PropertySetAnalysisResult(
                 dataFlowAnalysisResult,
-                ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
+                visitor.HazardousUsages,
+                visitor.VisitedLocalFunctions,
+                visitor.VisitedLambdas);
         }
 
         protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData)

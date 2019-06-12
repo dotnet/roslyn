@@ -74,8 +74,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 #pragma warning restore CA1508 // Avoid dead conditional code
             {
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
-                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
-                    PropertySetAnalysis.GetOrComputeHazardousUsages(
+                PropertySetAnalysisResult result =
+                    PropertySetAnalysis.GetOrComputeResult(
                         operation.GetEnclosingControlFlowGraph(),
                         compilation,
                         symbol,
@@ -88,6 +88,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             dummy,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
+                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
+                    result.HazardousUsages;
                 try
                 {
                     Assert.Equal(expectedResults.Length, actual.Count);
