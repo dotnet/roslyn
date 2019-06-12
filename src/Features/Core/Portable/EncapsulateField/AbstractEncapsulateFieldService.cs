@@ -217,17 +217,15 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             field = semanticModel.GetDeclaredSymbol(newDeclaration, cancellationToken) as IFieldSymbol;
 
             var generatedProperty = GenerateProperty(
-                                        generatedPropertyName,
-                                        finalFieldName,
-                                        originalField.DeclaredAccessibility,
-                                        originalField,
-                                        field.GetSymbolType(),
-                                        field.ContainingType,
-                                        new SyntaxAnnotation(),
-                                        document,
-                                        cancellationToken);
+                generatedPropertyName,
+                finalFieldName,
+                originalField.DeclaredAccessibility,
+                originalField,
+                field.ContainingType,
+                new SyntaxAnnotation(),
+                document,
+                cancellationToken);
 
-            var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
@@ -302,7 +300,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             string propertyName, string fieldName,
             Accessibility accessibility,
             IFieldSymbol field,
-            ITypeSymbol typeWithNullable,
             INamedTypeSymbol containingSymbol,
             SyntaxAnnotation annotation,
             Document document,
@@ -314,7 +311,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
-                type: typeWithNullable,
+                type: field.GetSymbolType(),
                 refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: propertyName,
