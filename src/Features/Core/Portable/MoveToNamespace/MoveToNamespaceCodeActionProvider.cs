@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -11,17 +12,20 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.MoveTypeToFile)]
     internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
     {
-        private readonly IMoveToNamespaceService _moveToNamespaceService;
-
         [ImportingConstructor]
-        public MoveToNamespaceCodeActionProvider(IMoveToNamespaceService moveToNamespaceService)
+        public MoveToNamespaceCodeActionProvider()
         {
-            _moveToNamespaceService = moveToNamespaceService;
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var actions = await _moveToNamespaceService.GetCodeActionsAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+            var moveToNamespaceService = context.Document.GetLanguageService<IMoveToNamespaceService>();
+            if (moveToNamespaceService == null)
+            {
+                return;
+            }
+
+            var actions = await moveToNamespaceService.GetCodeActionsAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

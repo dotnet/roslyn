@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
     public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new MoveToNamespaceCodeActionProvider(
-                workspace.Services.GetLanguageServices(GetLanguage()).GetRequiredService<IMoveToNamespaceService>());
+            => new MoveToNamespaceCodeActionProvider();
 
         public async Task TestMoveToNamespaceAsync(
             string markup,

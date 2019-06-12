@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
         private static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic);
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestMoveToNamespaceOptionsService)));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => CreateWorkspaceFromFile(initialMarkup, parameters, ExportProviderFactory);
@@ -1103,11 +1104,9 @@ class MyClass
             using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
             using (var testState = new TestState(workspace))
             {
-                var codeActions = await testState.MoveToNamespaceService.GetCodeActionsAsync(testState.InvocationDocument,
-                        testState.TestInvocationDocument.SelectedSpans.Single(),
-                        CancellationToken.None);
-
-                Assert.Empty(codeActions);
+                // If the required options service isn't available, the
+                // move to namespace service shouldn't show up either
+                Assert.Null(testState.MoveToNamespaceService);
             }
         }
     }

@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
+        IMoveToNamespaceOptionsService OptionsService { get; }
     }
 
     internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
@@ -35,11 +36,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax namedTypeSyntax);
         protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
-        private readonly IMoveToNamespaceOptionsService _optionsService;
+        public IMoveToNamespaceOptionsService OptionsService { get; }
 
         protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
-            _optionsService = moveToNamespaceOptionsService ?? throw new ArgumentNullException(nameof(moveToNamespaceOptionsService));
+            OptionsService = moveToNamespaceOptionsService ?? throw new ArgumentNullException(nameof(moveToNamespaceOptionsService));
         }
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
@@ -62,14 +63,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
-            var moveToNamespaceOptionsService = document.Project.Solution.Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
-            if (moveToNamespaceOptionsService == null)
-            {
-                // If the user can't provide options then there's no reason
-                // to do an analysis, they won't be able to use the feature
-                return MoveToNamespaceAnalysisResult.Invalid;
-            }
-
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
 
             var token = root.FindToken(position);
@@ -253,7 +246,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
-            return _optionsService.GetChangeNamespaceOptions(
+            return OptionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
                 namespaces,
                 syntaxFactsService);
