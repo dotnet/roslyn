@@ -1284,4 +1284,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
+  <data name="Convert_to_query" xml:space="preserve">
+    <value>Convert to query</value>
+  </data>
 </root>

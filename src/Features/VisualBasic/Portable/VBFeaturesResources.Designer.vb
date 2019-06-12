@@ -539,6 +539,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Convert to query.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_query() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_query", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
         '''</summary>
         Friend ReadOnly Property Convert_to_Select_Case() As String

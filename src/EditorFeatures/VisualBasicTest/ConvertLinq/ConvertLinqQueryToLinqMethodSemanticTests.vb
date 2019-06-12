@@ -4,14 +4,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertLinq
 
-    Public Class ConvertLinqQueryToLinqMethodSemanticTests
+    Public Class ConvertQueryToLinqMethodSemanticTests
         Inherits AbstractVisualBasicConvertLinqTest
 
         Public Sub New()
             MyBase.New(New VisualBasicConvertLinqQueryToLinqMethodProvider())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -43,7 +43,7 @@ Select
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test2() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -86,7 +86,7 @@ Where
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -124,7 +124,7 @@ Where
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test7() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -195,7 +195,7 @@ AsQueryable
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test8() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -241,7 +241,7 @@ AsQueryable
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test9() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -333,7 +333,7 @@ Where System.Func`2[System.Object,System.Boolean]
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test11() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -386,7 +386,7 @@ Where System.Func`2[System.Object,System.Boolean]
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test25() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -442,7 +442,7 @@ Where System.Func`2[System.Object,System.Boolean]
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Test26() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -494,7 +494,7 @@ Where System.Func`2[System.Object,System.Boolean]
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Select1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -614,7 +614,7 @@ True
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function ImplicitSelect4() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -679,7 +679,7 @@ True
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where5() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -722,7 +722,7 @@ Where Boolean
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where6() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -765,7 +765,7 @@ Where Boolean
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where7() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -809,7 +809,7 @@ Where Long
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where8() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -852,7 +852,7 @@ Where Long
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where11() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -891,7 +891,7 @@ Where Long
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Where12() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -940,7 +940,7 @@ Where Long
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function While2() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -999,7 +999,7 @@ Where Long
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Distinct2() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1043,7 +1043,7 @@ Distinct
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function SkipTake2() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1096,7 +1096,7 @@ Skip 2
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function SkipTake3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1135,7 +1135,7 @@ Skip 2
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function OrderBy4() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1216,7 +1216,7 @@ OrderBy 0
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function OrderBy5() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1256,7 +1256,7 @@ OrderBy 0
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function OrderBy6() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1296,7 +1296,7 @@ OrderBy 0
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Select6() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1350,7 +1350,7 @@ OrderBy 0
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Select10() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1388,7 +1388,7 @@ Select System.Func`2[System.Int32,VB$AnonymousType_1`2[System.Int32,System.Objec
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Let1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1500,7 +1500,7 @@ Select System.Func`2[System.Int32,VB$AnonymousType_1`2[System.Int32,System.Objec
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Let3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1802,7 +1802,7 @@ Select System.Func`2[VB$AnonymousType_9`2[VB$AnonymousType_4`2[VB$AnonymousType_
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function From3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -1978,7 +1978,7 @@ Select System.Func`2[VB$AnonymousType_9`2[VB$AnonymousType_4`2[VB$AnonymousType_
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function From5() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -2331,7 +2331,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Join1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -2562,7 +2562,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Join3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -3016,7 +3016,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function GroupBy1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -3162,7 +3162,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function GroupBy5() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -3205,7 +3205,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function GroupJoin1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -3434,7 +3434,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function GroupJoin3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -3881,7 +3881,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Aggregate1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -4001,7 +4001,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Aggregate3() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -4532,7 +4532,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function DefaultQueryIndexer1() As Task
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -4660,7 +4660,7 @@ Select System.Func`2[VB$AnonymousType_14`2[VB$AnonymousType_4`2[VB$AnonymousType
         ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function Bug10127() As Task
             Dim compilationDef =
 <compilation name="Bug10127">
@@ -4698,7 +4698,7 @@ System.Int32
 ]]>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToLinqMethod)>
         Public Async Function SelectMany1() As Task
             Dim compilationDef =
 <compilation name="Bug10127">

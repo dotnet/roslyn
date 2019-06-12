@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 
         #region Diagnostics
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_WhereOrderByTrivialSelect()
         {
             await Test(@"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0).OrderBy(num => num)",
@@ -26,7 +26,7 @@ select num"
 );
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_WhereSelect()
         {
             await Test(
@@ -34,19 +34,19 @@ select num"
 @"new int[] { 0, 1, 2 }.Where(x => x < 5).Select(x => x * x)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_GroupBy()
         {
             await Test("from a in new[] { 1 } group a/2 by a*2", "new[] { 1 }.GroupBy(a => a / 2, a => a * 2)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_SelectWithType()
         {
             await Test("from int a in new[] { 1 } select a", "new[] { 1 }.Cast<int>()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_GroupByWhereSelect()
         {
             await Test(
@@ -58,7 +58,7 @@ select num"
 ).Select(fruitGroup => new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() })");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_MultipleFrom()
         {
             await Test(
@@ -67,13 +67,13 @@ select num"
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_TrivialSelect()
         {
             await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_DoubleFrom()
         {
             await Test(
@@ -83,7 +83,7 @@ select num"
 @"""aaa bbb ccc"".Split(' ').SelectMany(w => w, (w, c) => c)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task Conversion_IntoDoubleFrom()
         {
             await Test("from a in new[] { 1, 2, 3 } select a.ToString() into b from c in b select c",
@@ -94,13 +94,13 @@ select num"
 
         #region No Diagnostics
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task NoDiagnostics_Join()
         {
             await TestNoDiagnostics("from a in new[] { 1, 2, 3 } join b in new[] { 4 } on a equals b select a");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task NoDiagnostics_Let1()
         {
             await TestNoDiagnostics(
@@ -112,7 +112,7 @@ select num"
     select word");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinqMethodToQuery)]
         public async Task NoDiagnostics_Let2()
         {
             await TestNoDiagnostics(

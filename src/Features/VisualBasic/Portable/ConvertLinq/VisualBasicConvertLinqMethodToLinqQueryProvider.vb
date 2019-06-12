@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertLinq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertLinqMethodToLinqQueryProvider)), [Shared]>
@@ -27,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
 
             Protected Overrides ReadOnly Property Title() As String
                 Get
-                    Return VBFeaturesResources.Convert_to_method
+                    Return VBFeaturesResources.Convert_to_query
                 End Get
             End Property
 
