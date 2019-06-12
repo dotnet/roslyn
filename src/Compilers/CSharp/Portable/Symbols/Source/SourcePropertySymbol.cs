@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _sourceName;
 
         private string _lazyDocComment;
+        private string _lazyExpandedDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
@@ -1045,7 +1046,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
+            ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         // Separate these checks out of FindExplicitlyImplementedProperty because they depend on the accessor symbols,

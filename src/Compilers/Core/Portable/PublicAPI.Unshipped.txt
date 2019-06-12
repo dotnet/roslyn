@@ -1,5 +1,25 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 *REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 43 -> Microsoft.CodeAnalysis.SpecialType
+abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
+abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
+abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.TryGetValue(string key, out string value) -> bool
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.AdditionalText textFile) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CountPropertyName = "Count" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeAsyncMethodName = "DisposeAsync" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeMethodName = "Dispose" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.SliceMethodName = "Slice" -> string
 Microsoft.CodeAnalysis.AnalyzerConfig
 Microsoft.CodeAnalysis.AnalyzerConfig.GlobalSection.get -> Microsoft.CodeAnalysis.AnalyzerConfig.Section
 Microsoft.CodeAnalysis.AnalyzerConfig.IsRoot.get -> bool
@@ -49,8 +69,8 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolStartAc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolStartActionsCount.set -> void
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.BranchValue.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionalSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
+Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.FallThroughSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.IsReachable.get -> bool
@@ -176,9 +196,9 @@ Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 92 -> Microsoft.Code
 Microsoft.CodeAnalysis.OperationKind.IsNull = 93 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.MethodBody = 88 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.RecursivePattern = 103 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ReDim = 101 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ReDimClause = 102 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.RecursivePattern = 103 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchExpression = 105 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchExpressionArm = 106 -> Microsoft.CodeAnalysis.OperationKind
@@ -197,6 +217,10 @@ Microsoft.CodeAnalysis.Operations.IForToLoopOperation.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Operations.IInstanceReferenceOperation.ReferenceKind.get -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ContinueLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.PatternInput = 2 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.IPatternOperation.InputType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Operations.IRangeOperation
 Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
@@ -223,10 +247,6 @@ Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collecti
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.IgnoredDimensions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.PatternInput = 2 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.Hat = 7 -> Microsoft.CodeAnalysis.Operations.UnaryOperatorKind
 Microsoft.CodeAnalysis.SpecialType.Count = 44 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_RuntimeFeature = 44 -> Microsoft.CodeAnalysis.SpecialType
@@ -237,26 +257,6 @@ Microsoft.CodeAnalysis.SymbolDisplayPartKind.EnumMemberName = 28 -> Microsoft.Co
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.ExtensionMethodName = 29 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.TypeInfo.ConvertedNullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
 Microsoft.CodeAnalysis.TypeInfo.Nullability.get -> Microsoft.CodeAnalysis.NullabilityInfo
-abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
-abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
-abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.TryGetValue(string key, out string value) -> bool
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.AdditionalText textFile) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider.GetOptions(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
-const Microsoft.CodeAnalysis.WellKnownMemberNames.CountPropertyName = "Count" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeAsyncMethodName = "DisposeAsync" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.DisposeMethodName = "Dispose" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.LengthPropertyName = "Length" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
-const Microsoft.CodeAnalysis.WellKnownMemberNames.SliceMethodName = "Slice" -> string
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.GetHashCode() -> int
 override Microsoft.CodeAnalysis.NullabilityInfo.Equals(object other) -> bool

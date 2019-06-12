@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool SynthesizesLoweredBoundBody => true;
 
+            public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 //  Method body:

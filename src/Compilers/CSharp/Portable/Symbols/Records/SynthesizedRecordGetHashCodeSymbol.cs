@@ -155,6 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GenerateDebugInfo => false;
 
+        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+
         public override DllImportData GetDllImportData() => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;

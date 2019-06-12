@@ -227,13 +227,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // after shutdown.
             try
             {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex))
             {
                 if (!_shutdownCancellationTokenSource.IsCancellationRequested)
                 {
-                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace);
+                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
                 }
             }
         }
@@ -341,7 +341,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
-            return FatalError.ReportWithoutCrash(ex);
+            ex.ReportServiceHubNFW("JsonRpc invoke Failed");
+            return true;
         }
     }
 }

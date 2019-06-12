@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
         {
-            if (workspace != this.Workspace)
+            if (workspace != Workspace)
             {
                 return;
             }
@@ -53,20 +53,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = project != null ?
-                DiagnosticData.Create(project, diagnostic) :
-                DiagnosticData.Create(this.Workspace, diagnostic);
-
+            var diagnosticData = DiagnosticData.Create(workspace, diagnostic, project?.Id);
             ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
         {
-            if (diagnosticData.Workspace != this.Workspace)
-            {
-                return;
-            }
-
             bool raiseDiagnosticsUpdated = true;
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
