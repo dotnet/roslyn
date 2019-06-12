@@ -3154,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckDisallowedNullAssignment(TypeWithState state, TypeWithAnnotations type, FlowAnalysisAnnotations annotations, Location location)
         {
-            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && type.IsNullableType() && state.MayBeNull)
+            if (((annotations & FlowAnalysisAnnotations.DisallowNull) != 0) && type.Type.IsNullableTypeOrTypeParameter() && state.MayBeNull)
             {
                 ReportDiagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, location);
             }
