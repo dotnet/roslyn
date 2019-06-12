@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// This is set for metadata symbols, as follows:
         /// <list type="bullet">
-        /// <item><description> Type - if a type is unsupported (for example, a pointer type)</description></item>
-        /// <item><description> Method - parameter or return type is unsupported</description></item>
+        /// <item><description>Type - if a type is unsupported (for example, a pointer type)</description></item>
+        /// <item><description>Method - parameter or return type is unsupported</description></item>
         /// <item><description>Field - type is unsupported</description></item>
         /// <item><description>Event - type is unsupported</description></item>
         /// <item><description>Property - type is unsupported</description></item>
