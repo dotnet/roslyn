@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
     {
         protected RemoveUnnecessaryCastDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_Unnecessary_Cast), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Cast_is_redundant), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {

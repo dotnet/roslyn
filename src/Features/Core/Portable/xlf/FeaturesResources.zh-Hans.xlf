@@ -82,6 +82,16 @@
         <target state="translated">代码质量</target>
         <note />
       </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="new">Configure {0} code style</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="new">Configure {0} severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">转换为 LINQ</target>
@@ -390,6 +400,11 @@
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
         <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="new">Suppress {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1501,11 +1516,6 @@ Do you want to continue?</source>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">样式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">取消 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
