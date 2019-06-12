@@ -244,18 +244,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
-                var kindSupportsFileRename = RenameSymbol.Kind == SymbolKind.NamedType;
-                var typeHasMultipleLocations = RenameSymbol.Locations.Length > 1;
-                var typeMatchesFileName = OriginalNameMatches(_document, RenameSymbol.Name);
-                var allowRename = typeMatchesFileName && !typeHasMultipleLocations;
+                if (RenameSymbol.Kind == SymbolKind.NamedType)
+                {
+                    if (RenameSymbol.Locations.Length > 1)
+                    {
+                        return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
+                    }
 
-                return kindSupportsFileRename
-                    ? allowRename
-                        ? InlineRenameFileRenameInfo.Allowed
-                        : typeHasMultipleLocations
-                            ? InlineRenameFileRenameInfo.TypeWithMultipleLocations
-                            : InlineRenameFileRenameInfo.TypeDoesntMatchFileName
-                    : InlineRenameFileRenameInfo.NotAllowed;
+                    if (OriginalNameMatches(_document, RenameSymbol.Name))
+                    {
+                        return InlineRenameFileRenameInfo.Allowed;
+                    }
+
+                    return InlineRenameFileRenameInfo.TypeDoesNotMatchFileName;
+                }
+
+                return InlineRenameFileRenameInfo.NotAllowed;
 
                 // Local Functions
 

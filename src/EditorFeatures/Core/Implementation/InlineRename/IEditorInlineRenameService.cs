@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// The type being renamed doesn't match the file
         /// name prior to renaming
         /// </summary>
-        TypeDoesntMatchFileName,
+        TypeDoesNotMatchFileName,
 
         /// <summary>
         /// File rename is allowed

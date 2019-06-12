@@ -1720,7 +1720,7 @@ End Class
 
                 Dim session = StartSession(workspace)
 
-                Assert.Equal(InlineRenameFileRenameInfo.TypeDoesntMatchFileName, session.FileRenameInfo)
+                Assert.Equal(InlineRenameFileRenameInfo.TypeDoesNotMatchFileName, session.FileRenameInfo)
             End Using
         End Sub
 
