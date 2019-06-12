@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 accessibility: overriddenProperty.ComputeResultantAccessibility(containingType),
                 modifiers: modifiers,
                 name: overriddenProperty.Name,
+                parameters: overriddenProperty.Parameters.WithAttributesToBeCopied(containingType),
                 isIndexer: overriddenProperty.IsIndexer(),
                 getMethod: accessorGet,
                 setMethod: accessorSet);
@@ -526,9 +527,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     method: overriddenMethod,
                     accessibility: overriddenMethod.ComputeResultantAccessibility(newContainingType),
                     modifiers: modifiers,
-                    // There is no need for an override to have same parameters attributes as the original method.
-                    // Just clear attributes when generating an override.
-                    parameters: overriddenMethod.Parameters.SelectAsArray(p => p.WithAttributes(ImmutableArray<AttributeData>.Empty)),
+                    parameters: overriddenMethod.Parameters.WithAttributesToBeCopied(newContainingType),
                     statements: overriddenMethod.ReturnsVoid
                         ? ImmutableArray.Create(codeFactory.ExpressionStatement(body))
                         : ImmutableArray.Create(codeFactory.ReturnStatement(body)));

@@ -970,7 +970,7 @@ public class Derived : Base
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitParameterAttributesAreNotGenerated()
+        public async Task CommitInaccessibleParameterAttributesAreNotGenerated()
         {
             var markupBeforeCommit = @"using System;
 
@@ -997,7 +997,7 @@ public class Class1
 
 public class Class2 : Class1
 {
-    public override void M(int i)
+    public override void M([MyPublic] int i)
     {
         base.M(i);$$
     }
@@ -1476,7 +1476,7 @@ public class d : c
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitInsertPropertyAttributesAreNotGenerated()
+        public async Task CommitInsertPropertyInaccessibleParameterAttributesAreNotGenerated()
         {
             var markupBeforeCommit = @"using System;
 
@@ -1520,7 +1520,7 @@ namespace ClassLibrary1
 
     public class Class2 : Class1
     {
-        public override int this[int i]
+        public override int this[[MyPublic] int i]
         {
             get
             {

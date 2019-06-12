@@ -1033,8 +1033,10 @@ End Class</a>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitPropertyAttributesAreNotGenerated() As Task
-            Dim markupBeforeCommit = <a><![CDATA[Public Class Class1
+        Public Async Function TestCommitPropertyInaccessibleParameterAttributesAreNotGenerated() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
+
+Public Class Class1
     Private Class MyPrivate
         Inherits Attribute
     End Class
@@ -1057,7 +1059,9 @@ Public Class Class2
     Public Overrides Property $$
 End Class]]></a>
 
-            Dim expectedCode = <a><![CDATA[Public Class Class1
+            Dim expectedCode = <a><![CDATA[Imports System
+
+Public Class Class1
     Private Class MyPrivate
         Inherits Attribute
     End Class
@@ -1077,7 +1081,7 @@ End Class
 Public Class Class2
     Inherits Class1
 
-    Default Public Overrides Property Item(i As Integer) As Integer
+    Default Public Overrides Property Item(<MyPublic> i As Integer) As Integer
         Get
             Return MyBase.Item(i)$$
         End Get
@@ -1160,7 +1164,7 @@ End Class]]></a>
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitParameterAttributesAreNotGenerated() As Task
+        Public Async Function CommitInaccessibleParameterAttributesAreNotGenerated() As Task
             Dim markupBeforeCommit = <a><![CDATA[Imports System
 
 Public Class Class1
@@ -1198,7 +1202,7 @@ End Class
 Public Class Class2
     Inherits Class1
 
-    Public Overrides Sub M(i As Integer)
+    Public Overrides Sub M(<MyPublic> i As Integer)
         MyBase.M(i)$$
     End Sub
 End Class]]></a>

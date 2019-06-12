@@ -445,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
             ImmutableArray<AttributeData> attributes = default,
+            ImmutableArray<IParameterSymbol>? parameters = default,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
@@ -461,9 +462,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 property.RefKind,
                 explicitInterfaceImplementations,
                 name ?? property.Name,
-                // There is no need for an override to have same parameters attributes as the original property.
-                // Just clear attributes when generating an override.
-                property.Parameters.SelectAsArray(p => p.WithAttributes(ImmutableArray<AttributeData>.Empty)),
+                parameters ?? property.Parameters,
                 getMethod,
                 setMethod,
                 isIndexer ?? property.IsIndexer);
