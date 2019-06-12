@@ -122,28 +122,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
+            Debug.Assert(compilation != null);
             foreach (var parameter in parameters)
             {
                 if (parameter.RefKind == RefKind.In)
                 {
-                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
-                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
             }
         }
 
-        internal static void EnsureNullableAttributeExists(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
+            Debug.Assert(compilation != null);
             foreach (var parameter in parameters)
             {
-                if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(container) && parameter.TypeWithAnnotations.NeedsNullableAttribute())
                 {
-                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
-                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
-                    parameter.DeclaringCompilation?.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
                 }
             }
         }

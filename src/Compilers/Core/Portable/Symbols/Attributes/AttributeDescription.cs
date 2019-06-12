@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis
         };
 
         private static readonly byte[][] s_signaturesOfNullableAttribute = { s_signature_HasThis_Void_Byte, s_signature_HasThis_Void_SzArray_Byte };
+        private static readonly byte[][] s_signaturesOfNullableMembersAttribute = { s_signature_HasThis_Void_Byte };
 
         private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };
@@ -538,6 +539,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AssemblyAlgorithmIdAttribute = new AttributeDescription("System.Reflection", "AssemblyAlgorithmIdAttribute", s_signaturesOfAssemblyAlgorithmIdAttribute);
         internal static readonly AttributeDescription DeprecatedAttribute = new AttributeDescription("Windows.Foundation.Metadata", "DeprecatedAttribute", s_signaturesOfDeprecatedAttribute);
         internal static readonly AttributeDescription NullableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableAttribute", s_signaturesOfNullableAttribute);
+        internal static readonly AttributeDescription NullableMembersAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableMembersAttribute", s_signaturesOfNullableMembersAttribute);
         internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signaturesOfExperimentalAttribute);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signaturesOfExcludeFromCodeCoverageAttribute);
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signaturesOfEnumeratorCancellationAttribute);

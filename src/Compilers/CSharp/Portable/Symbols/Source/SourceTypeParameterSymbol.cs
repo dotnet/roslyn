@@ -308,11 +308,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool ConstraintsNeedNullableAttribute()
         {
-            return (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
-                   this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()) ||
-                   this.HasNotNullConstraint ||
-                   (!this.HasReferenceTypeConstraint && !this.HasValueTypeConstraint &&
-                    this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false);
+            if (!DeclaringCompilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            {
+                return false;
+            }
+            if (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null)
+            {
+                return true;
+            }
+            if (this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()))
+            {
+                return true;
+            }
+            if (this.HasNotNullConstraint)
+            {
+                return true;
+            }
+            return !this.HasReferenceTypeConstraint &&
+                !this.HasValueTypeConstraint &&
+                this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty &&
+                this.IsNotNullableIfReferenceType == false;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()
@@ -364,40 +379,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            byte nullableAttributeValue = NullableAnnotationExtensions.ObliviousAttributeValue;
+            var compilation = DeclaringCompilation;
+            if (compilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            {
+                byte nullableAttributeValue = GetSynthesizedNullableAttributeValue();
+                if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
+                {
+                    NamedTypeSymbol byteType = compilation.GetSpecialType(SpecialType.System_Byte);
+                    Debug.Assert((object)byteType != null);
 
+                    AddSynthesizedAttribute(
+                        ref attributes,
+                        moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                                                                  ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
+                                                                                                          nullableAttributeValue))));
+                }
+            }
+        }
+
+        private byte GetSynthesizedNullableAttributeValue()
+        {
             if (this.HasReferenceTypeConstraint)
             {
                 switch (this.ReferenceTypeConstraintIsNullable)
                 {
                     case true:
-                        nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                        break;
+                        return NullableAnnotationExtensions.AnnotatedAttributeValue;
                     case false:
-                        nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                        break;
+                        return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
                 }
             }
             else if (this.HasNotNullConstraint)
             {
-                nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
             else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false)
             {
-                nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                return NullableAnnotationExtensions.AnnotatedAttributeValue;
             }
-
-            if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
-            {
-                NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
-                Debug.Assert((object)byteType != null);
-
-                AddSynthesizedAttribute(
-                    ref attributes,
-                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
-                                                              ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                      nullableAttributeValue))));
-            }
+            return NullableAnnotationExtensions.ObliviousAttributeValue;
         }
 
         internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)

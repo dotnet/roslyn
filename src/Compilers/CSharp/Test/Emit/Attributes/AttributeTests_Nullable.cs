@@ -1148,6 +1148,484 @@ class C
         }
 
         [Fact]
+        public void EmitPrivateMetadata_Types()
+        {
+            var source =
+@"public class Base<T, U> { }
+namespace Namespace
+{
+    public class Public : Base<object, string?> { }
+    internal class Internal : Base<object, string?> { }
+}
+public class PublicTypes
+{
+    public class Public : Base<object, string?> { }
+    internal class Internal : Base<object, string?> { }
+    protected class Protected : Base<object, string?> { }
+    protected internal class ProtectedInternal : Base<object, string?> { }
+    private protected class PrivateProtected : Base<object, string?> { }
+    private class Private : Base<object, string?> { }
+}
+internal class InternalTypes
+{
+    public class Public : Base<object, string?> { }
+    internal class Internal : Base<object, string?> { }
+    protected class Protected : Base<object, string?> { }
+    protected internal class ProtectedInternal : Base<object, string?> { }
+    private protected class PrivateProtected : Base<object, string?> { }
+    private class Private : Base<object, string?> { }
+}";
+            var expectedPublicOnly = @"
+Base<T, U>
+    [Nullable(2)] T
+    [Nullable(2)] U
+PublicTypes
+    [Nullable({ 0, 1, 2 })] PublicTypes.Public
+    [Nullable({ 0, 1, 2 })] PublicTypes.Protected
+    [Nullable({ 0, 1, 2 })] PublicTypes.ProtectedInternal
+[Nullable({ 0, 1, 2 })] Namespace.Public
+";
+            var expectedPublicAndInternal = @"
+Base<T, U>
+    [Nullable(2)] T
+    [Nullable(2)] U
+PublicTypes
+    [Nullable({ 0, 1, 2 })] PublicTypes.Public
+    [Nullable({ 0, 1, 2 })] PublicTypes.Internal
+    [Nullable({ 0, 1, 2 })] PublicTypes.Protected
+    [Nullable({ 0, 1, 2 })] PublicTypes.ProtectedInternal
+    [Nullable({ 0, 1, 2 })] PublicTypes.PrivateProtected
+InternalTypes
+    [Nullable({ 0, 1, 2 })] InternalTypes.Public
+    [Nullable({ 0, 1, 2 })] InternalTypes.Internal
+    [Nullable({ 0, 1, 2 })] InternalTypes.Protected
+    [Nullable({ 0, 1, 2 })] InternalTypes.ProtectedInternal
+    [Nullable({ 0, 1, 2 })] InternalTypes.PrivateProtected
+[Nullable({ 0, 1, 2 })] Namespace.Public
+[Nullable({ 0, 1, 2 })] Namespace.Internal
+";
+            var expectedAll = @"
+Base<T, U>
+    [Nullable(2)] T
+    [Nullable(2)] U
+PublicTypes
+    [Nullable({ 0, 1, 2 })] PublicTypes.Public
+    [Nullable({ 0, 1, 2 })] PublicTypes.Internal
+    [Nullable({ 0, 1, 2 })] PublicTypes.Protected
+    [Nullable({ 0, 1, 2 })] PublicTypes.ProtectedInternal
+    [Nullable({ 0, 1, 2 })] PublicTypes.PrivateProtected
+    [Nullable({ 0, 1, 2 })] PublicTypes.Private
+InternalTypes
+    [Nullable({ 0, 1, 2 })] InternalTypes.Public
+    [Nullable({ 0, 1, 2 })] InternalTypes.Internal
+    [Nullable({ 0, 1, 2 })] InternalTypes.Protected
+    [Nullable({ 0, 1, 2 })] InternalTypes.ProtectedInternal
+    [Nullable({ 0, 1, 2 })] InternalTypes.PrivateProtected
+    [Nullable({ 0, 1, 2 })] InternalTypes.Private
+[Nullable({ 0, 1, 2 })] Namespace.Public
+[Nullable({ 0, 1, 2 })] Namespace.Internal
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Delegates()
+        {
+            var source =
+@"public class Program
+{
+    protected delegate object ProtectedDelegate(object? arg);
+    internal delegate object InternalDelegate(object? arg);
+    private delegate object PrivateDelegate(object? arg);
+}";
+            var expectedPublicOnly = @"
+Program
+    Program.ProtectedDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+";
+            var expectedPublicAndInternal = @"
+Program
+    Program.ProtectedDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+    Program.InternalDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+";
+            var expectedAll = @"
+Program
+    Program.ProtectedDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+    Program.InternalDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+    Program.PrivateDelegate
+        [Nullable(1)] System.Object! Invoke(System.Object? arg)
+            [Nullable(2)] System.Object? arg
+        System.IAsyncResult BeginInvoke(System.Object? arg, System.AsyncCallback callback, System.Object @object)
+            [Nullable(2)] System.Object? arg
+        [Nullable(1)] System.Object! EndInvoke(System.IAsyncResult result)
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Events()
+        {
+            var source =
+@"#nullable disable
+public delegate void D<T>(T t);
+#nullable enable
+public class Program
+{
+    protected event D<object?> ProtectedEvent { add { } remove { } }
+    internal event D<object?> InternalEvent { add { } remove { } }
+    private event D<object?> PrivateEvent { add { } remove { } }
+}";
+            var expectedPublicOnly = @"
+Program
+    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
+";
+            var expectedPublicAndInternal = @"
+Program
+    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] D<System.Object?>! InternalEvent
+";
+            var expectedAll = @"
+Program
+    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] D<System.Object?>! InternalEvent
+    [Nullable({ 1, 2 })] D<System.Object?>! PrivateEvent
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Fields()
+        {
+            var source =
+@"public class Program
+{
+    protected object? ProtectedField;
+    internal object? InternalField;
+    private object? PrivateField;
+}";
+            var expectedPublicOnly = @"
+Program
+    [Nullable(2)] System.Object? ProtectedField
+";
+            var expectedPublicAndInternal = @"
+Program
+    [Nullable(2)] System.Object? ProtectedField
+    [Nullable(2)] System.Object? InternalField
+";
+            var expectedAll = @"
+Program
+    [Nullable(2)] System.Object? ProtectedField
+    [Nullable(2)] System.Object? InternalField
+    [Nullable(2)] System.Object? PrivateField
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Methods()
+        {
+            var source =
+@"public class Program
+{
+    protected object? ProtectedMethod(object arg) => null;
+    internal object? InternalMethod(object arg) => null;
+    private object? PrivateMethod(object arg) => null;
+}";
+            var expectedPublicOnly = @"
+Program
+    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+";
+            var expectedPublicAndInternal = @"
+Program
+    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+    [Nullable(2)] System.Object? InternalMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+";
+            var expectedAll = @"
+Program
+    [Nullable(2)] System.Object? ProtectedMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+    [Nullable(2)] System.Object? InternalMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+    [Nullable(2)] System.Object? PrivateMethod(System.Object! arg)
+        [Nullable(1)] System.Object! arg
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_Properties()
+        {
+            var source =
+@"public class Program
+{
+    protected object? ProtectedProperty => null;
+    internal object? InternalProperty => null;
+    private object? PrivateProperty => null;
+}";
+            var expectedPublicOnly = @"
+Program
+    [Nullable(2)] System.Object? ProtectedProperty { get; }
+";
+            var expectedPublicAndInternal = @"
+Program
+    [Nullable(2)] System.Object? ProtectedProperty { get; }
+    [Nullable(2)] System.Object? InternalProperty { get; }
+";
+            var expectedAll = @"
+Program
+    [Nullable(2)] System.Object? ProtectedProperty { get; }
+    [Nullable(2)] System.Object? InternalProperty { get; }
+    [Nullable(2)] System.Object? PrivateProperty { get; }
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_TypeParameters()
+        {
+            var source =
+@"public class Base { }
+public class Program
+{
+    protected static void ProtectedMethod<T, U>()
+        where T : notnull
+        where U : class
+    {
+    }
+    internal static void InternalMethod<T, U>()
+        where T : notnull
+        where U : class
+    {
+    }
+    private static void PrivateMethod<T, U>()
+        where T : notnull
+        where U : class
+    {
+    }
+}";
+            var expectedPublicOnly = @"
+Program
+    void ProtectedMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+";
+            var expectedPublicAndInternal = @"
+Program
+    void ProtectedMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+    void InternalMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+";
+            var expectedAll = @"
+Program
+    void ProtectedMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+    void InternalMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+    void PrivateMethod<T, U>() where T : notnull where U : class!
+        [Nullable(1)] T
+        [Nullable(1)] U
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_SynthesizedFields()
+        {
+            var source =
+@"public struct S<T> { }
+public class Public
+{
+    public static void PublicMethod()
+    {
+        S<object?> s;
+        System.Action a = () => { s.ToString(); };
+    }
+}";
+            var expectedPublicOnly = @"
+S<T>
+    [Nullable(2)] T
+";
+            var expectedPublicAndInternal = @"
+S<T>
+    [Nullable(2)] T
+";
+            var expectedAll = @"
+S<T>
+    [Nullable(2)] T
+Public
+    Public.<>c__DisplayClass0_0
+        [Nullable({ 0, 2 })] S<System.Object?> s
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        [Fact]
+        public void EmitPrivateMetadata_SynthesizedParameters()
+        {
+            var source =
+@"public class Public
+{
+    private static void PrivateMethod(string x)
+    {
+        _ = new System.Action<string?>((string y) => { });
+    }
+}";
+            var expectedPublicOnly = @"";
+            var expectedPublicAndInternal = @"";
+            var expectedAll = @"
+Public
+    void PrivateMethod(System.String! x)
+        [Nullable(1)] System.String! x
+    Public.<>c
+        [Nullable({ 0, 2 })] System.Action<System.String?> <>9__0_0
+        void <PrivateMethod>b__0_0(System.String! y)
+            [Nullable(1)] System.String! y
+";
+            EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
+        }
+
+        private void EmitPrivateMetadata(string source, string expectedPublicOnly, string expectedPublicAndInternal, string expectedAll)
+        {
+            var sourceIVTs =
+@"using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""Other"")]";
+
+            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            VerifyNullableAttributes(CreateCompilation(source, options: options), expectedAll);
+            VerifyNullableAttributes(CreateCompilation(source, options: options.WithEmitPublicNullableMetadataOnly(false)), expectedAll);
+            VerifyNullableAttributes(CreateCompilation(source, options: options.WithEmitPublicNullableMetadataOnly(true)), expectedPublicOnly);
+            VerifyNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options), expectedAll);
+            VerifyNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options.WithEmitPublicNullableMetadataOnly(false)), expectedAll);
+            VerifyNullableAttributes(CreateCompilation(new[] { source, sourceIVTs }, options: options.WithEmitPublicNullableMetadataOnly(true)), expectedPublicAndInternal);
+        }
+
+        /// <summary>
+        /// Should only require NullableAttribute constructor if nullable annotations are emitted.
+        /// </summary>
+        [Fact]
+        public void EmitPrivateMetadata_MissingAttributeConstructor()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class NullableAttribute : Attribute { }
+}";
+            var source =
+@"#pragma warning disable 0067
+#pragma warning disable 0169
+#pragma warning disable 8321
+public class A
+{
+    private object? F;
+    private static object? M(object arg) => null;
+    private object? P => null;
+    private object? this[object x, object? y] => null;
+    public static void M()
+    {
+        object? f(object arg) => arg;
+        D<object> d = () => new object();
+    }
+}
+internal delegate T D<T>();
+internal interface I<T> { }
+internal class B : I<object>
+{
+    public static object operator!(B b) => b;
+    public event D<object?> E;
+}";
+            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, options: options.WithEmitPublicNullableMetadataOnly(false));
+            comp.VerifyEmitDiagnostics(
+                // (6,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(6, 21),
+                // (7,20): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private static object? M(object arg) => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(7, 20),
+                // (7,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private static object? M(object arg) => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object arg").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(7, 30),
+                // (8,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? P => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 13),
+                // (9,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 13),
+                // (9,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 26),
+                // (9,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     private object? this[object x, object? y] => null;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object? y").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(9, 36),
+                // (12,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         object? f(object arg) => arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(12, 9),
+                // (12,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         object? f(object arg) => arg;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object arg").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(12, 19),
+                // (13,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //         D<object> d = () => new object();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(13, 26),
+                // (16,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // internal delegate T D<T>();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(16, 19),
+                // (16,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // internal delegate T D<T>();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(16, 23),
+                // (17,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // internal interface I<T> { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(17, 22),
+                // (18,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                // internal class B : I<object>
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(18, 16),
+                // (20,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     public static object operator!(B b) => b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "object").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(20, 19),
+                // (20,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     public static object operator!(B b) => b;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "B b").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(20, 36),
+                // (21,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
+                //     public event D<object?> E;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(21, 29));
+
+            comp = CreateCompilation(new[] { sourceAttribute, source }, options: options.WithEmitPublicNullableMetadataOnly(true));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void UseSiteError_LambdaReturnType()
         {
             var source0 =
@@ -1842,6 +2320,15 @@ public class C
         {
             var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
             AssertEx.SetEqual(actualNames, expectedNames);
+        }
+
+        private void VerifyNullableAttributes(CSharpCompilation comp, string expected)
+        {
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var actual = NullableAttributesVisitor.GetString(module);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
+            });
         }
     }
 }

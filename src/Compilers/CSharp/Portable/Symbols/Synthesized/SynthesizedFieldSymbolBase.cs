@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            var type = this.TypeWithAnnotations;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
             if (!_containingType.IsImplicitlyDeclared)
@@ -56,10 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeWithAnnotations.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, type.CustomModifiers.Length));
             }
 
-            if (TypeWithAnnotations.Type.ContainsTupleNames() &&
+            if (this.Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (TypeWithAnnotations.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.TypeWithAnnotations));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
 

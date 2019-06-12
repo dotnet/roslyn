@@ -3270,6 +3270,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
+        internal bool ShouldEmitNullableAttributes(Symbol symbol)
+        {
+            Debug.Assert(!(symbol is null));
+            Debug.Assert(symbol.IsDefinition);
+            Debug.Assert(symbol.ContainingAssembly == SourceAssembly);
+
+            if (!Options.EmitPublicNullableMetadataOnly)
+            {
+                return true;
+            }
+
+            if (!AccessCheck.IsPublicOrInternal(symbol, out bool isInternal))
+            {
+                return false;
+            }
+
+            return !isInternal || SourceAssembly.InternalsAreVisible;
+        }
+
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();

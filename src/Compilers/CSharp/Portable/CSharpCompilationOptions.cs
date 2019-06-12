@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,6 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global Nullable context options.
         /// </summary>
         public NullableContextOptions NullableContextOptions { get; private set; }
+
+        /// <summary>
+        /// Emit nullable attributes for only those members that are visible outside the assembly
+        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
+        /// If false, attributes are emitted for all members regardless of visibility.
+        /// </summary>
+        internal bool EmitPublicNullableMetadataOnly { get; private set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -86,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions)
+                   nullableContextOptions: nullableContextOptions,
+                   emitPublicNullableMetadataOnly: false)
         {
         }
 
@@ -209,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions)
+            NullableContextOptions nullableContextOptions,
+            bool emitPublicNullableMetadataOnly)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -221,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
+            this.EmitPublicNullableMetadataOnly = emitPublicNullableMetadataOnly;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -254,7 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions)
+            nullableContextOptions: other.NullableContextOptions,
+            emitPublicNullableMetadataOnly: other.EmitPublicNullableMetadataOnly)
         {
         }
 
@@ -400,6 +409,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { NullableContextOptions = options };
+        }
+
+        internal CSharpCompilationOptions WithEmitPublicNullableMetadataOnly(bool emitPublicNullableMetadataOnly)
+        {
+            if (emitPublicNullableMetadataOnly == this.EmitPublicNullableMetadataOnly)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { EmitPublicNullableMetadataOnly = emitPublicNullableMetadataOnly };
         }
 
         public CSharpCompilationOptions WithAllowUnsafe(bool enabled)
@@ -906,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disable)
+                   nullableContextOptions: NullableContextOptions.Disable,
+                   emitPublicNullableMetadataOnly: false)
         {
         }
     }
