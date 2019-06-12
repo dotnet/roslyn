@@ -228,6 +228,30 @@
     <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\uninstall.ps1" PackagePath="tools\uninstall.ps1" Visible="false" Pack="true"/>
   </ItemGroup>
 
+  <!-- RestrictedInternalsVisibleTo -->
+  <ItemDefinitionGroup>
+    <RestrictedInternalsVisibleTo>
+      <Visible>false</Visible>
+    </RestrictedInternalsVisibleTo>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="@(RestrictedInternalsVisibleTo)" Key="%(Key)" />
+  </ItemGroup>
+
+  <Target Name="PrepareGenerateRestrictedInternalsVisibleTo"
+          BeforeTargets="PrepareGenerateInternalsVisibleToFile"
+          Condition="'@(RestrictedInternalsVisibleTo)' != ''">
+    <ItemGroup>
+      <_InternalsVisibleToAttribute Include="System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute">
+        <_Parameter1>%(RestrictedInternalsVisibleTo.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(RestrictedInternalsVisibleTo.Partner)' != ''">Microsoft.CodeAnalysis.ExternalAccess.%(RestrictedInternalsVisibleTo.Partner).Api</_Parameter2>
+      </_InternalsVisibleToAttribute>
+    </ItemGroup>
+
+    <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' attribute. Target assembly: %(Identity)" />
+  </Target>
+
   <!--
     Ensure TargetFrameworkMonikerAssemblyAttributeText is treated as auto-generated
   -->

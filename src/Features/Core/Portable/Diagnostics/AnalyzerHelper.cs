@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static bool IsInProcessOnly(this DiagnosticAnalyzer analyzer)
-            => analyzer is IInProcessAnalyzer;
-
         public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
         {
             if (analyzerDriverOpt == null)
@@ -227,10 +224,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 description: description,
                 warningLevel: 0,
-                projectId: projectId);
+                projectId: projectId,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty);
         }
 
         private static bool TryGetErrorMessage(
