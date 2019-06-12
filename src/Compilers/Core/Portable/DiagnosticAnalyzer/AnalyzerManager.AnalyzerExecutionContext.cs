@@ -235,34 +235,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DiagnosticAnalyzer analyzer,
                 AnalyzerExecutor analyzerExecutor)
             {
-                lock (gate)
+                if (!lazyDescriptors.IsDefault)
                 {
-                    if (!lazyDescriptors.IsDefault)
-                    {
-                        return lazyDescriptors;
-                    }
+                    return lazyDescriptors;
                 }
 
                 // Otherwise, compute the value.
                 // We do so outside the lock statement as we are calling into user code, which may be a long running operation.
                 var descriptors = computeDescriptors(analyzer, analyzerExecutor);
 
-                lock (gate)
-                {
-                    // Check if another thread already stored the computed value.
-                    if (!lazyDescriptors.IsDefault)
-                    {
-                        // If so, we return the stored value.
-                        descriptors = lazyDescriptors;
-                    }
-                    else
-                    {
-                        // Otherwise, store the value computed here.
-                        lazyDescriptors = descriptors;
-                    }
-                }
-
-                return descriptors;
+                ImmutableInterlocked.InterlockedInitialize(ref lazyDescriptors, descriptors);
+                return lazyDescriptors;
             }
 
             /// <summary>
