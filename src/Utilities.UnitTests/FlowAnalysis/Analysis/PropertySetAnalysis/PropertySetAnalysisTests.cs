@@ -147,12 +147,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
             {
-                return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return";
+                return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return/Initialization";
             }
 
             string MethodOrReturnString(string method)
             {
-                return method != null ? $"Method {method}" : "Return";
+                return method != null ? $"Method {method}" : "Return/Initialization";
             }
         }
 
@@ -546,7 +546,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
+                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -611,7 +611,7 @@ class TestClass
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
-                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                        PropertySetAbstractValueKind kind = PropertySetCallbacks.EvaluateLiteralValues(
                             argumentValueContentAbstractValues[0],
                             v => v.Equals(0));
                         return PropertySetAbstractValue.GetInstance(kind);
@@ -621,7 +621,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
+                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -688,7 +688,7 @@ class TestClass
                     "AString",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        return PropertySetAnalysis.EvaluateLiteralValues(
+                        return PropertySetCallbacks.EvaluateLiteralValues(
                             valueContentAbstractValue,
                             v => (v as string)?.StartsWith("T", StringComparison.Ordinal) == true);
                     }),
@@ -696,7 +696,7 @@ class TestClass
                     "AnEnum",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
+                        return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
@@ -977,7 +977,7 @@ class TestClass
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
-                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                        PropertySetAbstractValueKind kind = PropertySetCallbacks.EvaluateLiteralValues(
                             argumentValueContentAbstractValues[2],
                             v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
                         return PropertySetAbstractValue.GetInstance(kind);
@@ -987,7 +987,7 @@ class TestClass
                     "AString",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        return PropertySetAnalysis.EvaluateLiteralValues(
+                        return PropertySetCallbacks.EvaluateLiteralValues(
                             valueContentAbstractValue,
                             v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
                     })),

@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
-        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
+        /// <returns>Property set analysis result.</returns>
         internal static PropertySetAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
@@ -140,7 +140,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
-        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return statements.</returns>
+        /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return/initialization statements.</returns>
         /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
             Compilation compilation,
@@ -255,87 +255,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             else
             {
                 return HazardousUsageEvaluationResult.Unflagged;
-            }
-        }
-
-        /// <summary>
-        /// Enumerates literal values to map to a property set abstract value.
-        /// </summary>
-        /// <param name="valueContentAbstractValue">Abstract value containing the literal values to examine.</param>
-        /// <param name="badLiteralValuePredicate">Predicate function to determine if a literal value is bad.</param>
-        /// <returns>Mapped kind.</returns>
-        /// <remarks>
-        /// Null is not handled by this.  Look at the <see cref="PointsToAbstractValue"/> if you need to treat null as bad.
-        /// 
-        /// All literal values are bad => Flagged
-        /// Some but not all literal are bad => MaybeFlagged
-        /// All literal values are known and none are bad => Unflagged
-        /// Otherwise => Unknown
-        /// </remarks>
-        public static PropertySetAbstractValueKind EvaluateLiteralValues(
-            ValueContentAbstractValue valueContentAbstractValue,
-            Func<object, bool> badLiteralValuePredicate)
-        {
-            Debug.Assert(valueContentAbstractValue != null);
-            Debug.Assert(badLiteralValuePredicate != null);
-
-            switch (valueContentAbstractValue.NonLiteralState)
-            {
-                case ValueContainsNonLiteralState.No:
-                    if (valueContentAbstractValue.LiteralValues.IsEmpty)
-                    {
-                        return PropertySetAbstractValueKind.Unflagged;
-                    }
-
-                    bool allValuesBad = true;
-                    bool someValuesBad = false;
-                    foreach (object literalValue in valueContentAbstractValue.LiteralValues)
-                    {
-                        if (badLiteralValuePredicate(literalValue))
-                        {
-                            someValuesBad = true;
-                        }
-                        else
-                        {
-                            allValuesBad = false;
-                        }
-
-                        if (!allValuesBad && someValuesBad)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (allValuesBad)
-                    {
-                        // We know all values are bad, so we can say Flagged.
-                        return PropertySetAbstractValueKind.Flagged;
-                    }
-                    else if (someValuesBad)
-                    {
-                        // We know all values but some values are bad, so we can say MaybeFlagged.
-                        return PropertySetAbstractValueKind.MaybeFlagged;
-                    }
-                    else
-                    {
-                        // We know all values are good, so we can say Unflagged.
-                        return PropertySetAbstractValueKind.Unflagged;
-                    }
-
-                case ValueContainsNonLiteralState.Maybe:
-                    if (valueContentAbstractValue.LiteralValues.Any(badLiteralValuePredicate))
-                    {
-                        // We don't know all values but know some values are bad, so we can say MaybeFlagged.
-                        return PropertySetAbstractValueKind.MaybeFlagged;
-                    }
-                    else
-                    {
-                        // We don't know all values but didn't find any bad value, so we can say who knows.
-                        return PropertySetAbstractValueKind.Unknown;
-                    }
-
-                default:
-                    return PropertySetAbstractValueKind.Unknown;
             }
         }
 

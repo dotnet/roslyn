@@ -18,7 +18,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         Return,
 
         /// <summary>
-        /// Evaluated at field and property initialization, or field or property asssignment inside a constructor.
+        /// Evaluated at field and property initialization, or field or property asssignments.
         /// </summary>
         Initialization,
     }

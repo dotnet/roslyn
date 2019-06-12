@@ -28,7 +28,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 if (!propertyMappers.All(p => p.PropertyIndex >= 0))
                 {
                     throw new ArgumentException(
-                        "Either all PropertyMappers must specify a PropertyIndex, or no PropertyMappers must be specify a property index",
+                        "Either all PropertyMappers must specify a property index, or no PropertyMappers specify a property index",
                         nameof(propertyMappers));
                 }
 
