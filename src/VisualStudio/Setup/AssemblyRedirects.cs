@@ -36,6 +36,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.LiveShare.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll")]
