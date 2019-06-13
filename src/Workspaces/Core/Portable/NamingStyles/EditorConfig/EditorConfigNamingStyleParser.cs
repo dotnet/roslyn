@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 namingRules.ToImmutableAndFree());
 
             var orderedRules = preferences.Rules.NamingRules
-                .OrderBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
-                .ThenBy(rule => rule, NamingRuleModifierListComparer.Instance)
+                .OrderBy(rule => rule, NamingRuleModifierListComparer.Instance)
+                .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
                 .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
                 .ThenBy(rule => rule.NamingStyle.Name, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(rule => rule.NamingStyle.Name, StringComparer.Ordinal);
@@ -163,6 +163,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 // Since modifiers are "match all", a subset of symbols is matched by a superset of modifiers
                 foreach (var modifier in y.SymbolSpecification.RequiredModifierList)
                 {
+                    if (modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsStatic
+                        || modifier.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsReadOnly)
+                    {
+                        if (x.SymbolSpecification.RequiredModifierList.Any(x => x.ModifierKindWrapper == SymbolSpecification.ModifierKindEnum.IsConst))
+                        {
+                            // 'const' implies both 'readonly' and 'static'
+                            continue;
+                        }
+                    }
+
                     if (!x.SymbolSpecification.RequiredModifierList.Contains(modifier))
                     {
                         return false;
