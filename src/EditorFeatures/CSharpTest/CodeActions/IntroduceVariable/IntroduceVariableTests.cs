@@ -3103,7 +3103,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public Task TestIntroduceLocal_NullableType()
+        public Task TestIntroduceLocal_NullableType_FlowStateNonNull()
         => TestInRegularAndScriptAsync(@"
 #nullable enable
 
@@ -3126,8 +3126,41 @@ class C
     void M()
     {
         string? s = string.Empty;
-        string? s1 = s;
-        M2(s2);
+        string {|Rename:s1|} = s;
+        M2(s1);
+    }
+
+    void M2(string? s)
+    {
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public Task TestIntroduceLocal_NullableType_FlowStateNull()
+        => TestInRegularAndScriptAsync(@"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        M2([|s|]);
+    }
+
+    void M2(string? s)
+    {
+    }
+}", @"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = null;
+        string? {|Rename:s1|} = s;
+        M2(s1);
     }
 
     void M2(string? s)
