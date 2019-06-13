@@ -13,7 +13,8 @@ dependencies:
 commands:
   - sudo apt-get update -qy && sudo apt-get -qy upgrade
   - sudo apt-get install -y p7zip-full p7zip-rar
-  - 7z a builds.7z Artifacts/Builds/*
+  - mkdir producedbuilds
+  - 7z a producedbuilds/builds.7z Artifacts/Builds/*
   - pwd
   - ls -al
 
@@ -25,4 +26,4 @@ triggers:
 artifacts: 
   builds:
     paths:
-      - builds.7z
+      - producedbuilds/builds.7z
