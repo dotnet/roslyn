@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
+        /// Note, all occurrences of 'dynamic' in resulting types will be replaced with 'object'.
         /// </summary>
         internal void SubstituteConstraintTypesDistinctWithoutModifiers(
             TypeParameterSymbol owner,
