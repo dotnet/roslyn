@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Get completion items from current project. 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            await typeImportCompletionService.GetTopLevelTypesAsync(project, HandlePublicAndInternalItem, cancellationToken)
+            await typeImportCompletionService.GetTopLevelTypesAsync(project, syntaxContext, HandlePublicAndInternalItem, cancellationToken)
                 .ConfigureAwait(false);
 
             // Get declarations from directly referenced projects and PEs
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         await typeImportCompletionService.GetTopLevelTypesAsync(
                             assemblyProject,
+                            syntaxContext,
                             GetHandler(compilation.Assembly, assembly),
                             cancellationToken).ConfigureAwait(false);
                     }
@@ -114,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             project.Solution,
                             compilation,
                             peReference,
+                            syntaxContext,
                             GetHandler(compilation.Assembly, assembly),
                             cancellationToken);
                     }

@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -23,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         Task GetTopLevelTypesAsync(
             Project project,
+            SyntaxContext syntaxContext,
             Action<TypeImportCompletionItemInfo> handleItem,
             CancellationToken cancellationToken);
 
@@ -30,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
+            SyntaxContext syntaxContext,
             Action<TypeImportCompletionItemInfo> handleItem,
             CancellationToken cancellationToken);
     }
@@ -45,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public CompletionItem Item { get; }
 
         public bool IsPublic { get; }
+
+        public TypeImportCompletionItemInfo WithItem(CompletionItem item)
+        {
+            return new TypeImportCompletionItemInfo(item, IsPublic);
+        }
     }
 
     [ExportWorkspaceServiceFactory(typeof(ITypeImportCompletionService), ServiceLayer.Editor), Shared]
@@ -118,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public async Task GetTopLevelTypesAsync(
                 Project project,
+                SyntaxContext syntaxContext,
                 Action<TypeImportCompletionItemInfo> handleItem,
                 CancellationToken cancellationToken)
             {
@@ -135,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     project.Id,
                     compilation.Assembly,
                     checksum,
+                    syntaxContext,
                     handleItem,
                     _projectItemsCache,
                     cancellationToken);
@@ -144,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Solution solution,
                 Compilation compilation,
                 PortableExecutableReference peReference,
+                SyntaxContext syntaxContext,
                 Action<TypeImportCompletionItemInfo> handleItem,
                 CancellationToken cancellationToken)
             {
@@ -167,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     key,
                     assemblySymbol,
                     checksum,
+                    syntaxContext,
                     handleItem,
                     _peItemsCache,
                     cancellationToken);
@@ -181,37 +195,51 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 TKey key,
                 IAssemblySymbol assembly,
                 Checksum checksum,
+                SyntaxContext syntaxContext,
                 Action<TypeImportCompletionItemInfo> handleItem,
                 ConcurrentDictionary<TKey, ReferenceCacheEntry> cache,
                 CancellationToken cancellationToken)
             {
+                var isCSharp = syntaxContext.SemanticModel.Language == LanguageNames.CSharp;
+
                 // Cache miss, create all requested items.
                 if (!cache.TryGetValue(key, out var cacheEntry) ||
                     cacheEntry.Checksum != checksum)
                 {
-                    var items = GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, cancellationToken);
-                    cacheEntry = new ReferenceCacheEntry(checksum, items);
+                    var builder = new ReferenceCacheEntry.Builder(checksum, isCSharp);
+                    GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
+                    cacheEntry = builder.ToReferenceCacheEntry();
                     cache[key] = cacheEntry;
                 }
 
-                foreach (var item in cacheEntry.CachedItems)
+                foreach (var item in cacheEntry.CommonItems)
+                {
+                    handleItem(item);
+                }
+
+                foreach (var item in cacheEntry.GetGenericItems(isCSharp))
+                {
+                    handleItem(item);
+                }
+
+                foreach (var item in cacheEntry.GetAttributeItems(isCSharp, syntaxContext.IsAttributeNameContext))
                 {
                     handleItem(item);
                 }
             }
 
-            private static ImmutableArray<TypeImportCompletionItemInfo> GetCompletionItemsForTopLevelTypeDeclarations(
+            private static void GetCompletionItemsForTopLevelTypeDeclarations(
                 INamespaceSymbol rootNamespaceSymbol,
+                ReferenceCacheEntry.Builder builder,
                 CancellationToken cancellationToken)
             {
-                var builder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 VisitNamespace(rootNamespaceSymbol, containingNamespace: null, builder, cancellationToken);
-                return builder.ToImmutableAndFree();
+                return;
 
                 static void VisitNamespace(
                     INamespaceSymbol symbol,
                     string containingNamespace,
-                    ArrayBuilder<TypeImportCompletionItemInfo> builder,
+                     ReferenceCacheEntry.Builder builder,
                     CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -243,10 +271,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // Create CompletionItem for non-generic type overload, if exists.
                         if (overloadInfo.NonGenericOverload != null)
                         {
-                            var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace);
-                            var isPublic = overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public;
-                            item.IsCached = true;
-                            builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
+                            builder.AddItem(
+                                overloadInfo.NonGenericOverload,
+                                containingNamespace,
+                                overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public);
                         }
 
                         // Create one CompletionItem for all generic type overloads, if there's any.
@@ -255,10 +283,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         if (overloadInfo.BestGenericOverload != null)
                         {
                             // If any of the generic overloads is public, then the completion item is considered public.
-                            var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace);
-                            var isPublic = overloadInfo.ContainsPublicGenericOverload;
-                            item.IsCached = true;
-                            builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
+                            builder.AddItem(
+                                overloadInfo.BestGenericOverload,
+                                containingNamespace,
+                                overloadInfo.ContainsPublicGenericOverload);
                         }
                     }
 
@@ -314,17 +342,122 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private readonly struct ReferenceCacheEntry
         {
-            public ReferenceCacheEntry(
+            public class Builder
+            {
+                private readonly bool _isCSharp;
+                private readonly Checksum _checksum;
+
+                public Builder(Checksum checksum, bool isCSharp)
+                {
+                    _checksum = checksum;
+                    _isCSharp = isCSharp;
+
+                    _commonItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                    _genericItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                    _attributeWithSuffixItemsBuilder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
+                }
+
+                private ArrayBuilder<TypeImportCompletionItemInfo> _commonItemsBuilder;
+                private ArrayBuilder<TypeImportCompletionItemInfo> _genericItemsBuilder;
+                private ArrayBuilder<TypeImportCompletionItemInfo> _attributeWithSuffixItemsBuilder;
+
+                public ReferenceCacheEntry ToReferenceCacheEntry()
+                {
+                    return new ReferenceCacheEntry(
+                        _checksum,
+                        _isCSharp,
+                        _commonItemsBuilder.ToImmutableAndFree(),
+                        _genericItemsBuilder.ToImmutableAndFree(),
+                        _attributeWithSuffixItemsBuilder.ToImmutableAndFree());
+                }
+
+                public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
+                {
+                    ArrayBuilder<TypeImportCompletionItemInfo> correspondingBuilder;
+
+                    if (symbol.Arity > 0)
+                    {
+                        correspondingBuilder = _genericItemsBuilder;
+                    }
+                    else if (IsAttributeWithAttributeSuffix(symbol))
+                    {
+                        correspondingBuilder = _attributeWithSuffixItemsBuilder;
+                    }
+                    else
+                    {
+                        correspondingBuilder = _commonItemsBuilder;
+                    }
+
+                    var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _isCSharp);
+                    item.IsCached = true;
+                    correspondingBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic));
+
+                    static bool IsAttributeWithAttributeSuffix(INamedTypeSymbol symbol)
+                    {
+                        // Do the symbol textual check first. Then the more expensive symbolic check.
+                        return symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
+                    }
+                }
+            }
+
+            private ReferenceCacheEntry(
                 Checksum checksum,
-                ImmutableArray<TypeImportCompletionItemInfo> cachedItems)
+                bool isCSharp,
+                ImmutableArray<TypeImportCompletionItemInfo> commonItems,
+                ImmutableArray<TypeImportCompletionItemInfo> genericItems,
+                ImmutableArray<TypeImportCompletionItemInfo> attributeItems)
             {
                 Checksum = checksum;
-                CachedItems = cachedItems;
+                IsCSharp = isCSharp;
+
+                CommonItems = commonItems;
+                AttributeItems = attributeItems;
+                GenericItems = genericItems;
             }
+
+            public bool IsCSharp { get; }
 
             public Checksum Checksum { get; }
 
-            public ImmutableArray<TypeImportCompletionItemInfo> CachedItems { get; }
+            public ImmutableArray<TypeImportCompletionItemInfo> CommonItems { get; }
+
+            private ImmutableArray<TypeImportCompletionItemInfo> GenericItems { get; }
+
+            // Attribute types can't be generic
+            private ImmutableArray<TypeImportCompletionItemInfo> AttributeItems { get; }
+
+            public ImmutableArray<TypeImportCompletionItemInfo> GetGenericItems(bool isCSharp)
+            {
+                if (isCSharp == IsCSharp || GenericItems.Length == 0)
+                {
+                    return GenericItems;
+                }
+
+                // We don't want to cache this item.
+                return GenericItems.SelectAsArray(itemInfo => itemInfo.WithItem(TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(itemInfo.Item, isCSharp)));
+            }
+
+            public ImmutableArray<TypeImportCompletionItemInfo> GetAttributeItems(bool isCSharp, bool isAttributeNameContext)
+            {
+                if (!isAttributeNameContext || AttributeItems.Length == 0)
+                {
+                    return AttributeItems;
+                }
+
+                return AttributeItems.SelectAsArray(GetAppropriateAttributeItem, isCSharp);
+
+                static TypeImportCompletionItemInfo GetAppropriateAttributeItem(TypeImportCompletionItemInfo itemInfo, bool isCSharp)
+                {
+                    var item = itemInfo.Item;
+                    if (item.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCSharp, out var attributeName))
+                    {
+                        // We don't want to cache this item.
+                        return itemInfo.WithItem(TypeImportCompletionItem.CreateAttributeNameItem(item, attributeName));
+                    }
+
+                    return itemInfo;
+                }
+            }
         }
     }
 }

@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
+        private const string AttributeFullName = nameof(AttributeFullName);
 
-        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
+        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, bool isCSharp)
         {
             PooledDictionary<string, string> propertyBuilder = null;
 
@@ -46,8 +47,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : "<>",
+                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : GetDisplayTextSuffixForGeneric(isCSharp),
                  inlineDescription: containingNamespace);
+        }
+
+        public static CompletionItem CreateAttributeNameItem(CompletionItem attributeItem, string attributeName)
+        {
+            Debug.Assert(!attributeItem.Properties.ContainsKey(AttributeFullName));
+
+            var newProperties = attributeItem.Properties.Add(AttributeFullName, attributeItem.DisplayText);
+
+            var sortTextBuilder = PooledStringBuilder.GetInstance();
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, attributeName, attributeItem.InlineDescription);
+
+            return CompletionItem.Create(
+                 displayText: attributeName,
+                 filterText: attributeName,
+                 sortText: sortTextBuilder.ToStringAndFree(),
+                 properties: newProperties,
+                 tags: attributeItem.Tags,
+                 rules: attributeItem.Rules,
+                 displayTextPrefix: attributeItem.DisplayTextPrefix,
+                 displayTextSuffix: attributeItem.DisplayTextSuffix,
+                 inlineDescription: attributeItem.InlineDescription);
+        }
+
+        public static CompletionItem CreateItemWithGenericDisplaySuffix(CompletionItem item, bool isCSharp)
+        {
+            return item.WithDisplayTextSuffix(GetDisplayTextSuffixForGeneric(isCSharp));
+        }
+
+        private static string GetDisplayTextSuffixForGeneric(bool isCSharp)
+        {
+            return isCSharp ? "<>" : "(Of ...)";
         }
 
         public static string GetContainingNamespace(CompletionItem item)
@@ -95,7 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static string GetMetadataName(CompletionItem item)
         {
             var containingNamespace = GetContainingNamespace(item);
-            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, item.DisplayText);
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
+            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
             {
                 return fullyQualifiedName + aritySuffix;

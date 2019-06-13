@@ -118,6 +118,8 @@ namespace Roslyn.Utilities
             return lastChar != '.';
         }
 
+        private const string AttributeSuffix = "Attribute";
+
         internal static string GetWithSingleAttributeSuffix(
             this string name,
             bool isCaseSensitive)
@@ -128,7 +130,7 @@ namespace Roslyn.Utilities
                 name = cleaned;
             }
 
-            return name + "Attribute";
+            return name + AttributeSuffix;
         }
 
         internal static bool TryGetWithoutAttributeSuffix(
@@ -150,9 +152,7 @@ namespace Roslyn.Utilities
             bool isCaseSensitive,
             out string result)
         {
-            const string AttributeSuffix = "Attribute";
-            var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison))
+            if (name.HasAttributeSuffix(isCaseSensitive))
             {
                 result = name.Substring(0, name.Length - AttributeSuffix.Length);
                 return true;
@@ -160,6 +160,12 @@ namespace Roslyn.Utilities
 
             result = null;
             return false;
+        }
+
+        internal static bool HasAttributeSuffix(this string name, bool isCaseSensitive)
+        {
+            var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            return name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison);
         }
 
         internal static bool IsValidUnicodeString(this string str)
