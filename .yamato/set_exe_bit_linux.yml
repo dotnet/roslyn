@@ -12,6 +12,6 @@ commands:
   - .yamato/set_exe_bit_linux.sh
   
 artifacts: 
-  build-linux.zip:
+  build-linux:
     paths:
       - Artifacts/Builds/Binaries/Linux/**

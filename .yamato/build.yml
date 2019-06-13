@@ -12,6 +12,6 @@ commands:
   - external\unity\build-roslyn.bat
 
 artifacts: 
-  build.zip:
+  build:
     paths:
       - Artifacts/Builds/**
