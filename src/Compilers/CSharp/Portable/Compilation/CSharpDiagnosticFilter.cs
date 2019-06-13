@@ -146,7 +146,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
 
+            var position = location.SourceSpan.Start;
+
             bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            if (isNullableFlowAnalysisWarning)
+            {
+                var nullableDirective = tree?.GetNullableDirectiveState(position).WarningsState switch
+                {
+                    null => nullableOption,
+                    true => NullableContextOptions.Enable,
+                    false => NullableContextOptions.Disable
+                };
+
+                if (nullableDirective == NullableContextOptions.Disable)
+                {
+                    return ReportDiagnostic.Suppress;
+                }
+            }
+
             if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
                 !isNullableFlowAnalysisWarning)
             {
@@ -154,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If location.SourceTree is available, check out pragmas
-            var pragmaWarningState = tree?.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start) ?? Syntax.PragmaWarningState.Default;
+            var pragmaWarningState = tree?.GetPragmaDirectiveWarningState(id, position) ?? Syntax.PragmaWarningState.Default;
             if (pragmaWarningState == Syntax.PragmaWarningState.Disabled)
             {
                 hasPragmaSuppression = true;
@@ -190,26 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (report == ReportDiagnostic.Suppress) // check options (/nowarn)
             {
                 return ReportDiagnostic.Suppress;
-            }
-
-            // Nullable flow analysis warnings cannot be turned on by specific diagnostic options.
-            // They can be turned on by nullable options and specific diagnostic options
-            // can either turn them off, or adjust the way they are reported.
-            switch (nullableOption)
-            {
-                case NullableContextOptions.Disable:
-                    if (isNullableFlowAnalysisWarning)
-                    {
-                        return ReportDiagnostic.Suppress;
-                    }
-                    break;
-
-                case NullableContextOptions.Enable:
-                case NullableContextOptions.Warnings:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(nullableOption);
             }
 
             // 4. Global options

@@ -9,14 +9,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
+    internal struct NullableDirective
+    {
+        internal int Position { get; }
+        internal bool? WarningsState { get; }
+        internal bool? AnnotationsState { get; }
+
+        internal NullableDirective(int position, bool? warningsState, bool? annotationsState)
+        {
+            Position = position;
+            WarningsState = warningsState;
+            AnnotationsState = annotationsState;
+        }
+    }
     internal sealed class NullableDirectiveMap
     {
-        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: true);
+        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<NullableDirective>.Empty, isGeneratedCode: true);
 
-        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: false);
+        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<NullableDirective>.Empty, isGeneratedCode: false);
 
-
-        private readonly ImmutableArray<(int Position, bool? State)> _directives;
+        private readonly ImmutableArray<NullableDirective> _directives;
 
         private readonly bool _isGeneratedCode;
 
@@ -28,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGeneratedCode);
         }
 
-        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives, bool isGeneratedCode)
+        private NullableDirectiveMap(ImmutableArray<NullableDirective> directives, bool isGeneratedCode)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -45,9 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
         /// or directive preceding the position is `restore`.
         /// </summary>
-        internal bool? GetDirectiveState(int position)
+        internal NullableDirective GetDirectiveState(int position)
         {
-            int index = _directives.BinarySearch((position, false), PositionComparer.Instance);
+            // PositionComparer only checks the position, not the states
+            var searchDirective = new NullableDirective(position, default, default);
+            int index = _directives.BinarySearch(searchDirective, PositionComparer.Instance);
             if (index < 0)
             {
                 // If no exact match, BinarySearch returns the complement
@@ -56,20 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             // Generated files have an initial nullable context that is "disabled"
-            bool? state = (_isGeneratedCode) ? false : (bool?)null;
+            var directive = _isGeneratedCode
+                ? new NullableDirective(position, false, false)
+                : new NullableDirective(position, null, null);
+
             if (index >= 0)
             {
                 Debug.Assert(_directives[index].Position <= position);
                 Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
-                state = _directives[index].State;
+                directive = _directives[index];
             }
 
-            return state;
+            return directive;
         }
 
-        private static ImmutableArray<(int Position, bool? State)> GetDirectives(SyntaxTree tree)
+        private static ImmutableArray<NullableDirective> GetDirectives(SyntaxTree tree)
         {
-            var builder = ArrayBuilder<(int Position, bool? State)>.GetInstance();
+            var builder = ArrayBuilder<NullableDirective>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
                 if (d.Kind() != SyntaxKind.NullableDirectiveTrivia)
@@ -82,32 +99,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     continue;
                 }
 
-                bool? state;
-                switch (nn.SettingToken.Kind())
+                var position = nn.Location.SourceSpan.End;
+                var setting = nn.SettingToken.Kind() switch
                 {
-                    case SyntaxKind.EnableKeyword:
-                        state = true;
-                        break;
-                    case SyntaxKind.RestoreKeyword:
-                        state = null;
-                        break;
-                    case SyntaxKind.DisableKeyword:
-                        state = false;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(nn.SettingToken.Kind());
-                }
+                    SyntaxKind.EnableKeyword => true,
+                    SyntaxKind.DisableKeyword => false,
+                    SyntaxKind.RestoreKeyword => (bool?)null,
+                    var kind => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
 
-                builder.Add((nn.Location.SourceSpan.End, state));
+                var previousDirective = builder.LastOrNullable();
+
+                var directive = nn.TargetToken.Kind() switch
+                {
+                    SyntaxKind.None => new NullableDirective(position, setting, setting),
+                    SyntaxKind.WarningsKeyword => new NullableDirective(position, warningsState: setting, annotationsState: previousDirective?.AnnotationsState),
+                    SyntaxKind.AnnotationsKeyword => new NullableDirective(position, warningsState: previousDirective?.WarningsState, annotationsState: setting),
+                    var kind => throw ExceptionUtilities.UnexpectedValue(kind)
+                };
+
+                builder.Add(directive);
             }
             return builder.ToImmutableAndFree();
         }
 
-        private sealed class PositionComparer : IComparer<(int Position, bool? State)>
+        private sealed class PositionComparer : IComparer<NullableDirective>
         {
             internal static readonly PositionComparer Instance = new PositionComparer();
 
-            public int Compare((int Position, bool? State) x, (int Position, bool? State) y)
+            public int Compare(NullableDirective x, NullableDirective y)
             {
                 return x.Position.CompareTo(y.Position);
             }

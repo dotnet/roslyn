@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// `enable` or `safeonly`, false if `disable`, and null if no preceding directive,
         /// or directive preceding the position is `restore`.
         /// </summary>
-        internal bool? GetNullableDirectiveState(int position)
+        internal NullableDirective GetNullableDirectiveState(int position)
         {
             if (_lazyNullableDirectiveMap == null)
             {

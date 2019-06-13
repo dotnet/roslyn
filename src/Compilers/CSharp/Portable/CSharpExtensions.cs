@@ -374,6 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ((CSharpSyntaxTree)tree).GetPragmaDirectiveWarningState(id, position);
         }
+
+        internal static NullableDirective GetNullableDirectiveState(this SyntaxTree tree, int position)
+        {
+            return ((CSharpSyntaxTree)tree).GetNullableDirectiveState(position);
+        }
+
         #endregion
 
         #region Compilation
