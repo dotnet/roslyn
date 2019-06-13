@@ -152,6 +152,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVsHierarchy GetDocumentHierarchy(string moniker)
         {
+            if (!IsFileOpen(moniker))
+            {
+                return null;
+            }
+
             var cookie = _runningDocumentTable.GetDocumentCookie(moniker);
             _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
             return hierarchy;
