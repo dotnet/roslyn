@@ -8289,6 +8289,7 @@ tryAgain:
             {
                 usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
+            bool canParseAsLocalFunction = usingKeyword == default;
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
@@ -8299,7 +8300,7 @@ tryAgain:
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseLocalDeclaration(variables,
-                    allowLocalFunctions: usingKeyword == default,
+                    allowLocalFunctions: canParseAsLocalFunction,
                     mods: mods.ToList(),
                     type: out type,
                     localFunction: out localFunction);
@@ -8312,7 +8313,8 @@ tryAgain:
 
                 // If we find an accessibility modifier but no local function it's likely
                 // the user forgot a closing brace. Let's back out of statement parsing.
-                if (mods.Count > 0 &&
+                if (canParseAsLocalFunction &&
+                    mods.Count > 0 &&
                     IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))
                 {
                     return null;
