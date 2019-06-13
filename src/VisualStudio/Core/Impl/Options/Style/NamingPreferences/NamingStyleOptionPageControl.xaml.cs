@@ -152,12 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     continue;
                 }
 
-                var rule = new SerializableNamingRule()
-                {
-                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Severity,
-                    NamingStyleID = item.SelectedStyle.ID,
-                    SymbolSpecificationID = item.SelectedSpecification.ID
-                };
+                var rule = new SerializableNamingRule(Guid.NewGuid().ToString("n"), item.SelectedSpecification.ID, item.SelectedStyle.ID, item.SelectedNotificationPreference.Notification.Severity);
 
                 namingRules.Add(rule);
             }

@@ -69,19 +69,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 .OrderBy(rule => rule, NamingRuleModifierListComparer.Instance)
                 .ThenBy(rule => rule, NamingRuleAccessibilityListComparer.Instance)
                 .ThenBy(rule => rule, NamingRuleSymbolListComparer.Instance)
-                .ThenBy(rule => rule.NamingStyle.Name, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(rule => rule.NamingStyle.Name, StringComparer.Ordinal);
+                .ThenBy(rule => rule.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(rule => rule.Name, StringComparer.Ordinal);
 
             return new NamingStylePreferences(
                 preferences.SymbolSpecifications,
                 preferences.NamingStyles,
                 orderedRules.SelectAsArray(
-                    rule => new SerializableNamingRule
-                    {
-                        SymbolSpecificationID = rule.SymbolSpecification.ID,
-                        NamingStyleID = rule.NamingStyle.ID,
-                        EnforcementLevel = rule.EnforcementLevel,
-                    }));
+                    rule => new SerializableNamingRule(rule.Name, rule.SymbolSpecification.ID, rule.NamingStyle.ID, rule.EnforcementLevel)));
         }
 
         private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)

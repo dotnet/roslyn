@@ -73,12 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 suffix: "",
                 wordSeparator: "");
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+            var namingRule = new SerializableNamingRule("fields", symbolSpecification.ID, namingStyle.ID, ReportDiagnostic.Error);
 
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
@@ -105,12 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 suffix: "",
                 wordSeparator: "");
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+            var namingRule = new SerializableNamingRule("fields", symbolSpecification.ID, namingStyle.ID, ReportDiagnostic.Error);
 
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
@@ -137,12 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 suffix: "",
                 wordSeparator: "");
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+            var namingRule = new SerializableNamingRule("static_fields", symbolSpecification.ID, namingStyle.ID, ReportDiagnostic.Error);
 
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
