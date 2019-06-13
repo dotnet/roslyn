@@ -566,36 +566,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)type != null;
         }
 
+        /// <summary>
+        /// If the type is a non-generic value type or Nullable&lt;&gt;, and
+        /// is not a type parameter, the nullability is not included in the byte[].
+        /// </summary>
+        private static bool SkipNullableTransform(TypeSymbol type)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null)
+            {
+                return false;
+            }
+            if (namedType.IsGenericType)
+            {
+                return type.IsNullableType();
+            }
+            return type.IsValueType && !type.IsTupleType;
+        }
+
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            var typeSymbol = Type;
-            byte flag;
+            var type = Type;
 
-            if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
+            if (!SkipNullableTransform(type))
             {
-                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
-            }
-            else if (NullableAnnotation.IsAnnotated())
-            {
-                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            else
-            {
-                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                byte flag;
+                if (NullableAnnotation.IsOblivious() || type.IsValueType)
+                {
+                    flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                }
+                else if (NullableAnnotation.IsAnnotated())
+                {
+                    flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                }
+                else
+                {
+                    flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                }
+                transforms.Add(flag);
             }
 
-            transforms.Add(flag);
-            typeSymbol.AddNullableTransforms(transforms);
+            type.AddNullableTransforms(transforms);
         }
 
         public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
         {
             result = this;
 
+            TypeSymbol oldTypeSymbol = Type;
             byte transformFlag;
+
             if (transforms.IsDefault)
             {
                 transformFlag = defaultTransformFlag;
+            }
+            else if (SkipNullableTransform(oldTypeSymbol))
+            {
+                transformFlag = NullableAnnotationExtensions.ObliviousAttributeValue;
             }
             else if (position < transforms.Length)
             {
@@ -606,9 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            TypeSymbol oldTypeSymbol = Type;
             TypeSymbol newTypeSymbol;
-
             if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
             {
                 return false;
