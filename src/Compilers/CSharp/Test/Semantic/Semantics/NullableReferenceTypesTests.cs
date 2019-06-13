@@ -5445,6 +5445,171 @@ class Program
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 26));
         }
 
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Annotations_Enable()
+        {
+            var source = @"
+#nullable enable annotations
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Annotations_Enable_01()
+        {
+            var source = @"
+#nullable enable annotations
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Annotations_Enable_02()
+        {
+            var source = @"
+#nullable enable
+#nullable disable warnings
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Annotations_Enable_03()
+        {
+            var source = @"
+#nullable enable
+#nullable restore warnings
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Warnings_Enable_01()
+        {
+            var source = @"
+#nullable enable warnings
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (5,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    //     static void M(string? s)
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 25),
+                    // (7,13): warning CS8602: Dereference of a possibly null reference.
+                    //         _ = s.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13));
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Warnings_Enable_02()
+        {
+            var source = @"
+#nullable enable
+#nullable disable annotations
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (6,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    //     static void M(string? s)
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 25),
+                    // (8,13): warning CS8602: Dereference of a possibly null reference.
+                    //         _ = s.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13));
+        }
+
+        [Fact, WorkItem(35748, "https://github.com/dotnet/roslyn/issues/35748")]
+        public void Directive_Warnings_Enable_03()
+        {
+            var source = @"
+#nullable enable
+#nullable restore annotations
+class Program
+{
+    static void M(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (6,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                    //     static void M(string? s)
+                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 25),
+                    // (8,13): warning CS8602: Dereference of a possibly null reference.
+                    //         _ = s.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13));
+        }
+
+        [Fact, WorkItem(35730, "https://github.com/dotnet/roslyn/issues/35730")]
+        public void Directive_ProjectNoWarn()
+        {
+            var source = @"
+#nullable enable
+class Program
+{
+    void M1(string? s)
+    {
+        _ = s.ToString();
+    }
+}
+";
+            var comp1 = CreateCompilation(source);
+            comp1.VerifyDiagnostics(
+                    // (7,13): warning CS8602: Dereference of a possibly null reference.
+                    //         _ = s.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13));
+
+            var id = MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullReferenceReceiver);
+            var comp2 = CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(id, ReportDiagnostic.Suppress));
+            comp2.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(31740, "https://github.com/dotnet/roslyn/issues/31740")]
         public void Attribute_ArrayWithDifferentNullability()
         {
