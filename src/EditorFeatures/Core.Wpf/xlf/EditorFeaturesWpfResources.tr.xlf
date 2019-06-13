@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Regex_Quantifier">
         <source>Regex - Quantifier</source>
-        <target state="translated">Regex - nicelik belirteci</target>
+        <target state="translated">Regex - Niceleyici</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_SelfEscapedCharacter">

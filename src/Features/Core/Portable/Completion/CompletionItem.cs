@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
+        /// </summary>
+        internal string AutomationText { get; set; }
+
+        /// <summary>
         /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
         /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
         /// other data correspodning to this item.
@@ -252,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
+                AutomationText = AutomationText,
                 ProviderName = ProviderName
             };
         }

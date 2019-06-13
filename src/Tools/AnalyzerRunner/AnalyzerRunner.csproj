@@ -18,6 +18,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="SourceBrowser" Version="$(SourceBrowserVersion)" ExcludeAssets="build;compile" PrivateAssets="all" />
+    <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
   </ItemGroup>
 
   <ItemGroup Label="Project References">
