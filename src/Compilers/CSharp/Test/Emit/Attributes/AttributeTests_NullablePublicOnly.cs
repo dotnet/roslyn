@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_NullableMembers : CSharpTestBase
+    public class AttributeTests_NullablePublicOnly : CSharpTestBase
     {
     }
 }

@@ -51,23 +51,12 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NullableMembersAttributeDefinition = @"
+        protected const string NullablePublicOnlyAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    public enum NullableMembers
-    {
-        Public = 0,   // public and protected only
-        Internal = 1, // public, protected, internal
-        All = 2,
-    }
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
-    public sealed class NullableMembersAttribute : Attribute
+    public sealed class NullablePublicOnlyAttribute : Attribute
     {
-        public readonly NullableMembers Members;
-        public NullableMembersAttribute(NullableMembers members)
-        {
-            Members = members;
-        }
     }
 }";
 

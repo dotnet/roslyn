@@ -109,6 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private EntryPoint _lazyEntryPoint;
 
         /// <summary>
+        /// Emit nullable attributes for only those members that are visible outside the assembly
+        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
+        /// If false, attributes are emitted for all members regardless of visibility.
+        /// </summary>
+        private ThreeState _lazyEmitNullablePublicOnly;
+
+        /// <summary>
         /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
         private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
@@ -3281,7 +3288,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!Options.EmitPublicNullableMetadataOnly)
+            if (!_lazyEmitNullablePublicOnly.HasValue())
+            {
+                bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                _lazyEmitNullablePublicOnly = value.ToThreeState();
+            }
+
+            if (_lazyEmitNullablePublicOnly != ThreeState.True)
             {
                 return true;
             }

@@ -76,7 +76,6 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(
         AttributeTargets.Module |
         AttributeTargets.Class |
-        AttributeTargets.Delegate |
         AttributeTargets.Interface |
         AttributeTargets.Method |
         AttributeTargets.Struct,
@@ -138,45 +137,31 @@ class Program
 }
 ```
 
-## NullableMembersAttribute
+## Private members
 
-`NullableMembersAttribute` can be used to indicate whether nullable attributes were included for `private` or `internal` members.
+To reduce the size of metadata, the C#8 compiler can be configured to not emit attributes
+for members that are inaccessible outside the assembly (`private` members, and also `internal` members
+if the assembly contains any `InternalsVisibleToAttribute` attributes).
+
+The compiler behavior is configured from a command-line flag.
+For now a feature flag is used: `-feature:nullablePublicOnly`.
+
+If private member attributes are dropped, the compiler will emit a `[module: NullablePublicOnly]` attribute.
+The presence or absence of the `NullablePublicOnlyAttribute` can be used by tools to interpret
+the nullability of private members that do not have an associated `NullableAttribute` attribute.
 
 ```C#
 namespace System.Runtime.CompilerServices
 {
-    public enum NullableMembers
-    {
-        Public = 0,   // public and protected only
-        Internal = 1, // public, protected, internal
-        All = 2,
-    }
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
-    public sealed class NullableMembersAttribute : Attribute
+    public sealed class NullablePublicOnlyAttribute : Attribute
     {
-        public readonly NullableMembers Members;
-        public NullableMembersAttribute(NullableMembers members)
-        {
-            Members = members;
-        }
     }
 }
 ```
 
-The `NullableMembersAttribute` type is for compiler use only - it is not permitted in source.
+The `NullablePublicOnlyAttribute` type is for compiler use only - it is not permitted in source.
 The type declaration is synthesized by the compiler if not already included in the compilation.
-
-The `NullableMembersAttribute` must be emitted if nullable attributes are dropped for
-`private` or `internal` members to allow tools to correctly interpret the nullability of members
-without explicit `NullableAttribute` attributes.
-
-To reduce the size of metadata, the C#8 compiler will not emit attributes for `private` members,
-and the compiler will only emit attributes for `internal` members if the assembly contains
-`InternalsVisibleToAttribute` attributes.
-The compiler will emit a `[module: NullableMembers(...)]` attribute to indicate which members were included.
-
-_If necessary, a compiler option could be added in a future release to override the default behavior and
-explicitly emit or drop nullable attributes for `private` or `internal` members._
 
 ## Compatibility
 

@@ -38,13 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public NullableContextOptions NullableContextOptions { get; private set; }
 
-        /// <summary>
-        /// Emit nullable attributes for only those members that are visible outside the assembly
-        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
-        /// If false, attributes are emitted for all members regardless of visibility.
-        /// </summary>
-        internal bool EmitPublicNullableMetadataOnly { get; private set; }
-
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
         public CSharpCompilationOptions(
@@ -91,8 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: nullableContextOptions,
-                   emitPublicNullableMetadataOnly: false)
+                   nullableContextOptions: nullableContextOptions)
         {
         }
 
@@ -215,8 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            NullableContextOptions nullableContextOptions,
-            bool emitPublicNullableMetadataOnly)
+            NullableContextOptions nullableContextOptions)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
@@ -228,7 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
-            this.EmitPublicNullableMetadataOnly = emitPublicNullableMetadataOnly;
         }
 
         private CSharpCompilationOptions(CSharpCompilationOptions other) : this(
@@ -262,8 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
             publicSign: other.PublicSign,
             topLevelBinderFlags: other.TopLevelBinderFlags,
-            nullableContextOptions: other.NullableContextOptions,
-            emitPublicNullableMetadataOnly: other.EmitPublicNullableMetadataOnly)
+            nullableContextOptions: other.NullableContextOptions)
         {
         }
 
@@ -409,16 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { NullableContextOptions = options };
-        }
-
-        internal CSharpCompilationOptions WithEmitPublicNullableMetadataOnly(bool emitPublicNullableMetadataOnly)
-        {
-            if (emitPublicNullableMetadataOnly == this.EmitPublicNullableMetadataOnly)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { EmitPublicNullableMetadataOnly = emitPublicNullableMetadataOnly };
         }
 
         public CSharpCompilationOptions WithAllowUnsafe(bool enabled)
@@ -740,8 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AllowUnsafe == other.AllowUnsafe &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
-                   this.NullableContextOptions == other.NullableContextOptions &&
-                   this.EmitPublicNullableMetadataOnly == other.EmitPublicNullableMetadataOnly);
+                   this.NullableContextOptions == other.NullableContextOptions);
         }
 
         public override bool Equals(object obj)
@@ -754,8 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(),
-                   Hash.Combine(NullableContextOptions.GetHashCode(), EmitPublicNullableMetadataOnly.GetHashCode())))));
+                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), NullableContextOptions.GetHashCode()))));
         }
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
@@ -927,8 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   nullableContextOptions: NullableContextOptions.Disable,
-                   emitPublicNullableMetadataOnly: false)
+                   nullableContextOptions: NullableContextOptions.Disable)
         {
         }
     }
