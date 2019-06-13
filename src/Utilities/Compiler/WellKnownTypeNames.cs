@@ -230,7 +230,10 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
         public const string SystemRuntimeSerializationDataMemberAttribute = "System.Runtime.Serialization.DataMemberAttribute";
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";
+        public const string SystemComponentModelCompositionInheritedExportAttribute = "System.ComponentModel.Composition.InheritedExportAttribute";
+        public const string SystemComponentModelCompositionImportingConstructorAttribute = "System.ComponentModel.Composition.ImportingConstructorAttribute";
         public const string SystemCompositionExportAttribute = "System.Composition.ExportAttribute";
+        public const string SystemCompositionImportingConstructorAttribute = "System.Composition.ImportingConstructorAttribute";
         public const string SystemDiagnosticsContractsPureAttribute = "System.Diagnostics.Contracts.PureAttribute";
         public const string SystemComponentModelLocalizableAttribute = "System.ComponentModel.LocalizableAttribute";
         public const string SystemRuntimeSerializationOnSerializingAttribute = "System.Runtime.Serialization.OnSerializingAttribute";
@@ -300,6 +303,9 @@ namespace Analyzer.Utilities
         public const string SystemNullable1 = "System.Nullable`1";
         public const string MicrosoftWindowsAzureStorageSharedAccessProtocol = "Microsoft.WindowsAzure.Storage.SharedAccessProtocol";
         public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
+        public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
+        public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
+        public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
         public const string SystemSecurityCryptographyX509CertificatesStoreName = "System.Security.Cryptography.X509Certificates.StoreName";
         public const string SystemSecurityCryptographyRSA = "System.Security.Cryptography.RSA";

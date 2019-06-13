@@ -34,8 +34,8 @@ namespace Analyzer.Utilities
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
 
         /// <summary>
-        /// Integral option to configure sufficient IterationCount when using Weak KDF algorithm for CA5387.
+        /// Integral option to configure sufficient IterationCount when using weak KDF algorithm.
         /// </summary>
-        public const string SufficientIterationCountForWeakKDFAlgorithm = "100000";
+        public const string SufficientIterationCountForWeakKDFAlgorithm = "sufficient_IterationCount_for_weak_KDF_algorithm";
     }
 }
