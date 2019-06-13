@@ -57,8 +57,33 @@ jobs:
           /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
           /p:PublishUsingPipelines=${{ parameters.publishUsingPipelines }}
           /p:Configuration=$(_BuildConfig)
+          /v:detailed
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
+    - task: powershell@2
+      displayName: Create BARBuildId Artifact
+      inputs:
+        targetType: inline
+        script: |
+          Add-Content -Path  "$(Build.StagingDirectory)/BARBuildId.txt" -Value $(BARBuildId)
+    - task: powershell@2
+      displayName: Create Channels Artifact
+      inputs:
+        targetType: inline
+        script: |
+          Add-Content -Path  "$(Build.StagingDirectory)/Channels.txt" -Value "$(DefaultChannels)"
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BAR BuildId to VSTS
+      inputs:
+        PathtoPublish: '$(Build.StagingDirectory)/BARBuildId.txt'
+        PublishLocation: Container
+        ArtifactName: ReleaseConfigs
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Channels to VSTS
+      inputs:
+        PathtoPublish: '$(Build.StagingDirectory)/Channels.txt'
+        PublishLocation: Container
+        ArtifactName: ReleaseConfigs
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
       - task: PublishBuildArtifacts@1
         displayName: Publish Logs to VSTS

@@ -349,7 +349,7 @@ function InitializeToolset {
   fi
 
   if [[ "$restore" != true ]]; then
-    EmitError "Toolset version $toolsetVersion has not been restored."
+    EmitError "Toolset version $toolset_version has not been restored."
     ExitWithExitCode 2
   fi
 

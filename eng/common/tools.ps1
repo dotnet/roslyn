@@ -138,7 +138,8 @@ function Write-PipelineSetVariable {
     if($ci) {
       Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
         'variable' = $Name
-        'issecret' = $Secret
+        'isSecret' = $Secret
+        'isOutput' = 'true'
       } -AsOutput:$AsOutput
     }
 }
@@ -377,7 +378,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   }
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
-  $args = @("-latest", "-prerelease", "-format", "json", "-requires", "Microsoft.Component.MSBuild")
+  $args = @("-latest", "-prerelease", "-format", "json", "-requires", "Microsoft.Component.MSBuild", "-products", "*")
 
   if (Get-Member -InputObject $vsRequirements -Name "version") {
     $args += "-version"
