@@ -2,12 +2,14 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
     public class FormattingRangeHelperTests
     {
+        [WorkItem(33560, "https://github.com/dotnet/roslyn/issues/33560")]
         [Fact]
         public void TestAreTwoTokensOnSameLineTrue()
         {
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
         }
 
+        [WorkItem(33560, "https://github.com/dotnet/roslyn/issues/33560")]
         [Fact]
         public void TestAreTwoTokensOnSameLineFalse()
         {
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             Assert.False(FormattingRangeHelper.AreTwoTokensOnSameLine(token1, token2));
         }
 
+        [WorkItem(33560, "https://github.com/dotnet/roslyn/issues/33560")]
         [Fact]
         public void TestAreTwoTokensOnSameLineWithEqualTokens()
         {
@@ -36,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             Assert.True(FormattingRangeHelper.AreTwoTokensOnSameLine(token, token));
         }
 
+        [WorkItem(33560, "https://github.com/dotnet/roslyn/issues/33560")]
         [Fact]
         public void TestAreTwoTokensOnSameLineWithEqualTokensWithoutSyntaxTree()
         {
