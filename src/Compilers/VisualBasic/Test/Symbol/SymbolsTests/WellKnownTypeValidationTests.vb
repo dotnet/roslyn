@@ -575,6 +575,7 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_NullableMembersAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Index,
