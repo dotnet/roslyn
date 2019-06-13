@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Set to true if the corresponding provider can provide extended items with currect context,
-        /// regardless of whether those items are actually added. i.e. they might not be shown by default,
-        /// but we still want to show the expander to explicitly add them to completion list if we are in 
-        /// the aproperiate context.
+        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
+        /// but we still want to show the expander so user can explicitly request them to be added to 
+        /// completion list if we are in the aproperiate context.
         /// </summary>
-        internal bool CanProvideExtendedItems { get; set; }
+        internal bool ExpandItemsAvailable { get; set; }
 
         /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.

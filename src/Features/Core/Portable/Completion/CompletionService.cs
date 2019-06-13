@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options = null,
             CancellationToken cancellationToken = default);
 
-        internal virtual async Task<(CompletionList completionList, bool canProvideExtendedItems)> GetCompletionsInternalAsync(
+        internal virtual async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
              Document document,
              int caretPosition,
              CompletionTrigger trigger = default,

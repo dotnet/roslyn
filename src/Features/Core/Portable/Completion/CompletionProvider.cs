@@ -68,6 +68,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// True if the provider produces items show be shown in expanded list only.
         /// </summary>
-        internal virtual bool IsExtendedItemProvider => false;
+        internal virtual bool IsExpandItemProvider => false;
     }
 }

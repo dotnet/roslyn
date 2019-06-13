@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken);
 
-        internal override bool IsExtendedItemProvider => true;
+        internal override bool IsExpandItemProvider => true;
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            completionContext.CanProvideExtendedItems = true;
+            completionContext.ExpandItemsAvailable = true;
 
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via extended filter in completion list)
             if (!completionContext.Options.GetOption(CompletionServiceOptions.IncludeExpandedItemsOnly))
