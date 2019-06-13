@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
-            var runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
+            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // It's also theoretically possible that we are getting notified about a workspace change to a document that has
             // been simultaneously removed from the RDT but we haven't gotten the notification. In that case, also bail.
-            if (!_runningDocumentTableEventTracker.IsMonikerValid(moniker))
+            if (!_runningDocumentTableEventTracker.IsFileOpen(moniker))
             {
                 return;
             }

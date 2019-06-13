@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IRunningDocumentTableEventListener _listener;
         private uint _runningDocumentTableEventsCookie;
 
-        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable4 runningDocumentTable,
+        public RunningDocumentTableEventTracker(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IVsRunningDocumentTable runningDocumentTable,
             IRunningDocumentTableEventListener listener)
         {
             Contract.ThrowIfNull(threadingContext);
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Advise / Unadvise for the RDT is free threaded past 16.0
             _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
-            _runningDocumentTable = runningDocumentTable;
+            _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _listener = listener;
 
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization.AssertIsForeground();
                 if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetBuffer(docCookie, out var buffer))
                 {
-                    _listener.OnRenameDocument(pszMkDocumentNew, pszMkDocumentOld, buffer);
+                    _listener.OnRenameDocument(newMoniker: pszMkDocumentNew, oldMoniker: pszMkDocumentOld, textBuffer: buffer);
                 }
             }
 
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return VSConstants.E_NOTIMPL;
         }
 
-        public bool IsMonikerValid(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
+        public bool IsFileOpen(string fileName) => _runningDocumentTable.IsMonikerValid(fileName);
 
         /// <summary>
         /// Attempts to get a text buffer from the specified moniker.
@@ -135,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _foregroundAffinitization.AssertIsForeground();
 
             textBuffer = null;
-            if (!IsMonikerValid(moniker))
+            if (!IsFileOpen(moniker))
             {
                 return false;
             }
@@ -150,42 +151,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// Applies an action to all initialized files in the RDT.
+        /// Enumerates the running document table to retrieve all initialized files.
         /// </summary>
-        /// <param name="enumerateAction">the action to apply.</param>
-        public void EnumerateDocumentSet(Action<string, ITextBuffer, IVsHierarchy> enumerateAction)
+        public IEnumerable<(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)> EnumerateDocumentSet()
         {
             _foregroundAffinitization.AssertIsForeground();
+
+            var documents = ArrayBuilder<(string, ITextBuffer, IVsHierarchy)>.GetInstance();
             foreach (var cookie in GetInitializedRunningDocumentTableCookies())
             {
                 if (TryGetMoniker(cookie, out var moniker) && TryGetBuffer(cookie, out var buffer))
                 {
                     _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
-                    enumerateAction(moniker, buffer, hierarchy);
+                    documents.Add((moniker, buffer, hierarchy));
                 }
             }
-        }
 
-        /// <summary>
-        /// Applies an action to all initialized files in the input set.
-        /// </summary>
-        /// <param name="enumerateAction">the action to apply.</param>
-        /// <param name="fileSet">the file set to apply the action to.</param>
-        public void EnumerateSpecifiedDocumentSet(Action<string, ITextBuffer, IVsHierarchy> enumerateAction, IEnumerable<string> fileSet)
-        {
-            _foregroundAffinitization.AssertIsForeground();
-            foreach (var filename in fileSet)
-            {
-                if (_runningDocumentTable.IsMonikerValid(filename))
-                {
-                    var cookie = _runningDocumentTable.GetDocumentCookie(filename);
-                    if (_runningDocumentTable.IsDocumentInitialized(cookie) && TryGetMoniker(cookie, out var moniker) && TryGetBuffer(cookie, out var buffer))
-                    {
-                        _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
-                        enumerateAction(moniker, buffer, hierarchy);
-                    }
-                }
-            }
+            return documents.ToArray();
         }
 
         private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
@@ -222,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             textBuffer = null;
 
             // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method.
+            // which saves us JIT time in this method and an assembly load.
             if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer bufferAdapter)
             {
                 textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);

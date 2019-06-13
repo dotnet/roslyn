@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 => RefreshContextForMoniker(moniker, hierarchy);
 
             /// <summary>
-            /// The VS open file tracker handles renames through <see cref="QueueCheckForFilesBeingOpen"/>
+            /// When a file is renamed, the old document is removed and a new document is added by the workspace.
             /// </summary>
             void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
-                var runningDocumentTable = (IVsRunningDocumentTable4)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+                var runningDocumentTable = (IVsRunningDocumentTable)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
@@ -408,11 +408,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (justEnumerateTheEntireRunningDocumentTable)
                 {
-                    _runningDocumentTableEventTracker.EnumerateDocumentSet(TryOpeningDocumentsForMoniker);
+                    var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
+                    foreach (var (moniker, textBuffer, hierarchy) in documents)
+                    {
+                        TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
+                    }
                 }
                 else if (fileNamesToCheckForOpenDocuments != null)
                 {
-                    _runningDocumentTableEventTracker.EnumerateSpecifiedDocumentSet(TryOpeningDocumentsForMoniker, fileNamesToCheckForOpenDocuments);
+                    var documentsForFileNames = _runningDocumentTableEventTracker.EnumerateDocumentSet().Where(d => fileNamesToCheckForOpenDocuments.Contains(d.moniker));
+                    foreach (var (moniker, textBuffer, hierarchy) in documentsForFileNames)
+                    {
+                        TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
+                    }
                 }
             }
 
