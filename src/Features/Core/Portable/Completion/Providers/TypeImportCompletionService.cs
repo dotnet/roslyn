@@ -212,14 +212,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cache[key] = cacheEntry;
                 }
 
-                foreach (var item in cacheEntry.CommonItems)
+                if (!syntaxContext.IsAttributeNameContext)
                 {
-                    handleItem(item);
-                }
+                    foreach (var item in cacheEntry.CommonItems)
+                    {
+                        handleItem(item);
+                    }
 
-                foreach (var item in cacheEntry.GetGenericItems(isCSharp))
-                {
-                    handleItem(item);
+                    foreach (var item in cacheEntry.GetGenericItems(isCSharp))
+                    {
+                        handleItem(item);
+                    }
                 }
 
                 foreach (var item in cacheEntry.GetAttributeItems(isCSharp, syntaxContext.IsAttributeNameContext))
@@ -375,6 +378,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     ArrayBuilder<TypeImportCompletionItemInfo> correspondingBuilder;
 
+                    // Attribute type can't be generic
                     if (symbol.Arity > 0)
                     {
                         correspondingBuilder = _genericItemsBuilder;

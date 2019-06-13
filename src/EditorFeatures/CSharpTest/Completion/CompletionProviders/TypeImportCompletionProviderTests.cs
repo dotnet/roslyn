@@ -915,6 +915,7 @@ namespace Baz
 namespace Foo
 {
     public class MyAttribute : System.Attribute { }
+    public class MyClass { }
 }";
 
             var file2 = @"
@@ -927,6 +928,7 @@ namespace Test
 
             await VerifyTypeImportItemExistsAsync(markup, "My", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
             await VerifyTypeImportItemIsAbsentAsync(markup, "MyAttribute", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "MyClass", inlineDescription: "Foo");
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -969,6 +971,7 @@ namespace Test
 namespace Foo
 {
     public class MyAttribute : System.Attribute { }
+    public class MyClass { }
 }";
 
             var file2 = @"
@@ -983,6 +986,7 @@ namespace Test
 
             await VerifyTypeImportItemExistsAsync(markup, "MyAttribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyAttribute");
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass");
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -1028,6 +1032,7 @@ namespace Test
 namespace Foo
 {
     public class Myattribute : System.Attribute { }
+    public class MyClass { }
 }";
 
             var file2 = @"
@@ -1040,6 +1045,7 @@ namespace Test
 
             await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "MyClass", inlineDescription: "Foo");
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -1082,6 +1088,7 @@ namespace Test
 namespace Foo
 {
     public class Myattribute : System.Attribute { }
+    public class MyClass { }
 }";
 
             var file2 = @"
@@ -1096,6 +1103,7 @@ namespace Test
 
             await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.MyClass");
         }
 
         [InlineData(SourceCodeKind.Regular)]
@@ -1142,6 +1150,8 @@ Namespace Foo
     Public Class Myattribute
         Inherits System.Attribute
     End Class
+    Public Class MyVBClass
+    End Class
 End Namespace";
 
             var file2 = @"
@@ -1157,6 +1167,7 @@ namespace Test
 
             await VerifyTypeImportItemExistsAsync(markup, "Myattribute", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo", expectedDescriptionOrNull: "class Foo.Myattribute");
             await VerifyTypeImportItemIsAbsentAsync(markup, "My", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "MyVBClass", inlineDescription: "Foo");
         }
 
 

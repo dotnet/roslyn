@@ -41,6 +41,8 @@ Namespace Foo
     Public Class MyAttribute
         Inherits System.Attribute
     End Class
+    Public Class MyVBClass
+    End Class
 End Namespace</Text>.Value
 
             Dim file2 = <Text><![CDATA[
@@ -54,6 +56,33 @@ End Class]]></Text>.Value
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
             Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Foo")
+            Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(35540, "https://github.com/dotnet/roslyn/issues/35540")>
+        Public Async Function AttributeTypeInNonAttributeNameContext() As Task
+
+            Dim file1 = <Text>
+Namespace Foo
+    Public Class MyAttribute
+        Inherits System.Attribute
+    End Class
+    Public Class MyVBClass
+    End Class
+End Namespace</Text>.Value
+
+            Dim file2 = <Text><![CDATA[
+Public Class Bar
+    Sub Main()
+        Dim x As $$
+    End Sub
+End Class]]></Text>.Value
+
+            Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
+            Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute")
+            Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyVBClass")
+            Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
