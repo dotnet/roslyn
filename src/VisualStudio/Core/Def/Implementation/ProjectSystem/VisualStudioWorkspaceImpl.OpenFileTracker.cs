@@ -416,10 +416,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else if (fileNamesToCheckForOpenDocuments != null)
                 {
-                    var documentsForFileNames = _runningDocumentTableEventTracker.EnumerateDocumentSet().Where(d => fileNamesToCheckForOpenDocuments.Contains(d.moniker));
-                    foreach (var (moniker, textBuffer, hierarchy) in documentsForFileNames)
+                    foreach (var fileName in fileNamesToCheckForOpenDocuments)
                     {
-                        TryOpeningDocumentsForMoniker(moniker, textBuffer, hierarchy);
+                        if (_runningDocumentTableEventTracker.IsFileOpen(fileName) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(fileName, out var buffer))
+                        {
+                            var hierarchy = _runningDocumentTableEventTracker.GetDocumentHierarchy(fileName);
+                            TryOpeningDocumentsForMoniker(fileName, buffer, hierarchy);
+                        }
                     }
                 }
             }

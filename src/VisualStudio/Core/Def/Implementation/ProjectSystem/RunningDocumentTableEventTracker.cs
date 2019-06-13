@@ -150,6 +150,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return TryGetBuffer(cookie, out textBuffer);
         }
 
+        public IVsHierarchy GetDocumentHierarchy(string moniker)
+        {
+            var cookie = _runningDocumentTable.GetDocumentCookie(moniker);
+            _runningDocumentTable.GetDocumentHierarchyItem(cookie, out var hierarchy, out _);
+            return hierarchy;
+        }
+
         /// <summary>
         /// Enumerates the running document table to retrieve all initialized files.
         /// </summary>
