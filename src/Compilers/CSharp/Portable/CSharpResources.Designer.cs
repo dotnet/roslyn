@@ -11492,6 +11492,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to notnull generic type constraint.
+        /// </summary>
+        internal static string IDS_FeatureNotNullGenericTypeConstraint {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNotNullGenericTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to nullable types.
         /// </summary>
         internal static string IDS_FeatureNullable {
@@ -11515,15 +11524,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureNullPropagatingOperator {
             get {
                 return ResourceManager.GetString("IDS_FeatureNullPropagatingOperator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to object generic type constraint.
-        /// </summary>
-        internal static string IDS_FeatureObjectGenericTypeConstraint {
-            get {
-                return ResourceManager.GetString("IDS_FeatureObjectGenericTypeConstraint", resourceCulture);
             }
         }
         
@@ -11974,15 +11974,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Namespace1 {
             get {
                 return ResourceManager.GetString("IDS_Namespace1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to notnull generic type constraint.
-        /// </summary>
-        internal static string IDS_NotNullGenericTypeConstraint {
-            get {
-                return ResourceManager.GetString("IDS_NotNullGenericTypeConstraint", resourceCulture);
             }
         }
         
@@ -16068,24 +16059,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constraint cannot be special class &apos;{0}&apos;.
-        /// </summary>
-        internal static string WRN_SpecialTypeAsBound {
-            get {
-                return ResourceManager.GetString("WRN_SpecialTypeAsBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Constraint cannot be special class.
-        /// </summary>
-        internal static string WRN_SpecialTypeAsBound_Title {
-            get {
-                return ResourceManager.GetString("WRN_SpecialTypeAsBound_Title", resourceCulture);
             }
         }
         

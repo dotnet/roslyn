@@ -1722,7 +1722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractEventHasAccessors = 8712,
         ERR_NotNullConstraintMustBeFirst = 8713,
         WRN_NullabilityMismatchInTypeParameterNotNullConstraint = 8714,
-        WRN_SpecialTypeAsBound = 8715,
 
         ERR_NeedSpaceBetweenExclamationAndEquals = 8716,
         ERR_MustNullCheckInImplementation = 8717,
