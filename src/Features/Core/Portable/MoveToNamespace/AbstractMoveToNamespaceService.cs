@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.LanguageServices;
-using System.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
-            OptionsService = moveToNamespaceOptionsService ?? throw new ArgumentNullException(nameof(moveToNamespaceOptionsService));
+            OptionsService = moveToNamespaceOptionsService;
         }
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
@@ -48,11 +47,16 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             TextSpan span,
             CancellationToken cancellationToken)
         {
-            var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
-
-            if (typeAnalysisResult.CanPerform)
+            // Code actions cannot be completed without the options needed
+            // to fill in missing information.
+            if (OptionsService != null)
             {
-                return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult));
+                var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
+
+                if (typeAnalysisResult.CanPerform)
+                {
+                    return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult));
+                }
             }
 
             return ImmutableArray<AbstractMoveToNamespaceCodeAction>.Empty;

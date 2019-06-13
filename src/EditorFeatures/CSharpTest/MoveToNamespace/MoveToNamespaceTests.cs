@@ -1104,9 +1104,14 @@ class MyClass
             using (var workspace = CreateWorkspaceFromFile(code, new TestParameters(), exportProviderWithoutOptionsService))
             using (var testState = new TestState(workspace))
             {
-                // If the required options service isn't available, the
-                // move to namespace service shouldn't show up either
-                Assert.Null(testState.MoveToNamespaceService);
+                Assert.Null(testState.TestMoveToNamespaceOptionsService);
+
+                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                    testState.InvocationDocument,
+                    testState.TestInvocationDocument.SelectedSpans.Single(),
+                    CancellationToken.None);
+
+                Assert.Empty(actions);
             }
         }
     }
