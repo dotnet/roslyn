@@ -12,6 +12,6 @@ commands:
   - .yamato/set_exe_bit_osx.sh
 
 artifacts: 
-  build-osx.zip:
+  build-osx:
     paths:
       - Artifacts/Builds/Binaries/Mac/**
