@@ -170,7 +170,7 @@ The `NullableMembersAttribute` must be emitted if nullable attributes are droppe
 `private` or `internal` members to allow tools to correctly interpret the nullability of members
 without explicit `NullableAttribute` attributes.
 
-To reduce the size of metadata, the C#8 compiler will not emit attributes `private` members,
+To reduce the size of metadata, the C#8 compiler will not emit attributes for `private` members,
 and the compiler will only emit attributes for `internal` members if the assembly contains
 `InternalsVisibleToAttribute` attributes.
 The compiler will emit a `[module: NullableMembers(...)]` attribute to indicate which members were included.
