@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                 End Get
             End Property
 
-            Protected Overrides Function TryConvert(source As ExpressionSyntax) As QueryExpressionSyntax
+            Protected Overrides Function TryConvert(source As ExpressionSyntax, ByRef destination As QueryExpressionSyntax) As Boolean
                 Throw New NotImplementedException()
             End Function
 

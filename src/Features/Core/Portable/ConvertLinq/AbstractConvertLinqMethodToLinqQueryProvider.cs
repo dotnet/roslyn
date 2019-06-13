@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             where TSource : SyntaxNode
             where TDestination : SyntaxNode
         {
-            public Analyzer(SemanticModel semanticModel, CancellationToken cancellationToken) : base(semanticModel, cancellationToken) { }
-
+            public Analyzer(SemanticModel semanticModel, CancellationToken cancellationToken) 
+                : base(semanticModel, cancellationToken) { }
         }
     }
 }

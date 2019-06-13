@@ -5,8 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
@@ -15,13 +13,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return;
-            }
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
             await CreateAnalyzer(semanticModel, context.CancellationToken)
                 .ComputeRefactoringsAsync(context).ConfigureAwait(false);
@@ -64,22 +56,15 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                     return;
                 }
 
-                var destinationNode = TryConvert(sourceNode);
-                if (destinationNode == null)
+                if (TryConvert(sourceNode, out var destinationNode) &&
+                    Validate(sourceNode, destinationNode))
                 {
-                    return;
+                    context.RegisterRefactoring(new MyCodeAction(Title, c =>
+                        UpdateDocumentAsync(root, document, sourceNode, destinationNode)));
                 }
-
-                if (!Validate(sourceNode, destinationNode))
-                {
-                    return;
-                }
-
-                context.RegisterRefactoring(new MyCodeAction(Title, c =>
-                    UpdateDocumentAsync(root, document, sourceNode, destinationNode)));
             }
 
-            protected abstract TDestination TryConvert(TSource source);
+            protected abstract bool TryConvert(TSource source, out TDestination destination);
 
             protected virtual TSource FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context) =>
                 root.FindNode(context.Span).FirstAncestorOrSelf<TSource>();

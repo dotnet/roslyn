@@ -32,17 +32,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
                 End Get
             End Property
 
-            Protected Overrides Function TryConvert(source As QueryExpressionSyntax) As ExpressionSyntax
+            Protected Overrides Function TryConvert(source As QueryExpressionSyntax, ByRef destination As ExpressionSyntax) As Boolean
                 Dim expression As ExpressionSyntax = Nothing
                 Dim symbolInfo As SymbolInfo = _semanticModel.GetSymbolInfo(source, _cancellationToken)
                 For Each clause In source.Clauses
                     expression = ProcessQueryClause(expression, clause)
                     If expression Is Nothing Then
-                        Return Nothing
+                        destination = Nothing
+                        Return False
                     End If
                 Next
 
-                Return expression.WithTrailingTrivia(source.GetTrailingTrivia())
+                destination = expression.WithTrailingTrivia(source.GetTrailingTrivia())
+                Return True
             End Function
 
             Private Function ProcessQueryClause(expression As ExpressionSyntax, queryClause As QueryClauseSyntax) As ExpressionSyntax

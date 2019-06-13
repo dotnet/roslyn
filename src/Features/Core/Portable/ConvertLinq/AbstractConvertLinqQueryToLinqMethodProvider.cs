@@ -27,22 +27,32 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                         switch (argument.Value.Kind)
                         {
                             case OperationKind.DelegateCreation:
-                                return (IAnonymousFunctionOperation)((IDelegateCreationOperation)argument.Value).Target;
+                                return GetAnonymousFunctionOperationOpt(argument.Value);
                             case OperationKind.Conversion:
-                                return (IAnonymousFunctionOperation)((IDelegateCreationOperation)((IConversionOperation)argument.Value).Operand).Target;
+                                return GetAnonymousFunctionOperationOpt(((IConversionOperation)argument.Value).Operand);
                             default:
-                                throw new ArgumentException(argument.Value.Kind.ToString());
+                                return null;
                         }
                     }
-                    
-                    return ImmutableArray
-                        .CreateRange(operation.Arguments.Where(a => a.Value.Kind == OperationKind.DelegateCreation || a.Value.Kind == OperationKind.Conversion)
-                        .Select(argument => GetAnonymousFunctionOperation(argument)));
+
+                    return operation.Arguments
+                        .SelectAsArray(argument => GetAnonymousFunctionOperation(argument))
+                        .WhereAsArray(operation => operation != null);
                 }
                 else
                 {
-                    return ImmutableArray.Create<IAnonymousFunctionOperation>();
+                    return ImmutableArray<IAnonymousFunctionOperation>.Empty;
                 }
+            }
+
+            private static IAnonymousFunctionOperation GetAnonymousFunctionOperationOpt(IOperation operation)
+            {
+                if (operation is IDelegateCreationOperation delegateCreationOperation)
+                {
+                    return delegateCreationOperation.Target as IAnonymousFunctionOperation;
+                }
+
+                return null;
             }
 
             protected IAnonymousFunctionOperation FindParentAnonymousFunction(SyntaxNode node)
@@ -76,9 +86,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             }
 
             protected IOperation GetOperation(SyntaxNode node)
-            {
-                return _semanticModel.GetOperation(node, _cancellationToken);
-            }
+                => _semanticModel.GetOperation(node, _cancellationToken);
 
             protected ImmutableArray<string> GetIdentifierNames(SyntaxNode node)
             {

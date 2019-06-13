@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return (ExpressionSyntax)root.FindNode(context.Span).FirstAncestorOrSelf<MemberAccessExpressionSyntax>(m => methodNames.Contains(((IdentifierNameSyntax)m.Name).Identifier.ValueText)).Parent;
             }
 
-            protected override QueryExpressionSyntax TryConvert(ExpressionSyntax source)
+            protected override bool TryConvert(ExpressionSyntax source, out QueryExpressionSyntax destination)
             {
                 throw new NotImplementedException();
             }
