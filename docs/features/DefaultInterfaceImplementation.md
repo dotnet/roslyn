@@ -60,7 +60,7 @@ class Test1 : I2 // This type must implement all members of I1
 {
 }
 ```
-In metadata, methods representing re-abstraction have all three flags `abstarct`, `virtual`, `sealed` set and do not have `newslot` flag set.
+In metadata, methods representing re-abstraction have all three flags `abstract`, `virtual`, `sealed` set and do not have `newslot` flag set.
 
 
 - Supplying an implementation along with declaration of a property or an indexer and recognizing that implementation as default implementation for them when a type implements the interface. 
