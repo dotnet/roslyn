@@ -483,18 +483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
-                    {
-                        // "Constraint cannot be special class '{0}'"
-                        Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);
-                        return false;
-                    }
-
-                    // "Constraint cannot be special class '{0}'"
-                    Error(diagnostics, ErrorCode.WRN_SpecialTypeAsBound, syntax, typeWithAnnotations);
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureObjectGenericTypeConstraint, diagnostics);
-                    break;
-
                 case SpecialType.System_ValueType:
                 case SpecialType.System_Array:
                     // "Constraint cannot be special class '{0}'"
