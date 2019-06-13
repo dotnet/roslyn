@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this) &&
+            if (compilation?.ShouldEmitNullableAttributes(this) == true &&
                 returnType.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);

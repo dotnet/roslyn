@@ -124,7 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
-            Debug.Assert(compilation != null);
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
             foreach (var parameter in parameters)
             {
                 if (parameter.RefKind == RefKind.In)
@@ -136,7 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
         {
-            Debug.Assert(compilation != null);
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
             foreach (var parameter in parameters)
             {
                 if (compilation.ShouldEmitNullableAttributes(container) && parameter.TypeWithAnnotations.NeedsNullableAttribute())
