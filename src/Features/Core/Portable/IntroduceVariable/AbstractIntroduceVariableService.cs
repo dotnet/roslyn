@@ -389,6 +389,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return typeInfo.ConvertedType;
             }
 
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            var symbolMemberType = symbolInfo.Symbol?.GetMemberType();
+
+            if (symbolMemberType != null)
+            {
+                return symbolMemberType;
+            }
+
             if (typeInfo.Type != null)
             {
                 return typeInfo.Type;

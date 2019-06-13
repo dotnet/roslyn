@@ -347,6 +347,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return methodSymbol.ReturnType.WithNullability(methodSymbol.ReturnNullableAnnotation);
                 case IEventSymbol eventSymbol:
                     return eventSymbol.Type.WithNullability(eventSymbol.NullableAnnotation);
+                case ILocalSymbol localSymbol:
+                    return localSymbol.Type.WithNullability(localSymbol.NullableAnnotation);
             }
 
             return null;

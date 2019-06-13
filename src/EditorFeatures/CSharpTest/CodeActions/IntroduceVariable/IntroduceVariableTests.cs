@@ -3102,6 +3102,39 @@ class C
 ", options: ImplicitTypingEverywhere(), index: 1);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public Task TestIntroduceLocal_NullableType()
+        => TestInRegularAndScriptAsync(@"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = string.Empty;
+        M2([|s|]);
+    }
+
+    void M2(string? s)
+    {
+    }
+}", @"
+#nullable enable
+
+class C
+{
+    void M()
+    {
+        string? s = string.Empty;
+        string? s1 = s;
+        M2(s2);
+    }
+
+    void M2(string? s)
+    {
+    }
+}", parseOptions: TestOptions.Regular8WithNullableAnalysis);
+
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceVariableTextDoesntSpanLines1()
