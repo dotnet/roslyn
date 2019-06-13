@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.ConvertedType.WithNullability(typeInfo.Nullability.FlowState);
+                return typeInfo.ConvertedType.WithNullability(typeInfo.ConvertedNullability.FlowState);
             }
 
             if (objectAsDefault)
