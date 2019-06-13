@@ -50,9 +50,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
                 out var combinedNamingStyles);
 
             Assert.True(result, "Expected non-empty dictionary to return true");
-            var isNamingStylePreferencesObject = combinedNamingStyles is NamingStylePreferences;
-            Assert.True(isNamingStylePreferencesObject, $"Expected returned object to be of type '{nameof(NamingStylePreferences)}'");
-            Assert.Equal(ReportDiagnostic.Error, ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].EnforcementLevel);
+            var namingStylePreferences = Assert.IsAssignableFrom<NamingStylePreferences>(combinedNamingStyles);
+            Assert.Equal(ReportDiagnostic.Error, namingStylePreferences.Rules.NamingRules[0].EnforcementLevel);
         }
 
         [Theory]
@@ -68,6 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
+        [InlineData("a", "A", "A", "*", "*")]
+        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedByAccessibilityBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstAccessibility, string secondAccessibility)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
@@ -94,10 +95,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
 
             var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
             Assert.True(result, "Expected non-empty dictionary to return true");
-            var isNamingStylePreferencesObject = combinedNamingStyles is NamingStylePreferences;
-            Assert.True(isNamingStylePreferencesObject, $"Expected returned object to be of type '{nameof(NamingStylePreferences)}'");
-            Assert.Equal($"{firstNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].NamingStyle.Name);
-            Assert.Equal($"{secondNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[1].NamingStyle.Name);
+            var namingStylePreferences = Assert.IsAssignableFrom<NamingStylePreferences>(combinedNamingStyles);
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
         }
 
         [Theory]
@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "", "")]
         [InlineData("A", "B", "A", "", "")]
         [InlineData("B", "A", "A", "", "")]
+        [InlineData("a", "A", "A", "*", "*")]
+        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedByModifiersBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstModifiers, string secondModifiers)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
@@ -139,10 +141,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
 
             var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
             Assert.True(result, "Expected non-empty dictionary to return true");
-            var isNamingStylePreferencesObject = combinedNamingStyles is NamingStylePreferences;
-            Assert.True(isNamingStylePreferencesObject, $"Expected returned object to be of type '{nameof(NamingStylePreferences)}'");
-            Assert.Equal($"{firstNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].NamingStyle.Name);
-            Assert.Equal($"{secondNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[1].NamingStyle.Name);
+            var namingStylePreferences = Assert.IsAssignableFrom<NamingStylePreferences>(combinedNamingStyles);
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
         }
 
         [Theory]
@@ -158,6 +159,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
+        [InlineData("a", "A", "A", "*", "*")]
+        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedBySymbolsBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstSymbols, string secondSymbols)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
@@ -182,10 +185,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
 
             var secondNameAfterOrdering = firstNameAfterOrdering == firstName ? secondName : firstName;
             Assert.True(result, "Expected non-empty dictionary to return true");
-            var isNamingStylePreferencesObject = combinedNamingStyles is NamingStylePreferences;
-            Assert.True(isNamingStylePreferencesObject, $"Expected returned object to be of type '{nameof(NamingStylePreferences)}'");
-            Assert.Equal($"{firstNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[0].NamingStyle.Name);
-            Assert.Equal($"{secondNameAfterOrdering}_style", ((NamingStylePreferences)combinedNamingStyles).Rules.NamingRules[1].NamingStyle.Name);
+            var namingStylePreferences = Assert.IsAssignableFrom<NamingStylePreferences>(combinedNamingStyles);
+            Assert.Equal($"{firstNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[0].NamingStyle.Name);
+            Assert.Equal($"{secondNameAfterOrdering}_style", namingStylePreferences.Rules.NamingRules[1].NamingStyle.Name);
         }
 
         [Fact]
