@@ -920,7 +920,7 @@ hasRelatedInterfaces:
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            substitution.SubstituteTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
+            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), constraintTypes,
                                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt);
 
             bool hasError = false;
@@ -933,7 +933,7 @@ hasRelatedInterfaces:
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
                             (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsNonNullableValueType() &&
-                             TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
+                             TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out _) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
                             nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -1228,6 +1228,70 @@ hasRelatedInterfaces:
                 effectiveBase.IsErrorType() ||
                 conversions.HasIdentityOrImplicitReferenceConversion(deducedBase, effectiveBase, ref useSiteDiagnostics) ||
                 conversions.HasBoxingConversion(deducedBase, effectiveBase, ref useSiteDiagnostics));
+        }
+
+        internal static TypeWithAnnotations ConstraintWithMostSignificantNullability(TypeWithAnnotations type1, TypeWithAnnotations type2)
+        {
+            switch (type2.NullableAnnotation)
+            {
+                case NullableAnnotation.Annotated:
+                    return type1;
+                case NullableAnnotation.NotAnnotated:
+                    return type2;
+                case NullableAnnotation.Oblivious:
+                    if (type1.NullableAnnotation.IsNotAnnotated())
+                    {
+                        return type1;
+                    }
+
+                    return type2;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type2.NullableAnnotation);
+            }
+        }
+
+        internal static bool IsObjectConstraint(TypeWithAnnotations type, ref TypeWithAnnotations bestObjectConstraint)
+        {
+            if (type.SpecialType == SpecialType.System_Object)
+            {
+                switch (type.NullableAnnotation)
+                {
+                    case NullableAnnotation.Annotated:
+                        break;
+                    default:
+                        if (!bestObjectConstraint.HasType)
+                        {
+                            bestObjectConstraint = type;
+                        }
+                        else
+                        {
+                            bestObjectConstraint = ConstraintWithMostSignificantNullability(bestObjectConstraint, type);
+                        }
+                        break;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsObjectConstraintSignificant(bool? isNotNullable, TypeWithAnnotations objectConstraint)
+        {
+            switch (isNotNullable)
+            {
+                case true:
+                    return false;
+                case null:
+                    if (objectConstraint.NullableAnnotation.IsOblivious())
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+
+            return true;
         }
     }
 }

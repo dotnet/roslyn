@@ -411,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-                case ErrorCode.WRN_SpecialTypeAsBound:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                     return 1;
                 default:
