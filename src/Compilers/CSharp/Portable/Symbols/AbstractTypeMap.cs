@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
-        internal void SubstituteTypesDistinctWithoutModifiers(
+        internal void SubstituteConstraintTypesDistinctWithoutModifiers(
             ImmutableArray<TypeWithAnnotations> original,
             ArrayBuilder<TypeWithAnnotations> result,
             HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
@@ -346,20 +346,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var set = new HashSet<TypeSymbol>();
+                var map = PooledDictionary<TypeSymbol, int>.GetInstance();
                 foreach (var type in original)
                 {
                     if (ignoreTypesDependentOnTypeParametersOpt == null ||
                         !type.Type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
                         var substituted = SubstituteType(type);
-                        // TODO: Do we need to merge annotations?
-                        if (set.Add(substituted.Type))
+
+                        if (!map.TryGetValue(substituted.Type, out int mergeWith))
                         {
+                            map.Add(substituted.Type, result.Count);
                             result.Add(substituted);
+                        }
+                        else
+                        {
+                            result[mergeWith] = ConstraintsHelper.ConstraintWithMostSignificantNullability(result[mergeWith], substituted);
                         }
                     }
                 }
+
+                map.Free();
             }
         }
 
