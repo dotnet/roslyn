@@ -423,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
+            ImmutableArray<IParameterSymbol>? parameters = default,
             ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null)
         {
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 explicitInterfaceImplementations,
                 name ?? method.Name,
                 method.TypeParameters,
-                method.Parameters,
+                parameters ?? method.Parameters,
                 statements,
                 returnTypeAttributes: method.GetReturnTypeAttributes());
         }
@@ -444,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
             ImmutableArray<AttributeData> attributes = default,
+            ImmutableArray<IParameterSymbol>? parameters = default,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
@@ -460,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 property.RefKind,
                 explicitInterfaceImplementations,
                 name ?? property.Name,
-                property.Parameters,
+                parameters ?? property.Parameters,
                 getMethod,
                 setMethod,
                 isIndexer ?? property.IsIndexer);
