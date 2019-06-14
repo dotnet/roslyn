@@ -15,14 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExplicitAttribute_FromSource()
         {
-            var source1 =
-@"namespace System.Runtime.CompilerServices
-{
-    public sealed class NullablePublicOnlyAttribute : Attribute
-    {
-    }
-}";
-            var source2 =
+            var source =
 @"public class A<T>
 {
 }
@@ -32,41 +25,34 @@ public class B : A<object?>
             var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
-            var comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions);
+            var comp = CreateCompilation(new[] { NullablePublicOnlyAttributeDefinition, source }, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(new[] { source1, source2 }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(new[] { NullablePublicOnlyAttributeDefinition, source }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
             CompileAndVerify(comp, symbolValidator: AssertNullablePublicOnlyAttribute);
         }
 
         [Fact]
         public void ExplicitAttribute_FromMetadata()
         {
-            var source1 =
-@"namespace System.Runtime.CompilerServices
-{
-    public sealed class NullablePublicOnlyAttribute : Attribute
-    {
-    }
-}";
-            var source2 =
+            var source =
 @"public class A<T>
 {
 }
 public class B : A<object?>
 {
 }";
-            var comp = CreateCompilation(source1, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(NullablePublicOnlyAttributeDefinition, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
             var ref1 = comp.EmitToImageReference();
 
             var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
 
-            comp = CreateCompilation(source2, references: new[] { ref1 }, options: options, parseOptions: parseOptions);
+            comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions);
             CompileAndVerify(comp, symbolValidator: AssertNoNullablePublicOnlyAttribute);
 
-            comp = CreateCompilation(source2, references: new[] { ref1 }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
+            comp = CreateCompilation(source, references: new[] { ref1 }, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly"));
             CompileAndVerify(comp, symbolValidator: AssertNullablePublicOnlyAttribute);
         }
 

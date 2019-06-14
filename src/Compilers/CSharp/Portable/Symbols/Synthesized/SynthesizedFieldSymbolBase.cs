@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
-            var type = this.TypeWithAnnotations;
+            var typeWithAnnotations = this.TypeWithAnnotations;
+            var type = typeWithAnnotations.Type;
 
             // do not emit CompilerGenerated attributes for fields inside compiler generated types:
             if (!_containingType.IsImplicitlyDeclared)
@@ -53,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.ContainsDynamic() &&
+                type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, type.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, typeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (this.Type.ContainsTupleNames() &&
+            if (type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
@@ -68,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (compilation.ShouldEmitNullableAttributes(this) && type.NeedsNullableAttribute())
+            if (compilation.ShouldEmitNullableAttributes(this) && typeWithAnnotations.NeedsNullableAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, typeWithAnnotations));
             }
         }
 

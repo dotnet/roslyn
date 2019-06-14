@@ -1301,18 +1301,18 @@ public class Program
 }";
             var expectedPublicOnly = @"
 Program
-    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
 ";
             var expectedPublicAndInternal = @"
 Program
-    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
-    [Nullable({ 1, 2 })] D<System.Object?>! InternalEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! InternalEvent
 ";
             var expectedAll = @"
 Program
-    [Nullable({ 1, 2 })] D<System.Object?>! ProtectedEvent
-    [Nullable({ 1, 2 })] D<System.Object?>! InternalEvent
-    [Nullable({ 1, 2 })] D<System.Object?>! PrivateEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! ProtectedEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! InternalEvent
+    [Nullable({ 1, 2 })] event D<System.Object?>! PrivateEvent
 ";
             EmitPrivateMetadata(source, expectedPublicOnly, expectedPublicAndInternal, expectedAll);
         }

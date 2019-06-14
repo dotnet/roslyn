@@ -76,6 +76,7 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(
         AttributeTargets.Module |
         AttributeTargets.Class |
+        AttributeTargets.Delegate |
         AttributeTargets.Interface |
         AttributeTargets.Method |
         AttributeTargets.Struct,
@@ -141,7 +142,7 @@ class Program
 
 To reduce the size of metadata, the C#8 compiler can be configured to not emit attributes
 for members that are inaccessible outside the assembly (`private` members, and also `internal` members
-if the assembly contains any `InternalsVisibleToAttribute` attributes).
+if the assembly does not contain `InternalsVisibleToAttribute` attributes).
 
 The compiler behavior is configured from a command-line flag.
 For now a feature flag is used: `-feature:nullablePublicOnly`.

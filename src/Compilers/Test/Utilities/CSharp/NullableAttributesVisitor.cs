@@ -89,34 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return new string(' ', level * 4);
         }
 
-        private static readonly SymbolDisplayFormat _displayFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                genericsOptions:
-                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
-                    SymbolDisplayGenericsOptions.IncludeVariance |
-                    SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeType |
-                    SymbolDisplayMemberOptions.IncludeRef |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeOptionalBrackets |
-                    SymbolDisplayParameterOptions.IncludeDefaultValue |
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeName,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-                compilerInternalOptions:
-                    SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
-                    SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+        private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormatWithConstraints.
+            WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeParameters |
+                SymbolDisplayMemberOptions.IncludeType |
+                SymbolDisplayMemberOptions.IncludeRef |
+                SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
         private void ReportContainingSymbols(Symbol symbol)
         {
@@ -134,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private void ReportSymbol(Symbol symbol, bool includeAlways = false)
         {
-            var attributes = (symbol.Kind == SymbolKind.Method) ? ((MethodSymbol)symbol).GetReturnTypeAttributes() : symbol.GetAttributes();
+            var attributes = (symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes();
             var nullableAttribute = GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableAttribute");
             if (!includeAlways && nullableAttribute == null)
             {
