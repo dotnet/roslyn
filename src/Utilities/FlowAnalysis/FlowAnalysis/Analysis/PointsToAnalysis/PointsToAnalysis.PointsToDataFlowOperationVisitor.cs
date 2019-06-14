@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => ShouldBeTracked(parameter.Type) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack),
-                        mayBeNull: true) :
+                        mayBeNull: !parameter.IsParams) :
                     PointsToAbstractValue.NoLocation;
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 var value = VisitInvocationCommon(originalOperation, visitedInstance);
 
-                if (IsSpecialFactoryOrEmptyMethod(method) &&
+                if (IsSpecialEmptyOrFactoryMethod(method) &&
                     !TryGetInterproceduralAnalysisResult(originalOperation, out _))
                 {
                     return value.MakeNonNull();
@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return value;
             }
 
-            private static bool IsSpecialFactoryOrEmptyMethod(IMethodSymbol method)
+            private static bool IsSpecialEmptyOrFactoryMethod(IMethodSymbol method)
                 => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
 
             /// <summary>
